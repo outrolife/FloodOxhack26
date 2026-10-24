@@ -44,7 +44,7 @@ Placeholders
 
 Catchment ring (#146)
 ---------------------
-The display-only ``catchment_gauges:`` of ``config/stations.yaml`` (17 upstream gauges within ~35 km on
+The display-only ``catchment_gauges:`` of ``config/stations.yaml`` (16 upstream gauges within ~35 km on
 the Thames, Windrush, Glyme, Evenlode, Cherwell and Ray) are fetched too, after the core gauges and
 rain, so the poll deadline costs them first. They are in ``LEVEL_MEASURES`` (so they reach
 ``live_hourly.parquet``, ``live_meta.json`` and ``Forecast.observed``) and in ``LIVE_ONLY_GAUGES``

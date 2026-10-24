@@ -334,17 +334,5 @@
   "amber": 2.0,
   "threshold": 3.26,
   "record": 2.984
- },
- {
-  "key": "grendon",
-  "name": "Grendon Underwood",
-  "river": "Ray",
-  "role": "live_only",
-  "ref": "1471TH",
-  "lat": 51.884491,
-  "lon": -1.012852,
-  "amber": 0.939,
-  "threshold": 1.6,
-  "record": 1.86
  }
 ]

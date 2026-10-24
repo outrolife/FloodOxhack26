@@ -334,8 +334,63 @@ gauges:
     other_trace: {trace: u/s, fm_measure: 1501TH-level-stage-i-15_min-mASD, datum_maod: 54.617, amber: 0.25, record: 0.937}
     verified: "Thresholds match §4.1. D/s only in flood-monitoring live and the archive (from 2025-10-29)."
 
+# EA tipping-bucket rain gauges (SPEC §4.1). Catchment rain = mean of the available gauges per hour.
+# All have dense 15-min Hydrology history from 2000 or earlier and are live on flood-monitoring. ~10% of
+# daily values are flagged Suspect in Hydrology: drop them.
+rain_gauges:
+  - ref: 256230TP
+    name: Osney Lock
+    lat: 51.749085
+    lon: -1.272057
+    fm_measure: 256230TP-rainfall-tipping_bucket_raingauge-t-15_min-mm
+    hydrology_measure: 5086b349-e04b-4f8e-b8f1-fa92b21078d0_256230TP-rainfall-t-900-mm-qualified
+    earliest: "1986-01-01T09:00:00Z"
+    notes: "Low-coverage years since 2006: 2017 (298 days), 2018 (319)."
+  - ref: 254336TP
+    name: Eynsham
+    lat: 51.774757
+    lon: -1.357157
+    fm_measure: 254336TP-rainfall-tipping_bucket_raingauge-t-15_min-mm
+    hydrology_measure: de8bb5b8-45a5-4282-8028-6268e5af1d30-rainfall-t-900-mm-qualified
+    earliest: "1982-07-30T09:00:00Z"
+    notes: "Low-coverage years since 2006: 2010 (321 days)."
+  - ref: 261021TP
+    name: Abingdon
+    lat: 51.653876
+    lon: -1.288038
+    fm_measure: 261021TP-rainfall-tipping_bucket_raingauge-t-15_min-mm
+    hydrology_measure: fe3efb87-062c-4880-9dc3-7dd8f335a6d1-rainfall-t-900-mm-qualified
+    earliest: "1985-11-23T09:00:00Z"
+    notes: "Full coverage since 2006."
+  - ref: 264254TP
+    name: Benson
+    lat: 51.617635
+    lon: -1.115281
+    fm_measure: 264254TP-rainfall-tipping_bucket_raingauge-t-15_min-mm
+    hydrology_measure: 1ad8ff76-625d-4ff1-82bd-9efcc5d41b2f_264254TP-rainfall-t-900-mm-qualified
+    earliest: "1990-11-01T09:00:00Z"   # 15-min series checked dense from 2000 (none in Feb 1990)
+    notes: "Low-coverage years: 2007 (296 days), 2008, 2009 (269), 2011 (271)."
+  - ref: 263541TP
+    name: Wheatley
+    lat: 51.741752
+    lon: -1.120101
+    fm_measure: 263541TP-rainfall-tipping_bucket_raingauge-t-15_min-mm
+    hydrology_measure: 7eb546a1-8663-4d07-a9cc-e7b5f6e13006-rainfall-t-900-mm-qualified
+    earliest: "1991-03-18T09:15:00Z"   # 15-min series checked dense from 2000
+    notes: "Low-coverage years: 2006 (319 days), 2013 (277)."
+
+# Flow paths (SPEC §4.1, as amended in §4.1.1): upstream gauges for each trained target.
+# The main-channel locks (godstow, osney, iffley) are live only and have no pairs.
+flow_paths:
+  thames:
+    newbotley: [farmoor, eynsham, cassington]
+    minns: [farmoor, eynsham, cassington]
+    coldharbour: [farmoor, eynsham, cassington]
+  cherwell:
+    kingsmill: [enslow, islip]
+
 # Catchment gauges (issue #146): a ring of upstream EA level gauges within ~35 km of Oxford on the
-# Thames, Windrush (+ Glyme on the Evenlode), Evenlode, Cherwell and Ray, shown live on the map so the
+# Thames, Windrush, Glyme, Evenlode, Cherwell and Ray, shown live on the map so the
 # app has real readings further out. Display only: role live_only (the SPEC §9 role), never forecast,
 # not trained, no travel-time pairs. This is a separate section so pipeline.ingest_history, the quality
 # report and the model (which read `gauges:` via pipeline.stations.load_gauges) are unchanged; only
@@ -626,75 +681,3 @@ catchment_gauges:
     distance_km: 15.4          # from Carfax
     api: {typicalRangeLow: 0.297, typicalRangeHigh: 2.0, maxOnRecord: 2.984, datum: 58}
     verified: "2026-10-24: 95 live readings in 24 h (last 2026-10-24T21:30:00Z). #125 A."
-
-  - key: grendon
-    name: Grendon Underwood
-    river: Ray
-    role: live_only
-    ref: 1471TH
-    rloi_id: "7067"
-    lat: 51.884491
-    lon: -1.012852
-    amber: 0.939
-    threshold: 1.6
-    record: 1.86            # 2008-06-03T10:00:00
-    trace: u/s
-    fm_measure: 1471TH-level-stage-i-15_min-mASD
-    distance_km: 22.4          # from Carfax
-    api: {typicalRangeLow: 0.008, typicalRangeHigh: 0.939, maxOnRecord: 1.86, datum: 65.85}
-    verified: "2026-10-24: 95 live readings in 24 h (last 2026-10-24T21:30:00Z)."
-
-# EA tipping-bucket rain gauges (SPEC §4.1). Catchment rain = mean of the available gauges per hour.
-# All have dense 15-min Hydrology history from 2000 or earlier and are live on flood-monitoring. ~10% of
-# daily values are flagged Suspect in Hydrology: drop them.
-rain_gauges:
-  - ref: 256230TP
-    name: Osney Lock
-    lat: 51.749085
-    lon: -1.272057
-    fm_measure: 256230TP-rainfall-tipping_bucket_raingauge-t-15_min-mm
-    hydrology_measure: 5086b349-e04b-4f8e-b8f1-fa92b21078d0_256230TP-rainfall-t-900-mm-qualified
-    earliest: "1986-01-01T09:00:00Z"
-    notes: "Low-coverage years since 2006: 2017 (298 days), 2018 (319)."
-  - ref: 254336TP
-    name: Eynsham
-    lat: 51.774757
-    lon: -1.357157
-    fm_measure: 254336TP-rainfall-tipping_bucket_raingauge-t-15_min-mm
-    hydrology_measure: de8bb5b8-45a5-4282-8028-6268e5af1d30-rainfall-t-900-mm-qualified
-    earliest: "1982-07-30T09:00:00Z"
-    notes: "Low-coverage years since 2006: 2010 (321 days)."
-  - ref: 261021TP
-    name: Abingdon
-    lat: 51.653876
-    lon: -1.288038
-    fm_measure: 261021TP-rainfall-tipping_bucket_raingauge-t-15_min-mm
-    hydrology_measure: fe3efb87-062c-4880-9dc3-7dd8f335a6d1-rainfall-t-900-mm-qualified
-    earliest: "1985-11-23T09:00:00Z"
-    notes: "Full coverage since 2006."
-  - ref: 264254TP
-    name: Benson
-    lat: 51.617635
-    lon: -1.115281
-    fm_measure: 264254TP-rainfall-tipping_bucket_raingauge-t-15_min-mm
-    hydrology_measure: 1ad8ff76-625d-4ff1-82bd-9efcc5d41b2f_264254TP-rainfall-t-900-mm-qualified
-    earliest: "1990-11-01T09:00:00Z"   # 15-min series checked dense from 2000 (none in Feb 1990)
-    notes: "Low-coverage years: 2007 (296 days), 2008, 2009 (269), 2011 (271)."
-  - ref: 263541TP
-    name: Wheatley
-    lat: 51.741752
-    lon: -1.120101
-    fm_measure: 263541TP-rainfall-tipping_bucket_raingauge-t-15_min-mm
-    hydrology_measure: 7eb546a1-8663-4d07-a9cc-e7b5f6e13006-rainfall-t-900-mm-qualified
-    earliest: "1991-03-18T09:15:00Z"   # 15-min series checked dense from 2000
-    notes: "Low-coverage years: 2006 (319 days), 2013 (277)."
-
-# Flow paths (SPEC §4.1, as amended in §4.1.1): upstream gauges for each trained target.
-# The main-channel locks (godstow, osney, iffley) are live only and have no pairs.
-flow_paths:
-  thames:
-    newbotley: [farmoor, eynsham, cassington]
-    minns: [farmoor, eynsham, cassington]
-    coldharbour: [farmoor, eynsham, cassington]
-  cherwell:
-    kingsmill: [enslow, islip]
