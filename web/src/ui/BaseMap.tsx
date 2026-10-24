@@ -4,7 +4,7 @@
 // drawn as Leaflet vector layers. OSM raster tiles are an optional extra when
 // online. Children are overlays (spot clocks, spread heatmap, pins).
 import { type ReactNode, useEffect, useState } from "react";
-import { GeoJSON, MapContainer, TileLayer } from "react-leaflet";
+import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
 import type { FeatureCollection } from "geojson";
 import type { PathOptions } from "leaflet";
 import { loadData } from "../data";
@@ -65,6 +65,43 @@ export function useBaseMap(): Base {
   return base;
 }
 
+/**
+ * Keeps Leaflet's idea of the map size right (#118). Leaflet measures its
+ * container once; if that was 0 × 0 (a collapsed panel, a drawer, a grid that
+ * hadn't laid out yet) it draws nothing. A ResizeObserver calls
+ * invalidateSize() whenever the container changes size, and re-fits the
+ * bounds the first time it gets a real size.
+ */
+function MapSizer({ bounds }: { bounds: [[number, number], [number, number]] }) {
+  const map = useMap();
+  useEffect(() => {
+    const el = map.getContainer();
+    let sized = el.clientWidth > 0 && el.clientHeight > 0;
+    const fix = () => {
+      map.invalidateSize();
+      const now = el.clientWidth > 0 && el.clientHeight > 0;
+      if (now && !sized) map.fitBounds(bounds, { padding: [24, 24] });
+      sized = now;
+    };
+    const t = window.setTimeout(fix, 0); // once after the first layout
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", fix);
+      return () => {
+        window.clearTimeout(t);
+        window.removeEventListener("resize", fix);
+      };
+    }
+    const ro = new ResizeObserver(fix);
+    ro.observe(el);
+    return () => {
+      window.clearTimeout(t);
+      ro.disconnect();
+    };
+    // Bounds are read when the map first gets a real size; later changes don't re-fit.
+  }, [map]);
+  return null;
+}
+
 export function BaseMap({
   bounds = OXFORD_BOUNDS,
   children,
@@ -115,6 +152,7 @@ export function BaseMap({
               />
             ) : null,
           )}
+        <MapSizer bounds={bounds} />
         {children}
       </MapContainer>
       {online && (
@@ -122,7 +160,7 @@ export function BaseMap({
           {tiles ? "Simple map" : "Street map"}
         </button>
       )}
-      {base.status === "none" && !tiles && <div className="ui-basemap-note">Basemap not bundled in this build.</div>}
+      {base.status === "none" && !tiles && <div className="ui-basemap-note">The Oxford basemap could not be loaded (data/geo/oxford-base.geojson).</div>}
     </div>
   );
 }

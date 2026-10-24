@@ -32,6 +32,9 @@ def dist(tmp_path: Path) -> Path:
     (tmp_path / "assets" / "app.js").write_text("console.log('hi')")
     (tmp_path / "data").mkdir()
     (tmp_path / "data" / "stations.json").write_text(json.dumps([{"id": "osney"}]))
+    (tmp_path / "data" / "geo").mkdir()
+    geo = {"type": "FeatureCollection", "features": []}
+    (tmp_path / "data" / "geo" / "oxford-base.geojson").write_text(json.dumps(geo))
     return tmp_path
 
 
@@ -55,6 +58,14 @@ def test_serves_data_json(client: TestClient) -> None:
     assert r.status_code == 200
     assert "json" in r.headers["content-type"]
     assert r.json() == [{"id": "osney"}]
+
+
+def test_serves_geojson_as_json(client: TestClient) -> None:
+    # The offline basemap: the web app only trusts JSON-typed responses (#118).
+    r = client.get("/data/geo/oxford-base.geojson")
+    assert r.status_code == 200
+    assert "json" in r.headers["content-type"]
+    assert r.json()["type"] == "FeatureCollection"
 
 
 def test_spa_fallback_for_page_paths(client: TestClient) -> None:

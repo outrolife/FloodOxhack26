@@ -103,7 +103,10 @@ main.ui-main { flex: 1; max-width: none; margin: 0; padding: var(--ui-gap) 1.2re
 @media (prefers-reduced-motion: reduce) { .spot-clock-ring { transition: none; } }
 
 /* Base map */
-.ui-basemap { position: relative; width: 100%; height: 100%; min-height: 60vh; }
+/* An explicit height (not a percentage of a parent that may have none): Leaflet
+   draws nothing in a 0-high container. Screens that pin the map with
+   position: absolute + inset: 0 override it (the parent then sets the size). */
+.ui-basemap { position: relative; width: 100%; height: 60vh; min-height: 360px; }
 .ui-basemap .leaflet-container { position: absolute; inset: 0; height: 100%; width: 100%; background: #f2efe9; }
 .ui-basemap-toggle {
   position: absolute; z-index: 600; top: 10px; right: 10px; font: inherit; font-size: 0.8rem;

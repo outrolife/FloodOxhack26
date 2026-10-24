@@ -4,7 +4,7 @@
 /* Hero: river strip on the left edge, the map filling the rest. */
 .now-hero { display: grid; grid-template-columns: 250px minmax(0, 1fr); height: 100%; min-height: 64vh; }
 .now-map { position: relative; min-height: 64vh; }
-.now-map .ui-basemap { position: absolute; inset: 0; min-height: 0; }
+.now-map .ui-basemap { position: absolute; inset: 0; height: auto; min-height: 0; }
 @media (max-width: 760px) {
   .now-hero { grid-template-columns: minmax(0, 1fr); }
   .now-map { min-height: 60vh; }

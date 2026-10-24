@@ -48,10 +48,11 @@ async function fetchJson(url: string, timeoutMs = 8000): Promise<unknown> {
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
     const res = await fetch(url, { signal: ctrl.signal, cache: "no-cache" });
-    // Vite's dev server answers unknown paths with index.html (200), so also
-    // check the content type before trusting the body.
+    // Vite's dev server answers unknown paths with index.html (200), so refuse
+    // HTML. Any other type is parsed: servers that don't know .geojson send it as
+    // application/octet-stream or text/plain, and the map must still load (#118).
     const type = res.headers.get("content-type") ?? "";
-    if (!res.ok || !type.includes("json")) throw new Error(`${url}: ${res.status} ${type}`);
+    if (!res.ok || type.includes("html")) throw new Error(`${url}: ${res.status} ${type}`);
     return await res.json();
   } finally {
     clearTimeout(timer);

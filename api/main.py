@@ -21,6 +21,7 @@ Issue #16.
 from __future__ import annotations
 
 import logging
+import mimetypes
 import os
 import threading
 import time
@@ -133,6 +134,12 @@ def live() -> dict[str, Any]:
         return live_cache.get()
     except forecast_live.LiveDataUnavailable as exc:
         raise HTTPException(status_code=503, detail="Live data unavailable") from exc
+
+
+# Python doesn't know .geojson, so Starlette would send the offline basemap
+# (data/geo/oxford-base.geojson) as application/octet-stream and the web app
+# would reject it as "not JSON": no map at all under `make demo` (#118).
+mimetypes.add_type("application/geo+json", ".geojson")
 
 
 class SPAStaticFiles(StaticFiles):
