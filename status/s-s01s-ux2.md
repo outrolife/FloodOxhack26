@@ -1,14 +1,14 @@
 # s-s01s-ux2
 
 - **role**: App
-- **state**: working
+- **state**: reviewing
 - **issue**: #118
-- **task**: One-screen River Clock shell (web/src/clock/)
-- **next**: Flow map + event switch; compose Timeline/Scoreboard/ProofFooter
+- **task**: One-screen shell PR #140 (map fix #136 merged)
+- **next**: Address visual feedback on #140
 - **needs**: 
 - **notes**: 
-- **branch**: app/ux-map-fix
-- **head**: a3392f7 UX: fix the map not rendering (GeoJSON MIME type, explicit map
+- **branch**: app/ux-one-screen
+- **head**: c2e0fcf UX: one-screen River Clock (flow map, event switch, Timeline, 
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T20:23:05Z
+- **updated**: 2026-10-24T20:35:59Z
