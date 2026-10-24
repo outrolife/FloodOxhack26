@@ -16,8 +16,8 @@ Code freeze **Sun 25 Oct 11:00**. Hacking ends 12:00. Prefer finishing a P0 item
 If you need a change in someone else's area, ask them (or open an issue) instead of editing it.
 
 ## Contracts
-- The JSON shapes in **SPEC.md §8** are the interface between teams. `web/src/contracts.ts` mirrors them; `tests/fixtures/` holds a valid sample of each file.
-- **Never change a contract silently.** If one must change: update SPEC.md §8, `contracts.ts` and the fixture in the same PR, and tell the team.
+- The JSON shapes in **SPEC.md §9** (and §11 for stretch items) are the interface between teams. `web/src/contracts.ts` mirrors them; `tests/fixtures/` holds a valid sample of each file.
+- **Never change a contract silently.** If one must change: update SPEC.md §9, `contracts.ts` and the fixture in the same PR, and tell the team.
 - The web app must always run offline from `web/public/data/` (or fixtures).
 
 ## Commands
@@ -31,7 +31,7 @@ If you need a change in someone else's area, ask them (or open an issue) instead
 5. Cache API responses in `data/raw/`; poll EA live endpoints at most every 15 minutes.
 6. `data/` and model files are gitignored. Only small JSON goes in `web/public/data/` (< 50 MB total).
 7. Every screen shows the disclaimer: decision-support prototype, not an official warning; link to gov.uk/check-flooding.
-8. Don't add scope from SPEC.md §1 "out of scope" (no flood-spread sim, no sandbags, no second model).
+8. Never build anything in SPEC.md §1.1 "out of scope" (no second forecasting model, no foundation models/LSTMs, no surface-water forecasting). Stretch items S1–S4 (SPEC.md §11) only after the core gate in §13 is met, in order, in `stretch/`; hide anything unfinished by Sun 09:00.
 
 ## Git workflow
 - `main` must always run. Never commit directly to `main`.

@@ -1,0 +1,474 @@
+# River Clock: Specification v3
+
+**Context:** OxHack 2026, Oxford. Hacking ends Sun 25 Oct 12:00; code freeze 11:00. UK clocks go back 02:00→01:00 BST→GMT on Sun 25 Oct. Judging is science-fair style, 4–5 minutes per judge.
+**This document is the source of truth.** If something here proves impossible (e.g. data unavailable), apply the stated fallback; if none is stated, stop and ask a human.
+
+---
+
+## 1. Overview
+
+River Clock forecasts **when, and how likely,** five Oxford flood trouble spots will flood in the next 72 hours, and turns that into timed decisions.
+
+It is built from:
+1. **A finding:** from past Oxford floods, measure how long the flood wave takes to travel from upstream river gauges to Oxford.
+2. **One model:** a LightGBM quantile forecaster that uses those travel times to choose its upstream inputs and outputs the probability of each spot flooding over time.
+3. **One baseline:** probabilistic persistence ("the level stays roughly where it is").
+4. **Proof:** replays of real past floods, skill vs the baseline, calibration, and comparison with official Environment Agency (EA) warnings.
+5. **Decisions:** a cost–loss rule that says when it's worth acting.
+
+Tagline: *"Water upstream is Oxford's future. We read it as a clock."*
+
+### 1.1 Scope
+- **Core (P0–P2):** everything in §3–§10.
+- **Stretch (S1–S4):** §11. Built only after the core gate in §13 is passed, in order, one at a time.
+- **Out of scope (never build):** a second forecasting model or foundation-model comparison; LSTMs; surface-water or groundwater forecasting; any claim to replace official warnings.
+
+---
+
+## 2. Repository layout
+
+```
+river-clock/
+  CLAUDE.md  SPEC.md  README.md  Makefile  pyproject.toml
+  config/
+    stations.yaml   spots.yaml   events.yaml
+  data/                       # gitignored: raw/ interim/ processed/ models/ geo/
+  pipeline/
+    ea_client.py  ingest_history.py  ingest_live.py  ingest_warnings.py
+    clean.py  quality_report.py
+  analysis/
+    travel_times.py
+  model/
+    features.py  train.py  calibrate.py  probability.py  backtest.py  forecast_live.py
+  stretch/                    # S1–S4 only (§11)
+  api/
+    main.py
+  web/                        # React + Vite + TypeScript, Leaflet, Recharts
+    public/data/              # committed JSON the app reads (< 50 MB total)
+    src/contracts.ts  src/views/{River,TimeMachine,Decide,Proof,About}.tsx
+  tests/
+    fixtures/                 # valid sample of every JSON contract (§9)
+```
+
+**Make targets:** `make data` (ingest history + warnings, clean, quality report) · `make travel` · `make train` (train + calibrate) · `make backtest` (writes `web/public/data/*.json`) · `make live` · `make api` · `make web` · `make test`.
+
+**Stack:** Python 3.11 (pandas, numpy, scipy, lightgbm, pyarrow, duckdb, requests, pyyaml, fastapi, uvicorn; stretch: geopandas, rasterio, shapely). React + Vite + TypeScript, Leaflet, Recharts. Working store: Parquet + DuckDB. Optional mirror: Tiger Data (Timescale/Postgres) for hourly and live readings (P2).
+
+---
+
+## 3. Data sources
+
+All Open Government Licence (OGL) unless noted. Store all timestamps in UTC.
+
+| Source | Access | Use |
+|---|---|---|
+| EA Hydrology API | `https://environment.data.gov.uk/hydrology/` (docs `/hydrology/doc/reference`). 15-min level measures end in `level-i-900`; rainfall measures available. Station records cross-reference flood-monitoring `stationReference` / `RLOIid` | Full history: training, travel times, backtests |
+| EA flood-monitoring API | `https://environment.data.gov.uk/flood-monitoring/` (docs `/doc/reference`, `/doc/rainfall`). `/id/stations/{ref}`, `/id/stations/{ref}/readings?since=…&_sorted&_limit=10000`, `/data/readings?latest`. ~4 weeks history; no key; poll ≤ every 15 min | Live mode; station metadata incl. `stageScale` (`typicalRangeHigh`, `highestRecent`, `maxOnRecord`) |
+| Flood-monitoring daily archive | `/flood-monitoring/archive/readings-{YYYY-MM-DD}.csv` (~56 MB/day, all England) | Fallback for gaps in specific event windows only |
+| EA Historic Flood Warnings | data.gov.uk dataset `historic-flood-warnings2` (ZIP; alerts, warnings, severe warnings, 26 Jan 2006 → June 2026) | Comparison with official warnings |
+| Open-Meteo archive | `https://archive-api.open-meteo.com/v1/archive`, hourly `precipitation` (CC BY 4.0; attribute) | Fallback rainfall |
+| OpenStreetMap tiles | Leaflet tile layer (ODbL; attribute) | Base map |
+
+Stretch-only sources are listed in §11.
+
+---
+
+## 4. Configuration
+
+### 4.1 Gauges (`config/stations.yaml`)
+Values from EA public pages. **At ingest, re-read thresholds from API metadata and log mismatches** (quality report). Bracketed refs are GOV.UK page IDs: resolve the API `stationReference` on first run and write it back.
+
+| key | Station | River | Role | Ref | Normal top / amber (m) | Property flooding possible (m) | Record (m) |
+|---|---|---|---|---|---|---|---|
+| farmoor | Farmoor | Thames | upstream | 1100TH | 1.30 | 1.75 | 2.01 (Jul 2007) |
+| eynsham | Eynsham Lock d/s | Thames | upstream | 1201TH | 2.96 | – | 3.65 (Jul 2007) |
+| cassington | Cassington Weir B | Evenlode | upstream | (7054) | 0.77 | – | 1.29 (Jul 2007) |
+| enslow | Enslow Weir A | Cherwell | upstream | (7064) | 1.29 | – (unreliable) | 2.10 (Apr 1998) |
+| islip | Islip | Ray | upstream | (9082) | 7.80 | 8.85 | 9.33 (Apr 1998) |
+| godstow | Godstow Lock d/s | Thames | target | 1302TH | 2.57 | 3.07 | 3.11 (Jul 2007) |
+| osney | Osney Lock d/s | Thames | target (primary) | 1303TH | 3.18 | 3.79 | 3.97 (9 Jan 2014) |
+| iffley | Iffley Lock d/s | Thames | target | (7072) | 2.72 | 3.25 | 3.67 (9 Jan 2014) |
+| kingsmill | Kings Mill u/s | Cherwell | target | 1491TH | 2.40 | 2.60 | 2.79 (27 Nov 2024) |
+| newbotley | New Botley | Bulstake Stream | target | (7075) | 2.01 | 2.76 | 3.14 (Jul 2007) |
+
+Rain gauges (EA): Osney `256230TP`, Eynsham `254336TP`, Abingdon `261021TP`, Benson `264254TP`, Wheatley `263541TP`. Catchment rain = mean of available gauges per hour (log which are used).
+
+Flow paths (for travel times and features):
+- Thames: farmoor, eynsham, cassington → godstow → osney → iffley; newbotley (Bulstake Stream, west Oxford) is fed by the Thames system: treat farmoor, eynsham, cassington, godstow as its upstream gauges.
+- Cherwell: enslow, islip → kingsmill.
+
+### 4.2 Trouble spots (`config/spots.yaml`)
+Coordinates approximate; verify on a map.
+
+| key | Name | EA warning area | Gauge | Threshold (m) | lat, lon |
+|---|---|---|---|---|---|
+| osney | Osney Island / Binsey | 061FWF23BnsyOsny | osney | 3.79 | 51.7505, -1.2725 |
+| botley | Botley Road / New Botley / Hinksey | 061FWF23NwBotley | newbotley | 2.76 | 51.7525, -1.2790 |
+| abingdonrd | Abingdon Road / Grandpont | 061FWF23NwBotley | iffley | 3.25 | 51.7425, -1.2560 |
+| wolvercote | Wolvercote / Port Meadow | 061FWF23Wlvrcote | godstow | 3.07 | 51.7770, -1.2800 |
+| cherwell | Cherwell (Kings Mill) | Cherwell Oxford area (code TBC) | kingsmill | 2.60 | 51.7600, -1.2390 |
+
+Each spot has:
+- `amber` = gauge normal-range top (`typicalRangeHigh`).
+- `mode: probability | timing_only`. Use `timing_only` if the gauge has < 5 years of usable history, or if no past event supports the threshold (Story lead decides; default `probability`).
+
+### 4.3 Flood events (`config/events.yaml`)
+Windows are approximate (UTC); refine from data.
+
+| id | Name | Window | Notes |
+|---|---|---|---|
+| e2007 | July 2007 | 2007-07-18 → 2007-08-02 | Summer event |
+| e2012 | Nov–Dec 2012 | 2012-11-20 → 2013-01-05 | Cherwell record |
+| e2014 | Jan–Feb 2014 | 2013-12-20 → 2014-02-20 | **Headline replay**; Osney 3.97 m, 9 Jan |
+| e2024a | Jan 2024 (Storm Henk) | 2023-12-28 → 2024-01-15 | Abingdon Road closed ~21:30 5 Jan |
+| e2024b | Nov 2024 (Storm Bert) | 2024-11-20 → 2024-12-05 | Kings Mill record 27 Nov |
+| e2026 | Feb–Mar 2026 | 2026-02-18 → 2026-03-10 | Osney peaked 3.41 m (below 3.79): false-alarm test |
+
+Additional events are auto-detected (§6.1) and added to the backtest set.
+
+---
+
+## 5. Data pipeline
+
+### 5.1 Ingest (`pipeline/`)
+- `ea_client.py`: thin, cached wrappers (responses saved under `data/raw/`; never re-download if cached). Retries with backoff; respect the 15-minute polling guidance for live endpoints.
+- `ingest_history.py`: for each gauge and rain gauge, download all available 15-min data from the Hydrology API (2006 → now). **Fallback:** if a gauge is missing from the Hydrology API, use daily archive CSVs for the event windows only.
+- `ingest_warnings.py`: download Historic Flood Warnings; keep Oxford-related codes (061FWF23BnsyOsny, 061FWF23NwBotley, 061FWF23Wlvrcote, 061WAF23Oxford, Cherwell area); output `(area_code, type, issued_at, precision: time|date)`.
+- `ingest_live.py`: last 28 days of readings for all gauges + rain gauges from flood-monitoring; record `observed_at` and `received_at`.
+
+### 5.2 Cleaning (`pipeline/clean.py`)
+1. Normalise to `(gauge, ts_utc, value, quality, source)`. Drop values EA flags as suspect/rejected. Deduplicate on (gauge, ts).
+2. Resample to hourly: `level_mean`, `level_max`; rain → hourly sum.
+3. Forward-fill gaps ≤ 2 h; longer gaps stay NaN and are flagged.
+4. Spikes: hour-to-hour jump > 0.5 m that reverses within 3 h → NaN and count. Persistent level shifts (possible datum change) → logged for human review, not auto-corrected.
+5. Write `data/processed/hourly.parquet` (long format) and `data/processed/provenance.parquet` (`source_url, licence, downloaded_at, n_rows, first_ts, last_ts`).
+
+### 5.3 Quality report (`pipeline/quality_report.py`)
+Writes `web/public/data/quality.json` (§9): per-gauge coverage %, gaps filled/flagged, spikes removed, threshold from API vs config, notes; list of sources with licence and download time.
+
+### 5.4 Rules
+- Lock gauges have upstream/downstream qualifiers: use the measure listed in §4.1.
+- **Never compare stage values across gauges**; each has its own local datum.
+- Use **level**, not flow (EA reports unreliable high-flow ratings at Farmoor, Enslow, Cassington, Islip).
+
+---
+
+## 6. Travel-time analysis (`analysis/travel_times.py`)
+
+### 6.1 Event detection
+For each target gauge: an event is a contiguous period where `level_max` > amber, merged if separated by < 7 days; keep if peak > amber + 0.1 m. Analysis window: 7 days before start to 3 days after end. Union with `events.yaml`.
+
+### 6.2 Matching per gauge pair
+Pairs: every upstream gauge → each target on its flow path (§4.1), plus godstow → osney → iffley.
+For each event and pair:
+1. Smooth hourly `level_mean` with a centred 3 h rolling mean (analysis only, never used as a model input).
+2. **Peak time:** argmax in the window. Require one dominant peak: any second peak (via `scipy.signal.find_peaks`) must have prominence < 50% of the main one; otherwise mark the event `ambiguous` with a reason.
+3. **Half-rise time:** first time level ≥ baseline + 0.5 × (peak − baseline); baseline = median level over the 72 h before the rise begins.
+4. `T_peak = t_peak_down − t_peak_up`; `T_half = t_half_down − t_half_up`. Keep if 0 < T < 168 h.
+5. Record upstream rise magnitude (peak − baseline, metres at the upstream gauge) and rise rate.
+
+### 6.3 Outputs
+- `web/public/data/travel_times.json` (§9): per pair p10 / median / p90 of `T_half` and `T_peak`, event count, per-event values, exclusions with reasons.
+- Lagged cross-correlation of hourly level *changes* (lags 0–120 h) per pair over all Oct–Mar periods.
+- Per pair: linear fit of `T_half` against upstream rise magnitude (slope in hours per metre; report n even if weak).
+- `data/processed/lags.json`: per pair, `lag_lo = round(p10 T_half)`, `lag_main = round(median)`, `lag_hi = round(p90)` hours. Pairs with < 3 valid events fall back to the cross-correlation peak lag (`lag_main`) and ±6 h.
+
+---
+
+## 7. Model
+
+### 7.1 Frame
+One hourly frame per target gauge with ≥ 5 years usable history. Lead times h ∈ {6, 12, 24, 36, 48, 72}. Target: `y = level_mean(t + h) − level_mean(t)`.
+
+### 7.2 Features (`model/features.py`): all known at time t
+- Target gauge: `level_now`; changes over 1, 3, 6, 24 h; 21-day mean level.
+- Each upstream gauge on the flow path: anomaly (level minus that gauge's own long-term median) at lags {0, 6, 12, 24, lag_lo, lag_main, lag_hi} h (deduplicated); changes over 3 h and 24 h.
+- Catchment rain: sums over the last 6, 24, 72, 168 h and 21 days.
+- Season: sin and cos of day of year.
+- Missing values remain NaN.
+- Windows are capped at 21 days so live mode works with ~4 weeks of live data.
+- **No future information.** Test: perturbing data after time t must not change any feature at time t.
+
+### 7.3 Training (`model/train.py`)
+- One LightGBM model per (target gauge, h, α), α ∈ {0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95}, `objective="quantile"`, `alpha=α`.
+- Params: `num_leaves=31, learning_rate=0.05, n_estimators=2000, early_stopping_rounds=100, min_data_in_leaf=50, feature_fraction=0.8, bagging_fraction=0.8, bagging_freq=1, seed=42`.
+- Sample weights: 5 where `level_now` > amber − 0.3 m, else 1.
+- Splits: train ≤ 2018-09-30; validation 2018-10-01 → 2021-09-30; test ≥ 2021-10-01. If history starts later than 2007, shift splits to keep ~60/20/20 by winter seasons.
+- Sort predicted quantiles per row (no crossing).
+- Save models to `data/models/`; feature importance (gain) to `web/public/data/importance.json`.
+
+### 7.4 Calibration (`model/calibrate.py`)
+Conformalised quantile regression per (gauge, h), using validation rows inside detected events:
+- For each interval pair (0.05, 0.95), (0.10, 0.90), (0.25, 0.75) with nominal miscoverage a: scores `E = max(q_lo − y, y − q_hi)`; `Q` = the ⌈(1 − a)(n + 1)⌉-th smallest E. Lower bound −= Q, upper bound += Q (Q may be negative). Median unchanged. Re-sort.
+
+### 7.5 Probability and timing (`model/probability.py`)
+For a forecast issued at t for gauge g:
+1. Level quantiles per h: `level_now + q_α(h)`.
+2. CDF by linear interpolation between quantiles; beyond α = 0.05 / 0.95 extrapolate linearly using the 0.05–0.25 and 0.75–0.95 slopes; clip to [0, 1].
+3. `pFlood_h = 1 − F_h(threshold)`, `pAmber_h = 1 − F_h(amber)`.
+4. Enforce non-decreasing in h: `p_h = max(p_h, p_{h−1})`.
+5. **Arrival window:** first times at which p reaches 0.1, 0.5, 0.9, linearly interpolated between leads; `null` if not reached by 72 h.
+6. `timing_only` spots: no flood probability; report time for the median forecast to reach amber, and, if an upstream rise is currently observed, the travel-time window (`t_upstream_half + T_half p10/median/p90`).
+
+### 7.6 Baseline: probabilistic persistence
+`level(t + h) = level(t) + ε`, with ε quantiles = empirical α-quantiles of `level(t + h) − level(t)` over training rows with the same weighting rule. Used for all skill scores.
+
+---
+
+## 8. Evaluation (`model/backtest.py`)
+
+### 8.1 Replays (Time Machine)
+For every backtest event:
+- **Leave-one-flood-out:** retrain all models excluding the event window ± 7 days; recalibrate on remaining validation events.
+- Issue a forecast every hour across the event window; compute probabilities and arrival windows for all spots.
+- Write `web/public/data/replays/{eventId}.json` (§9). Observed data after each forecast's issue time must not influence that forecast (test).
+- The About screen states that leave-one-flood-out training can include floods after the replayed one, and that strict time-split test results are reported separately.
+
+### 8.2 Metrics → `web/public/data/proof.json`
+Computed on the test period and across replay events.
+- **Pinball loss** (mean over α) per h, model and persistence; **skill** = 1 − model / persistence.
+- **Interval coverage** for 50/80/90% intervals per h.
+- **Threshold exceedance:** Brier score and 10-bin reliability per spot and h; Brier skill vs persistence.
+- **Event outcomes** per spot for trigger p* ∈ {0.1, …, 0.9}:
+  - hit: trigger fired before the actual crossing (within 72 h before); lead = crossing time − first trigger time;
+  - miss: crossing with no prior trigger;
+  - false alarm: trigger episode (episodes ≥ 24 h apart) with no crossing within 72 h.
+- **Arrival timing error:** predicted 50% time − actual crossing time, for forecasts issued 24 h and 48 h before the crossing.
+- **Versus official warnings:** for each event and spot, first EA Flood Warning (and Flood Alert) issue time in the spot's area; lead gained = official issue time − our first trigger time, per p*. Fallback if dates only: compare in days, set `precision: "date"`, and say so in the UI.
+- **Uncertainty:** bootstrap over events (1,000 resamples), 90% intervals for event-level numbers.
+
+---
+
+## 9. JSON contracts
+
+All files under `web/public/data/`. Times are ISO 8601 UTC. Levels in metres (each gauge's own datum). Probabilities 0–1. `web/src/contracts.ts` mirrors these exactly; `tests/fixtures/` holds a valid sample of each.
+
+```ts
+// stations.json
+type Station = { key: string; name: string; river: string; role: "upstream" | "target";
+  ref: string; lat: number; lon: number; amber: number; threshold: number | null; record: number | null; };
+
+// spots.json
+type Spot = { key: string; name: string; gauge: string; threshold: number; amber: number;
+  lat: number; lon: number; warningArea: string; mode: "probability" | "timing_only"; };
+
+// events.json
+type EventMeta = { id: string; name: string; start: string; end: string;
+  peak: Record<string /*gauge*/, number>; headline: boolean; };
+
+// travel_times.json
+type TravelPair = { up: string; down: string; n: number;
+  tHalf: { p10: number; median: number; p90: number };
+  tPeak: { p10: number; median: number; p90: number };
+  events: { eventId: string; tHalf: number | null; tPeak: number | null; rise: number; excluded?: string }[];
+  xcorr: { lagH: number; r: number }[];
+  slopeHoursPerMetre: number | null; };
+
+// Forecast (live.json and inside replays)
+type QuantKey = "05" | "10" | "25" | "50" | "75" | "90" | "95";
+type SpotForecast = { spot: string; levelNow: number;
+  leads: { h: number; q: Record<QuantKey, number>; pFlood: number | null; pAmber: number }[];
+  arrival: { p10: string | null; p50: string | null; p90: string | null } | null;
+  mode: "probability" | "timing_only"; };
+type Forecast = { issuedAt: string; dataAsOf: Record<string /*gauge*/, string>;
+  stale: string[]; spots: SpotForecast[]; };
+
+// replays/{eventId}.json
+type Replay = { eventId: string; name: string; start: string; end: string;
+  observed: Record<string /*gauge*/, { t: string; level: number }[]>;   // hourly
+  forecasts: Forecast[];                                                // one per hour
+  official: { spot: string; type: "alert" | "warning" | "severe"; issuedAt: string; precision: "time" | "date" }[];
+  crossings: { spot: string; t: string }[]; };
+
+// proof.json
+type Proof = {
+  skillByLead: { h: number; pinballModel: number; pinballPersistence: number; skill: number }[];
+  coverage: { h: number; nominal: number; actual: number }[];
+  reliability: Record<string /*spot*/, { h: number; bins: { pPred: number; pObs: number; n: number }[];
+      brier: number; brierPersistence: number }[]>;
+  tradeoff: Record<string /*spot*/, { pStar: number; hits: number; misses: number; falseAlarms: number;
+      meanLeadH: number | null; meanLeadVsOfficialH: number | null; ci90?: [number, number] }[]>;
+  perEvent: { eventId: string; spot: string; crossed: boolean; peakObs: number;
+      arrivalErrH: number | null; leadVsOfficialH: number | null }[];
+  testPeriodNote: string; };
+
+// quality.json
+type Quality = {
+  gauges: { key: string; coveragePct: number; gapsFilled: number; gapsFlagged: number; spikesRemoved: number;
+    thresholdApi: number | null; thresholdConfig: number | null; notes: string[] }[];
+  sources: { name: string; url: string; licence: string; downloadedAt: string; rows: number }[]; };
+
+// importance.json
+type Importance = Record<string /*gauge*/, { h: number; features: { name: string; gain: number }[] }[]>;
+```
+
+Stretch contracts are in §11.
+
+---
+
+## 10. Application
+
+### 10.1 API (`api/main.py`, FastAPI)
+- `GET /api/live` → `Forecast` for now (from `forecast_live.py`, cached ≤ 15 min). A gauge whose latest reading is > 3 h old is listed in `stale`; spots depending on it get `leads: []`.
+- All other data is static JSON. **The app must run fully offline** from `web/public/data/`; live mode degrades to "Live data unavailable".
+
+### 10.2 Web app (React + Vite + TS)
+Tabs: **River · Time Machine · Decide · Proof · About.** Every tab shows a banner: "Decision-support prototype, not an official warning. Check gov.uk/check-flooding." Times displayed in Europe/London with the zone shown.
+
+**River (live)**
+- Map (Leaflet, OSM tiles with attribution): 5 spot markers coloured by `pFlood` at 24 h (green < 0.1, amber 0.1–0.5, red ≥ 0.5; grey if `timing_only` or stale).
+- Spot panel on click: 7-day level sparkline; probability bars for 6–72 h; arrival window sentence ("50% chance by Tue 18:00"); last observation time; link to the official EA page for its warning area.
+- River strip: vertical chain of gauges (Thames and Cherwell branches) with 7-day sparklines; each link labelled with median `T_half` ("≈ 18 h").
+
+**Time Machine**
+- Event picker (default e2014); slider over hourly forecast times; play/pause (one simulated 12 h per 2 s). All replay data preloaded; no loading between steps.
+- Main chart for the selected spot's gauge: observed level up to the slider (solid); observed future shown faintly only once the slider has passed it; forecast fan (5–95%, 25–75%, median) from the slider time; threshold and amber lines.
+- Side panel: probability bars, arrival window, and the river strip showing upstream gauge levels at the slider time.
+- Timeline markers: first time River Clock reached ≥ 50% for this spot, and the official warning issue time, with the difference in hours.
+
+**Decide**
+- Presets: Resident (move car: C = £20, L = £2,000), Commuter (reroute: C = £5, L = £100), Council (close road / barriers: C = £5,000, L = £100,000); sliders for C and L.
+- Optimal trigger p* = C / L. From `proof.tradeoff` (interpolated): hits, misses, false alarms, mean lead time; **expected cost over the backtest** for River Clock at p*, official warnings, never act, always act (bar chart). Cost per event: hit or false alarm costs C; miss costs L.
+- Advice for the selected live spot: "At your costs, act when P ≥ X%. Now: Y% → act / don't act yet."
+
+**Proof**
+- Skill vs persistence by lead time; interval coverage; reliability diagram (spot selector); lead-time vs false-alarm trade-off curve (with official-warning reference); per-event table; travel-time finding (T_half vs rise magnitude per pair, cross-correlation curve); top-10 feature importance; data-quality and sources table.
+
+**About**
+- How it works in five steps; limitations (few floods, leave-one-flood-out caveat, thresholds, no future rainfall in the model, Botley Road rail-bridge closure Apr 2023 – Sept 2026 means road-closure dates aren't flood evidence); data credits and licences; disclaimer.
+
+---
+
+## 11. Stretch backlog (gated)
+
+**Gate:** start only when the core gate in §13 is met. Build in order S1 → S4, one at a time, each on its own branch. Anything not working end-to-end by **Sun 09:00** is hidden from the UI. Every stretch view carries an "Experimental" label where stated.
+
+### S1. Official flood-risk map layer
+- **Data:** EA Risk of Flooding from Rivers and Sea (RoFRS) and Risk of Flooding from Surface Water (RoFSW), plus Recorded Flood Outlines (OGL). Use EA-provided map services (WMS) if available; otherwise download, clip to the Oxford bbox (approx. 51.70–51.80 N, −1.33 to −1.20 E), simplify, and save as GeoJSON in `web/public/data/geo/`.
+- **UI (River tab):** toggles "Official river risk", "Official surface-water risk", "Recorded flood outlines". Legend text: "Annual chance from EA long-term risk maps. Not a forecast."
+- **Contract:** `geo/risk_layers.json`: `{ layers: { id: string; name: string; type: "wms" | "geojson"; url: string; attribution: string; legend: { label: string; colour: string }[] }[] }`.
+
+### S2. Ensemble rainfall context
+- **Data:** Open-Meteo ensemble API (`https://ensemble-api.open-meteo.com/v1/ensemble`, ECMWF IFS 51 members; CC BY 4.0) for 3 catchment points (Eynsham, Enslow, Oxford). Not a model input.
+- **UI (River tab):** "Rain in the next 72 h" fan (10/50/90% of member cumulative totals, catchment mean) with the note "Context only: our forecast does not yet use future rain."
+- **Contract:** `ensemble_rain.json`: `{ issuedAt: string; points: string[]; hours: number[]; cumMm: { p10: number[]; p50: number[]; p90: number[] } }`.
+
+### S3. Experimental flood-spread ensemble (Osney/Botley subarea only)
+- **Purpose:** show *where* water could spread as the forecast level rises, with uncertainty.
+- **Prerequisite (blocking):** the osney (or newbotley) gauge's stage datum in metres above Ordnance Datum (mAOD), taken from EA station metadata. If it can't be verified, **do not build S3**.
+- **Data:** EA 1 m LiDAR DTM tiles covering the subarea (bbox approx. 51.745–51.758 N, −1.290 to −1.265 E); resample to 5 m; British National Grid (EPSG:27700). River cells from OS Open Rivers or EA Main River Map.
+- **Method (offline, per forecast time τ ∈ {6, 12, 24, 36, 48, 72} h):**
+  1. N = 200 runs. Sample a gauge level from that forecast's distribution at τ (inverse-CDF from §7.5); convert to water-surface elevation (WSE, mAOD) with the gauge datum.
+  2. Perturb the DTM per run with spatially smoothed noise (σ = 0.15 m, Gaussian filter radius 25 m) to represent LiDAR error.
+  3. Wet cells = cells with DTM < WSE that are connected (4-connectivity, `scipy.ndimage.label`) to river cells. Depth = WSE − DTM.
+  4. Per cell: **ensemble frequency** = fraction of runs wet; median depth among wet runs; earliest τ at which frequency ≥ 0.5.
+- **Validation:** for e2014 at its peak, compare the frequency ≥ 0.5 extent against the Recorded Flood Outline (intersection over union); show the number on screen.
+- **Limitations shown in UI:** "Experimental. A simple terrain fill: ignores channel flow, walls, drains, pumps and defences. Ensemble frequency, not a verified flood probability."
+- **Outputs:** PNG overlays per τ (transparent, colour by frequency) for the e2014 replay and for live mode, plus `spread/{eventId|live}/manifest.json`: `{ bounds: [[latS, lonW], [latN, lonE]]; runs: number; frames: { tau: number; issuedAt: string; png: string }[]; validation: { eventId: string; iou: number } | null; caveats: string[] }`.
+- **UI:** toggle on the River and Time Machine maps, synced to the selected lead time.
+
+### S4. Sandbag screening (depends on S3)
+- **Purpose:** suggest where limited sandbags are worth *inspecting* first. Never instructions.
+- **Data:** OpenStreetMap building footprints for the subarea (ODbL; attribute); S3 outputs.
+- **Method:**
+  1. Candidates: buildings whose footprint edge touches cells with frequency ≥ 0.2 at any τ ≤ 48 h.
+  2. Hard exclusions: median depth at the building > 0.5 m (sandbags are practical only to about 0.3 m, at most ~0.5 m in ideal conditions, per UK flood defence guidance); first-wet time earlier than now + deployment time (default 3 h); flagged as an existing defence location.
+  3. Exposed length = footprint perimeter touching wet cells (m). Bags needed = exposed length × `bags_per_metre` (config, default 10; marked as an assumption).
+  4. Screening score = P(wet by 48 h) × (1 if median depth ≤ 0.3 m else 0.5).
+  5. Select greedily by score ÷ bags until the bag budget (UI slider, default 500) is used; output the top 5.
+- **Output contract:** `sandbags.json`: `{ issuedAt: string; budget: number; candidates: { id: string; lat: number; lon: number; score: number; pWet48: number; medianDepthM: number; firstWet: string | null; bags: number; reasons: string[]; checks: string[] }[]; excluded: { id: string; reason: string }[] }`.
+- **UI:** "Inspection candidates" list with reasons and the checks a human must make (door/sill height, access, permission, risk of diverting water to neighbours). Label: "Screening score, not modelled damage reduction."
+
+---
+
+## 12. Team ownership and first steps
+
+| Role | Owns | First 2 hours |
+|---|---|---|
+| Data | `pipeline/`, `config/stations.yaml` | §14 checklist; resolve station refs; ingest osney + upstream history |
+| Model | `analysis/`, `model/` | `travel_times.py` and `features.py` against fixtures; leakage test |
+| App | `web/`, `api/` | Scaffold app; `contracts.ts`; all five tabs on fixture data |
+| Story | `config/events.yaml`, `config/spots.yaml`, `README.md` | Verify spot coordinates, event dates, threshold evidence, warning area codes |
+
+Stretch items are owned by whoever is free first, agreed at a team check-in.
+
+---
+
+## 13. Milestones
+
+| Pri | Deliverable | Done when | Target (BST/GMT local) |
+|---|---|---|---|
+| P0 | Clean hourly data: osney + upstream gauges + rain | `hourly.parquet` exists; quality.json renders | Sat 21:00 |
+| P0 | Travel-time finding, Thames chain → osney | `travel_times.json` renders on Proof | Sat 23:00 |
+| P0 | Osney model, all leads, calibrated; e2014 replay | Time Machine plays e2014 | Sun 02:00 |
+| P0 | River (static) + Time Machine on real data, offline | Demo runs from committed JSON | Sun 03:00 |
+| P1 | All 5 spots, all events, full `proof.json`, Proof tab | Metrics render with intervals | Sun 06:00 |
+| P1 | Official-warning comparison and trade-off curve | Markers in Time Machine | Sun 07:00 |
+| P2 | Decide tab | Expected-cost chart works | Sun 08:30 |
+| P2 | Live mode (`/api/live`); Tiger Data mirror; Vultr deploy | Live data shows | Sun 09:30 |
+| **Core gate** | All P0–P2 merged; demo runs end-to-end offline | | |
+| S1–S4 | Stretch backlog (§11), in order | Each works end-to-end | Stop new stretch work 09:00 |
+| — | **Code freeze 11:00**; submission by 12:00 | | |
+
+---
+
+## 14. First-hour verification checklist
+1. `GET /flood-monitoring/id/stations/1303TH`: Osney metadata, downstream stage measure, `stageScale` thresholds, lat/lon (and datum fields, for S3).
+2. Hydrology API: find all §4.1 gauges; confirm `level-i-900` exists and the earliest date per gauge (target: 2007 or earlier).
+3. Pull osney for Jan 2014: confirm ≈ 3.97 m on 9 Jan 2014.
+4. Historic Flood Warnings: confirm issue times (not just dates) and the Oxford area codes.
+5. Rain gauges 256230TP and 254336TP: confirm history.
+Record results in the team chat and update `config/stations.yaml`.
+
+---
+
+## 15. Acceptance criteria
+1. From a clean clone (with network): `make data travel train backtest` runs end-to-end; the web app runs offline from committed JSON.
+2. Station refs, qualifiers and thresholds verified from API metadata; mismatches listed in quality.json.
+3. Each reported travel-time pair uses ≥ 3 events, or is marked as cross-correlation-only.
+4. Proof shows model vs persistence pinball skill per lead; if the model doesn't beat persistence, the UI says so.
+5. Interval coverage shown against nominal; gaps > 10 percentage points are flagged in the UI.
+6. Tests prove: no future data in features; replay forecasts don't use data after their issue time.
+7. Disclaimer on every tab; About lists every data source actually used, with licence and credit (EA/OGL; OSM/ODbL; Open-Meteo/CC BY if used).
+8. No raw data or model files in git; `web/public/data/` < 50 MB.
+9. Stretch features (if shown) carry their required labels and pass their own validation step.
+
+---
+
+## 16. Engineering rules
+- UTC for storage and computation; Europe/London only in the UI. Include a test with timestamps across 2026-10-25 00:30–02:30 UTC.
+- Never compare stage across gauges; use per-gauge anomalies. Use level, not flow.
+- No future information in features or replays.
+- Cache all downloads in `data/raw/`; scripts idempotent; seeds fixed.
+- Python: type hints, `ruff`. TypeScript: strict mode, function components, no heavy UI framework.
+- Contracts (§9, §11) change only via a PR that updates this spec, `contracts.ts` and fixtures together.
+
+---
+
+## 17. Demo requirements
+The app must support this 4–5 minute walkthrough without network access:
+1. River strip with travel times ("the water is already on its way").
+2. Time Machine on e2014: play, forecast fan narrows, River Clock ≥ 50% marker, then the official-warning marker, then the real peak inside the band.
+3. Decide: switch presets; expected-cost bars update instantly.
+4. Proof: skill vs persistence, reliability diagram, e2026 near-miss outcome.
+5. Live: today's Oxford (or a clear "live data unavailable" state).
+
+---
+
+## 18. References
+- EA flood-monitoring API: https://environment.data.gov.uk/flood-monitoring/doc/reference · rainfall: https://environment.data.gov.uk/flood-monitoring/doc/rainfall
+- EA Hydrology API: https://environment.data.gov.uk/hydrology/doc/reference · https://api.gov.uk/ea/hydrology/
+- Oxford gauges and warning areas: https://check-for-flooding.service.gov.uk/river-and-sea-levels/target-area/061WAF23Oxford
+- Kings Mill station metadata (mirror): https://dsp.agrimetrics.co.uk/flood-monitoring/id/stations/1491TH.html
+- EA Oxford Flood Alleviation Scheme hydrology report (48–72 h response; rating issues): https://consult.environment-agency.gov.uk/thames/ofas-updates/user_uploads/fra-appendix-d-hydrology_report.pdf
+- Historic Flood Warnings: https://www.data.gov.uk/dataset/d4fb2591-f4dd-4e7f-9aaf-49af94437b36/historic-flood-warnings2
+- Recorded Flood Outlines: https://environment.data.gov.uk/dataset/8c75e700-d465-11e4-8b5b-f0def148f590
+- RoFRS: https://environment.data.gov.uk/dataset/96ab4342-82c1-4095-87f1-0082e8d84ef1 · RoFSW: https://environment.data.gov.uk/dataset/b5aaa28d-6eb9-460e-8d6f-43caa71fbe0e
+- LiDAR DTM 1 m: https://www.data.gov.uk/dataset/01b3ee39-da3f-47b6-83da-dc98e73a461f/lidar-composite-dtm-2022-1m
+- Open-Meteo historical weather: https://open-meteo.com/en/docs/historical-weather-api · ensembles: https://open-meteo.com/en/docs/ensemble-api
+- OpenStreetMap Oxfordshire extract: https://download.geofabrik.de/europe/united-kingdom/england/oxfordshire.html
+- Reach routing / travel time from matched hydrograph features (USACE): https://www.hec.usace.army.mil/confluence/hmsdocs/hmsguides/applying-reach-routing-methods-within-hec-hms/applying-the-muskingum-routing-method
+- Flood defence guidance (sandbag limits): https://assets.publishing.service.gov.uk/media/60549b2e8fa8f545dca2c57a/FDG_chapter_9_-_Floodwalls_and_flood_embankments.pdf
+- Boosted quantile models in streamflow forecasting (Water Supply Forecast Rodeo winners): https://blog.drivendata.org/blog/water-supply-forecast-and-final-winners
+- Event evidence: Jan 2024 https://www.highwaysmagazine.co.uk/news/local-road-network/freeze-adds-counties-flooding-woes · Nov 2024 https://www.oxford.gov.uk/news/article/1591/flood-warnings-issued-for-oxford-as-river-levels-continue-to-rise · Feb–Mar 2026 https://www.floodradar.co.uk/flood-event/flood-alert-river-thames-and-tributaries-in-the-oxford-area-2026-02-25
+- Botley Road reopening: https://letstalk.oxfordshire.gov.uk/provider-engagement/news_feed/botley-road-to-reopen-on-20-september
