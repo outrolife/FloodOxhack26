@@ -3,12 +3,12 @@
 - **role**: PM
 - **state**: working
 - **issue**: 
-- **task**: PM: #39 CI red (arrival crossed wire, fix posted); started #19 results pass + demo kit
-- **next**: Merge #39 once green, then #66
+- **task**: PM: merged #39 (ALL P0 DONE) + #71 Windows; #66 proof.json rebuilding
+- **next**: Merge #66, then core-gate check; check-in 19:20 BST
 - **needs**: 
-- **notes**: alfredo: #39 fails test_public_data on arrival; restore p0 anchor (see #39 comment)
+- **notes**: Core 87%, P0 left: 0. Core gate needs #11 (#66), #13, #19, #50, #68
 - **branch**: main
-- **head**: 0a61018 Merge pull request #67 from outrolife/integration/arrival-at-i
+- **head**: 269866e Merge pull request #71 from outrolife/integration/windows-dev
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:28:06Z
+- **updated**: 2026-10-24T17:31:37Z
