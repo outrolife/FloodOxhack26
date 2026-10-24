@@ -3,12 +3,12 @@
 - **role**: Floater
 - **state**: working
 - **issue**: #125
-- **task**: Adopting A (newbotley+minns): alfredo-data (gauges+data-hourly-v2), alfredo-riverwalk (flow_paths river walk, lags, live, verify)
-- **next**: Data PR ~00:15, model PR merge-ready 01:30 GMT for the 02:00 retrain
-- **needs**: s-s01s: merge data/upstream-gauges first, then model/river-walk
+- **task**: Adopting A: data PR #153 ready (data-hourly-v2 published); river-walk model PR in progress
+- **next**: river-walk merge-ready by 01:30 GMT
+- **needs**: s-s01s: merge #153 once python CI green
 - **notes**: #111 S4 and #112 a11y merged
 - **branch**: main
-- **head**: 85e2229 Merge pull request #142 from outrolife/model/warn-at
+- **head**: 728aa2d Merge pull request #150 from outrolife/app/ux-river-walk
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T21:44:32Z
+- **updated**: 2026-10-24T22:06:24Z
