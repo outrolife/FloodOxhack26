@@ -49,14 +49,16 @@ fetch-data:
 travel: setup
 	$(PY) -m analysis.travel_times
 
-# Train + calibrate (SPEC §7.3–7.4)
+# Train + calibrate the four target gauges (SPEC §4.1.1, §7.3–7.4); writes importance.json
+TARGETS := newbotley minns coldharbour kingsmill
 train: setup
-	$(PY) -m model.train
+	$(PY) -m model.train --targets $(TARGETS)
 	$(PY) -m model.calibrate
 
-# Replays + proof metrics; writes web/public/data/*.json (SPEC §8)
+# Leave-one-flood-out replays for every event + proof metrics (SPEC §8): rebuilds
+# web/public/data/replays/*.json and proof.json from the `make train` models (#81)
 backtest: setup
-	$(PY) -m model.backtest
+	$(PY) -m model.proof --rebuild --jobs 4 --targets $(TARGETS)
 
 # Live readings + forecast for now (SPEC §5.1, §10.1)
 live: setup

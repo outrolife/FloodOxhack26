@@ -96,6 +96,35 @@ def test_exceedance_outcome_and_reliability_entry():
     assert sum(b["n"] for b in e["bins"]) == 3
 
 
+def test_max_level_ahead_covers_t_plus_1_to_t_plus_h_only():
+    # Hourly levels 0, 1, ..., 9 at T0 + 0 h ... T0 + 9 h, with hour 5 missing.
+    lv = series({h: float(h) for h in range(10) if h != 5})
+    idx = pd.DatetimeIndex(hrs(0, 3, 4, 8, 9))
+    # (t, t + 2]: t=0 -> max(1, 2); t=3 -> max(4, [5 missing]) = 4; t=4 -> max([5], 6) = 6;
+    # t=8 -> 9 (hour 10 not observed); t=9 -> nothing observed after it.
+    out = m.max_level_ahead(lv, idx, 2)
+    assert out[:4].tolist() == [2.0, 4.0, 6.0, 9.0] and np.isnan(out[4])
+    # The level at t itself never counts (that is level_now).
+    assert m.max_level_ahead(series({0: 5.0, 1: 1.0, 2: 1.0}), pd.DatetimeIndex(hrs(0)), 2)[0] == 1.0
+
+
+def test_reliability_outcome_is_by_t_plus_h_and_skips_already_flooded():
+    """#91: pFlood_h is non-decreasing in h ("over the line by t + h"), so a flood that peaks at
+    t + 6 h and has gone down by t + 72 h is an outcome of 1 at 72 h, not 0. Hours already over the
+    line are left out, as in the event scores."""
+    line = 2.0
+    level_now = np.array([1.5, 2.1, 1.5, 1.5])
+    at_72 = np.array([1.6, 1.0, 1.6, np.nan])  # all back below the line at t + 72 h (last unobserved)
+    peak = np.array([2.5, 2.5, 1.9, 2.5])  # row 0 peaked over the line in between; row 2 never did
+    o = m.exceedance_by_outcome(level_now, at_72, peak, line)
+    assert o[0] == 1.0 and o[2] == 0.0
+    assert np.isnan(o[1]) and np.isnan(o[3])  # already flooded; level at t + h missing
+    # The old "at t + h" outcome scored row 0 as 0: a p of 1 looked like an over-confident miss.
+    assert m.exceedance_outcome(at_72[:1], line)[0] == 0.0
+    e = m.reliability_entry(72, np.array([1.0, 1.0, 0.0, 1.0]), np.array([0.5] * 4), o)
+    assert e["brier"] == 0.0 and sum(b["n"] for b in e["bins"]) == 2
+
+
 # --------------------------------------------------------------------------- triggers, episodes, outcomes
 
 
@@ -170,6 +199,27 @@ def test_official_outcome_uses_same_rules():
     off = {"a": hrs(10), "b": hrs(0)}
     out = m.official_outcome(off, {"a": hrs(30), "b": [], "c": hrs(5)})
     assert out == {"hits": 1, "misses": 1, "falseAlarms": 1, "meanLeadH": 20.0}
+
+
+def test_in_force_times_hold_until_24h_after_last_update():
+    grid = hrs(*range(0, 200))
+    # Fresh warning at 0 h, Update at 89 h, fresh warning at 150 h (no update), event ends at 160 h.
+    t = m.in_force_times([(T0, False), (hrs(89)[0], True), (hrs(150)[0], False)], grid, end=hrs(160)[0])
+    assert t[0] == T0 and hrs(113)[0] in t and hrs(114)[0] not in t  # 89 + 24
+    assert hrs(149)[0] not in t and t[-1] == hrs(160)[0]  # second warning capped at the event end
+    # Only grid times count (hours over the line are not on the grid).
+    assert m.in_force_times([(T0, False)], hrs(5, 30)).tolist() == hrs(5)
+
+
+def test_early_official_warning_in_force_is_a_hit_not_miss_plus_false_alarm():
+    """#92, the e2024b Botley case: Flood Warning 85 h before the crossing, Update just before it."""
+    grid = hrs(*range(0, 120))
+    msgs = [(T0, False), (hrs(84)[0], True)]
+    crossing = {"e": hrs(85)}
+    old = m.official_outcome({"e": [T0]}, crossing)  # the warning as a single issue time
+    assert (old["hits"], old["misses"], old["falseAlarms"]) == (0, 1, 1)
+    new = m.official_outcome({"e": m.in_force_times(msgs, grid)}, crossing)
+    assert new == {"hits": 1, "misses": 0, "falseAlarms": 0, "meanLeadH": 72.0}  # lead capped at 72 h
 
 
 def test_default_p_stars_include_decide_presets():

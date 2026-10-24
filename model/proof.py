@@ -3,6 +3,9 @@
 ``python -m model.proof [--events e2007 ...] [--targets newbotley ...] [--rebuild] [--jobs 4]
                         [--n-estimators 2000]``
 
+``make backtest`` runs ``--rebuild --jobs 4``: on a clean clone, after ``make train``, that regenerates
+every committed replay and ``proof.json`` (#81). ``make train`` writes ``importance.json``.
+
 1. **Main models** (time split: train <= 2018-09-30, validation to 2021-09-30, test >= 2021-10-01) are
    loaded from ``$RC_DATA_DIR/models/<gauge>/`` or trained there (``model.train``).
 2. **Test-period scores** (``skillByLead``, ``coverage``, ``reliability``) use those models on test rows
@@ -11,7 +14,8 @@
 3. **Replays**: one ``Replay`` per event with leave-one-flood-out models (``model.backtest.lofo_models``).
    Shortcut: if the event window +- 7 days lies wholly in the test period, the leave-one-out model is
    the main model (training and calibration never touch test rows), so the main model is reused.
-   An existing ``replays/<event>.json`` is reused unless ``--rebuild``.
+   An existing ``replays/<event>.json`` is reused unless ``--rebuild``. Forecasts are issued hourly,
+   except for the events in ``REPLAY_EVERY_H`` (file size).
 4. **Event scores** (``tradeoff``, ``perEvent``) from the replays with ``model.metrics``; lead vs the
    official EA warnings with ``model.official``.
 
@@ -24,6 +28,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import time
 from collections.abc import Mapping, Sequence
 from concurrent.futures import ProcessPoolExecutor
@@ -33,6 +38,7 @@ import numpy as np
 import pandas as pd
 
 from model import backtest, metrics, official
+from model.calibrate import event_mask
 from model.probability import HORIZONS_H, arrival_window, exceedance
 from model.train import (
     DEFAULT_SPLITS,
@@ -54,16 +60,25 @@ PER_EVENT_P_STAR = 0.5  # perEvent.leadVsOfficialH is a single number; we report
 ARRIVAL_OFFSET_H = 24  # perEvent.arrivalErrH: forecast issued 24 h before the (first) crossing
 # #38 adds Proof.officialOutcome and perEvent.officialIssuedAt. Written only once the contract has them.
 CONTRACTS_TS = WEB_DATA.parent.parent / "src" / "contracts.ts"
+# Hours between replay issue times; 1 (SPEC §8.1) unless listed. e2014 is the 2-month headline event:
+# hourly it would be 6.6 MB, every 2 h it is 3.3 MB, and the Time Machine plays it smoothly (#39).
+REPLAY_EVERY_H: dict[str, int] = {"e2014": 2}
 
 TEST_PERIOD_NOTE = (
-    "Skill, interval coverage and reliability are scored on the strict time-split test period "
-    "(issue times from {test_start}), which no model saw in training or calibration; they pool the "
-    "trained gauges {gauges}. Hits, misses, false alarms, lead times and arrival errors come from the "
-    "event replays: each event is forecast by models retrained without that event (+- 7 days), "
-    "so those models may have learned from floods that happened after the replayed one. Events in the "
-    "test period ({test_events}) use the time-split models directly. Repeat crossings within 72 h "
-    "count as one flood. Arrival error uses the forecast issued 24 h before the first crossing and is "
-    "blank when that forecast did not reach 50%. Few events, so intervals are wide."
+    "Skill, interval coverage and reliability are scored on the strict time-split test period (issue "
+    "times from {test_start}), which no model saw in training or calibration; they pool the trained "
+    "gauges {gauges}. Coverage pools quiet and flood rows; inside flood windows the 90% interval covers"
+    " {flood90} and the 80% interval {flood80} across leads. Reliability and Brier scores ask whether "
+    "the level reached the line at some time in (t, t + h], which is what the flood probability for "
+    "lead h means (it never falls with lead), and leave out hours when the river was already over the "
+    "line, as the event scores do. Hits, misses, false alarms, lead times and arrival errors come from "
+    "the event replays: each event is forecast by models retrained without that event (+- 7 days), so "
+    "those models may have learned from floods that happened after the replayed one. Events in the test"
+    " period ({test_events}) use the time-split models directly. Repeat crossings within 72 h count as "
+    "one flood. An EA Flood Warning counts as in force from its issue time until 24 h after its last "
+    "Update, and is scored on the same hours and rules as our trigger. Lead versus the EA compares "
+    "first messages within the same flood. Arrival error uses the forecast issued 24 h before the first"
+    " crossing and is blank when that forecast did not reach 50%. Few events, so intervals are wide."
 )
 
 
@@ -121,21 +136,30 @@ def _replay_job(args: tuple[str, dict[str, Any], list[str], dict[str, Any], bool
     event_id, event, targets, fit_kwargs, use_main = args
     logging.basicConfig(level=logging.INFO, format=f"%(levelname)s [{event_id}] %(name)s: %(message)s")
     t0 = time.time()
-    # Levels to the mm, as the replay shows them: otherwise a level of 2.4398 m is shown as 2.440 (at the
-    # 2.44 m threshold) while its arrival was computed as "below the line" (SPEC §7.5 step 5). Gauges
-    # read to the mm, so this changes forecasts by < 0.5 mm.
     hourly = load_hourly()
-    hourly["level_mean"] = hourly["level_mean"].round(3)
     lags = load_lags()
+    # Models train on the same (unrounded) levels as ``make train`` and ``model.backtest --train-only``,
+    # so the leave-one-out cache doesn't depend on which command filled it (#81).
     if use_main:
         models = main_models(hourly, targets, lags, **fit_kwargs)
     else:
         models = backtest.lofo_models(hourly, event_id, event, targets, lags, **fit_kwargs)
+    # Forecast from levels to the mm, as the replay shows them: otherwise a level of 2.4398 m is shown
+    # as 2.440 (at the 2.44 m threshold) while its arrival was computed as "below the line" (SPEC §7.5
+    # step 5). Gauges read to the mm, so this changes forecasts by < 0.5 mm.
+    hourly["level_mean"] = hourly["level_mean"].round(3)
     spots = backtest.load_spots()
-    replay = consistent_arrivals(backtest.build_replay(hourly, models, event_id, event, spots), spots)
+    every_h = REPLAY_EVERY_H.get(event_id, 1)
+    replay = consistent_arrivals(
+        backtest.build_replay(hourly, models, event_id, event, spots, every_h=every_h), spots
+    )
     path = backtest.write_json(replay, REPLAY_DIR / f"{event_id}.json")
     log.info("wrote %s (%.1f MB) in %.0f s", path, path.stat().st_size / 1e6, time.time() - t0)
     return str(path)
+
+
+def _set_lgb_threads(threads: str) -> None:
+    os.environ["RC_LGB_THREADS"] = threads
 
 
 def ensure_replays(
@@ -154,7 +178,11 @@ def ensure_replays(
             for eid in todo
         ]
         if jobs > 1:
-            with ProcessPoolExecutor(max_workers=jobs) as ex:
+            # Share the cores between the workers' LightGBM fits (an explicit RC_LGB_THREADS wins).
+            threads = os.environ.get("RC_LGB_THREADS") or str(max(1, (os.cpu_count() or jobs) // jobs))
+            with ProcessPoolExecutor(
+                max_workers=jobs, initializer=_set_lgb_threads, initargs=(threads,)
+            ) as ex:
                 list(ex.map(_replay_job, args))
         else:
             for a in args:
@@ -167,19 +195,26 @@ def ensure_replays(
 
 def test_period_scores(
     hourly: pd.DataFrame, models: Mapping[str, GaugeModel], spots: Sequence[Mapping[str, Any]]
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, list[dict[str, Any]]]]:
-    """``skillByLead``, ``coverage`` and ``reliability`` on the test period (rows the models never saw)."""
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, list[dict[str, Any]]], list[dict[str, Any]]]:
+    """``skillByLead``, ``coverage`` and ``reliability`` on the test period (rows the models never saw).
+
+    The 4th value is interval coverage on the test rows inside flood windows only (the windows the
+    intervals are calibrated on, SPEC §7.4); it is reported in ``testPeriodNote`` (#85).
+    """
     pooled_model: dict[int, list[np.ndarray]] = {h: [] for h in HORIZONS_H}
     pooled_pers: dict[int, list[np.ndarray]] = {h: [] for h in HORIZONS_H}
     pooled_y: dict[int, list[np.ndarray]] = {h: [] for h in HORIZONS_H}
+    flood_rows: list[np.ndarray] = []
     reliability: dict[str, list[dict[str, Any]]] = {}
     for g, m in models.items():
         X, Y = build_xy(hourly, g, m.medians, m.lags, HORIZONS_H)
+        in_flood = event_mask(X["level_now"], m.amber).to_numpy()
         test = X.index >= m.splits.test_start
-        X, Y = X[test], Y[test]
+        X, Y, in_flood = X[test], Y[test], in_flood[test]
         level_now = X["level_now"].to_numpy(dtype=float)
         ok_now = np.isfinite(level_now)
         X, Y, level_now = X[ok_now], Y[ok_now], level_now[ok_now]
+        flood_rows.append(in_flood[ok_now])
         q_model = m.predict(X)
         q_pers = m.persistence(len(X))
         log.info("%s: %d test rows from %s", g, len(X), m.splits.test_start.date())
@@ -187,6 +222,8 @@ def test_period_scores(
             pooled_model[h].append(q_model[h])
             pooled_pers[h].append(q_pers[h])
             pooled_y[h].append(Y[f"y_{h}h"].to_numpy(dtype=float))
+        level = hourly[hourly["gauge"] == g].set_index("ts_utc")["level_mean"]
+        ahead = {h: metrics.max_level_ahead(level, X.index, h) for h in HORIZONS_H}
         for s in spots:
             if s["gauge"] != g or s.get("mode") != "probability" or s.get("threshold") is None:
                 continue
@@ -198,7 +235,9 @@ def test_period_scores(
             pp = exceedance(level_now[:, None, None], qp, thr)
             rows = []
             for i, h in enumerate(HORIZONS_H):
-                o = metrics.exceedance_outcome(level_now + Y[f"y_{h}h"].to_numpy(dtype=float), thr)
+                # "Over the line by t + h", as pFlood_h means; hours already over the line are left out (#91)
+                at_h = level_now + Y[f"y_{h}h"].to_numpy(dtype=float)
+                o = metrics.exceedance_by_outcome(level_now, at_h, ahead[h], thr)
                 rows.append(metrics.reliability_entry(h, pm[:, i], pp[:, i], o))
             reliability[s["key"]] = rows
     cat = {
@@ -207,7 +246,17 @@ def test_period_scores(
     }
     skill = metrics.skill_by_lead(cat["m"], cat["p"], cat["y"])
     coverage = metrics.coverage_by_lead(cat["m"], cat["y"])
-    return skill, coverage, reliability
+    fl = np.concatenate(flood_rows)
+    flood_coverage = metrics.coverage_by_lead(
+        {h: q[fl] for h, q in cat["m"].items()}, {h: y[fl] for h, y in cat["y"].items()}
+    )
+    return skill, coverage, reliability, flood_coverage
+
+
+def coverage_range(rows: Sequence[Mapping[str, Any]], nominal: float) -> str:
+    """'0.86-0.91': lowest to highest actual coverage over leads for one nominal level."""
+    vals = [r["actual"] for r in rows if np.isclose(r["nominal"], nominal) and np.isfinite(r["actual"])]
+    return f"{min(vals):.2f}–{max(vals):.2f}" if vals else "n/a"
 
 
 # --------------------------------------------------------------------------- event scores
@@ -218,12 +267,67 @@ def _crossing_times(replay: Mapping[str, Any], spot: str) -> list[pd.Timestamp]:
     return metrics.flood_onsets(pd.Timestamp(c["t"]) for c in replay["crossings"] if c["spot"] == spot)
 
 
-def _official_times(
-    replay: Mapping[str, Any], spot: str, levels: Sequence[str] = ("warning", "severe")
-) -> list[pd.Timestamp]:
-    return [
-        pd.Timestamp(o["issuedAt"]) for o in replay["official"] if o["spot"] == spot and o["type"] in levels
+OFFICIAL_LEVELS: tuple[str, ...] = ("warning", "severe")
+
+
+def official_messages(
+    warnings: pd.DataFrame | None,
+    replay: Mapping[str, Any],
+    spot: str,
+    codes: Sequence[str],
+    window: tuple[pd.Timestamp, pd.Timestamp],
+) -> list[tuple[pd.Timestamp, bool]]:
+    """``(issued_at, is_update)`` of the EA Flood Warnings (and Severe) for ``spot`` in the event window.
+
+    Updates come from ``warnings.parquet`` (the replay's ``official`` list leaves them out); without it,
+    the replay's messages are used, with no updates.
+    """
+    if warnings is None:
+        return [
+            (pd.Timestamp(o["issuedAt"]), False)
+            for o in replay["official"]
+            if o["spot"] == spot and o["type"] in OFFICIAL_LEVELS
+        ]
+    start, end = window
+    w = warnings[
+        warnings["area_code"].isin(list(codes))
+        & warnings["type"].isin(OFFICIAL_LEVELS)
+        & (warnings["issued_at"] >= start)
+        & (warnings["issued_at"] <= end)
     ]
+    is_update = w["message"].fillna("").str.lower().str.startswith("update")
+    return sorted({(pd.Timestamp(t), bool(u)) for t, u in zip(w["issued_at"], is_update, strict=True)})
+
+
+def official_triggers(
+    messages: Sequence[tuple[pd.Timestamp, bool]],
+    replay: Mapping[str, Any],
+    spot: str,
+    threshold: float,
+    end: pd.Timestamp,
+) -> pd.DatetimeIndex:
+    """Times at which the official warning counts as a trigger (#92).
+
+    The grid is the replay's issue times plus each warning's own issue time (a warning at 20:43 before
+    a 21:00 crossing is a hit, as it was before). As for our trigger, times when the river is already
+    at or above the line (the latest replay ``levelNow`` at or before t) are left out: the flood is
+    here. Unlike ours, hours with stale gauge data still count, because the EA's warning doesn't
+    depend on our data.
+    """
+    level = pd.Series(
+        {
+            pd.Timestamp(fc["issuedAt"]): sf["levelNow"]
+            for fc in replay["forecasts"]
+            for sf in fc["spots"]
+            if sf["spot"] == spot
+        },
+        dtype=float,
+    ).sort_index()
+    fresh = pd.DatetimeIndex([t for t, is_update in messages if not is_update])
+    grid = level.index.union(fresh)
+    now = level.reindex(grid, method="ffill") if len(level) else pd.Series(np.nan, index=grid)
+    below = grid[~(now.to_numpy(dtype=float) >= threshold)]  # unknown level counts as below
+    return metrics.in_force_times(messages, below, end=end)
 
 
 def peak_observed(hourly: pd.DataFrame, gauge: str, event: Mapping[str, Any]) -> float | None:
@@ -256,10 +360,14 @@ def event_scores(
         for s in prob_spots
     }
     windows = {eid: backtest.event_window(events[eid]) for eid in replays}
+    areas = official.spot_areas_from_spots([s for s in spots if s.get("warningArea")])
+    # Flood onsets per event and spot: lead vs official is paired within the first flood (#90, #92).
+    onsets = {(eid, s["key"]): _crossing_times(r, s["key"]) for eid, r in replays.items() for s in prob_spots}
     comparison = None
     if warnings is not None:
-        areas = official.spot_areas_from_spots([s for s in spots if s.get("warningArea")])
-        comparison = official.compare_events(p_series, warnings, windows, metrics.P_STARS, areas)
+        comparison = official.compare_events(
+            p_series, warnings, windows, metrics.P_STARS, areas, onsets=onsets
+        )
 
     tradeoff: dict[str, list[dict[str, Any]]] = {}
     official_outcome: dict[str, dict[str, Any]] = {}
@@ -277,7 +385,17 @@ def event_scores(
 
         tradeoff[key] = metrics.tradeoff_rows(p_by_event, cross_by_event, lead_vs_official=vs_official)
         official_outcome[key] = metrics.official_outcome(
-            {eid: _official_times(r, key) for eid, r in replays.items()}, cross_by_event
+            {
+                eid: official_triggers(
+                    official_messages(warnings, r, key, areas.get(key, ()), windows[eid]),
+                    r,
+                    key,
+                    float(s["threshold"]),
+                    windows[eid][1],
+                )
+                for eid, r in replays.items()
+            },
+            cross_by_event,
         )
         for eid, r in replays.items():
             peak = peak_observed(hourly, s["gauge"], events[eid])
@@ -402,12 +520,14 @@ def main(argv: Sequence[str] | None = None) -> None:
     hourly = load_hourly()
     lags = load_lags()
     models = main_models(hourly, args.targets, lags, **fit_kwargs)
-    skill, coverage, reliability = test_period_scores(hourly, models, spots)
+    skill, coverage, reliability, flood_coverage = test_period_scores(hourly, models, spots)
     log.info("test-period scores done (%.0f s)", time.time() - t0)
     replays = ensure_replays(events, args.targets, args.rebuild, args.jobs, fit_kwargs)
     ev = event_scores(replays, events, spots, hourly, load_warnings())
     test_start = DEFAULT_SPLITS.test_start
     note = TEST_PERIOD_NOTE.format(
+        flood90=coverage_range(flood_coverage, 0.9),
+        flood80=coverage_range(flood_coverage, 0.8),
         test_start=test_start.strftime("%Y-%m-%d"),
         gauges=", ".join(args.targets),
         test_events=", ".join(e for e in events if in_test_period(events[e])) or "none",

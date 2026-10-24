@@ -430,7 +430,9 @@ def test_model_forecast_is_the_backtest_forecast(models_dir: Path, tmp_path: Pat
 
     anchor = pd.Timestamp("2026-10-25T02:00:00Z")  # hour of the latest reading (02:15)
     spot = {"key": "botley", "gauge": "newbotley", "threshold": 2.76, "amber": 2.01, "mode": "probability"}
-    replay = backtest.forecasts_at(train.normalise_hourly(hourly), forecaster.models, [spot], [anchor])
+    # A replay forecast issued at t uses the row labelled t - 1 h (#93), so issue it an hour after the anchor.
+    issued = anchor + pd.Timedelta(hours=1)
+    replay = backtest.forecasts_at(train.normalise_hourly(hourly), forecaster.models, [spot], [issued])
     assert replay[0]["spots"][0]["leads"] == botley["leads"]
 
     # And the quantiles really are the model's: different from persistence.

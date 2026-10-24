@@ -26,9 +26,10 @@ def setup() -> tuple[pd.DataFrame, dict]:
 
 
 def _perturb_after(hourly: pd.DataFrame, t: pd.Timestamp) -> pd.DataFrame:
+    """Scramble every row labelled t or later: the row labelled t holds readings up to t + 45 min (#93)."""
     rng = np.random.default_rng(1)
     out = hourly.copy()
-    fut = out["ts_utc"] > t
+    fut = out["ts_utc"] >= t
     out.loc[fut, "level_mean"] = rng.normal(5, 2, int(fut.sum()))
     out.loc[fut, "rain_mm"] = rng.uniform(0, 50, int(fut.sum()))
     return out
@@ -39,11 +40,42 @@ def test_replay_forecast_uses_no_data_after_issue_time(setup) -> None:
     times = pd.date_range("2013-11-03", periods=6, freq="17h", tz="UTC")
     full = forecasts_at(hourly, models, [SPOT], times)
     for t, f_full in zip(times, full, strict=True):
-        truncated = forecasts_at(hourly[hourly["ts_utc"] <= t], models, [SPOT], [t])[0]
+        truncated = forecasts_at(hourly[hourly["ts_utc"] < t], models, [SPOT], [t])[0]
         perturbed = forecasts_at(_perturb_after(hourly, t), models, [SPOT], [t])[0]
         assert truncated == f_full
         assert perturbed == f_full
         assert f_full["spots"][0]["leads"], "forecast should not be empty"
+
+
+def test_forecast_ignores_readings_in_the_hour_starting_at_issue_time(setup) -> None:
+    """#93 repro: 15-min readings 2.0, 2.0, 2.0, 3.0 from 09:00 make the hourly row labelled 09:00
+    (mean 2.25), so that row contains a reading from 09:45. The forecast issued at 09:00 must not see it;
+    the one issued at 10:00, when the hour is complete, does."""
+    from pipeline.clean import clean_series
+
+    hourly, models = setup
+    t = pd.Timestamp("2013-11-05 09:00", tz="UTC")
+    ts = pd.date_range(t, periods=4, freq="15min")
+
+    def with_readings(values: list[float]) -> pd.DataFrame:
+        raw = pd.DataFrame(
+            {"gauge": TARGET, "ts_utc": ts, "value": values, "quality": "Good", "source": "hydrology"}
+        )
+        row, _ = clean_series(raw.assign(kind="level"), "level")
+        assert row["ts_utc"].tolist() == [t]  # the 09:45 reading is labelled 09:00
+        out = hourly.copy()
+        sel = (out["gauge"] == TARGET) & (out["ts_utc"] == t)
+        out.loc[sel, "level_mean"] = float(row["level_mean"].iloc[0])
+        return out
+
+    calm, spike = with_readings([2.0, 2.0, 2.0, 2.0]), with_readings([2.0, 2.0, 2.0, 3.0])
+    sel = (spike["gauge"] == TARGET) & (spike["ts_utc"] == t)
+    assert spike.loc[sel, "level_mean"].iloc[0] == pytest.approx(2.25)
+    at_t = [forecasts_at(h, models, [SPOT], [t])[0] for h in (calm, spike)]
+    assert at_t[0] == at_t[1]
+    assert at_t[0]["dataAsOf"][TARGET] == "2013-11-05T08:00:00Z"  # the last complete hour
+    later = [forecasts_at(h, models, [SPOT], [t + pd.Timedelta(hours=1)])[0] for h in (calm, spike)]
+    assert later[0]["spots"][0]["levelNow"] == 2.0 and later[1]["spots"][0]["levelNow"] == 2.25
 
 
 def test_forecast_shape_and_stale(setup) -> None:

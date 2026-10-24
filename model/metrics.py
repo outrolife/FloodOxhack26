@@ -13,7 +13,10 @@ Definitions (used in the UI and by judges):
   over the seven levels. **Skill** = 1 - model / persistence (above 0 = better than persistence).
 - **Coverage** of the 50/80/90% intervals (q25-q75, q10-q90, q05-q95): fraction of observations inside,
   bounds included.
-- **Brier score** = ``mean((p - o)^2)`` with o = 1 if the level at t + h is at or above the line.
+- **Brier score** = ``mean((p - o)^2)``. The app's ``pFlood_h`` is non-decreasing in h (SPEC §7.5
+  step 4), i.e. "over the line **by** t + h", so o = 1 if the level is at or above the line at any hour
+  in (t, t + h] (#91). Issue times when the river is already at or above the line are left out: the
+  flood is here, so they are not forecasts of a crossing (the same rule as the triggers below).
   **Reliability**: 10 equal-width bins of p; per bin the mean forecast (pPred), the observed frequency
   (pObs) and the count (n). Empty bins are left out, because the §9 contract has ``pObs: number``.
 - **Trigger** at p*: an issue time whose forecast flood probability (max over leads) is >= p*, while
@@ -29,6 +32,11 @@ Definitions (used in the UI and by judges):
   **False alarm**: an episode with no crossing from its first trigger to 72 h after its last one.
   An episode that overlaps a crossing (e.g. one that only starts once the river is already over the
   line) is never a false alarm; if it started too late, the crossing is already counted as a miss.
+- **Official warnings as a trigger**: an EA Flood Warning is one message, not an hourly forecast, so
+  it counts as in force from its issue time until 24 h after the last Update to it (before the next
+  fresh warning), capped at the event end (#92). Its in-force times on our issue-time grid plus its own
+  issue time, leaving out times when the river is already over the line (as for our trigger), are then
+  scored with the same hit/miss/false-alarm rules.
 - **Arrival error**: the forecast issued 24 h (or 48 h) before a crossing gives a 50% arrival time;
   error = that time - the actual crossing, in hours (negative = predicted too early).
 - **Bootstrap**: resample events with replacement (1,000 times, seed 42) and recompute the statistic;
@@ -176,6 +184,37 @@ def exceedance_outcome(y_level: np.ndarray, line: float) -> np.ndarray:
     return np.where(np.isfinite(y), (y >= line).astype(float), np.nan)
 
 
+def max_level_ahead(level: pd.Series, index: pd.DatetimeIndex, h: int) -> np.ndarray:
+    """Per time t in ``index``: the highest hourly ``level`` in (t, t + h] (missing hours skipped).
+
+    ``level`` is an hourly series on a UTC index. NaN when no hour in (t, t + h] was observed.
+    """
+    s = level.sort_index()
+    s = s[~s.index.duplicated()]
+    idx = pd.DatetimeIndex(index)
+    lo = min(s.index.min(), idx.min())
+    hi = max(s.index.max(), idx.max()) + pd.Timedelta(hours=h)
+    full = s.reindex(pd.date_range(lo, hi, freq="h"))
+    # The rolling window ending at t + h covers t + 1 ... t + h; shifting by -h puts it at t.
+    ahead = full.rolling(h, min_periods=1).max().shift(-h)
+    return ahead.reindex(idx).to_numpy(dtype=float)
+
+
+def exceedance_by_outcome(
+    level_now: np.ndarray, level_at_h: np.ndarray, max_ahead: np.ndarray, line: float
+) -> np.ndarray:
+    """1.0 if the level reaches ``line`` at any hour in (t, t + h], 0.0 if not, NaN if unscored.
+
+    NaN where the level at t + h is missing (the row is not scored, as for pinball loss) or where
+    ``level_now`` is already at or above the line (the flood is here; not a forecast of a crossing).
+    """
+    now = np.asarray(level_now, dtype=float)
+    at_h = np.asarray(level_at_h, dtype=float)
+    peak = np.fmax(np.asarray(max_ahead, dtype=float), at_h)
+    o = (peak >= line).astype(float)
+    return np.where(np.isfinite(at_h) & np.isfinite(now) & (now < line), o, np.nan)
+
+
 def reliability_entry(
     h: int, p_model: np.ndarray, p_persistence: np.ndarray, o: np.ndarray, nd: int = 4
 ) -> dict[str, Any]:
@@ -306,14 +345,45 @@ def tradeoff_rows(
     return rows
 
 
+OFFICIAL_HOLD = pd.Timedelta(hours=24)
+
+
+def in_force_times(
+    messages: Iterable[tuple[Any, bool]],
+    grid: Iterable[Any],
+    end: Any = None,
+    hold: pd.Timedelta = OFFICIAL_HOLD,
+) -> pd.DatetimeIndex:
+    """Times on ``grid`` when an official warning is in force (#92).
+
+    ``messages`` are ``(issued_at, is_update)``. A fresh warning is in force from its issue time to
+    ``hold`` after the last Update issued before the next fresh warning (or after itself if none),
+    capped at ``end``. Without this, a warning issued more than 72 h before a crossing and still in
+    force at it scored as a miss plus a false alarm.
+    """
+    msgs = sorted((_utc(t), bool(u)) for t, u in messages)
+    fresh = [t for t, u in msgs if not u]
+    updates = [t for t, u in msgs if u]
+    spans = []
+    for i, f in enumerate(fresh):
+        nxt = fresh[i + 1] if i + 1 < len(fresh) else None
+        last = max([u for u in updates if u >= f and (nxt is None or u < nxt)], default=f)
+        until = last + hold
+        if end is not None:
+            until = min(until, _utc(end))
+        spans.append((f, until))
+    g = sorted(_utc(t) for t in grid)
+    return pd.DatetimeIndex([t for t in g if any(a <= t <= b for a, b in spans)])
+
+
 def official_outcome(
     official_by_event: Mapping[str, Sequence[Any]],
     crossings_by_event: Mapping[str, Sequence[Any]],
 ) -> dict[str, Any]:
     """``Proof.officialOutcome[spot]``: the EA warnings scored with the same hit/miss/false-alarm rules.
 
-    ``official_by_event`` maps event id -> issue times of official messages (callers choose the level,
-    e.g. Flood Warning and above).
+    ``official_by_event`` maps event id -> the times the official warning counts as a trigger
+    (``in_force_times``; callers choose the level, e.g. Flood Warning and above).
     """
     hits = misses = fas = 0
     leads: list[float] = []
