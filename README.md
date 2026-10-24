@@ -113,6 +113,16 @@ We score:
 - hits, misses, false alarms and lead time for each trigger level;
 - lead gained or lost against the EA's first official warning for the spot's area.
 
+**Scoring rules** (exact definitions in `model/metrics.py`; tests in `tests/test_metrics.py`):
+- **Skill, coverage and reliability** use the strict time-split test period (forecasts issued from 1 Oct 2021), which no model saw in training or calibration. They pool the four trained gauges.
+- **Hits, misses, false alarms and lead times** use the leave-one-flood-out replays of the seven events.
+- **A flood** is an up-crossing of the spot's threshold. Crossings less than 72 h after the previous one count as the same flood, because a level hovering at the line crosses it many times.
+- **A trigger** at p* is a forecast whose flood chance (the highest over its leads) is at least p* **while the gauge is still below the line**. Once the river is over the line the flood is here, so a forecast issued then is neither a warning nor a false alarm.
+- **Hit:** a trigger in the 72 h before a flood starts. **Lead** = flood start minus the first such trigger, so it is at most 72 h. **Miss:** a flood with no trigger in that window. **False alarm:** a run of triggers (less than 24 h apart) with no crossing from its first trigger to 72 h after its last.
+- **Versus the EA:** lead vs official = EA Flood Warning issue time minus our first trigger, at p* = 0.5. Positive means River Clock was earlier.
+- **Uncertainty:** bootstrap over events (1,000 resamples, seed 42), 90% intervals.
+<!-- src: model/metrics.py docstring; model/proof.py PER_EVENT_P_STAR = 0.5; proof.json testPeriodNote -->
+
 ### Decisions: cost–loss
 
 The Decide tab has three presets: **Resident** (move the car: C = £20, L = £2,000), **Commuter** (reroute: C = £5, L = £100) and **Council** (close a road or put up barriers: C = £5,000, L = £100,000). It shows the best trigger, p* = C / L. It then compares the expected cost over the replayed floods for River Clock, the official warnings, "never act" and "always act".
@@ -157,24 +167,46 @@ For **Botley Road** (New Botley gauge, threshold 2.76 m):
 - The forecast issued at 12:00 on 4 Jan put the 50% arrival time at **01:01 on 6 Jan**. The gauge crossed at 01:00.
 - The observed peak was **inside the 5–95% band at every lead from 6 h to 72 h** (forecasts aimed at 08:00 and 10:00 on 9 Jan, either side of the peak hour).
 - The EA's lower-level Flood Alert came out two days before River Clock's first 10%. We are ahead of the Flood Warning, not the Alert.
-- One flood is one data point. The scores over all events are below.
+- One flood is one data point. `proof.json` agrees: Botley's e2014 lead vs the EA warning is +7.1 h (`perEvent`). The scores over all events are below.
 
-### Scores over all events: waiting for `proof.json`
+### Scores over all events (real, `proof.json`)
 
-<!-- RESULTS (PENDING #66): fill every TODO in this table from web/public/data/proof.json. Don't round up. Quote the 90% intervals. -->
+<!-- src: web/public/data/proof.json (PR #66) unless noted. Not rounded up. -->
 
-**TODO (results):** not filled yet. The backtest (PR #66) writes `web/public/data/proof.json`. Until then the Proof and Decide tabs show sample data and label it as such.
+**Skill against persistence** (pinball loss, test period from Oct 2021, four trained gauges pooled). It is positive at every lead and falls as the lead grows:
 
-| Measure | Value | Source in `proof.json` |
-|---|---|---|
-| Skill vs persistence at 24 h (New Botley) | TODO | `skillByLead` |
-| Skill vs persistence at 72 h (New Botley) | TODO | `skillByLead` |
-| 90% interval coverage at 24 h | TODO | `coverage` |
-| e2014: lead vs first EA warning, per p* (official figure) | TODO (replay above shows about 7 h at p = 50%) | `perEvent.leadVsOfficialH` |
-| e2026 near miss: false alarm or not? | TODO | `perEvent`, `tradeoff` |
-| Hits / misses / false alarms at p* = 0.5 | TODO | `tradeoff` |
+| Lead | 6 h | 12 h | 24 h | 36 h | 48 h | 72 h |
+|---|---|---|---|---|---|---|
+| Skill (above 0 = better than persistence) | +0.39 | +0.35 | +0.27 | +0.22 | +0.18 | +0.11 |
 
-If the model does not beat persistence at some lead times, say so here, as the Proof tab does.
+**Interval coverage: our ranges are too wide.** The actual coverage is above nominal at every lead. That is the safe direction, but it means the ranges are wider than they need to be:
+
+| Interval | 6 h | 24 h | 72 h |
+|---|---|---|---|
+| 50% | 65% | 72% | 78% |
+| 80% | 88% | 90% | 93% |
+| 90% | 94% | 95% | 97% |
+
+**Reliability** (Brier score, test period): the model's Brier score beats persistence at every lead for Osney, Botley and the Cherwell. For Abingdon Road it beats persistence at 6 h and 12 h but is slightly worse from 24 h on (0.0014 vs 0.0012 at 24 h). At long leads the highest-probability forecasts are too confident: at Botley, 72 h forecasts of about 99% came true 44% of the time (125 forecasts). <!-- src: proof.json reliability -->
+
+**Floods caught at p* = 0.5** (seven replayed events; "floods" are threshold crossings at least 72 h apart):
+
+| Spot | Hits | Misses | False alarms | Mean lead (90% CI) | EA Flood Warning as the trigger: hits / misses / false alarms |
+|---|---|---|---|---|---|
+| Osney Island (Minns) | 7 | 0 | 2 | 17.0 h (10.5–21.3) | 4 / 3 / 2 |
+| Botley Road (New Botley) | 8 | 0 | 3 | 28.1 h (16.3–37.0) | 6 / 2 / 2 |
+| Abingdon Road (Cold Harbour) | 8 | 0 | 0 | 22.9 h (10.1–35.3) | 7 / 1 / 1 |
+| Cherwell (Kings Mill) | 7 | 0 | 0 | 9.3 h (5.3–11.7) | 3 / 4 / 3 |
+
+<!-- src: proof.json tradeoff[spot] pStar 0.5; officialOutcome -->
+
+**Versus the EA's first Flood Warning: mixed.** At p* = 0.5 the mean lead vs official is **+2.9 h at Osney and +9.2 h at the Cherwell** (River Clock earlier), but **−5.1 h at Botley and −13.8 h at Abingdon Road** (the EA earlier). A lower trigger such as p* = 0.2 is earlier than the EA at every spot, at the cost of more false alarms (6 / 14 / 0 / 6). We do not claim to beat the EA. <!-- src: proof.json tradeoff meanLeadVsOfficialH, falseAlarms at pStar 0.5 and 0.2 -->
+
+In the **e2014** replay, River Clock was ahead of the EA warning at Osney (+20.9 h) and Botley (+7.1 h), and behind at Abingdon Road (−34.9 h). The EA issued no Cherwell warning in that event. <!-- src: proof.json perEvent e2014 leadVsOfficialH -->
+
+**e2026 near miss:** no gauge crossed its threshold. River Clock's highest flood chance in the whole event was 0.28 (Botley, 15 Feb 2026), so there were **no false alarms at p* = 0.3 or above**. At lower triggers it would have fired, which a resident at p* = 0.01 accepts by design. <!-- src: replays/e2026.json max pFlood 0.2767 at 2026-02-15T14:00Z; perEvent e2026 crossed false -->
+
+The model beats persistence at every lead on the test period. Its Brier score does not beat persistence at Abingdon Road from 24 h on, and the Proof tab says where it loses.
 
 ---
 
@@ -364,4 +396,4 @@ Team members: <!-- TODO: names and roles -->
 
 Also built: the Tiger Data (Timescale) mirror of the hourly and live readings (#17, PR #63; see "Tiger Data mirror" above). There is no public deploy: the app runs locally and offline.
 
-<!-- TODO at code freeze (Sun 25 Oct, 11:00 GMT): fill the "Scores over all events" table (PENDING #66), the team names, and remove anything not built. -->
+<!-- TODO at code freeze (Sun 25 Oct, 11:00 GMT): fill the team names and remove anything not built. -->
