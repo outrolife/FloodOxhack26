@@ -131,12 +131,15 @@ export function matchTier(replay: ReplayTimeline, spot: string, threshold: numbe
 function gainH(rc: string, o: Official): { h: number; approx: string } {
   // Date-only official times are compared as UK calendar days x 24, like model/official.py.
   if (o.precision === "date") {
-    return { h: londonDaysBetween(rc, o.issuedAt) * 24, approx: " (EA issue known to the day only, so compared in whole days)" };
+    return { h: londonDaysBetween(rc, o.issuedAt) * 24, approx: " (the official time is known only to the day, so this is approximate)" };
   }
   return { h: hoursBetween(rc, o.issuedAt), approx: "" };
 }
 
-const hrs = (h: number) => `${Math.abs(h).toFixed(0)} h`;
+const hrs = (h: number) => {
+  const n = Math.round(Math.abs(h));
+  return `${n} ${n === 1 ? "hour" : "hours"}`;
+};
 
 /** Hours of run-up the "start just before the flood" button shows before River Clock's 50% (#103). */
 export const RUN_UP_H = 72;
@@ -186,7 +189,7 @@ export function tierSentence(m: TierMatch, revealed: (t: string) => boolean, end
     const c = m.crossing;
     // Already at the level when the 72 h window opened: say so, and leads are lower bounds.
     const already = m.alreadyOn
-      ? `River Clock was already at ${pct} or more ${MATCH_WINDOW_H} h before the river crossed the threshold`
+      ? `River Clock was already at ${pct} or more ${MATCH_WINDOW_H} hours before the river reached flood level`
       : null;
     if (m.rc && m.official) {
       const { h, approx } = gainH(m.rc, m.official);
@@ -196,27 +199,27 @@ export function tierSentence(m: TierMatch, revealed: (t: string) => boolean, end
     }
     if (m.rc) {
       const before =
-        already ?? `River Clock reached ${pct} ${hrs(hoursBetween(m.rc, c))} before the river crossed the threshold`;
+        already ?? `River Clock reached ${pct} ${hrs(hoursBetween(m.rc, c))} before the river reached flood level`;
       if (m.lateOfficial && seen(m.lateOfficial.issuedAt)) {
-        return `${before}; the EA ${officialLabel(m.lateOfficial)} came ${hrs(hoursBetween(c, m.lateOfficial.issuedAt))} after the crossing.`;
+        return `${before}; the EA ${officialLabel(m.lateOfficial)} came ${hrs(hoursBetween(c, m.lateOfficial.issuedAt))} after the river reached flood level.`;
       }
-      return `${before}; no new EA ${tierNoun} was issued in the ${MATCH_WINDOW_H} h before the crossing.`;
+      return `${before}; no new EA ${tierNoun} was issued in those ${MATCH_WINDOW_H} hours.`;
     }
     if (m.official) {
-      return `The EA ${noun} came ${hrs(hoursBetween(m.official.issuedAt, c))} before the river crossed the threshold; River Clock did not reach ${pct} in the ${MATCH_WINDOW_H} h before it.`;
+      return `The EA ${noun} came ${hrs(hoursBetween(m.official.issuedAt, c))} before the river reached flood level; River Clock did not reach ${pct} in the ${MATCH_WINDOW_H} hours before that.`;
     }
-    return `Neither River Clock (${pct}) nor an EA ${tierNoun} came in the ${MATCH_WINDOW_H} h before the river crossed the threshold.`;
+    return `Neither River Clock (${pct}) nor an EA ${tierNoun} came in the ${MATCH_WINDOW_H} hours before the river reached flood level.`;
   }
 
   // No crossing in this event.
   if (!m.rc || !seen(m.rc, m.official?.issuedAt)) return null;
   if (!seen(endT)) return soFar();
-  const stayed = "the river stayed below the flood threshold";
+  const stayed = "the river stayed below flood level";
   if (m.official) {
     const { h, approx } = gainH(m.rc, m.official);
     const when = Math.abs(h) < 0.5 ? "at about the same time as" : `${hrs(h)} ${h > 0 ? "earlier" : "later"} than`;
     return `River Clock reached ${pct} ${when} the EA ${noun}${approx}, and ${stayed}.`;
   }
-  return `River Clock reached ${pct} on ${formatDateTimeYear(m.rc)} and ${stayed}; no EA ${tierNoun} was issued within ${MATCH_WINDOW_H} h of that.`;
+  return `River Clock reached ${pct} on ${formatDateTimeYear(m.rc)} and ${stayed}; no EA ${tierNoun} was issued within ${MATCH_WINDOW_H} hours of that.`;
 }
 

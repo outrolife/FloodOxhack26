@@ -158,7 +158,7 @@ export function FanChart({
             tick={{ fill: "#52514e", fontSize: 12 }}
             tickFormatter={(v: number) => v.toFixed(1)}
             width={44}
-            label={{ value: "m (gauge datum)", angle: -90, position: "insideLeft", fill: "#52514e", fontSize: 12 }}
+            label={{ value: "River level (m, this gauge's scale)", angle: -90, position: "insideLeft", fill: "#52514e", fontSize: 12 }}
           />
           <Tooltip
             labelFormatter={(t) => formatDateTimeYear(Number(t))}
@@ -168,15 +168,15 @@ export function FanChart({
               return [txt, String(name)];
             }}
           />
-          <Area dataKey="band90" name="Forecast 5–95%" stroke="none" fill="#cde2fb" fillOpacity={1} isAnimationActive={false} connectNulls />
-          <Area dataKey="band50" name="Forecast 25–75%" stroke="none" fill="#86b6ef" fillOpacity={1} isAnimationActive={false} connectNulls />
-          <Line dataKey="median" name="Forecast median" stroke="#184f95" strokeWidth={2} strokeDasharray="5 3" dot={false} isAnimationActive={false} connectNulls />
-          <Line dataKey="obsFaint" name="Observed (later)" stroke="#898781" strokeOpacity={0.45} strokeWidth={2} dot={false} isAnimationActive={false} connectNulls />
-          <Line dataKey="obs" name="Observed" stroke="#0b0b0b" strokeWidth={2} dot={false} isAnimationActive={false} connectNulls />
+          <Area dataKey="band90" name="Wide range (5–95%)" stroke="none" fill="#cde2fb" fillOpacity={1} isAnimationActive={false} connectNulls />
+          <Area dataKey="band50" name="Likely range (25–75%)" stroke="none" fill="#86b6ef" fillOpacity={1} isAnimationActive={false} connectNulls />
+          <Line dataKey="median" name="Middle estimate" stroke="#184f95" strokeWidth={2} strokeDasharray="5 3" dot={false} isAnimationActive={false} connectNulls />
+          <Line dataKey="obsFaint" name="What happened next" stroke="#898781" strokeOpacity={0.45} strokeWidth={2} dot={false} isAnimationActive={false} connectNulls />
+          <Line dataKey="obs" name="River so far" stroke="#0b0b0b" strokeWidth={2} dot={false} isAnimationActive={false} connectNulls />
           {threshold != null && (
-            <ReferenceLine y={threshold} stroke="#d03b3b" strokeDasharray="6 3" label={{ value: `Flood threshold ${threshold.toFixed(2)} m`, position: "insideTopLeft", fill: "#d03b3b", fontSize: 12 }} />
+            <ReferenceLine y={threshold} stroke="#d03b3b" strokeDasharray="6 3" label={{ value: `Flood level ${threshold.toFixed(2)} m`, position: "insideTopLeft", fill: "#d03b3b", fontSize: 12 }} />
           )}
-          <ReferenceLine y={amber} stroke="#eda100" strokeDasharray="3 3" label={{ value: `Normal top ${amber.toFixed(2)} m`, position: "insideBottomLeft", fill: "#8a5d00", fontSize: 12 }} />
+          <ReferenceLine y={amber} stroke="#eda100" strokeDasharray="3 3" label={{ value: `Usual high ${amber.toFixed(2)} m`, position: "insideBottomLeft", fill: "#8a5d00", fontSize: 12 }} />
           {markers.map((m, i) => (
             <ReferenceLine
               key={m.label}
@@ -190,8 +190,16 @@ export function FanChart({
         </ComposedChart>
       </ResponsiveContainer>
       </div>
+      {/* One-line legend on the chart (#103, audit T4): the series names were only in the hover tooltip. */}
+      <div className="fan-legend" aria-label="Chart key">
+        <span><i className="sw" style={{ background: "#86b6ef" }} />likely range (1 in 2 chance the river is inside)</span>
+        <span><i className="sw" style={{ background: "#cde2fb" }} />wide range (9 in 10)</span>
+        <span><i className="ln dash" style={{ borderColor: "#184f95" }} />middle estimate</span>
+        <span><i className="ln" style={{ borderColor: "#0b0b0b" }} />river so far</span>
+        <span><i className="ln" style={{ borderColor: "rgba(137,135,129,0.6)" }} />what happened next</span>
+      </div>
       <div className="small muted">
-        Times in UK time ({zoneAt(sliderT)} at the slider). Dark vertical line: forecast issue time.
+        Dark vertical line: "now" in the replay. Times are UK time ({zoneAt(sliderT)}).
       </div>
     </div>
   );

@@ -1,7 +1,8 @@
 // River strip: the gauge chain from upstream to Oxford, one branch per river
 // system, each link labelled with the median half-rise travel time T½.
 import type { Station, TravelPair } from "../../contracts";
-import { formatDateTime } from "../../time";
+import { formatDate } from "../../time";
+import { TERM_TIPS, gaugeName } from "../../lib/plain";
 import { Sparkline } from "./Sparkline";
 import { countAtOrBefore } from "./series";
 
@@ -12,7 +13,7 @@ type Point = { t: string; level: number };
 const BRANCHES: { title: string; gauges: string[] }[] = [
   { title: "Thames (west and south Oxford streams)", gauges: ["farmoor", "eynsham", "cassington", "newbotley", "minns", "coldharbour"] },
   { title: "Cherwell", gauges: ["enslow", "islip", "kingsmill"] },
-  { title: "Thames main channel (live only)", gauges: ["godstow", "osney", "iffley"] },
+  { title: "Thames main channel (live levels, no forecast)", gauges: ["godstow", "osney", "iffley"] },
 ];
 
 // When a gauge feeds several targets, label the best-measured link: pairs
@@ -54,17 +55,18 @@ export type LinkInfo = {
 export function linkInfo(key: string, pairs: TravelPair[], stations: Pick<Station, "key" | "name">[]): LinkInfo | null {
   const p = bestPair(key, pairs);
   if (!p) return null;
-  const down = stations.find((s) => s.key === p.down)?.name ?? p.down;
-  const up = stations.find((s) => s.key === p.up)?.name ?? p.up;
-  const xc = p.n < 3 ? " (cross-correlation only)" : "";
+  const down = gaugeName(stations.find((s) => s.key === p.down)?.name ?? p.down);
+  const up = gaugeName(stations.find((s) => s.key === p.up)?.name ?? p.up);
+  const xc = p.n < 3 ? " (rough estimate: fewer than 3 past floods)" : "";
   const lowConfidence = p.n < LOW_CONFIDENCE_N;
   const trib = TRIBUTARY_NOTE[p.up];
   return {
-    text: `${up} → ${down} ≈ ${Math.round(p.tHalf.median)} h${xc}`,
+    text: `${up} → ${down}: about ${Math.round(p.tHalf.median)} ${Math.round(p.tHalf.median) === 1 ? "hour" : "hours"}${xc}`,
     n: p.n,
     lowConfidence,
     title:
-      `Median half-rise travel time T½ ${p.tHalf.median.toFixed(1)} h, n = ${p.n} events; ` +
+      `Typical travel time (half-rise, T½): from when the upstream gauge is halfway up its rise to when the downstream gauge is halfway up its own; middle value over past floods. ` +
+      `Median T½ ${p.tHalf.median.toFixed(1)} h, n = ${p.n} events; ` +
       `peak-to-peak median ${p.tPeak.median.toFixed(1)} h.` +
       (lowConfidence ? ` Fewer than ${LOW_CONFIDENCE_N} events: low confidence.` : "") +
       (trib ? ` ${trib.long}` : ""),
@@ -139,15 +141,20 @@ export function RiverStrip({
               <div key={g}>
                 <div className={`strip-node ${st.role === "target" ? "target" : ""}`}>
                   <div>
-                    <div className="name">{st.name}</div>
+                    <div className="name" title={st.name}>{gaugeName(st.name)}</div>
                     <div className="meta">
                       {st.river} · {now != null ? `${now.toFixed(2)} m` : "no reading"}
                       {isStale ? (
                         // An old level must not read as today's (e.g. a gauge outage).
-                        <> · stale: last reading {asOf ? formatDateTime(asOf) : "unknown"}</>
+                        <> · offline since {asOf ? formatDate(asOf) : "unknown"}</>
                       ) : (
                         vsAmber != null && (
-                          <> · {vsAmber >= 0 ? `${vsAmber.toFixed(2)} m above` : `${(-vsAmber).toFixed(2)} m below`} normal top</>
+                          <>
+                            {" "}·{" "}
+                            <span title={TERM_TIPS.usualHigh}>
+                              {vsAmber >= 0 ? `${vsAmber.toFixed(2)} m above` : `${(-vsAmber).toFixed(2)} m below`} its usual high
+                            </span>
+                          </>
                         )
                       )}
                     </div>

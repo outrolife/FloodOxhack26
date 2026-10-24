@@ -19,6 +19,7 @@ import { formatPct } from "../../lib/costLoss";
 import { LOW_CONFIDENCE_N } from "../shared/RiverStrip";
 import type { PeakProbabilities } from "./peakProbability";
 import { travelTrend } from "./travelTrend";
+import { TERM_TIPS, gaugeName } from "../../lib/plain";
 
 /** Why an arrival error is blank on a flooded row (model/proof.py, ARRIVAL_OFFSET_H = 24). */
 export const ARRIVAL_BLANK = "River Clock had not reached 50% 24 h before the river crossed the flood line";
@@ -64,7 +65,7 @@ export function TravelFinding({
   stations: Station[];
   events?: Pick<EventMeta, "id" | "name">[];
 }) {
-  const name = (k: string) => stations.find((s) => s.key === k)?.name ?? k;
+  const name = (k: string) => gaugeName(stations.find((s) => s.key === k)?.name ?? k);
   const [i, setI] = useState(() => defaultPairIndex(pairs));
   const pair = pairs[Math.min(i, pairs.length - 1)];
   if (!pair) return null;
@@ -208,7 +209,7 @@ export function featureLabel(raw: string, stations: Pick<Station, "key" | "name"
   const st = stations.find((s) => raw.startsWith(`${s.key}_`));
   if (st) {
     const d = describe(raw.slice(st.key.length + 1));
-    if (d) return `${st.name}: ${d}`;
+    if (d) return `${gaugeName(st.name)}: ${d}`;
   }
   return raw;
 }
@@ -220,7 +221,7 @@ export function FeatureImportance({ importance, stations }: { importance: Import
   const entries = importance[g] ?? [];
   const [h, setH] = useState(entries.find((e) => e.h === 24)?.h ?? entries[0]?.h ?? 24);
   const entry = entries.find((e) => e.h === h) ?? entries[0];
-  const name = (k: string) => stations.find((s) => s.key === k)?.name ?? k;
+  const name = (k: string) => gaugeName(stations.find((s) => s.key === k)?.name ?? k);
   const top = entry
     ? [...entry.features]
         .sort((a, b) => b.gain - a.gain)
@@ -364,7 +365,7 @@ export function PerEventTable({
 }
 
 export function QualityTables({ quality, stations }: { quality: Quality; stations: Station[] }) {
-  const name = (k: string) => stations.find((s) => s.key === k)?.name ?? k;
+  const name = (k: string) => gaugeName(stations.find((s) => s.key === k)?.name ?? k);
   return (
     <div className="card">
       <h2>Data quality and sources</h2>
@@ -373,11 +374,13 @@ export function QualityTables({ quality, stations }: { quality: Quality; station
           <thead>
             <tr>
               <th>Gauge</th>
-              <th>Coverage</th>
-              <th>Gaps filled</th>
-              <th>Gaps flagged</th>
-              <th>Spikes removed</th>
-              <th>Threshold (API / config)</th>
+              {/* "Data complete", not "Coverage": that word means the forecast-range check higher up (#103). */}
+              <th title="Share of hours since 2006 with a valid reading">Data complete</th>
+              <th>Short gaps filled in</th>
+              <th>Gaps marked</th>
+              <th>Bad readings removed</th>
+              {/* These are the usual-high (typicalRangeHigh) levels, not flood levels (#103, audit P26). */}
+              <th title={TERM_TIPS.usualHigh}>Usual high (EA / ours)</th>
               <th>Notes</th>
             </tr>
           </thead>

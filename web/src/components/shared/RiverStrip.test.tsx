@@ -24,7 +24,7 @@ describe("River strip travel times (#99 item 5)", () => {
   it("flags pairs measured on fewer than 5 floods as low confidence", () => {
     expect(LOW_CONFIDENCE_N).toBe(5);
     const low = linkInfo("eynsham", [pair("eynsham", "newbotley", 3, 0.6, 8)], stations)!;
-    expect(low.text).toBe("Eynsham Lock u/s → New Botley ≈ 1 h");
+    expect(low.text).toBe("Eynsham Lock (upstream side) → New Botley: about 1 hour");
     expect(low.n).toBe(3);
     expect(low.lowConfidence).toBe(true);
     expect(low.title).toContain("n = 3 events; peak-to-peak median 8.0 h");
@@ -36,7 +36,7 @@ describe("River strip travel times (#99 item 5)", () => {
     const info = linkInfo("islip", pairs, stations)!;
     expect(info.n).toBe(islip.n);
     expect(info.lowConfidence).toBe(islip.n < LOW_CONFIDENCE_N);
-    expect(info.text).toContain("(cross-correlation only)");
+    expect(info.text).toContain("(rough estimate: fewer than 3 past floods)");
   });
 
   it("says how many past rises a link is based on, in words", () => {
@@ -59,7 +59,7 @@ describe("River strip travel times (#99 item 5)", () => {
 
   it("names both ends of every link, so a label can't be read as the next box down (#103)", () => {
     const farmoor = linkInfo("farmoor", [pair("farmoor", "coldharbour", 4, 22.6, 30)], stations)!;
-    expect(farmoor.text).toBe("Farmoor → Cold Harbour ≈ 23 h");
+    expect(farmoor.text).toBe("Farmoor → Cold Harbour: about 23 hours");
   });
 
   it("says on screen that Islip is on the River Ray, with the reason in the tooltip (#103)", () => {

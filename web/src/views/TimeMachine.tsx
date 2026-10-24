@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { EventsFile, Forecast, Replay, SpotsFile, StationsFile, TravelTimesFile } from "../contracts";
 import { useData } from "../data";
-import { HOUR, formatDateTimeYear, hoursBetween } from "../time";
+import { HOUR, formatDateTimeYear, formatShort, hoursBetween } from "../time";
 import { FanChart, type Marker } from "../components/timemachine/FanChart";
 import {
   focusWindow,
@@ -77,7 +77,7 @@ export default function TimeMachine() {
             {events.data.map((e) => (
               <option key={e.id} value={e.id}>
                 {e.name}
-                {e.headline ? " (headline)" : ""}
+                {e.headline ? " (start here)" : ""}
               </option>
             ))}
           </select>
@@ -219,16 +219,18 @@ function ReplayPlayer({
   // replay tells the story in order (SPEC §17.2). Only matched times are
   // marked, so nothing sits days away from the flood it doesn't belong to.
   const revealed = (t: string) => Date.parse(t) <= Date.parse(seenT);
+  // Callouts on the chart say what happened and when (#103): "River Clock: 1 in 2 · Sat 12:00 GMT".
+  const at = (t: string) => ` · ${formatShort(t)}`;
   const markers: Marker[] = [];
   if (alertMatch.official && alertMatch.rc && revealed(alertMatch.rc))
-    markers.push({ t: alertMatch.rc, label: "River Clock ≥ 10%", colour: "#2a78d6" });
+    markers.push({ t: alertMatch.rc, label: `River Clock: 1 in 10${at(alertMatch.rc)}`, colour: "#2a78d6" });
   if (warnMatch.rc && revealed(warnMatch.rc))
-    markers.push({ t: warnMatch.rc, label: "River Clock ≥ 50%", colour: "#184f95" });
+    markers.push({ t: warnMatch.rc, label: `River Clock: 1 in 2${at(warnMatch.rc)}`, colour: "#184f95" });
   if (officialAlert && revealed(officialAlert.issuedAt))
-    markers.push({ t: officialAlert.issuedAt, label: `EA ${officialLabel(officialAlert)}`, colour: "#a8336a" });
+    markers.push({ t: officialAlert.issuedAt, label: `Official ${officialLabel(officialAlert)}${at(officialAlert.issuedAt)}`, colour: "#a8336a" });
   if (officialWarning && revealed(officialWarning.issuedAt))
-    markers.push({ t: officialWarning.issuedAt, label: `EA ${officialLabel(officialWarning)}`, colour: "#6250d6" });
-  if (crossing && revealed(crossing)) markers.push({ t: crossing, label: "Threshold crossed", colour: "#d03b3b" });
+    markers.push({ t: officialWarning.issuedAt, label: `Official ${officialLabel(officialWarning)}${at(officialWarning.issuedAt)}`, colour: "#6250d6" });
+  if (crossing && revealed(crossing)) markers.push({ t: crossing, label: `River reached flood level${at(crossing)}`, colour: "#d03b3b" });
 
   const lastF = Date.parse(forecasts[forecasts.length - 1].issuedAt);
   const eventDomain: [number, number] = [Date.parse(replay.start), Math.max(Date.parse(replay.end), lastF + 72 * HOUR)];
@@ -284,7 +286,7 @@ function ReplayPlayer({
             </button>
           </span>
           <span className="small">
-            Forecast issued <strong>{formatDateTimeYear(sliderT)}</strong>
+            Replay time <strong>{formatDateTimeYear(sliderT)}</strong>
           </span>
         </div>
         <input
@@ -339,14 +341,14 @@ function ReplayPlayer({
         <div className="card">
           <h2>{spot.name}</h2>
           <p className="sub">At {formatDateTimeYear(sliderT)}</p>
-          <ProbBars sf={sf} />
+          <ProbBars sf={sf} issuedAt={f.issuedAt} />
           <p style={{ marginTop: "0.6rem" }}>
-            <strong>{arrivalSentence(sf, f.stale.includes(spot.gauge), spot.threshold)}</strong>
+            <strong>{arrivalSentence(sf, f.stale.includes(spot.gauge), spot.threshold, f.dataAsOf[spot.gauge])}</strong>
           </p>
         </div>
         <SpreadMapCard eventId={replay.eventId} at={sliderT} />
         <div className="card">
-          <h2>Upstream at this time</h2>
+          <h2>Upstream gauges at this moment</h2>
           <RiverStrip stations={stations} pairs={travel} series={replay.observed} until={sliderT} />
         </div>
       </aside>

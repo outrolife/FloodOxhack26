@@ -9,6 +9,7 @@ import { CircleMarker, MapContainer, Marker, TileLayer, Tooltip } from "react-le
 import type { Forecast, Spot, Station } from "../../contracts";
 import { LEVEL_STYLE, type Level, pFloodAt, pct, spotLevel } from "../shared/forecast";
 import { LevelGlyph, glyphSvg } from "../shared/LevelGlyph";
+import { gaugeName } from "../../lib/plain";
 
 const OXFORD: [number, number] = [51.7585, -1.2655];
 
@@ -112,7 +113,7 @@ export function SpotMap({
                 radius={4}
                 pathOptions={{ color: "#52514e", weight: 1, fillColor: "#fff", fillOpacity: 1 }}
               >
-                <Tooltip>Gauge: {s.name}</Tooltip>
+                <Tooltip>River gauge: {gaugeName(s.name)}</Tooltip>
               </CircleMarker>
             ))}
           {spots.map((spot) => {
@@ -121,7 +122,7 @@ export function SpotMap({
             const p = pFloodAt(sf, 24);
             const isSel = spot.key === selected;
             const status =
-              lvl === "unknown" ? LEVEL_STYLE.unknown.label : `${pct(p)} chance of flooding within 24 h`;
+              lvl === "unknown" ? LEVEL_STYLE.unknown.label : `${pct(p)} chance of flooding in the next 24 hours`;
             return (
               <SpotMarker
                 key={spot.key}
@@ -144,7 +145,7 @@ export function SpotMap({
         {tilesFailed && <div className="map-offline">Map tiles unavailable offline; spots and gauges still shown.</div>}
       </div>
       <div className="legend" role="group" aria-label="Legend">
-        <span className="muted">Spot colour and shape = chance of flooding within 24 h:</span>
+        <span className="muted">Colour and shape = chance of flooding in the next 24 hours:</span>
         {(["low", "elevated", "high", "unknown"] as const).map((l) => (
           <span key={l} className="legend-item">
             <LevelGlyph level={l} size={16} />
