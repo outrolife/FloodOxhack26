@@ -32,6 +32,15 @@ Catchment rain = mean over three points (Eynsham, Enslow, Oxford; the same point
 precipitation. The training feature is the mean of the EA tipping-bucket gauges instead. That
 mismatch is inherent in perfect prognosis and is part of what the honest score measures.
 
+Result (24 Oct 2026, ECMWF IFS archive; full table on issue #100): NOT ADOPTED
+---------------------------------------------------------------------------------
+Honest window 2024-01-22 -> 2026-10-23, pooled 4 gauges, pinball skill vs persistence at 36/48/72 h:
+current +0.23/+0.19/+0.11, honest +0.31/+0.31/+0.28, perfect-rain upper bound +0.32/+0.32/+0.30.
+In-event 90% coverage unchanged (0.86-0.90). e2024b Botley: first trigger 85 h before the crossing
+(current 56 h), lead vs the EA warning -0.1 h (current -29 h). But at p* = 0.5 false alarms rise
+(Botley 1 -> 3, Osney 0 -> 1) and Botley 48/72 h Brier gets worse (0.0013 -> 0.0018, 0.0016 -> 0.0025),
+and the honest window holds only one flood (e2024b). That fails the #100 adoption rule.
+
 Usage
 -----
 ``python -m analysis.rain_experiment fetch`` (cache the archive under data/raw/open_meteo_previous_runs/)
