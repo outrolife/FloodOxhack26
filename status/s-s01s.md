@@ -8,7 +8,7 @@
 - **needs**: 
 - **notes**: alfredo: UI v2 brief on #118. s-s01s-ux owns web/src/ui + App.tsx. Your S3 heatmap feeds Protect
 - **branch**: main
-- **head**: 443ed8f Merge pull request #111 from outrolife/stretch/s4-sandbags
+- **head**: bdf71d6 Merge pull request #124 from outrolife/app/ux-kit
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:55:18Z
+- **updated**: 2026-10-24T18:56:14Z
