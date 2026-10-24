@@ -31,7 +31,19 @@ Target gauge (one model per gauge, own datum):
 
 Windows follow model/features.py: complete hourly index, nothing longer than 21 days (MAX_WINDOW_H),
 rolling stats NaN when < 90 % of the window is present, differences NaN when an end is missing.
-The groundwater option (EA borehole anomaly) was not pursued: see the issue #125 comment.
+The groundwater option (EA borehole anomaly) does not qualify: the only live flood-monitoring groundwater
+stations within 45 km are chalk boreholes south of Oxford; the Cotswold-limestone / Cherwell boreholes
+with pre-2008 history (Kings Wood, North Leigh, Upper Campsfield, Bletchingdon, Spelsbury) have no
+live measure.
+
+Result (24 Oct 2026, full table on issue #125): NOT ADOPTED
+-----------------------------------------------------------
+Pooled pinball skill vs persistence at 36/48/72 h: baseline +0.214/+0.166/+0.102, features
++0.227/+0.167/+0.099. In-event coverage holds. At p* = 0.5 over the test period, two new false alarms
+(Botley 22 Feb 2024, peak 2.684 m vs 2.76 m; Osney 27 Nov 2024, 2.818 m vs 2.90 m), and Brier is worse for
+Botley 72 h, Osney 48/72 h and Abingdon Rd 48 h. Upside: e2024a Botley first trigger 49 h before the
+crossing (baseline 16 h; +40.5 h vs the EA warning instead of +7.5 h), from the target-gauge group
+(the no-target ablation loses it and keeps the false alarm).
 
 Usage
 -----
