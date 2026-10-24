@@ -3,7 +3,22 @@
 River Clock forecasts when and how likely five Oxford flood trouble spots will flood in the next 72 h, from upstream EA river gauges. **SPEC.md is the source of truth.** Read the section for your module before coding.
 
 ## Hard deadline
-Code freeze **Sun 25 Oct 11:00**. Hacking ends 12:00. Prefer finishing a P0 item over starting a P2 one (priorities: SPEC.md §12).
+Code freeze **Sun 25 Oct 11:00**. Hacking ends 12:00. Prefer finishing a P0 item over starting a P2 one (priorities and the core gate: SPEC.md §13).
+
+## Team coordination: read this first, every session
+Several Claude sessions work in this repo at once. Two shared sources of truth keep everyone in sync:
+- **The status board**: one file per session, `status/<name>.md`, on the `status` branch (never merged into `main`). Hooks fetch it and show it to you **before every prompt** (look for "River Clock team board" in your context). A Stop hook pushes a heartbeat (branch, last commit, time) after every reply.
+- **GitHub issues**: the task list. The label `in-progress` plus an assignee means an issue is claimed.
+
+Rules:
+1. **Identity.** If the board says this checkout has no identity, ask the human for their name and role, then run `python3 scripts/status.py whoami <name> <role>`. Running two Claudes on one machine? Give each its own checkout or worktree, or launch it with `RC_AGENT=<name>-2 claude`.
+2. **Read the board before acting.** Don't start work someone else has claimed. If your task touches another module or a §9 contract, check the board for its owner and tell them through your `needs` field or an issue comment.
+3. **Claim before coding.** Pick the highest-priority unclaimed issue in your area (SPEC §13 order). Run `gh issue edit <n> --add-assignee @me --add-label in-progress`, then `python3 scripts/status.py set --state working --issue "#<n>" --task "<one line>" --next "<one line>"`.
+4. **Update your status whenever it changes**: a new task, a finished step, a blocker, a new branch. Do it in the same turn as the change. Use `--state blocked --needs "<what, from whom>"` when you're stuck. Keep each field to one line.
+5. **Push code often.** Commit and push your task branch at every working step, at least every 30 minutes, so others can see real progress. Never push to `main` directly. Merge through a PR that says `Closes #<n>`.
+6. **Finishing.** Open the PR, then `set --state reviewing`. After the merge, `set --state idle --issue "" --task ""` and remove the `in-progress` label.
+7. **If the board says you're behind `origin/main`**, rebase before you continue.
+8. Never edit another person's status file. The script only ever writes yours.
 
 ## Module ownership (edit only your own area unless asked)
 | Area | Owner | Paths |

@@ -1,0 +1,32 @@
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Data and models (SPEC §2, CLAUDE.md rule 6)
+data/
+*.lgb
+*.pkl
+*.joblib
+models/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ruff_cache/
+.pytest_cache/
+
+# Node / web
+node_modules/
+web/dist/
+
+# Secrets
+.env
+.env.*
+
+# Claude Code: per-person files (shared config is .claude/settings.json)
+.claude/settings.local.json
+.claude/agent.json
+.claude/worktrees/
