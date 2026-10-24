@@ -407,5 +407,7 @@
    },
    "mode": "timing_only"
   }
- ]
+ ],
+ "method": "persistence",
+ "note": "Persistence fallback: trained models are not available, so this forecast assumes the level stays roughly where it is, with spread from the last 28 days of level changes at each gauge. It is a baseline, not the River Clock model."
 }

@@ -149,7 +149,7 @@ STATION = {
     "key": STR,
     "name": STR,
     "river": STR,
-    "role": Lit("upstream", "target"),
+    "role": Lit("upstream", "target", "live_only"),
     "ref": STR,
     "lat": NUM,
     "lon": NUM,
@@ -189,7 +189,14 @@ SPOT_FORECAST = {
     "arrival": Nullable({"p10": Nullable(UTC), "p50": Nullable(UTC), "p90": Nullable(UTC)}),
     "mode": Lit("probability", "timing_only"),
 }
-FORECAST = {"issuedAt": UTC, "dataAsOf": RecordOf(UTC), "stale": ListOf(STR), "spots": ListOf(SPOT_FORECAST)}
+FORECAST = {
+    "issuedAt": UTC,
+    "dataAsOf": RecordOf(UTC),
+    "stale": ListOf(STR),
+    "spots": ListOf(SPOT_FORECAST),
+    "method?": Lit("model", "persistence"),
+    "note?": STR,
+}
 REPLAY = {
     "eventId": STR,
     "name": STR,
@@ -509,7 +516,9 @@ def test_stations(stations: dict) -> None:
             assert s["threshold"] > s["amber"], f"{p}: threshold must be above amber"
         if s["record"] is not None:
             assert s["record"] > s["amber"], f"{p}: record must be above amber"
-    assert "osney" in stations and stations["osney"]["role"] == "target"
+    # SPEC §4.1.1: newbotley is the primary target; the main-channel locks have no history
+    assert "newbotley" in stations and stations["newbotley"]["role"] == "target"
+    assert stations["osney"]["role"] == "live_only"
 
 
 def test_spots(spots: dict, stations: dict) -> None:

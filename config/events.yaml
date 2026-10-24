@@ -1,0 +1,143 @@
+# River Clock named flood events (SPEC §4.3; §9 `EventMeta`). Owner: Story. Verified 24 Oct 2026 (issue #10).
+#
+# Top-level list. The §9 fields are id, name, start, end, peak, headline. Extra fields (notes, sources)
+# are for humans and the About tab. Leave them out when writing events.json.
+# Times are ISO 8601 UTC. Windows are analysis windows, not flood durations; §6.1 auto-detection
+# adds more events.
+#
+# `peak` is PROVISIONAL: the EA Hydrology daily maximum (`level-max-86400`) for the four trained
+# targets (SPEC §4.1.1), pulled with small one-gauge, one-window queries. Each gauge has its own
+# datum, so never compare values across gauges. The backtest should overwrite these from
+# hourly.parquet. Osney, Godstow and Iffley downstream values are context only (no history) and sit
+# in `notes`, not `peak`.
+
+- id: e2007
+  name: July 2007
+  start: "2007-07-18T00:00:00Z"
+  end: "2007-08-02T00:00:00Z"
+  peak: {newbotley: 3.141, minns: 3.117, coldharbour: 2.690, kingsmill: 2.575}
+  headline: false
+  notes: >-
+    Summer event: very heavy rain on 20 Jul 2007. Peaks: Godstow d/s 3.11 m on 20 Jul (GOV.UK
+    record), Minns 3.117 m on 23 Jul (record), New Botley 3.141 m on 25 Jul (record), Cold Harbour
+    2.690 m on 25 Jul. Window confirmed. Hydrology daily series have gaps (12–13 of 16 days present),
+    so Data should check coverage. Kings Mill (2.575 m) stayed below 2.60, so this was not a Cherwell
+    flood at Oxford. Official warnings for 2006–08 use the legacy codes 061FWF233 (Thames, Eynsham
+    Lock to Sandford Lock), 061FWF142 (Cherwell) and 061WAFW06 (alert), per the #2 Data agent and
+    model/official.py.
+  sources:
+    - https://check-for-flooding.service.gov.uk/station/7056/downstream
+    - https://check-for-flooding.service.gov.uk/station/7075
+    - https://check-for-flooding.service.gov.uk/station/7074
+    - https://oxfordhistory.org.uk/floods/2007/index.html
+
+- id: e2012
+  name: Nov–Dec 2012
+  start: "2012-11-20T00:00:00Z"
+  end: "2013-01-05T00:00:00Z"
+  peak: {newbotley: 2.901, minns: 2.927, coldharbour: 2.558, kingsmill: 2.722}
+  headline: false
+  notes: >-
+    Two peaks: about 27 Nov 2012 at all four gauges, and about 27 Dec 2012 (Iffley d/s 3.58 m on 27 Dec,
+    the highest until 8 Jan 2014 per the EA; New Botley 2.901 m on 27 Dec). CORRECTION to SPEC:
+    "Cherwell record" is wrong for Kings Mill. Its peak was 2.722 m on 27 Nov 2012; the gauge record
+    is 2.785 m on 27 Nov 2024. Window confirmed.
+  sources:
+    - https://www.cherwell.org/2014/01/07/update-floods-hit-central-oxford/
+    - https://oxfordhistory.org.uk/floods/2012/index.html
+
+- id: e2014
+  name: Jan–Feb 2014
+  start: "2013-12-20T00:00:00Z"
+  end: "2014-02-20T00:00:00Z"
+  peak: {newbotley: 3.032, minns: 3.090, coldharbour: 2.699, kingsmill: 2.678}
+  headline: true
+  notes: >-
+    Headline replay (on newbotley, SPEC §4.1.1). EA Cherwell warnings from 28 Dec 2013. Main peak
+    6–9 Jan: Kings Mill 2.678 m on 7 Jan; New Botley 3.032 m, Minns 3.090 m and Cold Harbour 2.699 m
+    on 9 Jan. Context: Osney d/s 3.97 m on 9 Jan (GOV.UK record; 3.93 m per the Oxford Flood Alliance)
+    and Iffley d/s 3.6 m on 8 Jan. Abingdon Road closed on the morning of 8 Jan. A second wave in
+    February (ITV, 9 Feb: Botley and Abingdon Roads closed), with thresholds still crossed until
+    9–12 Feb. Window confirmed.
+  sources:
+    - https://check-for-flooding.service.gov.uk/station/7057/downstream
+    - https://www.cherwell.org/2014/01/07/update-floods-hit-central-oxford/
+    - https://itv.com/news/meridian/2014-02-09/oxfordshire-facing-worse-flooding-since-2007
+    - https://osneyisland.org.uk/wp-content/uploads/2023/02/osney-newsletter-2023-feb.pdf
+    - https://oxfordhistory.org.uk/floods/2014/index.html
+
+- id: e2021
+  name: Jan–Feb 2021
+  start: "2021-01-20T00:00:00Z"
+  end: "2021-02-20T00:00:00Z"
+  peak: {newbotley: 2.819, minns: 2.903, coldharbour: 2.503, kingsmill: 2.663}
+  headline: false
+  notes: >-
+    PROPOSED by Story (not in SPEC §4.3). Threshold crossed at newbotley (2–3 Feb), coldharbour
+    (1–3 Feb) and kingsmill (31 Jan – 2 Feb), and just touched at minns (2.903 m, 3 Feb). Oxford City
+    Council reported 5 flood warnings and 4 alerts from 30–31 Jan, a barrier at Bulstake Close, and
+    Ferry Hinksey Road flooded. Context: Osney d/s 3.73 m, "most serious since 2014", with no homes
+    reported flooded. A useful near-threshold test. Drop it if §6.1 auto-detection already finds it.
+  sources:
+    - https://www.oxford.gov.uk/news/article/1706/flooding_update_1221
+    - https://www.oxford.gov.uk/news/article/1715/city_council_and_ods_step_up_to_deal_with_the_floods
+    - https://osneyisland.org.uk/wp-content/uploads/2023/02/osney-newsletter-2023-feb.pdf
+
+- id: e2024a
+  name: Jan 2024 (Storm Henk)
+  start: "2023-12-28T00:00:00Z"
+  end: "2024-01-15T00:00:00Z"
+  peak: {newbotley: 2.920, minns: 2.968, coldharbour: 2.659, kingsmill: 2.643}
+  headline: false
+  notes: >-
+    Abingdon Road closed at about 21:30 on Fri 5 Jan 2024 (GMT = UTC). Osney Island streets flooded on
+    the evening of 4 Jan. First 15-min threshold crossings: New Botley 18:00Z on 4 Jan, Kings Mill
+    21:00Z on 4 Jan, Cold Harbour 22:00Z on 4 Jan, Minns 05:30Z on 5 Jan. EA warnings: Wolvercote from
+    22:25 on 4 Jan, Cherwell Oxford from 19:26 on 5 Jan, Binsey/Osney from 09:30 on 6 Jan. Window
+    confirmed.
+  sources:
+    - https://www.highwaysmagazine.co.uk/news/local-road-network/freeze-adds-counties-flooding-woes
+    - https://osneyisland.org.uk/wp-content/uploads/2024/02/osney-newsletter-2024-feb.pdf
+    - https://riverlevels.uk/flood-warning-river-cherwell-for-the-oxford-area
+    - https://riverlevels.uk/flood-warning-river-thames-and-tributaries-at-wolvercote-in-oxford
+    - https://riverlevels.uk/flood-warning-river-thames-and-tributaries-in-the-binsey-osney-and-osney-island-areas-in-oxford
+
+- id: e2024b
+  name: Nov 2024 (Storm Bert)
+  start: "2024-11-20T00:00:00Z"
+  end: "2024-12-05T00:00:00Z"
+  peak: {newbotley: 2.788, minns: 2.819, coldharbour: 2.455, kingsmill: 2.785}
+  headline: false
+  notes: >-
+    Mainly a Cherwell event. Kings Mill first reached 2.60 m at 06:30Z on 26 Nov and peaked at 2.785 m
+    at 01:15Z on 27 Nov (record; GOV.UK rounds to 2.79). EA Cherwell Oxford warning from 07:26 on
+    26 Nov to 09:35 on 29 Nov. The Thames side peaked later and lower: New Botley 2.788 m on 29 Nov
+    (just above 2.76), Minns 2.819 m (below 2.90). Oxford City Council reported no flooded
+    properties on 26 Nov. Window confirmed.
+  sources:
+    - https://check-for-flooding.service.gov.uk/station/7071
+    - https://riverlevels.uk/flood-warning-river-cherwell-for-the-oxford-area
+    - http://web.archive.org/web/20251015053110/https://www.oxford.gov.uk/news/article/1591/flood-warnings-issued-for-oxford-as-river-levels-continue-to-rise
+
+- id: e2026
+  name: Jan–Mar 2026
+  start: "2026-01-15T00:00:00Z"
+  end: "2026-03-10T00:00:00Z"
+  peak: {newbotley: 2.657, minns: 2.742, coldharbour: 2.120, kingsmill: 2.291}
+  headline: false
+  notes: >-
+    Near-miss / false-alarm test: no trained gauge reached its threshold. WINDOW CHANGED from SPEC
+    (2026-02-18 → 2026-03-10). High water started much earlier: in the flood-monitoring daily archive,
+    Osney d/s reads 3.17 m on 20 Jan, 3.36 m on 30 Jan, 3.51 m on 10 Feb and 3.535 m on 16 Feb, then
+    falls to 3.13 m by 2 Mar. Those are daily maxima of sampled days only, so the true peak may be a
+    little higher; Data should compute it from the archive (it covers 2025-10-29 onwards). So the
+    SPEC "3.41 m" (FloodRadar, alert of 25 Feb – 4 Mar) is a late-phase value, not the event peak;
+    the event peaked around 3.54 m, still below 3.79. Other sampled d/s maxima: Godstow 2.91 m
+    (17 Feb, below 3.07) and Iffley 3.10 m (10 and 18 Feb, below 3.25). Hydrology peaks: New Botley
+    2.657 m on 16 Feb, Minns 2.742 m on 16 Feb, Cold Harbour 2.120 m on 17 Feb, Kings Mill 2.291 m on
+    9 Feb. The #2 Data agent found no Oxford warning messages in this window in the Historic Flood
+    Warnings dataset; FloodRadar shows a flood alert for 061WAF23Oxford from 25 Feb, so check
+    whether the dataset (to June 2026) has it.
+  sources:
+    - https://www.floodradar.co.uk/flood-event/flood-alert-river-thames-and-tributaries-in-the-oxford-area-2026-02-25
+    - https://environment.data.gov.uk/flood-monitoring/archive

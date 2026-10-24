@@ -22,7 +22,7 @@ export type Station = {
   key: string; // e.g. "osney"
   name: string; // e.g. "Osney Lock d/s"
   river: string; // e.g. "Thames"
-  role: "upstream" | "target";
+  role: "upstream" | "target" | "live_only"; // live_only: shown live, never forecast (SPEC §4.1.1)
   ref: string; // EA stationReference, e.g. "1303TH"
   lat: number;
   lon: number;
@@ -95,6 +95,8 @@ export type Forecast = {
   dataAsOf: Record<string /*gauge*/, string>; // latest reading time per gauge, ISO 8601 UTC
   stale: string[]; // Station.key of gauges whose latest reading is > 3 h old
   spots: SpotForecast[];
+  method?: "model" | "persistence"; // "persistence" = labelled fallback until trained models exist
+  note?: string; // show in the UI when non-empty (always set when method is "persistence")
 };
 
 /** replays/{eventId}.json: the Time Machine data for one event (SPEC §8.1). */
