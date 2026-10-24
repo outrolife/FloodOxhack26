@@ -660,8 +660,47 @@ def _cov(rows: Sequence[Mapping[str, Any]], nominal: float, h: int) -> float:
     return next(r["actual"] for r in rows if r["h"] == h and np.isclose(r["nominal"], nominal))
 
 
+COVERAGE_TOL = 0.02  # "in-event coverage holds": 80/90 % in-flood coverage at 36-72 h within 0.02 of baseline
+
+
+def adoption_check(res: Mapping[str, Any], cand: str, base: str = "baseline") -> dict[str, Any]:
+    """The issue #125 rule, arm ``cand`` vs ``base``. Each part: (passed, detail)."""
+    sc = {s["arm"]: s for s in res["scores"]}
+    b, c = sc[base], sc[cand]
+    leads = (36, 48, 72)
+    sk = {r["h"]: r["skill"] for r in b["skill"]}, {r["h"]: r["skill"] for r in c["skill"]}
+    skill_ok = all(sk[1][h] > sk[0][h] for h in leads)
+    fa = {
+        k: (b["outcomesP50"][k]["falseAlarms"], c["outcomesP50"][k]["falseAlarms"]) for k in b["outcomesP50"]
+    }
+    ev = {e["arm"]: e for e in res.get("events", [])}
+    if base in ev and cand in ev:
+        for k, r in ev[base]["tradeoffP50"].items():
+            fa[f"{k} (replays)"] = (r["falseAlarms"], ev[cand]["tradeoffP50"][k]["falseAlarms"])
+    fa_ok = all(y <= x for x, y in fa.values())
+    br = {
+        f"{k} {h}h": (round(b["brier"][k][h]["model"], 4), round(c["brier"][k][h]["model"], 4))
+        for k in b["brier"]
+        for h in (48, 72)
+    }
+    brier_ok = all(y <= x for x, y in br.values())
+    cov = {
+        f"{int(n * 100)}% {h}h": (_cov(b["floodCoverage"], n, h), _cov(c["floodCoverage"], n, h))
+        for n in (0.8, 0.9)
+        for h in leads
+    }
+    cov_ok = all(y >= x - COVERAGE_TOL for x, y in cov.values())
+    parts = {
+        "skill36to72Improves": (skill_ok, {h: (sk[0][h], sk[1][h]) for h in leads}),
+        "noExtraFalseAlarmsP50": (fa_ok, fa),
+        "brierNoWorse": (brier_ok, br),
+        "inEventCoverageHolds": (cov_ok, cov),
+    }
+    return {"arm": cand, "adopt": all(p[0] for p in parts.values()), "parts": parts}
+
+
 def report(res: Mapping[str, Any]) -> str:
-    """Markdown tables in the issue #100 format."""
+    """Markdown tables in the issue #100 format, then the adoption check for each non-baseline arm."""
     from model.probability import HORIZONS_H
 
     L = [f"Test period: issue times >= {res['testStart'][:10]} to {res['dataEnd'][:10]}.", ""]
@@ -753,6 +792,19 @@ def report(res: Mapping[str, Any]) -> str:
             L.append(
                 f"- {g}: {d['extraShare']:.1%} ({grp}); top: {top}; best new rank #{d['rankOfTopExtra']}"
             )
+    arms = [s["arm"] for s in res["scores"]]
+    if "baseline" in arms:
+        for cand in arms:
+            if cand == "baseline":
+                continue
+            chk = adoption_check(res, cand)
+            L += [
+                "",
+                f"### Adoption rule (#125): {cand} vs baseline: {'ADOPT' if chk['adopt'] else 'NOT ADOPTED'}",
+            ]
+            for name, (ok, detail) in chk["parts"].items():
+                bad = {k: v for k, v in detail.items() if not ok} if isinstance(detail, dict) else detail
+                L.append(f"- {name}: {'pass' if ok else 'FAIL'} {bad if not ok else ''}".rstrip())
     return "\n".join(L)
 
 
