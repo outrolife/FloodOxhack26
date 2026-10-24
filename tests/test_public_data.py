@@ -39,6 +39,7 @@ from test_fixtures import (
     assert_unique,
     check,
     check_forecast,
+    check_warn_at,
     parse_utc,
 )
 
@@ -242,6 +243,8 @@ def test_proof(spots: dict, events: dict) -> None:
         assert row["spot"] in spots, f"{p}: unknown spot"
         if not row["crossed"]:
             assert row["arrivalErrH"] is None, f"{p}: arrival error without a crossing"
+    if "warnAt" in pr:  # per-spot warn-at levels (#134)
+        check_warn_at(pr["warnAt"], spots, events)
 
 
 def test_quality(stations: dict) -> None:

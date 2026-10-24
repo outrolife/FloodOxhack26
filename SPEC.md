@@ -250,6 +250,7 @@ Computed on the test period and across replay events.
 - **Arrival timing error:** predicted 50% time − actual crossing time, for forecasts issued 24 h and 48 h before the crossing.
 - **Versus official warnings:** for each event and spot, first EA Flood Warning (and Flood Alert) issue time in the spot's area (`perEvent.officialIssuedAt`; null when the EA issued none); lead gained = official issue time − our first trigger time, per p*. Fallback if dates only: compare in days, set `precision: "date"`, and say so in the UI.
 - **Official warnings as a trigger** (`officialOutcome`): score the first EA Flood Warning per event and spot with the same hit / miss / false-alarm rules as our trigger, so the Decide tab can price "act on official warnings". e2026 has no Oxford warning messages at all.
+- **Warn-at level per spot** (`warnAt`, #134): each probability spot's trigger p* is chosen on **validation information only** (replay issue times and crossings before the test period, 2021-10-01: the leave-one-flood-out replays of e2007, e2012, e2014, e2021) by one fixed rule: the lowest p* in 0.1–0.9 with at most 1 false alarm in every validation flood replay (0.5 if none qualifies). It is then frozen and scored on the test events (e2024a, e2024b, e2026), next to p* = 0.5 on the same events. Test events never enter the choice. Everything else in proof.json stays at p* = 0.5.
 - **Uncertainty:** bootstrap over events (1,000 resamples), 90% intervals for event-level numbers. `tradeoff[].ci90` is the 90% bootstrap interval of `meanLeadH` (hours).
 
 ---
@@ -315,7 +316,15 @@ type Proof = {
       officialIssuedAt?: string | null }[];  // first EA Flood Warning in the spot's area; null = none issued
   officialOutcome?: Record<string /*spot*/, { hits: number; misses: number; falseAlarms: number;
       meanLeadH: number | null }>;           // official warnings scored as a trigger (§8.2)
+  warnAt?: Record<string /*spot*/, {         // per-spot warn-at level (#134, §8.2)
+      pStar: number; rule: string;           // chosen on validation floods only, then frozen
+      validation: WarnAtScore; test: WarnAtScore;
+      atDefault: { pStar: number; validation: WarnAtScore; test: WarnAtScore };  // same events at p* 0.5
+      perEvent: { eventId: string; period: "validation" | "test"; hits: number; misses: number;
+          falseAlarms: number; meanLeadH: number | null; leadVsOfficialH: number | null }[] }>;
   testPeriodNote: string; };
+type WarnAtScore = { events: string[]; hits: number; misses: number; falseAlarms: number;
+  meanLeadH: number | null; meanLeadVsOfficialH: number | null };
 
 // quality.json
 type Quality = {

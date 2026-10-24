@@ -979,5 +979,251 @@
    "falseAlarms": 0,
    "meanLeadH": 21.5
   }
+ },
+ "warnAt": {
+  "osney": {
+   "pStar": 0.5,
+   "rule": "Lowest p* in 0.1-0.9 with at most 1 false alarm in every validation flood replay (issue times before 2021-10-01: e2007, e2012, e2014, e2021); 0.5 if none qualifies. Chosen before looking at the test period.",
+   "validation": {
+    "events": [
+     "e2007",
+     "e2012",
+     "e2014",
+     "e2021"
+    ],
+    "hits": 6,
+    "misses": 0,
+    "falseAlarms": 2,
+    "meanLeadH": 17.83,
+    "meanLeadVsOfficialH": 2.34
+   },
+   "test": {
+    "events": [
+     "e2024a",
+     "e2024b",
+     "e2026"
+    ],
+    "hits": 1,
+    "misses": 0,
+    "falseAlarms": 0,
+    "meanLeadH": 11.0,
+    "meanLeadVsOfficialH": 1.5
+   },
+   "atDefault": {
+    "pStar": 0.5,
+    "validation": {
+     "events": [
+      "e2007",
+      "e2012",
+      "e2014",
+      "e2021"
+     ],
+     "hits": 6,
+     "misses": 0,
+     "falseAlarms": 2,
+     "meanLeadH": 17.83,
+     "meanLeadVsOfficialH": 2.34
+    },
+    "test": {
+     "events": [
+      "e2024a",
+      "e2024b",
+      "e2026"
+     ],
+     "hits": 1,
+     "misses": 0,
+     "falseAlarms": 0,
+     "meanLeadH": 11.0,
+     "meanLeadVsOfficialH": 1.5
+    }
+   },
+   "perEvent": [
+    {
+     "eventId": "e2007",
+     "hits": 1,
+     "misses": 0,
+     "falseAlarms": 1,
+     "meanLeadH": 1.0,
+     "leadVsOfficialH": -16.72,
+     "period": "validation"
+    },
+    {
+     "eventId": "e2012",
+     "hits": 2,
+     "misses": 0,
+     "falseAlarms": 1,
+     "meanLeadH": 21.5,
+     "leadVsOfficialH": 2.8,
+     "period": "validation"
+    },
+    {
+     "eventId": "e2014",
+     "hits": 2,
+     "misses": 0,
+     "falseAlarms": 0,
+     "meanLeadH": 19.0,
+     "leadVsOfficialH": 20.94,
+     "period": "validation"
+    },
+    {
+     "eventId": "e2021",
+     "hits": 1,
+     "misses": 0,
+     "falseAlarms": 0,
+     "meanLeadH": 25.0,
+     "leadVsOfficialH": null,
+     "period": "validation"
+    },
+    {
+     "eventId": "e2024a",
+     "hits": 1,
+     "misses": 0,
+     "falseAlarms": 0,
+     "meanLeadH": 11.0,
+     "leadVsOfficialH": 1.5,
+     "period": "test"
+    },
+    {
+     "eventId": "e2024b",
+     "hits": 0,
+     "misses": 0,
+     "falseAlarms": 0,
+     "meanLeadH": null,
+     "leadVsOfficialH": null,
+     "period": "test"
+    },
+    {
+     "eventId": "e2026",
+     "hits": 0,
+     "misses": 0,
+     "falseAlarms": 0,
+     "meanLeadH": null,
+     "leadVsOfficialH": null,
+     "period": "test"
+    }
+   ]
+  },
+  "abingdonrd": {
+   "pStar": 0.2,
+   "rule": "Lowest p* in 0.1-0.9 with at most 1 false alarm in every validation flood replay (issue times before 2021-10-01: e2007, e2012, e2014, e2021); 0.5 if none qualifies. Chosen before looking at the test period.",
+   "validation": {
+    "events": [
+     "e2007",
+     "e2012",
+     "e2014",
+     "e2021"
+    ],
+    "hits": 6,
+    "misses": 0,
+    "falseAlarms": 1,
+    "meanLeadH": 46.83,
+    "meanLeadVsOfficialH": 63.03
+   },
+   "test": {
+    "events": [
+     "e2024a",
+     "e2024b",
+     "e2026"
+    ],
+    "hits": 2,
+    "misses": 0,
+    "falseAlarms": 0,
+    "meanLeadH": 10.0,
+    "meanLeadVsOfficialH": -12.82
+   },
+   "atDefault": {
+    "pStar": 0.5,
+    "validation": {
+     "events": [
+      "e2007",
+      "e2012",
+      "e2014",
+      "e2021"
+     ],
+     "hits": 6,
+     "misses": 0,
+     "falseAlarms": 0,
+     "meanLeadH": 27.83,
+     "meanLeadVsOfficialH": -13.47
+    },
+    "test": {
+     "events": [
+      "e2024a",
+      "e2024b",
+      "e2026"
+     ],
+     "hits": 2,
+     "misses": 0,
+     "falseAlarms": 0,
+     "meanLeadH": 6.0,
+     "meanLeadVsOfficialH": -16.82
+    }
+   },
+   "perEvent": [
+    {
+     "eventId": "e2007",
+     "hits": 1,
+     "misses": 0,
+     "falseAlarms": 0,
+     "meanLeadH": 41.0,
+     "leadVsOfficialH": -26.72,
+     "period": "validation"
+    },
+    {
+     "eventId": "e2012",
+     "hits": 2,
+     "misses": 0,
+     "falseAlarms": 0,
+     "meanLeadH": 63.0,
+     "leadVsOfficialH": 34.72,
+     "period": "validation"
+    },
+    {
+     "eventId": "e2014",
+     "hits": 2,
+     "misses": 0,
+     "falseAlarms": 1,
+     "meanLeadH": 37.0,
+     "leadVsOfficialH": 225.06,
+     "period": "validation"
+    },
+    {
+     "eventId": "e2021",
+     "hits": 1,
+     "misses": 0,
+     "falseAlarms": 0,
+     "meanLeadH": 40.0,
+     "leadVsOfficialH": 19.06,
+     "period": "validation"
+    },
+    {
+     "eventId": "e2024a",
+     "hits": 1,
+     "misses": 0,
+     "falseAlarms": 0,
+     "meanLeadH": 4.0,
+     "leadVsOfficialH": -8.49,
+     "period": "test"
+    },
+    {
+     "eventId": "e2024b",
+     "hits": 1,
+     "misses": 0,
+     "falseAlarms": 0,
+     "meanLeadH": 16.0,
+     "leadVsOfficialH": -17.14,
+     "period": "test"
+    },
+    {
+     "eventId": "e2026",
+     "hits": 0,
+     "misses": 0,
+     "falseAlarms": 0,
+     "meanLeadH": null,
+     "leadVsOfficialH": null,
+     "period": "test"
+    }
+   ]
+  }
  }
 }

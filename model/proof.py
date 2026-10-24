@@ -78,7 +78,11 @@ TEST_PERIOD_NOTE = (
     "one flood. An EA Flood Warning counts as in force from its issue time until 24 h after its last "
     "Update, and is scored on the same hours and rules as our trigger. Lead versus the EA compares "
     "first messages within the same flood. Arrival error uses the forecast issued 24 h before the first"
-    " crossing and is blank when that forecast did not reach 50%. Few events, so intervals are wide."
+    " crossing and is blank when that forecast did not reach 50%. Abingdon Rd shares the EA warning "
+    "area 061FWF23NwBotley with Botley, so its lead versus the EA is measured against the Botley "
+    "warning, while its own gauge crosses later. Each spot's warn-at level (warnAt) was chosen on the "
+    "validation flood replays only (issue times before {test_start}: {val_events}) by one fixed rule, "
+    "then frozen and scored on the test events. Few events, so intervals are wide."
 )
 
 
@@ -100,6 +104,22 @@ def main_models(
         m.save(d)
         out[g] = m
     return out
+
+
+def event_period(
+    event: Mapping[str, Any], test_start: pd.Timestamp = DEFAULT_SPLITS.test_start
+) -> str | None:
+    """"validation" if the event window ends before the test period, "test" if it starts in it.
+
+    Used to choose the per-spot warn-at levels (#134) on validation floods only. An event straddling
+    ``test_start`` would be neither (none does); ``metrics.choose_warn_at`` also cuts at ``test_start``.
+    """
+    start, end = backtest.event_window(event)
+    if end < test_start:
+        return "validation"
+    if start >= test_start:
+        return "test"
+    return None
 
 
 def in_test_period(event: Mapping[str, Any], test_start: pd.Timestamp = DEFAULT_SPLITS.test_start) -> bool:
@@ -369,7 +389,23 @@ def event_scores(
             p_series, warnings, windows, metrics.P_STARS, areas, onsets=onsets
         )
 
+    periods = {eid: event_period(events[eid]) for eid in replays}
+    periods = {eid: per for eid, per in periods.items() if per is not None}
+
+    def event_vs_official(eid: str, p_star: float, key: str) -> float | None:
+        """Lead vs the first EA Flood Warning for one event, spot and p* (first flood only, as perEvent)."""
+        if comparison is None:
+            return None
+        sel = comparison[
+            (comparison["event_id"] == eid)
+            & (comparison["spot"] == key)
+            & np.isclose(comparison["p_star"], p_star)
+        ]["lead_vs_warning_h"]
+        sel = pd.to_numeric(sel, errors="coerce").dropna()
+        return None if sel.empty else float(sel.iloc[0])
+
     tradeoff: dict[str, list[dict[str, Any]]] = {}
+    warn_at: dict[str, dict[str, Any]] = {}
     official_outcome: dict[str, dict[str, Any]] = {}
     per_event: list[dict[str, Any]] = []
     arrival: dict[int, list[float]] = {h: [] for h in metrics.ARRIVAL_OFFSETS_H}
@@ -384,6 +420,13 @@ def event_scores(
             return official.mean_lead_vs_official(comparison, key, p_star)
 
         tradeoff[key] = metrics.tradeoff_rows(p_by_event, cross_by_event, lead_vs_official=vs_official)
+        warn_at[key] = metrics.warn_at_entry(
+            p_by_event,
+            cross_by_event,
+            periods,
+            DEFAULT_SPLITS.test_start,
+            lead_vs_official=lambda eid, p_star, key=key: event_vs_official(eid, p_star, key),
+        )
         official_outcome[key] = metrics.official_outcome(
             {
                 eid: official_triggers(
@@ -433,6 +476,7 @@ def event_scores(
         "tradeoff": tradeoff,
         "perEvent": per_event,
         "officialOutcome": official_outcome,
+        "warnAt": warn_at,
         "arrivalErrors": arrival,
     }
 
@@ -468,6 +512,8 @@ def assemble(
     }
     if with_38:
         proof["officialOutcome"] = ev["officialOutcome"]
+    if ev.get("warnAt"):  # per-spot warn-at levels chosen on validation floods (#134)
+        proof["warnAt"] = ev["warnAt"]
     return proof
 
 
@@ -487,6 +533,15 @@ def summary(proof: Mapping[str, Any], ev: Mapping[str, Any]) -> str:
         )
     for spot, o in ev["officialOutcome"].items():
         lines.append(f"{spot} official: {o}")
+    for spot, w in ev.get("warnAt", {}).items():
+        for period in ("validation", "test"):
+            a, d = w[period], w["atDefault"][period]
+            lines.append(
+                f"{spot} warn-at p*={w['pStar']} {period}: hits {a['hits']} misses {a['misses']} FA "
+                f"{a['falseAlarms']} lead {a['meanLeadH']} vsEA {a['meanLeadVsOfficialH']} | p*=0.5: hits "
+                f"{d['hits']} misses {d['misses']} FA {d['falseAlarms']} lead {d['meanLeadH']} "
+                f"vsEA {d['meanLeadVsOfficialH']}"
+            )
     for r in proof["perEvent"]:
         lines.append(
             f"{r['eventId']} {r['spot']}: crossed={r['crossed']} peak={r['peakObs']} "
@@ -531,6 +586,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         test_start=test_start.strftime("%Y-%m-%d"),
         gauges=", ".join(args.targets),
         test_events=", ".join(e for e in events if in_test_period(events[e])) or "none",
+        val_events=", ".join(e for e in events if event_period(events[e]) == "validation") or "none",
     )
     proof = assemble(skill, coverage, reliability, ev, note, contract_has_38())
     path = backtest.write_json(proof, PROOF_PATH)
