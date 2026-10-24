@@ -3,12 +3,12 @@
 - **role**: App
 - **state**: working
 - **issue**: #118
-- **task**: UI v2 integration/polish pass (part A)
-- **next**: Read all screens, unify vocabulary and presenter keys
+- **task**: UI v2 polish: PRs #132 keys, #133 clock placement
+- **next**: Replay lazy loading + perf, then vocabulary pass
 - **needs**: 
 - **notes**: 
-- **branch**: app/ux-integration
-- **head**: e37a40d Merge pull request #131 from outrolife/app/v2-replay
+- **branch**: app/ux-clock-placement
+- **head**: aca4759 UX: one shared clock-placement rule for the Now and Replay map
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T20:02:49Z
+- **updated**: 2026-10-24T20:19:33Z
