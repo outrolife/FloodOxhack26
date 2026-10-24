@@ -59,18 +59,17 @@ EVENTS_YAML = ROOT / "config" / "events.yaml"
 H = pd.Timedelta(hours=1)
 
 # FALLBACK, mirroring SPEC §4.1 "Normal top / amber (m)". Used only for gauges that config/stations.yaml
-# (issue #2) does not provide. Each value is on that gauge's own datum.
+# (issue #2) does not provide. Each value is on that gauge's own datum. Only the targets' values are used.
 FALLBACK_AMBER: dict[str, float] = {
     "farmoor": 1.30,
     "eynsham": 2.96,
     "cassington": 0.77,
     "enslow": 1.29,
     "islip": 7.80,
-    "godstow": 2.57,
-    "osney": 3.18,
-    "iffley": 2.72,
-    "kingsmill": 2.40,
     "newbotley": 2.01,
+    "minns": 2.13,
+    "coldharbour": 2.30,
+    "kingsmill": 2.40,
 }
 
 # FALLBACK, mirroring SPEC §4.3. Used only if config/events.yaml (issue #10) is missing.
@@ -83,13 +82,13 @@ FALLBACK_EVENTS: list[dict[str, str]] = [
     {"id": "e2026", "start": "2026-02-18", "end": "2026-03-10"},
 ]
 
-# Pairs (SPEC §4.1 flow paths, §6.2), keyed by target, in display order: the Thames chain into osney first.
-# Same upstream sets as model/features.py UPSTREAMS.
+# Pairs (SPEC §4.1 flow paths, §6.2 as re-targeted in PR #30), keyed by target, in display order: the Thames
+# chain into newbotley (primary) first. godstow, osney and iffley are live only (§4.1.1): the Hydrology API
+# has no downstream-stage history for them, so they have no pairs.
 UPSTREAMS: dict[str, tuple[str, ...]] = {
-    "osney": ("farmoor", "eynsham", "cassington", "godstow"),
-    "godstow": ("farmoor", "eynsham", "cassington"),
-    "iffley": ("farmoor", "eynsham", "cassington", "godstow", "osney"),
-    "newbotley": ("farmoor", "eynsham", "cassington", "godstow"),
+    "newbotley": ("farmoor", "eynsham", "cassington"),
+    "minns": ("farmoor", "eynsham", "cassington"),
+    "coldharbour": ("farmoor", "eynsham", "cassington"),
     "kingsmill": ("enslow", "islip"),
 }
 
@@ -266,10 +265,10 @@ def detect_events(
 def event_threshold(target: str, level_max: pd.Series, amber: float) -> tuple[float, float, str]:
     """(threshold, margin, source) for event detection at ``target``.
 
-    Normally the configured amber and the SPEC 0.1 m margin. FALLBACK (not in SPEC): if the data never
-    reach amber, the series is almost certainly on another datum (e.g. the Hydrology API holds only the
-    *upstream* lock stage at Osney, Iffley and Godstow, issue #2), so events are detected above that
-    series' own 99th percentile instead, with no margin. Logged, and recorded in the detail file.
+    Normally the configured amber and the SPEC 0.1 m margin. Safety FALLBACK (not in SPEC): if the data
+    never reach amber, the series is almost certainly on another datum (as found for the upstream lock
+    stage at Osney, issue #2), so events are detected above that series' own 99th percentile instead,
+    with no margin. Logged loudly, and recorded in the detail file.
     """
     top = float(level_max.max())
     if top > amber:

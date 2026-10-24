@@ -10,8 +10,8 @@ import pytest
 
 from analysis import travel_times as tt
 
-AMBER = {"farmoor": 1.30, "osney": 3.18}
-UPSTREAMS = {"osney": ("farmoor",)}
+AMBER = {"farmoor": 1.30, "newbotley": 2.01}
+UPSTREAMS = {"newbotley": ("farmoor",)}
 
 
 def hourly_index(start: str, end: str) -> pd.DatetimeIndex:
@@ -45,15 +45,15 @@ def long_frame(levels: dict[str, pd.Series]) -> pd.DataFrame:
 
 
 def shifted_pair(peaks: list[str], lag_h: float, amps: list[float], seed: int = 0) -> pd.DataFrame:
-    """farmoor bumps at ``peaks``; osney the same shape ``lag_h`` later, on a different datum."""
+    """farmoor bumps at ``peaks``; newbotley the same shape ``lag_h`` later, on a different datum."""
     idx = hourly_index("2010-10-01", "2011-03-31 23:00")
     rng = np.random.default_rng(seed)
     up = 0.8 + rng.normal(0, 0.003, len(idx))
-    down = 2.5 + rng.normal(0, 0.003, len(idx))
+    down = 1.5 + rng.normal(0, 0.003, len(idx))
     for centre, amp in zip(peaks, amps, strict=True):
         up += bump(idx, centre, amp)
         down += bump(idx, tt._utc(centre) + pd.Timedelta(hours=lag_h), 1.0)
-    return long_frame({"farmoor": pd.Series(up, idx), "osney": pd.Series(down, idx)})
+    return long_frame({"farmoor": pd.Series(up, idx), "newbotley": pd.Series(down, idx)})
 
 
 def run(hourly: pd.DataFrame, named: list[dict] | None = None) -> tt.Outputs:
@@ -80,15 +80,15 @@ def test_shifted_hydrograph_recovers_lag() -> None:
     assert pair["slopeHoursPerMetre"] == pytest.approx(0, abs=2)
 
     (lag,) = out.lags["pairs"]
-    assert lag == {"up": "farmoor", "down": "osney", "lag_lo": 30, "lag_main": 30, "lag_hi": 30,
+    assert lag == {"up": "farmoor", "down": "newbotley", "lag_lo": 30, "lag_main": 30, "lag_hi": 30,
                    "source": "events"}
 
 
 def test_ambiguous_double_peak_is_excluded() -> None:
     peaks = ["2010-11-01", "2010-12-10", "2011-01-20"]
     hourly = shifted_pair(peaks, lag_h=30, amps=[0.8, 0.8, 0.8])
-    # an extra flood with two equal peaks 3 days apart: one merged osney event with no dominant peak
-    for gauge, shift_h in (("farmoor", 0), ("osney", 30)):
+    # an extra flood with two equal peaks 3 days apart: one merged newbotley event with no dominant peak
+    for gauge, shift_h in (("farmoor", 0), ("newbotley", 30)):
         rows = hourly["gauge"] == gauge
         idx = pd.DatetimeIndex(hourly.loc[rows, "ts_utc"])
         first = tt._utc("2011-03-01") + pd.Timedelta(hours=shift_h)
@@ -111,14 +111,14 @@ def test_fewer_than_three_events_falls_back_to_xcorr() -> None:
     rng = np.random.default_rng(1)
     up = pd.Series(0.8 + rng.normal(0, 0.02, len(idx)), idx)
     up += bump(idx, "2010-11-15", 3.0) + bump(idx, "2011-02-01", 3.0)
-    down = 1.5 + up.shift(20)  # osney = farmoor 20 h later, on its own datum
-    hourly = long_frame({"farmoor": up, "osney": down})
+    down = 0.5 + up.shift(20)  # newbotley = farmoor 20 h later, on its own datum
+    hourly = long_frame({"farmoor": up, "newbotley": down})
 
     out = run(hourly)
     (pair,) = out.travel_pairs
     assert pair["n"] == 2
     (lag,) = out.lags["pairs"]
-    assert lag == {"up": "farmoor", "down": "osney", "lag_lo": 14, "lag_main": 20, "lag_hi": 26,
+    assert lag == {"up": "farmoor", "down": "newbotley", "lag_lo": 14, "lag_main": 20, "lag_hi": 26,
                    "source": "xcorr"}
     assert pair["tHalf"] == {"p10": 14.0, "median": 20.0, "p90": 26.0}
     best = max(pair["xcorr"], key=lambda p: p["r"])
@@ -127,7 +127,7 @@ def test_fewer_than_three_events_falls_back_to_xcorr() -> None:
 
 
 def test_out_of_range_travel_time_is_excluded() -> None:
-    # osney peaks *before* farmoor: negative travel time, excluded with a reason
+    # newbotley peaks *before* farmoor: negative travel time, excluded with a reason
     out = run(shifted_pair(["2010-11-01", "2010-12-10", "2011-01-20"], lag_h=-10, amps=[1, 1, 1]))
     (pair,) = out.travel_pairs
     assert pair["n"] == 0
@@ -139,10 +139,10 @@ def test_lag_across_dst_night_is_in_utc() -> None:
     """SPEC §16: timestamps across 2026-10-25 00:30-02:30 UTC (UK clocks go back) behave like any other."""
     idx = hourly_index("2026-10-10", "2026-11-10")
     up = pd.Series(0.8 + bump(idx, "2026-10-24 12:00", 1.0), idx)
-    down = pd.Series(2.5 + bump(idx, "2026-10-25 18:00", 1.0), idx)  # 30 h later, across 01:00 UTC
-    event = tt.Event("dst", "osney", pd.Timestamp("2026-10-25", tz="UTC"),
+    down = pd.Series(1.5 + bump(idx, "2026-10-25 18:00", 1.0), idx)  # 30 h later, across 01:00 UTC
+    event = tt.Event("dst", "newbotley", pd.Timestamp("2026-10-25", tz="UTC"),
                      pd.Timestamp("2026-10-26 12:00", tz="UTC"), 3.5, "detected")
-    res = tt.match_event(up, down, "farmoor", "osney", event)
+    res = tt.match_event(up, down, "farmoor", "newbotley", event)
     assert res.valid
     assert res.t_peak == 30.0
     assert res.t_half == pytest.approx(30, abs=0.1)
@@ -162,15 +162,15 @@ def test_named_window_names_the_detected_event() -> None:
 
 
 def test_datum_mismatch_falls_back_to_own_percentile() -> None:
-    """Osney upstream lock stage (~0-0.3 m) never reaches the downstream-stage amber (3.18 m)."""
+    """A series on another datum (like Osney upstream lock stage, #2) never reaches amber."""
     hourly = shifted_pair(["2010-11-01", "2010-12-10", "2011-01-20"], lag_h=30, amps=[1, 1, 1])
-    osney = hourly["gauge"] == "osney"
-    hourly.loc[osney, ["level_mean", "level_max"]] -= 2.45  # same shape, other datum: ~0.05-1.05 m
+    newbotley = hourly["gauge"] == "newbotley"
+    hourly.loc[newbotley, ["level_mean", "level_max"]] -= 1.45  # same shape, other datum: ~0.05-1.05 m
     out = run(hourly)
     (pair,) = out.travel_pairs
     assert pair["n"] == 3
     assert pair["tHalf"]["median"] == pytest.approx(30, abs=1)
-    assert out.detail["eventThresholds"]["osney"]["source"] == "p99"
+    assert out.detail["eventThresholds"]["newbotley"]["source"] == "p99"
 
 
 # ---------------------------------------------------------------------------------------------
@@ -237,9 +237,12 @@ def test_fixture_matches_shape_if_present(fixtures_dir: Path) -> None:
 
 
 def test_pairs_cover_spec_flow_paths() -> None:
+    """SPEC §4.1 after PR #30: Thames upstreams -> newbotley (primary), minns, coldharbour; Cherwell."""
     pairs = tt.all_pairs()
-    assert pairs[:4] == [("farmoor", "osney"), ("eynsham", "osney"), ("cassington", "osney"),
-                         ("godstow", "osney")]
-    assert ("osney", "iffley") in pairs and ("godstow", "newbotley") in pairs
+    assert pairs[:3] == [("farmoor", "newbotley"), ("eynsham", "newbotley"), ("cassington", "newbotley")]
+    for target in ("minns", "coldharbour"):
+        assert {up for up, down in pairs if down == target} == {"farmoor", "eynsham", "cassington"}
     assert ("enslow", "kingsmill") in pairs and ("islip", "kingsmill") in pairs
-    assert all(up != down for up, down in pairs)
+    # main-channel locks are live only (§4.1.1): no pairs
+    assert not {g for pair in pairs for g in pair} & {"godstow", "osney", "iffley"}
+    assert len(pairs) == 11
