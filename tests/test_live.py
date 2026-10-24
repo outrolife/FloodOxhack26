@@ -49,7 +49,8 @@ class FakeEA:
         if "rainfall" in measure:
             return readings_body(times, [0.2] * n)
         rng = np.random.default_rng(len(measure))
-        return readings_body(times, list(2.0 + np.cumsum(rng.normal(0, 0.002, n))))
+        base = 7.0 if measure.startswith("1489TH") else 2.0  # Islip's datum: normal range ~6-8 m
+        return readings_body(times, list(base + np.cumsum(rng.normal(0, 0.002, n))))
 
 
 # ---------------------------------------------------------------------------------------------
