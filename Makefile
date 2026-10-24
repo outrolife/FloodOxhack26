@@ -71,7 +71,8 @@ travel: setup
 
 # Train + calibrate the four target gauges (SPEC §4.1.1, §7.3–7.4); writes importance.json
 TARGETS := newbotley minns coldharbour kingsmill
-train: setup
+# travel first: lags.json must cover every river-walk pair (#125); it is deterministic, ~1 min
+train: setup travel
 	$(PY) -m model.train --targets $(TARGETS)
 	$(PY) -m model.calibrate
 

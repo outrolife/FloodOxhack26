@@ -155,8 +155,11 @@ def load_flow_paths(path: Path | str = STATIONS_YAML) -> dict[str, tuple[str, ..
         log.warning("could not read %s (%s); using FALLBACK_UPSTREAMS", path, exc)
     paths = raw.get("flow_paths") if isinstance(raw, dict) else None
     out: dict[str, tuple[str, ...]] = {}
-    for basin in paths.values() if isinstance(paths, dict) else ():
-        for target, ups in basin.items() if isinstance(basin, dict) else ():
+    for name, basin in paths.items() if isinstance(paths, dict) else ():
+        if not isinstance(basin, dict) or not basin:  # e.g. `cherwell: [kingsmill]` or empty
+            log.warning("flow_paths basin %r is malformed; using FALLBACK_UPSTREAMS", name)
+            return dict(FALLBACK_UPSTREAMS)
+        for target, ups in basin.items():
             ok = isinstance(ups, list) and all(isinstance(u, str) for u in ups)
             if not ok or len(set(ups)) != len(ups) or target in out:
                 log.warning("flow_paths entry for %s is malformed; using FALLBACK_UPSTREAMS", target)
@@ -173,6 +176,7 @@ TARGETS: tuple[str, ...] = tuple(UPSTREAMS)  # newbotley first: the primary targ
 LIVE_ONLY: tuple[str, ...] = ("godstow", "osney", "iffley")
 
 LagsArg = Mapping[str, Any] | None
+_WARNED_PAIRS: set[str] = set()  # pairs already warned about as missing from lags.json (warn once)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -314,7 +318,12 @@ def upstream_lags_h(upstream: str, target: str, lags: LagsArg = None) -> list[in
     to whole hours and clipped to [0, 21 days].
     """
     pair = f"{upstream}->{target}"
-    travel = _normalise_lags(lags).get(pair, {})
+    norm = _normalise_lags(lags)
+    if norm and pair not in norm and pair not in _WARNED_PAIRS:
+        _WARNED_PAIRS.add(pair)
+        log.warning("%s missing from lags.json: fixed lags %s only (run `make travel`)", pair,
+                    UPSTREAM_FIXED_LAGS_H)
+    travel = norm.get(pair, {})
     out = set(UPSTREAM_FIXED_LAGS_H)
     for key, lag in travel.items():
         if not 0 <= lag <= MAX_WINDOW_H:

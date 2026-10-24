@@ -582,6 +582,47 @@ def write_importance(models: Iterable[GaugeModel], path: Path | None = None) -> 
     return path
 
 
+INPUTS_HINT = "run `make fetch-data` (release data-hourly-v2) and `make travel` first"
+
+
+def walk_input_problems(
+    hourly: pd.DataFrame, targets: Iterable[str], lags: Mapping[str, Mapping[str, int]] | None
+) -> list[str]:
+    """What is missing for the configured river walk (#125): one line per problem, [] if none.
+
+    Training on data without a walk gauge (data-hourly-v1) gives a NaN median and all-NaN columns, and
+    a pair missing from lags.json silently gets only the fixed lags {0, 6, 12, 24}: either way the model
+    quietly becomes a weaker one than SPEC §7.2 describes. ``make train`` refuses instead.
+    """
+    from model import features
+
+    problems = []
+    for target in targets:
+        lv = hourly[(hourly["gauge"] == target) & hourly["level_mean"].notna()]
+        if lv.empty:
+            problems.append(f"{target}: no level rows in hourly.parquet")
+            continue
+        try:
+            splits = choose_splits(lv["ts_utc"].min(), lv["ts_utc"].max())
+        except ValueError:  # too short for splits: train_gauge reports that itself
+            splits = DEFAULT_SPLITS
+        medians = fit_medians(hourly, target, splits.val_start)
+        no_data = [g for g, v in medians.items() if not np.isfinite(v)]
+        if no_data:
+            problems.append(f"{target}: no history before {splits.val_start.date()} for {no_data}")
+        no_lags = [up for up in features.UPSTREAMS[target] if f"{up}->{target}" not in (lags or {})]
+        if no_lags:
+            problems.append(f"{target}: lags.json has no pair for {[f'{u}->{target}' for u in no_lags]}")
+    return problems
+
+
+def is_current(m: GaugeModel, lags: Mapping[str, Mapping[str, int]] | None) -> bool:
+    """True if a saved model has exactly the columns the current config and ``lags`` give its target."""
+    from model import features
+
+    return m.feature_cols == features.feature_columns(m.target, lags)
+
+
 def main(argv: Sequence[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--targets", nargs="+", default=list(DEFAULT_TARGETS))
@@ -595,6 +636,10 @@ def main(argv: Sequence[str] | None = None) -> None:
         return
     hourly = load_hourly()
     lags = load_lags()
+    problems = walk_input_problems(hourly, args.targets, lags)
+    if problems:
+        raise SystemExit("model.train: inputs do not match the river walk; " + INPUTS_HINT + ":\n  "
+                         + "\n  ".join(problems))
     models = []
     for target in args.targets:
         m = train_gauge(hourly, target, lags=lags)
