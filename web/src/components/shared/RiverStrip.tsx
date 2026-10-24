@@ -26,14 +26,45 @@ export function bestPair(key: string, pairs: TravelPair[]): TravelPair | undefin
     .sort((a, b) => Number(a.n < 3) - Number(b.n < 3) || b.n - a.n || rank(a.down) - rank(b.down))[0];
 }
 
-function linkLabel(key: string, pairs: TravelPair[], stations: Station[]): string | null {
-  const best = bestPair(key, pairs);
-  const from = best ? [best] : [];
-  if (from.length === 0) return null;
-  const p = from[0];
+/** Travel times measured on fewer floods than this are shown greyed, tagged "low confidence" (#99). */
+export const LOW_CONFIDENCE_N = 5;
+
+export type LinkInfo = {
+  /** "≈ 10 h to New Botley" (+ " (cross-correlation only)" when n < 3). */
+  text: string;
+  n: number;
+  lowConfidence: boolean;
+  /** Tooltip: what the number rests on, including the peak-to-peak median for comparison. */
+  title: string;
+};
+
+export function linkInfo(key: string, pairs: TravelPair[], stations: Pick<Station, "key" | "name">[]): LinkInfo | null {
+  const p = bestPair(key, pairs);
+  if (!p) return null;
   const down = stations.find((s) => s.key === p.down)?.name ?? p.down;
   const xc = p.n < 3 ? " (cross-correlation only)" : "";
-  return `≈ ${Math.round(p.tHalf.median)} h to ${down}${xc}`;
+  const lowConfidence = p.n < LOW_CONFIDENCE_N;
+  return {
+    text: `≈ ${Math.round(p.tHalf.median)} h to ${down}${xc}`,
+    n: p.n,
+    lowConfidence,
+    title:
+      `Median half-rise travel time T½ ${p.tHalf.median.toFixed(1)} h, n = ${p.n} events; ` +
+      `peak-to-peak median ${p.tPeak.median.toFixed(1)} h.` +
+      (lowConfidence ? ` Fewer than ${LOW_CONFIDENCE_N} events: low confidence.` : ""),
+  };
+}
+
+/** "based on 4 past rises" */
+export const basedOn = (n: number): string => `based on ${n} past ${n === 1 ? "rise" : "rises"}`;
+
+function StripLink({ info }: { info: LinkInfo }) {
+  return (
+    <div className={`strip-link${info.lowConfidence ? " low" : ""}`} title={info.title}>
+      {info.text} · {basedOn(info.n)}
+      {info.lowConfidence && <span className="tag-low">low confidence</span>}
+    </div>
+  );
 }
 
 function rank(gauge: string): number {
@@ -81,7 +112,7 @@ export function RiverStrip({
             if (!st) return null;
             const pts = series?.[g];
             const now = lastAtOrBefore(pts, until)?.level ?? levelNow?.[g];
-            const label = linkLabel(g, pairs, stations);
+            const link = linkInfo(g, pairs, stations);
             const isLast = i === visible.length - 1;
             const vsAmber = now != null ? now - st.amber : null;
             const isStale = stale?.includes(g) ?? false;
@@ -105,7 +136,7 @@ export function RiverStrip({
                   </div>
                   {pts && pts.length > 1 && <Sparkline points={pts} amber={st.amber} until={until} width={96} height={28} />}
                 </div>
-                {label ? <div className="strip-link">{label}</div> : !isLast && <div className="strip-link" />}
+                {link ? <StripLink info={link} /> : !isLast && <div className="strip-link" />}
               </div>
             );
           })}

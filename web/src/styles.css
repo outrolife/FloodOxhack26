@@ -118,6 +118,12 @@ input[type="range"] { accent-color: var(--accent); }
 .strip-node .meta { font-size: 0.75rem; color: var(--ink-2); }
 .strip-link { text-align: center; font-size: 0.78rem; color: var(--ink-2); padding: 0.15rem 0; }
 .strip-link::before { content: "\2193  "; color: var(--muted); }
+/* Travel times from fewer than 5 floods: greyed, with a text tag (never hidden). */
+.strip-link.low { color: var(--muted); }
+.tag-low {
+  display: inline-block; margin-left: 0.4em; padding: 0 0.35em; border: 1px dashed var(--axis); border-radius: 4px;
+  font-size: 0.7rem; color: var(--muted); white-space: nowrap; vertical-align: 1px;
+}
 
 table.data { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
 table.data th, table.data td { padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--grid); text-align: left; }

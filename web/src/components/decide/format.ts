@@ -20,6 +20,10 @@ export function formatCount(v: number): string {
 /** "38.5 h" or "–" */
 export const formatHours = (v: number | null): string => (v === null ? "–" : `${formatCount(v)} h`);
 
+/** "+82.4 h", "−3 h" or "–": signed, for leads relative to the official warning. */
+export const formatSignedHours = (v: number | null): string =>
+  v === null ? "–" : `${v > 0 ? "+" : v < 0 ? "−" : ""}${formatCount(Math.abs(v))} h`;
+
 /** Round to 2 significant figures, for log-scale slider values. */
 export function niceRound(v: number): number {
   if (v <= 0) return 0;

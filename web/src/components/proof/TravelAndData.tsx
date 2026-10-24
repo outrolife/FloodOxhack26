@@ -15,6 +15,12 @@ import {
 } from "recharts";
 import type { EventMeta, Importance, Proof, Quality, Spot, Station, TravelPair } from "../../contracts";
 import { formatDate } from "../../time";
+import { formatPct } from "../../lib/costLoss";
+import { LOW_CONFIDENCE_N } from "../shared/RiverStrip";
+import type { PeakProbabilities } from "./peakProbability";
+
+/** Why an arrival error is blank on a flooded row (model/proof.py, ARRIVAL_OFFSET_H = 24). */
+export const ARRIVAL_BLANK = "River Clock had not reached 50% 24 h before the river crossed the flood line";
 
 const AXIS = { stroke: "#c3c2b7", tick: { fill: "#52514e", fontSize: 11 } };
 
@@ -77,7 +83,11 @@ export function TravelFinding({
               <tr key={`${p.up}-${p.down}`} onClick={() => setI(k)} style={{ cursor: "pointer", background: k === i ? "#eef3fa" : undefined }}>
                 <td>{name(p.up)}</td>
                 <td>{name(p.down)}</td>
-                <td className="num">{p.n}{p.n < 3 && " *"}</td>
+                <td className="num">
+                  {p.n}
+                  {p.n < 3 && " *"}
+                  {p.n < LOW_CONFIDENCE_N && <span className="tag-low">low confidence</span>}
+                </td>
                 <td className="num">{p.tHalf.median.toFixed(1)} h</td>
                 <td className="num">{p.tHalf.p10.toFixed(0)}–{p.tHalf.p90.toFixed(0)} h</td>
                 <td className="num">{p.tPeak.median.toFixed(1)} h</td>
@@ -86,7 +96,10 @@ export function TravelFinding({
           </tbody>
         </table>
       </div>
-      <p className="small muted">* Fewer than 3 events: cross-correlation estimate only. Click a row to see its detail.</p>
+      <p className="small muted">
+        * Fewer than 3 events: cross-correlation estimate only. Fewer than {LOW_CONFIDENCE_N} events: low
+        confidence. Click a row to see its detail.
+      </p>
       <div className="grid-cols" style={{ marginTop: "0.6rem" }}>
         <div>
           <h3>{name(pair.up)} → {name(pair.down)}: T½ vs rise</h3>
@@ -242,18 +255,24 @@ export function PerEventTable({
   events,
   spots,
   dateOnly,
+  peaks = {},
 }: {
   proof: Proof;
   events: EventMeta[];
   spots: Spot[];
   /** "eventId:spot" keys whose official time is known to the day only. */
   dateOnly: Set<string>;
+  /** Peak pFlood per event and spot, derived from the replays (non-flooded rows only). */
+  peaks?: PeakProbabilities;
 }) {
   const ev = (id: string) => events.find((e) => e.id === id)?.name ?? id;
   const sp = (k: string) => spots.find((s) => s.key === k)?.name ?? k;
   const h = (v: number | null) => (v == null ? "–" : `${v > 0 ? "+" : ""}${v.toFixed(1)} h`);
   const isDateOnly = (eventId: string, spot: string) => dateOnly.has(`${eventId}:${spot}`);
   const anyDateOnly = proof.perEvent.some((r) => isDateOnly(r.eventId, r.spot));
+  const peakOf = (r: Proof["perEvent"][number]) => (r.crossed ? undefined : peaks[r.eventId]?.[r.spot]);
+  const anyPeak = proof.perEvent.some((r) => peakOf(r) !== undefined);
+  const anyBlankArrival = proof.perEvent.some((r) => r.arrivalErrH == null);
   return (
     <div className="card">
       <h2>Event by event</h2>
@@ -271,18 +290,33 @@ export function PerEventTable({
               <th>Spot</th>
               <th>Flooded?</th>
               <th>Observed peak</th>
-              <th>Arrival error (50% time − crossing)</th>
+              <th>Arrival error (50% time − crossing){anyBlankArrival && " *"}</th>
               <th>Lead vs official</th>
             </tr>
           </thead>
           <tbody>
-            {proof.perEvent.map((r) => (
+            {proof.perEvent.map((r) => {
+              const peak = peakOf(r);
+              return (
               <tr key={`${r.eventId}-${r.spot}`}>
                 <td>{ev(r.eventId)}</td>
                 <td>{sp(r.spot)}</td>
-                <td>{r.crossed ? "Yes" : "No"}</td>
+                <td>
+                  {r.crossed ? "Yes" : "No"}
+                  {peak !== undefined && (
+                    <span className="muted" title={`Max pFlood over every forecast and lead in replays/${r.eventId}.json`}>
+                      {" "}· highest flood chance {formatPct(peak)} ‡
+                    </span>
+                  )}
+                </td>
                 <td className="num">{r.peakObs.toFixed(2)} m</td>
-                <td className="num">{h(r.arrivalErrH)}</td>
+                <td className="num">
+                  {r.arrivalErrH == null ? (
+                    <span title={r.crossed ? ARRIVAL_BLANK : "No flood here, so nothing to time"}>–</span>
+                  ) : (
+                    h(r.arrivalErrH)
+                  )}
+                </td>
                 <td className="num">
                   {isDateOnly(r.eventId, r.spot) && r.leadVsOfficialH != null ? (
                     <span title="Official time known to the day only">≈ {h(r.leadVsOfficialH)} †</span>
@@ -291,10 +325,23 @@ export function PerEventTable({
                   )}
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
+      {anyBlankArrival && (
+        <p className="small muted">
+          * Arrival error: blank (–) = {ARRIVAL_BLANK}. On rows that did not flood there is nothing to time.
+        </p>
+      )}
+      {anyPeak && (
+        <p className="small muted">
+          ‡ Highest flood chance: for events that did not flood a spot, the highest chance of flooding River Clock
+          gave there at any point in the event (looking up to 72 h ahead). The results summary doesn't store this,
+          so the app reads it from that event's replay (replays/&lt;event&gt;.json).
+        </p>
+      )}
       <p className="small muted">{proof.testPeriodNote}</p>
     </div>
   );

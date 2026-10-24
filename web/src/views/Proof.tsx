@@ -14,6 +14,7 @@ import { FixtureNotice, Pending } from "../components/shared/DataNotice";
 import { Coverage, Reliability, SkillByLead, Tradeoff } from "../components/proof/SkillCharts";
 import { FeatureImportance, PerEventTable, QualityTables, TravelFinding } from "../components/proof/TravelAndData";
 import { useOfficialPrecision } from "../components/proof/useOfficialPrecision";
+import { usePeakProbabilities } from "../components/proof/peakProbability";
 
 export default function Proof() {
   const proof = useData<ProofData>("proof.json");
@@ -24,7 +25,8 @@ export default function Proof() {
   const spots = useData<SpotsFile>("spots.json");
   const events = useData<EventsFile>("events.json");
   const precision = useOfficialPrecision(proof.status === "ready" ? proof.data : null);
-  const dateOnlySpots = new Set([...precision.dateOnly].map((k) => k.slice(k.indexOf(":") + 1)));
+  const peaks = usePeakProbabilities(proof.status === "ready" ? proof.data : null);
+  const dateOnlySpots =new Set([...precision.dateOnly].map((k) => k.slice(k.indexOf(":") + 1)));
 
   if (stations.status !== "ready" || spots.status !== "ready" || events.status !== "ready") {
     return <Pending states={[stations, spots, events]} />;
@@ -46,7 +48,7 @@ export default function Proof() {
             <Reliability proof={proof.data} spots={spots.data} />
             <Tradeoff proof={proof.data} spots={spots.data} dateOnlySpots={dateOnlySpots} />
           </div>
-          <PerEventTable proof={proof.data} events={events.data} spots={spots.data} dateOnly={precision.dateOnly} />
+          <PerEventTable proof={proof.data} events={events.data} spots={spots.data} dateOnly={precision.dateOnly} peaks={peaks} />
         </>
       ) : (
         missing("Proof metrics (proof.json)")

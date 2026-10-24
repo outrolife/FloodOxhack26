@@ -8,7 +8,7 @@ import { SpotPanel } from "../components/river/SpotPanel";
 import { RiskLayers } from "../components/river/RiskLayers"; // S1 (SPEC §11); remove this and <RiskLayers /> to hide
 import { EnsembleRainPanel } from "../components/river/EnsembleRain"; // S2 (SPEC §11); remove this and <EnsembleRainPanel /> to hide
 import { FixtureNotice, Pending } from "../components/shared/DataNotice";
-import { RiverStrip } from "../components/shared/RiverStrip";
+import { LOW_CONFIDENCE_N, RiverStrip } from "../components/shared/RiverStrip";
 import { useLive } from "../components/shared/useLive";
 import { liveObserved } from "../components/shared/observed";
 
@@ -82,8 +82,10 @@ export default function River() {
       <section className="card">
         <h2>The water is already on its way</h2>
         <p className="sub">
-          Upstream gauges feed Oxford. Each link shows the median time for a flood rise to travel
-          downstream (T½, from past floods). Levels are on each gauge's own datum.
+          Upstream gauges feed Oxford. Each link shows how long a rise in the river usually takes to
+          travel downstream (T½, from past floods) and how many past rises that is based on. Links
+          based on fewer than {LOW_CONFIDENCE_N} are greyed out as low confidence. Levels are on each
+          gauge's own datum.
         </p>
         <RiverStrip
           stations={stations.data}

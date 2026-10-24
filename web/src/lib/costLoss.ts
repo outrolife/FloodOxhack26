@@ -25,9 +25,7 @@
 //     because false alarms at very low triggers are unknown.
 //   - Official warnings: act whenever an EA Flood Warning (or Severe Flood
 //     Warning; Flood Alerts don't count) is issued for the spot's area. Counts
-//     come from proof.officialOutcome (officialFromProof) when present, else
-//     from replays (officialFromReplays), else are inferred from
-//     proof.perEvent (officialFromPerEvent, see its caveat).
+//     and mean lead come from proof.officialOutcome (officialFromProof) only.
 //   - Never act: every crossing is a miss. cost = N * L, where N is the number
 //     of crossings (hits + misses, from the same interpolated tradeoff row).
 //   - Always act: act on every candidate episode, so no misses. Candidate
@@ -39,13 +37,10 @@
 
 // ---- Input types (from the §9 contracts) ----
 
-import type { Forecast, Proof, Replay } from "../contracts";
+import type { Forecast, Proof } from "../contracts";
 
 export type { Forecast, SpotForecast } from "../contracts";
 export type TradeoffRow = Proof["tradeoff"][string][number];
-export type PerEventRow = Proof["perEvent"][number];
-/** The parts of a Replay needed to score official warnings. */
-export type ReplayOfficial = Pick<Replay, "eventId" | "official" | "crossings">;
 
 // ---- Presets ----
 
@@ -81,6 +76,8 @@ export type Outcomes = Counts & {
   pStarUsed: number;
   /** "below"/"above" when p* is outside the backtested grid; counts are from the nearest row. */
   clamped: "below" | "above" | null;
+  /** The two backtested p* rows the values are interpolated between, or null when p* is a row. */
+  between: [number, number] | null;
 };
 
 /**
@@ -113,6 +110,7 @@ export function interpolateTradeoff(rows: readonly TradeoffRow[], pStar: number)
     meanLeadVsOfficialH: weightedLead(a, b, w, "meanLeadVsOfficialH"),
     pStarUsed: pStar,
     clamped: null,
+    between: [a.pStar, b.pStar],
   };
 }
 
@@ -125,6 +123,7 @@ function fromRow(r: TradeoffRow, clamped: Outcomes["clamped"]): Outcomes {
     meanLeadVsOfficialH: r.meanLeadVsOfficialH,
     pStarUsed: r.pStar,
     clamped,
+    between: null,
   };
 }
 
@@ -143,80 +142,17 @@ function weightedLead(
 }
 
 // ---- Official warnings ----
-// Preferred source: proof.officialOutcome (scored by the backtest with the
-// same rules as River Clock, SPEC §8.2), read by officialFromProof. Older
-// proof files lack it; then officialFromReplays, then officialFromPerEvent.
+// The only source is proof.officialOutcome: the backtest scores official
+// warnings with the same rules as River Clock (SPEC §8.2). The UI never
+// re-derives them (from replays or perEvent), because a second scoring can
+// disagree with the backend's (#99). Without officialOutcome the official
+// strategy is shown as "not scored".
 
 export type OfficialOutcome = NonNullable<Proof["officialOutcome"]>[string];
 
 /** Official-warning outcomes for one spot straight from proof.officialOutcome, or null if absent. */
 export function officialFromProof(proof: Pick<Proof, "officialOutcome">, spot: string): OfficialOutcome | null {
   return proof.officialOutcome?.[spot] ?? null;
-}
-
-/**
- * Official-warning outcomes for one spot from replays (preferred).
- * Per event: warned = a Flood Warning or Severe Flood Warning for the spot;
- * a warning counts as a hit only if issued at or before the first crossing.
- * crossed & warned in time → hit; crossed otherwise → miss;
- * warned & not crossed → false alarm. Returns null if no replay mentions the spot.
- */
-export function officialFromReplays(replays: readonly ReplayOfficial[], spot: string): Counts | null {
-  const c: Counts = { hits: 0, misses: 0, falseAlarms: 0 };
-  let seen = false;
-  for (const r of replays) {
-    const warnings = r.official
-      .filter((o) => o.spot === spot && (o.type === "warning" || o.type === "severe"))
-      .map((o) => Date.parse(o.issuedAt));
-    const crossings = r.crossings.filter((x) => x.spot === spot).map((x) => Date.parse(x.t));
-    if (warnings.length === 0 && crossings.length === 0) continue;
-    seen = true;
-    const firstWarning = warnings.length ? Math.min(...warnings) : null;
-    if (crossings.length) {
-      const firstCrossing = Math.min(...crossings);
-      if (firstWarning !== null && firstWarning <= firstCrossing) c.hits++;
-      else c.misses++;
-    } else {
-      c.falseAlarms++;
-    }
-  }
-  return seen ? c : null;
-}
-
-/**
- * Official-warning outcomes inferred from proof.perEvent (fallback).
- * leadVsOfficialH is non-null when an official warning exists for that event
- * and spot, so: crossed & non-null → hit; crossed & null → miss;
- * not crossed & non-null → false alarm.
- * Caveat: leadVsOfficialH also needs a River Clock trigger, so an event that
- * official warnings caught but River Clock never triggered on is counted as an
- * official miss here. Prefer officialFromReplays when replays are loaded.
- * Returns null if the spot has no perEvent rows.
- */
-export function officialFromPerEvent(perEvent: readonly PerEventRow[], spot: string): Counts | null {
-  const rows = perEvent.filter((r) => r.spot === spot);
-  if (rows.length === 0) return null;
-  const c: Counts = { hits: 0, misses: 0, falseAlarms: 0 };
-  for (const r of rows) {
-    const warned = r.leadVsOfficialH !== null;
-    if (r.crossed) {
-      if (warned) c.hits++;
-      else c.misses++;
-    } else if (warned) {
-      c.falseAlarms++;
-    }
-  }
-  return c;
-}
-
-/**
- * Approximate mean lead of official warnings: our lead minus our gain over
- * them (lead vs official = official issue − our trigger). Approximate because
- * the two means may be over slightly different sets of events.
- */
-export function officialMeanLeadH(o: Outcomes): number | null {
-  if (o.meanLeadH === null || o.meanLeadVsOfficialH === null) return null;
-  return o.meanLeadH - o.meanLeadVsOfficialH;
 }
 
 // ---- Expected cost ----

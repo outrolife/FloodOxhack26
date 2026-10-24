@@ -6,10 +6,7 @@ import {
   formatPct,
   interpolateTradeoff,
   liveProbability,
-  officialFromPerEvent,
   officialFromProof,
-  officialFromReplays,
-  officialMeanLeadH,
   optimalTrigger,
   totalCost,
   type Forecast,
@@ -69,6 +66,8 @@ describe("interpolateTradeoff", () => {
     // hit-weighted: (0.5*6*40 + 0.5*5*30) / (0.5*6 + 0.5*5)
     expect(o.meanLeadH).toBeCloseTo((120 + 75) / 5.5);
     expect(o.pStarUsed).toBeCloseTo(0.2);
+    expect(o.between).toEqual([0.1, 0.3]);
+    expect(interpolateTradeoff(ROWS, 0.3)!.between).toBeNull();
   });
   it("ignores null leads (no hits) when interpolating", () => {
     const o = interpolateTradeoff(ROWS, 0.7)!;
@@ -121,31 +120,6 @@ describe("expectedCosts", () => {
 });
 
 describe("official warnings", () => {
-  it("derives counts from replays (warnings only, issued before crossing)", () => {
-    const c = officialFromReplays(
-      [
-        // warned before crossing: hit
-        { eventId: "a", official: [{ spot: "osney", type: "warning", issuedAt: "2014-01-05T10:00:00Z", precision: "time" }], crossings: [{ spot: "osney", t: "2014-01-06T00:00:00Z" }] },
-        // warned after crossing: miss
-        { eventId: "b", official: [{ spot: "osney", type: "severe", issuedAt: "2020-01-07T00:00:00Z", precision: "time" }], crossings: [{ spot: "osney", t: "2020-01-06T00:00:00Z" }] },
-        // alert only + crossing: miss
-        { eventId: "c", official: [{ spot: "osney", type: "alert", issuedAt: "2021-01-01T00:00:00Z", precision: "time" }], crossings: [{ spot: "osney", t: "2021-01-02T00:00:00Z" }] },
-        // warning, no crossing: false alarm
-        { eventId: "d", official: [{ spot: "osney", type: "warning", issuedAt: "2024-01-01T00:00:00Z", precision: "date" }], crossings: [] },
-        // other spot only: ignored
-        { eventId: "e", official: [{ spot: "botley", type: "warning", issuedAt: "2024-01-01T00:00:00Z", precision: "time" }], crossings: [] },
-      ],
-      "osney",
-    );
-    expect(c).toEqual({ hits: 1, misses: 2, falseAlarms: 1 });
-    expect(officialFromReplays([], "osney")).toBeNull();
-  });
-  it("derives counts from perEvent", () => {
-    const ev = (spot: string, crossed: boolean, lead: number | null) => ({ eventId: "x", spot, crossed, peakObs: 1, arrivalErrH: null, leadVsOfficialH: lead });
-    const c = officialFromPerEvent([ev("osney", true, 6), ev("osney", true, null), ev("osney", false, -2), ev("osney", false, null), ev("botley", true, 3)], "osney");
-    expect(c).toEqual({ hits: 1, misses: 1, falseAlarms: 1 });
-    expect(officialFromPerEvent([], "osney")).toBeNull();
-  });
   it("reads proof.officialOutcome directly when present", () => {
     const outcome = { hits: 4, misses: 3, falseAlarms: 2, meanLeadH: 12.41 };
     expect(officialFromProof({ officialOutcome: { osney: outcome } }, "osney")).toEqual(outcome);
@@ -154,10 +128,6 @@ describe("official warnings", () => {
     // The counts plug straight into the cost model: (4 + 2) × C + 3 × L.
     const r = expectedCosts({ rows: ROWS, costs: { C: 10, L: 100 }, official: officialFromProof({ officialOutcome: { osney: outcome } }, "osney") });
     expect(r.strategies.find((s) => s.key === "official")?.cost).toBe(360);
-  });
-  it("estimates official mean lead from ours minus our gain", () => {
-    expect(officialMeanLeadH(interpolateTradeoff(ROWS, 0.3)!)).toBe(22);
-    expect(officialMeanLeadH(interpolateTradeoff(ROWS, 0.9)!)).toBeNull();
   });
 });
 
