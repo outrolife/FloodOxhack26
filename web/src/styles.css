@@ -140,6 +140,8 @@ table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .advice { font-size: 1.05rem; }
 .advice .act { color: var(--critical); font-weight: 700; }
 .advice .wait { color: #006300; font-weight: 700; }
+/* The one-line point of the Decide cost chart (#103). */
+.decide-takeaway { margin-top: 0.4rem; padding-left: 0.6rem; border-left: 3px solid var(--series-1); }
 
 .timeline-note { font-size: 0.85rem; color: var(--ink-2); margin-top: 0.4rem; }
 .tm-slider { width: 100%; }
