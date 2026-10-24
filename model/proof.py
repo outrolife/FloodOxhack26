@@ -3,6 +3,9 @@
 ``python -m model.proof [--events e2007 ...] [--targets newbotley ...] [--rebuild] [--jobs 4]
                         [--n-estimators 2000]``
 
+``make backtest`` runs ``--rebuild --jobs 4``: on a clean clone, after ``make train``, that regenerates
+every committed replay and ``proof.json`` (#81). ``make train`` writes ``importance.json``.
+
 1. **Main models** (time split: train <= 2018-09-30, validation to 2021-09-30, test >= 2021-10-01) are
    loaded from ``$RC_DATA_DIR/models/<gauge>/`` or trained there (``model.train``).
 2. **Test-period scores** (``skillByLead``, ``coverage``, ``reliability``) use those models on test rows
@@ -11,7 +14,8 @@
 3. **Replays**: one ``Replay`` per event with leave-one-flood-out models (``model.backtest.lofo_models``).
    Shortcut: if the event window +- 7 days lies wholly in the test period, the leave-one-out model is
    the main model (training and calibration never touch test rows), so the main model is reused.
-   An existing ``replays/<event>.json`` is reused unless ``--rebuild``.
+   An existing ``replays/<event>.json`` is reused unless ``--rebuild``. Forecasts are issued hourly,
+   except for the events in ``REPLAY_EVERY_H`` (file size).
 4. **Event scores** (``tradeoff``, ``perEvent``) from the replays with ``model.metrics``; lead vs the
    official EA warnings with ``model.official``.
 
@@ -24,6 +28,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import time
 from collections.abc import Mapping, Sequence
 from concurrent.futures import ProcessPoolExecutor
@@ -54,6 +59,9 @@ PER_EVENT_P_STAR = 0.5  # perEvent.leadVsOfficialH is a single number; we report
 ARRIVAL_OFFSET_H = 24  # perEvent.arrivalErrH: forecast issued 24 h before the (first) crossing
 # #38 adds Proof.officialOutcome and perEvent.officialIssuedAt. Written only once the contract has them.
 CONTRACTS_TS = WEB_DATA.parent.parent / "src" / "contracts.ts"
+# Hours between replay issue times; 1 (SPEC §8.1) unless listed. e2014 is the 2-month headline event:
+# hourly it would be 6.6 MB, every 2 h it is 3.3 MB, and the Time Machine plays it smoothly (#39).
+REPLAY_EVERY_H: dict[str, int] = {"e2014": 2}
 
 TEST_PERIOD_NOTE = (
     "Skill, interval coverage and reliability are scored on the strict time-split test period "
@@ -132,10 +140,17 @@ def _replay_job(args: tuple[str, dict[str, Any], list[str], dict[str, Any], bool
     else:
         models = backtest.lofo_models(hourly, event_id, event, targets, lags, **fit_kwargs)
     spots = backtest.load_spots()
-    replay = consistent_arrivals(backtest.build_replay(hourly, models, event_id, event, spots), spots)
+    every_h = REPLAY_EVERY_H.get(event_id, 1)
+    replay = consistent_arrivals(
+        backtest.build_replay(hourly, models, event_id, event, spots, every_h=every_h), spots
+    )
     path = backtest.write_json(replay, REPLAY_DIR / f"{event_id}.json")
     log.info("wrote %s (%.1f MB) in %.0f s", path, path.stat().st_size / 1e6, time.time() - t0)
     return str(path)
+
+
+def _set_lgb_threads(threads: str) -> None:
+    os.environ["RC_LGB_THREADS"] = threads
 
 
 def ensure_replays(
@@ -154,7 +169,11 @@ def ensure_replays(
             for eid in todo
         ]
         if jobs > 1:
-            with ProcessPoolExecutor(max_workers=jobs) as ex:
+            # Share the cores between the workers' LightGBM fits (an explicit RC_LGB_THREADS wins).
+            threads = os.environ.get("RC_LGB_THREADS") or str(max(1, (os.cpu_count() or jobs) // jobs))
+            with ProcessPoolExecutor(
+                max_workers=jobs, initializer=_set_lgb_threads, initargs=(threads,)
+            ) as ex:
                 list(ex.map(_replay_job, args))
         else:
             for a in args:

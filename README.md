@@ -286,8 +286,8 @@ make web       # installs web dependencies and starts the app at http://localhos
 ```bash
 make data      # download EA history and historic warnings, clean, write the quality report
 make travel    # travel-time finding -> web/public/data/travel_times.json
-make train     # train and calibrate the quantile models
-make backtest  # replays and metrics -> web/public/data/*.json
+make train     # train and calibrate the 4 gauge models -> web/public/data/importance.json
+make backtest  # leave-one-flood-out replays for all 7 events + proof.json -> web/public/data/
 ```
 
 Downloads are cached in `data/raw/` and never fetched twice. `data/` and model files are gitignored.
