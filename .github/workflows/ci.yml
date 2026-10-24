@@ -1,0 +1,91 @@
+# River Clock CI: every PR and every push to main runs lint + tests, the web build, and the data-size rules.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: python (ruff + pytest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # LightGBM's Linux wheel links against OpenMP (libgomp1); install it only if the image lacks it.
+      - name: Ensure libgomp1
+        run: dpkg -s libgomp1 >/dev/null 2>&1 || { sudo apt-get update && sudo apt-get install -y libgomp1; }
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.11"
+          enable-cache: true
+          # No uv.lock (see .gitignore): key the cache on pyproject.toml instead.
+          cache-dependency-glob: pyproject.toml
+
+      - name: Install (make setup)
+        run: make setup
+
+      - name: Lint (make lint)
+        run: make lint
+
+      - name: Test (make test)
+        run: make test
+
+  web:
+    name: web (tsc + vite build + vitest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+  size:
+    name: size (data rules, CLAUDE.md rule 6)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: web/public/data/ must stay under 50 MB
+        run: |
+          limit=$((50 * 1024 * 1024))
+          bytes=$(du -sb web/public/data 2>/dev/null | cut -f1)
+          bytes=${bytes:-0}
+          echo "web/public/data/ is $bytes bytes (limit $limit)"
+          if [ "$bytes" -gt "$limit" ]; then
+            echo "::error::web/public/data/ is $((bytes / 1024 / 1024)) MB, over the 50 MB limit (CLAUDE.md rule 6)"
+            du -ah web/public/data | sort -rh | head -20
+            exit 1
+          fi
+
+      - name: No data/ or model files tracked by git
+        run: |
+          bad=$(git ls-files -- 'data/' '*.lgb' '*.pkl' '*.joblib')
+          if [ -n "$bad" ]; then
+            echo "::error::These files must not be committed (data/ and model files are gitignored, CLAUDE.md rule 6):"
+            echo "$bad"
+            exit 1
+          fi
+          echo "OK: no data/ or model files tracked"
