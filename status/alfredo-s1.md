@@ -1,14 +1,14 @@
 # alfredo-s1
 
 - **role**: App
-- **state**: blocked
+- **state**: reviewing
 - **issue**: #20
-- **task**: S1 built as draft PR #75 (WMS RoFRS/RoFSW + committed outlines)
-- **next**: un-draft #75 once core gate (§13) is met
-- **needs**: alfredo: say when core gate is met
+- **task**: S1 PR #75 ready for review (rebased, offline-safe)
+- **next**: address review on #75
+- **needs**: 
 - **notes**: 
 - **branch**: stretch/s1-risk-layers
-- **head**: 5ca913c Add S1 official flood-risk layers (draft, gated)
+- **head**: ea86635 S1: switch WMS layers off cleanly when offline or the EA is do
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:37:19Z
+- **updated**: 2026-10-24T17:55:00Z
