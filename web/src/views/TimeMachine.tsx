@@ -19,6 +19,7 @@ import { FixtureNotice, Pending } from "../components/shared/DataNotice";
 import { ProbBars } from "../components/shared/ProbBars";
 import { RiverStrip } from "../components/shared/RiverStrip";
 import { arrivalSentence } from "../components/shared/forecast";
+import { SpreadMapCard } from "../components/spread/SpreadOverlay"; // S3 (SPEC §11); hide with SHOW_S3 in stretch.ts
 
 const SIM_HOURS_PER_2S = 12; // SPEC §10.2: one simulated 12 h per 2 s (speed 1×)
 const SPEEDS = [0.5, 1, 2, 4] as const;
@@ -321,6 +322,7 @@ function ReplayPlayer({
             <strong>{arrivalSentence(sf, f.stale.includes(spot.gauge), spot.threshold)}</strong>
           </p>
         </div>
+        <SpreadMapCard eventId={replay.eventId} at={sliderT} />
         <div className="card">
           <h2>Upstream at this time</h2>
           <RiverStrip stations={stations} pairs={travel} series={replay.observed} until={sliderT} />
