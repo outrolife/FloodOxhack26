@@ -15,10 +15,11 @@ Method
   with the medians and travel-time lags saved in the model, then ``GaugeModel.predict`` (sorted and
   CQR-calibrated, SPEC §7.4), then ``model.probability.spot_forecast`` (SPEC §7.5).
   The anchor hour is the last complete hourly row, ``floor(now) - 1 h``, exactly as a replay forecast
-  issued at ``floor(now)`` (#93); if the target gauge has no level there, its latest earlier row (the
-  stale rule below still applies). As in the backtest, the level quantiles are the model's
-  ``level_now`` (that hour's mean, the quantity it was trained on) plus the predicted changes;
-  ``levelNow`` shows the latest 15-min reading. Lead h is labelled ``issuedAt + h`` as before.
+  issued at ``floor(now)`` (#93). If the target gauge has no reading of its own in that hour (missing,
+  or only forward-filled), that spot gets labelled persistence instead, never an older row.
+  As in the backtest, the level quantiles are the model's ``level_now`` (that hour's mean, the
+  quantity it was trained on) plus the predicted changes; ``levelNow`` shows the latest 15-min reading.
+  Lead h is labelled ``issuedAt + h`` as before.
 - **Data gaps**: a model forecast made with NaN features (an upstream gauge with a gap inside its lag
   windows, or no catchment rain) is kept, but the ``note`` says which spot and inputs, because
   LightGBM does not widen its range for missing inputs. A model that raises falls back to
@@ -57,6 +58,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -257,7 +259,7 @@ class TrainedForecaster:
 
     ``model/backtest.forecasts_at`` builds ``features.build_features(hourly, g, m.medians, m.lags)``,
     reads row t and calls ``m.predict`` (CQR-calibrated). This does the same on the live rows up to the
-    anchor hour: the gauge's latest row at or before ``floor(now) - 1 h`` (complete hours only, #93).
+    anchor hour ``floor(now) - 1 h`` (complete hours only, #93), which must hold a real reading.
     """
 
     def __init__(self, models: Mapping[str, Any]) -> None:
@@ -267,7 +269,14 @@ class TrainedForecaster:
         self.upstreams: dict[str, list[str]] = {g: list(features.UPSTREAMS[g]) for g in self.models}
 
     def features_at(self, hourly: pd.DataFrame, gauge: str, issued_at: datetime) -> pd.DataFrame | None:
-        """The one-row feature frame at the anchor hour, or None (no model, or no level there)."""
+        """The one-row feature frame at the anchor hour, or None (no model, or no fresh level there).
+
+        The anchor is exactly ``last_complete_hour(issued_at)``, as in the backtest (#93). If the target
+        gauge has no reading of its own in that hour (missing, or only forward-filled across a gap by
+        ``clean.fill_short_gaps``), there is no model forecast: the caller falls back to labelled
+        persistence. An older row is never used, so a gauge back from a 3 h outage with one reading
+        in the current hour cannot get a model forecast from data hours old.
+        """
         from model import features, train
 
         m = self.models.get(gauge)
@@ -278,11 +287,14 @@ class TrainedForecaster:
         # last hour that has ended. The current hour is partial (1-3 of its 4 readings): its mean is
         # not what the model was trained on, and its rain total is NaN with < 3 readings, which made
         # rain_sum_6h NaN about half the time.
-        h = h[h["ts_utc"] <= last_complete_hour(issued_at)]
-        seen = h.loc[(h["gauge"] == gauge) & h["level_mean"].notna(), "ts_utc"]
-        if seen.empty:
+        anchor = last_complete_hour(issued_at)
+        h = h[h["ts_utc"] <= anchor]
+        row = h[(h["gauge"] == gauge) & (h["ts_utc"] == anchor) & h["level_mean"].notna()]
+        if "filled" in row:
+            row = row[~row["filled"].astype(bool)]
+        if row.empty:
+            log.info("%s: no own reading in the anchor hour %s; no model forecast", gauge, anchor)
             return None
-        anchor = seen.max()
         X = features.build_features(h, gauge, m.medians, m.lags).reindex([anchor])
         if X["level_now"].isna().iloc[0]:
             return None
@@ -514,9 +526,9 @@ def main() -> None:
     text = json.dumps(forecast, indent=2, allow_nan=False) + "\n"  # strict JSON: NaN fails here
     for path in targets:
         path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = path.with_name(path.name + ".part")
+        tmp = path.with_name(f"{path.name}.{os.getpid()}.part")
         tmp.write_text(text)
-        tmp.replace(path)  # never a half-written live.json for the dev server or the API
+        ingest_live.replace_retry(tmp, path)  # never a half-written live.json for the dev server or API
         log.info("wrote %s (%s, stale: %s)", path, forecast["method"], forecast["stale"] or "none")
 
 
