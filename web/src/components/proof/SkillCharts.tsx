@@ -20,6 +20,8 @@ import {
   ErrorBar,
 } from "recharts";
 import type { Proof, Spot } from "../../contracts";
+import { FLOOD_EPISODE_NOTE, FLOOD_EPISODE_RULE, FLOOD_EPISODES } from "../shared/episodes";
+import { DIRECTION_TERM, coverageSummary } from "./coverage";
 
 const AXIS = { stroke: "#c3c2b7", tick: { fill: "#52514e", fontSize: 11 } };
 const GRID = <CartesianGrid stroke="#e1e0d9" vertical={false} />;
@@ -74,7 +76,8 @@ export function Coverage({ proof }: { proof: Proof }) {
     }
     return r;
   });
-  const flagged = proof.coverage.filter((c) => Math.abs(c.actual - c.nominal) > 0.1);
+  const summary = coverageSummary(proof.coverage);
+  const flagged = summary?.flagged ?? [];
   return (
     <div className="card">
       <h2>Interval coverage</h2>
@@ -82,13 +85,21 @@ export function Coverage({ proof }: { proof: Proof }) {
         How often the real level fell inside each forecast interval. Dashed lines are the nominal
         targets.
       </p>
-      {flagged.length > 0 && (
-        <div className="notice warn">
-          Coverage off by more than 10 points:{" "}
-          {flagged
-            .map((c) => `${Math.round(c.nominal * 100)}% interval at +${c.h} h (${Math.round(c.actual * 100)}%)`)
-            .join("; ")}
-          .
+      {summary && (
+        <div className={flagged.length > 0 ? "notice warn" : "notice"} title={DIRECTION_TERM[summary.direction]}>
+          <strong>{summary.text}</strong>
+          {summary.direction === "wide" && " So the ranges overstate the uncertainty rather than hide it."}
+          {summary.direction === "narrow" && " So the real level falls outside the range more often than the range says."}
+          {flagged.length > 0 && (
+            <>
+              {" "}
+              More than 10 points away from the target:{" "}
+              {flagged
+                .map((c) => `${Math.round(c.nominal * 100)}% range at +${c.h} h (${Math.round(c.actual * 100)}%)`)
+                .join("; ")}
+              .
+            </>
+          )}
         </div>
       )}
       <div style={{ height: 220 }}>
@@ -280,8 +291,8 @@ export function Tradeoff({
           <thead>
             <tr>
               <th>p*</th>
-              <th>Hits</th>
-              <th>Misses</th>
+              <th>Hits*</th>
+              <th>Misses*</th>
               <th>False alarms</th>
               <th>Mean lead</th>
               <th>vs official</th>
@@ -314,6 +325,10 @@ export function Tradeoff({
           </tbody>
         </table>
       </div>
+      <p className="small muted" title={FLOOD_EPISODE_RULE}>
+        * Hits and misses are {FLOOD_EPISODES}
+        {rows.length > 0 && `: ${rows[0].hits + rows[0].misses} at ${name(spot)}`}. {FLOOD_EPISODE_NOTE}
+      </p>
     </div>
   );
 }
