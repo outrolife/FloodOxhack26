@@ -49,7 +49,8 @@ class FakeEA:
         if "rainfall" in measure:
             return readings_body(times, [0.2] * n)
         rng = np.random.default_rng(len(measure))
-        base = 7.0 if measure.startswith("1489TH") else 2.0  # Islip's datum: normal range ~6-8 m
+        # Islip's datum: normal range ~6-8 m; Oxford Botanical Gardens (#146 ring): ~4.8-6.2 m
+        base = 7.0 if measure.startswith("1489TH") else 5.0 if measure.startswith("1490TH") else 2.0
         return readings_body(times, list(base + np.cumsum(rng.normal(0, 0.002, n))))
 
 
@@ -285,8 +286,26 @@ def test_spot_gauge_mapping() -> None:
         "wolvercote": "godstow",
         "cherwell": "kingsmill",
     }
-    assert fl.LIVE_ONLY_GAUGES == {"godstow", "osney", "iffley"}
+    # the main-channel locks plus the display-only catchment ring (#146)
+    assert fl.LIVE_ONLY_GAUGES == {"godstow", "osney", "iffley", *il.CATCHMENT_MEASURES}
     assert fl.LIVE_ONLY_GAUGES <= set(il.LEVEL_MEASURES)  # still ingested for the River strip
+    assert not fl.LIVE_ONLY_GAUGES & set(mapping.values()) - {"godstow"}  # no forecast spot is live-only
+
+
+def test_catchment_ring_is_display_only() -> None:
+    """#146: the catchment gauges are live-ingested, live-only, after the core gauges, never trained."""
+    from pipeline import stations
+
+    ring = stations.load_catchment_gauges()
+    assert len(ring) >= 6 and {"kingslock", "botanic", "thrupp"} <= set(il.CATCHMENT_MEASURES)
+    core = {g.key for g in stations.load_gauges()[0]}
+    assert not core & set(il.CATCHMENT_MEASURES), "a catchment gauge leaked into load_gauges (history/model)"
+    keys = list(il.LEVEL_MEASURES)
+    assert keys[-len(il.CATCHMENT_MEASURES):] == list(il.CATCHMENT_MEASURES)  # core first
+    for g in ring:
+        assert g.role == "live_only" and g.amber is not None
+        assert il.LEVEL_MEASURES[g.key] == g.fm_level_measure
+        assert g.fm_level_measure.startswith(f"{g.ref}-level-") and g.fm_level_measure.endswith("-mASD")
 
 
 def test_load_spots_tbc_threshold(tmp_path: Path) -> None:

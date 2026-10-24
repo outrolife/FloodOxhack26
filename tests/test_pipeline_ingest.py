@@ -129,7 +129,7 @@ def test_live_measures_match_stations_yaml() -> None:
     from pipeline import ingest_live
 
     levels, _ = stations.load_gauges()
-    by = {g.key: g for g in levels}
+    by = {g.key: g for g in [*levels, *stations.load_catchment_gauges()]}  # + the #146 display-only ring
     assert set(ingest_live.LEVEL_MEASURES) == set(by)
     for key, measure in ingest_live.LEVEL_MEASURES.items():
         assert by[key].fm_level_measure == measure, key

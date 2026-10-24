@@ -42,6 +42,14 @@ Placeholders
 - Gauge -> measure ids are from SPEC §4.1, with bracketed RLOI ids resolved against the API on
   2026-10-24. Move to ``config/stations.yaml`` once it exists.
 
+Catchment ring (#146)
+---------------------
+The display-only ``catchment_gauges:`` of ``config/stations.yaml`` (16 upstream gauges within ~35 km on
+the Thames, Windrush, Glyme, Evenlode, Cherwell and Ray) are fetched too, after the core gauges and
+rain, so the poll deadline costs them first. They are in ``LEVEL_MEASURES`` (so they reach
+``live_hourly.parquet``, ``live_meta.json`` and ``Forecast.observed``) and in ``LIVE_ONLY_GAUGES``
+(never forecast). Their plausible bands come from the same yaml.
+
 Plausible band (physically impossible readings, #80)
 -----------------------------------------------------
 A level reading is kept only if ``amber - 4 m <= value <= record + 2 m``, with ``amber`` (top of the
@@ -137,6 +145,16 @@ LEVEL_MEASURES: dict[str, str] = {
 }
 # Main-channel locks with live data only (SPEC §4.1.1): shown, never forecast.
 LIVE_ONLY_GAUGES: frozenset[str] = frozenset({"godstow", "osney", "iffley"})
+
+# Catchment ring (issue #146): display-only gauges further out, from `catchment_gauges:` in
+# config/stations.yaml (key -> fm measure); a key already listed above (e.g. a #125 gauge adopted as a
+# model input) keeps its core entry. Requested after the core gauges and rain, so a slow EA or the
+# poll deadline costs these first. Live only, never forecast.
+CATCHMENT_MEASURES: dict[str, str] = {
+    g.key: g.fm_level_measure for g in stations.load_catchment_gauges() if g.key not in LEVEL_MEASURES
+}
+LEVEL_MEASURES.update(CATCHMENT_MEASURES)
+LIVE_ONLY_GAUGES = LIVE_ONLY_GAUGES | frozenset(CATCHMENT_MEASURES)
 # Rain gauges are keyed by their EA station ref, as in hourly.parquet.
 RAIN_MEASURES: dict[str, str] = {
     ref: f"{ref}-rainfall-tipping_bucket_raingauge-t-15_min-mm"
@@ -381,6 +399,9 @@ def fetch_live_readings(
 ) -> dict[str, pd.DataFrame]:
     """Last ``LIVE_DAYS`` of readings per gauge key (level gauges, then rain gauges by EA ref).
 
+    Requests go out core level gauges first, then rain, then the display-only catchment ring (#146),
+    so a slow EA or the poll deadline costs the ring first.
+
     Requests run concurrently, at most ``max_workers`` at a time. The result is in the fixed order of
     ``LEVEL_MEASURES`` then ``RAIN_MEASURES`` whatever order the requests finish in. A gauge whose
     request fails with no cached copy is logged and left out; the others are unaffected. Once the
@@ -405,11 +426,16 @@ def fetch_live_readings(
             cold_fetch=breaker.guard_cold,
         )
 
-    jobs = list({**LEVEL_MEASURES, **RAIN_MEASURES}.items())
+    # Core gauges and rain first, the catchment ring last (#146): the pool runs jobs in this order.
+    core = {k: m for k, m in LEVEL_MEASURES.items() if k not in CATCHMENT_MEASURES}
+    ring = {k: m for k, m in LEVEL_MEASURES.items() if k in CATCHMENT_MEASURES}
+    jobs = list({**core, **RAIN_MEASURES, **ring}.items())
     with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="ea-live") as pool:
         futures = [(key, pool.submit(get, measure)) for key, measure in jobs]
+    by_key = dict(futures)
     out: dict[str, pd.DataFrame] = {}
-    for key, future in futures:  # job order, not completion order
+    for key in [*LEVEL_MEASURES, *RAIN_MEASURES]:  # fixed order, not completion order
+        future = by_key[key]
         try:
             body, received_at = future.result()
             out[key] = parse_readings(body, received_at)
@@ -434,7 +460,7 @@ def plausible_bands() -> dict[str, tuple[float, float]]:
     """``{gauge: (low, high)}`` from config/stations.yaml: ``(amber - 4 m, record + 2 m)``."""
     levels, _ = stations.load_gauges()
     out = {}
-    for g in levels:
+    for g in [*levels, *stations.load_catchment_gauges()]:
         if g.key in LEVEL_MEASURES and g.amber is not None:
             top = max(g.amber, g.record if g.record is not None else g.amber)
             out[g.key] = (g.amber - PLAUSIBLE_BELOW_AMBER_M, top + PLAUSIBLE_ABOVE_RECORD_M)

@@ -97,3 +97,12 @@ def test_bad_role_is_rejected() -> None:
                        "lat": 51.7, "lon": -1.2, "amber": 1.0}]}
     with pytest.raises(ValueError, match="role"):
         ex.build_stations(doc)
+
+
+def test_catchment_gauges_are_live_only_and_not_duplicated() -> None:
+    """#146: catchment_gauges join stations.json after gauges; a key already in gauges is kept once."""
+    g = {"name": "X", "river": "R", "ref": "1", "lat": 51.7, "lon": -1.2, "amber": 1.0}
+    ring = [{"key": "shifford", "role": "live_only", **g}, {"key": "thrupp", "role": "live_only", **g}]
+    doc = {"gauges": [{"key": "shifford", "role": "upstream", **g}], "catchment_gauges": ring}
+    out = ex.build_stations(doc)
+    assert [(s["key"], s["role"]) for s in out] == [("shifford", "upstream"), ("thrupp", "live_only")]
