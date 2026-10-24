@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: reviewing
 - **issue**: #8
-- **task**: PR #39 ready (Closes #8): 4 targets trained, e2014 replay committed
-- **next**: Address review; then pick next Model issue
+- **task**: PR #39 green, matches #67 arrival rule; awaiting PM merge
+- **next**: After merge: idle / next Model issue
 - **needs**: 
 - **notes**: 
 - **branch**: model/osney-model
-- **head**: d987793 Merge remote-tracking branch 'origin/main' into model/osney-mo
+- **head**: e3001ef Follow SPEC 7.5 arrival rule from #67: level already above thr
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:25:14Z
+- **updated**: 2026-10-24T17:29:56Z
