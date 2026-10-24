@@ -1,7 +1,7 @@
 // River Clock, the one screen (#118): the event switch on top, the flow map as
-// the hero (rivers rise and flow, spot clocks), the Timeline and the two-line
-// Scoreboard for the selected spot underneath (#135), and a one-line proof
-// footer. "Now" reads the live forecast; a past flood loads only its own
+// the full-width hero (rivers rise and flow, small spot markers) with the
+// two-line Scoreboard for the selected spot on it, the Timeline underneath at
+// full width (#135), and a one-line proof footer. "Now" reads the live forecast; a past flood loads only its own
 // replay, on demand (useClockEvent, shared with the Timeline, so one fetch).
 import { useCallback, useMemo, useState } from "react";
 import type { EventsFile, Forecast, Spot, StationsFile, TravelTimesFile } from "../contracts";
@@ -120,6 +120,7 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
   }
 
   const label = event === "now" ? "Now" : (names[event] ?? event);
+  const spotName = spotList.find((s) => s.key === spot)?.name.split(" / ")[0].trim() ?? null;
   const note =
     stations.status === "error"
       ? "No gauge list"
@@ -155,15 +156,15 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
           {note && <span className="rc-badge-note"> · {note}</span>}
         </div>
         <FlowKey />
+        {/* The Scoreboard sits on the map (top right), so the map keeps the full width. */}
+        <div className="rc-hero-score">
+          {spotName && <div className="rc-hero-score-spot">{spotName}</div>}
+          <Scoreboard event={event} spot={spot} t={t ?? undefined} />
+        </div>
       </div>
 
       <div className="rc-below">
-        <div className="rc-below-main">
-          <Timeline key={event} event={event} spot={spot} onTime={onTime} />
-        </div>
-        <div className="rc-below-side">
-          <Scoreboard event={event} spot={spot} t={t ?? undefined} />
-        </div>
+        <Timeline key={event} event={event} spot={spot} onTime={onTime} />
       </div>
 
       <ProofFooter />
