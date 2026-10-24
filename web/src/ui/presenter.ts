@@ -1,54 +1,45 @@
-// Presenter mode and routes (#118). Hash routes #/now, #/replay, #/protect,
-// #/trust, #/working. Keys: 1–4 screens, Space play/pause, ←/→ step
-// (Shift: 6 steps), P presenter mode. Screens listen for the custom events.
+// One-screen routing and presenter keys (#118).
+// Hash: #/now or #/<eventId> picks what the screen shows; #/working[/<tab>]
+// opens the "Show the working" drawer on top. Old hashes still land somewhere
+// sensible. Keys: 1–9 pick the event switch's buttons in order, Space
+// play/pause, ←/→ step (Shift: 6 steps), P presenter mode. The Timeline
+// listens for the custom events through usePlayerKeys.
 import { useEffect, useState } from "react";
 
-export const ROUTES = ["now", "replay", "protect", "trust", "working"] as const;
-export type Route = (typeof ROUTES)[number];
+export const NOW = "now";
 
-export const ROUTE_LABEL: Record<Route, string> = {
-  now: "Now",
-  replay: "Replay",
-  protect: "Protect",
-  trust: "How good is it?",
-  working: "Show the working",
+export type View = { event: string | null; working: string | null };
+
+/** Old screen and tab hashes → the event to show or the drawer tab to open. */
+const LEGACY: Record<string, View> = {
+  replay: { event: "e2014", working: null },
+  "time-machine": { event: null, working: "time-machine" },
+  river: { event: NOW, working: null },
+  protect: { event: null, working: "protect" },
+  trust: { event: null, working: "trust" },
+  proof: { event: null, working: "trust" },
+  decide: { event: null, working: "decide" },
+  about: { event: null, working: "about" },
 };
 
-/** Old tab hashes (#river, #time-machine …) still land somewhere sensible. */
-const LEGACY: Record<string, Route> = {
-  river: "now",
-  "time-machine": "replay",
-  decide: "working",
-  proof: "trust",
-  about: "working",
-};
+/** What a hash asks for. `event: null` = keep the current one. */
+export function viewFromHash(hash: string = window.location.hash): View {
+  const parts = hash.replace(/^#\/?/, "").split(/[/?]/).filter(Boolean);
+  const [head, sub] = parts;
+  if (!head) return { event: null, working: null };
+  if (head === "working") return { event: null, working: sub ?? "" };
+  if (LEGACY[head]) return LEGACY[head];
+  return { event: head, working: null };
+}
 
-/** Space toggles play/pause on the Replay screen. */
+/** Space toggles play/pause on the Timeline. */
 export const PLAYPAUSE_EVENT = "rc:playpause";
-/** ←/→ step the Replay screen; detail.delta is ±1 (Shift: ±6). */
+/** ←/→ step the Timeline; detail.delta is ±1 (Shift: ±6). */
 export const STEP_EVENT = "rc:step";
+/** Keys 1–9: detail.n is the switch button number (1 = Now). */
+export const PICK_EVENT = "rc:pick";
 export type StepDetail = { delta: number };
-
-export function routeFromHash(hash: string = window.location.hash): Route {
-  const h = hash.replace(/^#\/?/, "").split(/[/?]/)[0];
-  if ((ROUTES as readonly string[]).includes(h)) return h as Route;
-  return LEGACY[h] ?? "now";
-}
-
-export function navigate(route: Route): void {
-  window.location.hash = `/${route}`;
-}
-
-/** Current route, following hash changes. */
-export function useRoute(): Route {
-  const [route, setRoute] = useState<Route>(() => routeFromHash());
-  useEffect(() => {
-    const on = () => setRoute(routeFromHash());
-    window.addEventListener("hashchange", on);
-    return () => window.removeEventListener("hashchange", on);
-  }, []);
-  return route;
-}
+export type PickDetail = { n: number };
 
 /** Keys typed into these elements belong to them, not to the presenter. */
 export function ownsKeys(el: EventTarget | null, key: string): boolean {
@@ -60,27 +51,36 @@ export function ownsKeys(el: EventTarget | null, key: string): boolean {
 }
 
 export type KeyAction =
-  | { kind: "route"; route: Route }
+  | { kind: "pick"; n: number }
   | { kind: "playpause" }
   | { kind: "step"; delta: number }
   | { kind: "presenter" }
   | null;
 
-/** What a key press means (pure, so it is unit-tested). `route` is the current screen. */
-export function keyAction(key: string, shift: boolean, route: Route): KeyAction {
-  const n = ["1", "2", "3", "4"].indexOf(key);
-  if (n >= 0) return { kind: "route", route: ROUTES[n] };
+/** What a key press means (pure, so it is unit-tested). With the drawer open, the old tabs keep their own keys. */
+export function keyAction(key: string, shift: boolean, drawerOpen: boolean): KeyAction {
   if (key === "p" || key === "P") return { kind: "presenter" };
-  // The old Time Machine under "Show the working" handles its own Space and arrows.
-  if (route === "working") return null;
+  if (drawerOpen) return null;
+  if (/^[1-9]$/.test(key)) return { kind: "pick", n: Number(key) };
   if (key === " ") return { kind: "playpause" };
   if (key === "ArrowRight") return { kind: "step", delta: shift ? 6 : 1 };
   if (key === "ArrowLeft") return { kind: "step", delta: shift ? -6 : -1 };
   return null;
 }
 
+/** Current hash view, following hash changes. */
+export function useHashView(): View {
+  const [view, setView] = useState<View>(() => viewFromHash());
+  useEffect(() => {
+    const on = () => setView(viewFromHash());
+    window.addEventListener("hashchange", on);
+    return () => window.removeEventListener("hashchange", on);
+  }, []);
+  return view;
+}
+
 /** Install the presenter keys; returns presenter-mode state. */
-export function usePresenter(route: Route): { presenter: boolean; togglePresenter: () => void } {
+export function usePresenter(drawerOpen: boolean): { presenter: boolean; togglePresenter: () => void } {
   const [presenter, setPresenter] = useState(false);
   useEffect(() => {
     document.documentElement.classList.toggle("presenter", presenter);
@@ -88,21 +88,21 @@ export function usePresenter(route: Route): { presenter: boolean; togglePresente
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey || ownsKeys(e.target, e.key)) return;
-      const a = keyAction(e.key, e.shiftKey, route);
+      const a = keyAction(e.key, e.shiftKey, drawerOpen);
       if (!a) return;
       e.preventDefault();
-      if (a.kind === "route") navigate(a.route);
-      else if (a.kind === "presenter") setPresenter((p) => !p);
+      if (a.kind === "presenter") setPresenter((p) => !p);
+      else if (a.kind === "pick") window.dispatchEvent(new CustomEvent<PickDetail>(PICK_EVENT, { detail: { n: a.n } }));
       else if (a.kind === "playpause") window.dispatchEvent(new CustomEvent(PLAYPAUSE_EVENT));
       else window.dispatchEvent(new CustomEvent<StepDetail>(STEP_EVENT, { detail: { delta: a.delta } }));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [route]);
+  }, [drawerOpen]);
   return { presenter, togglePresenter: () => setPresenter((p) => !p) };
 }
 
-/** For screens: run `onPlayPause` on Space and `onStep(delta)` on ←/→. */
+/** For the Timeline: run `onPlayPause` on Space and `onStep(delta)` on ←/→. */
 export function usePlayerKeys(onPlayPause: () => void, onStep: (delta: number) => void): void {
   useEffect(() => {
     const pp = () => onPlayPause();
@@ -113,5 +113,14 @@ export function usePlayerKeys(onPlayPause: () => void, onStep: (delta: number) =
       window.removeEventListener(PLAYPAUSE_EVENT, pp);
       window.removeEventListener(STEP_EVENT, st);
     };
+  });
+}
+
+/** For the event switch: run `onPick(n)` on keys 1–9. */
+export function usePickKeys(onPick: (n: number) => void): void {
+  useEffect(() => {
+    const on = (e: Event) => onPick((e as CustomEvent<PickDetail>).detail?.n ?? 0);
+    window.addEventListener(PICK_EVENT, on);
+    return () => window.removeEventListener(PICK_EVENT, on);
   });
 }

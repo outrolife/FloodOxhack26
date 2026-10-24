@@ -1,113 +1,64 @@
-// River Clock shell (#118): four visual-first screens, the old tabs under
-// "Show the working", presenter keys, a first-visit "Start here" landing and
-// the disclaimer on every screen. Owner: s-s01s-ux (web/src/ui/, App.tsx).
-import { lazy, Suspense, useEffect, useState } from "react";
+// River Clock shell (#118, one screen): the brand, the presenter toggle, the
+// one screen, the "Show the working" drawer and the disclaimer. The hash keeps
+// what's shown (#/now, #/e2014) and the drawer (#/working/<tab>), so a reload
+// or a shared link lands in the same place. Owner: s-s01s-ux (web/src/ui/, web/src/clock/, App.tsx).
+import { useCallback, useEffect, useState } from "react";
 import { Disclaimer } from "./components/shared/Disclaimer";
-import { ROUTES, ROUTE_LABEL, navigate, useRoute, usePresenter, type Route } from "./ui/presenter";
-import { StartHere, useStartHere } from "./ui/StartHere";
+import { NOW, useHashView, usePresenter } from "./ui/presenter";
+import ClockScreen from "./clock/ClockScreen";
+import { Drawer, tabFor, type WorkingId } from "./clock/Drawer";
+import { WORKING_EVENT } from "./clock/ProofFooter";
+import { EVENT_CHOICES } from "./clock/choices";
 import "./ui/ui.css";
-import Now from "./screens/Now";
-import Replay from "./screens/Replay";
-import Protect from "./screens/Protect";
-import Trust from "./screens/Trust";
-
-// The old tabs stay reachable under "Show the working" (not deleted), loaded on demand.
-const River = lazy(() => import("./views/River"));
-const TimeMachine = lazy(() => import("./views/TimeMachine"));
-const Decide = lazy(() => import("./views/Decide"));
-const Proof = lazy(() => import("./views/Proof"));
-const About = lazy(() => import("./views/About"));
-
-export const WORKING_TABS = [
-  { id: "river", label: "River (live detail)", View: River },
-  { id: "time-machine", label: "Time Machine", View: TimeMachine },
-  { id: "decide", label: "Decide (cost–loss)", View: Decide },
-  { id: "proof", label: "Proof", View: Proof },
-  { id: "about", label: "About and credits", View: About },
-] as const;
-type WorkingId = (typeof WORKING_TABS)[number]["id"];
-
-const SCREENS: Record<Exclude<Route, "working">, () => React.ReactElement> = { now: Now, replay: Replay, protect: Protect, trust: Trust };
-
-function workingFromHash(): WorkingId {
-  const sub = window.location.hash.replace(/^#\/?working\/?/, "").split(/[/?]/)[0];
-  return (WORKING_TABS.find((t) => t.id === sub)?.id ?? "proof") as WorkingId;
-}
-
-function Working() {
-  const [tab, setTab] = useState<WorkingId>(workingFromHash);
-  useEffect(() => {
-    const on = () => setTab(workingFromHash());
-    window.addEventListener("hashchange", on);
-    return () => window.removeEventListener("hashchange", on);
-  }, []);
-  const current = WORKING_TABS.find((t) => t.id === tab) ?? WORKING_TABS[3];
-  const View = current.View;
-  return (
-    <div className="ui-working-page">
-      <p className="ui-working-intro">
-        The expert detail behind the four screens: every chart, table and caveat, as built for the original tabs.
-      </p>
-      <nav className="ui-subtabs" aria-label="Show the working">
-        {WORKING_TABS.map((t) => (
-          <button
-            key={t.id}
-            className="btn"
-            aria-pressed={t.id === tab}
-            onClick={() => {
-              window.location.hash = `/working/${t.id}`;
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
-      </nav>
-      <Suspense fallback={<p className="muted">Loading…</p>}>
-        <View />
-      </Suspense>
-    </div>
-  );
-}
 
 export default function App() {
-  const route = useRoute();
-  const { presenter, togglePresenter } = usePresenter(route);
-  const start = useStartHere();
-  const Current = route === "working" ? Working : SCREENS[route];
+  const view = useHashView();
+  const known = (id: string | null): id is string => id != null && EVENT_CHOICES.some((c) => c.id === id);
+  const [event, setEvent] = useState<string>(() => (known(view.event) ? view.event : NOW));
+  useEffect(() => {
+    if (known(view.event)) setEvent(view.event);
+  }, [view.event]);
+
+  const drawerOpen = view.working != null;
+  const { presenter, togglePresenter } = usePresenter(drawerOpen);
+
+  const pick = useCallback((id: string) => {
+    setEvent(id);
+    window.location.hash = `/${id}`;
+  }, []);
+  const openTab = (id: WorkingId) => {
+    window.location.hash = `/working/${id}`;
+  };
+  const closeDrawer = useCallback(() => {
+    window.location.hash = `/${event}`;
+  }, [event]);
+  // The proof footer's "Show the working" asks for the drawer through rc:working.
+  useEffect(() => {
+    const on = () => {
+      window.location.hash = "/working";
+    };
+    window.addEventListener(WORKING_EVENT, on);
+    return () => window.removeEventListener(WORKING_EVENT, on);
+  }, []);
 
   return (
     <div className="ui-app">
       <header className="ui-header">
-        <a
-          className="ui-brand"
-          href="#/now"
-          onClick={(e) => {
-            e.preventDefault();
-            start.show();
-          }}
-          title="Back to Start here"
-        >
+        <a className="ui-brand" href={`#/${NOW}`} onClick={() => setEvent(NOW)}>
           River Clock
         </a>
-        <nav className="ui-nav" aria-label="Screens">
-          {ROUTES.map((r, i) => (
-            <button key={r} className="ui-nav-item" aria-current={r === route ? "page" : undefined} onClick={() => navigate(r)}>
-              {i < 4 && <kbd className="ui-key">{i + 1}</kbd>}
-              {ROUTE_LABEL[r]}
-            </button>
-          ))}
-        </nav>
+        <span className="ui-tagline">When will the river reach Oxford's flood spots?</span>
+        <a className="ui-header-link" href="#/working">
+          Show the working
+        </a>
         <button className="ui-presenter-toggle" aria-pressed={presenter} onClick={togglePresenter} title="Presenter mode (P)">
           <kbd className="ui-key">P</kbd> Presenter
         </button>
       </header>
-      {start.open ? (
-        <StartHere onDone={start.hide} />
-      ) : (
-        <main className="ui-main" aria-label={ROUTE_LABEL[route]}>
-          <Current />
-        </main>
-      )}
+      <main className="ui-main" aria-label="River Clock">
+        <ClockScreen event={event} onEvent={pick} />
+      </main>
+      {drawerOpen && <Drawer tab={tabFor(view.working)} onTab={openTab} onClose={closeDrawer} />}
       <footer className="ui-footer">
         <Disclaimer />
       </footer>
