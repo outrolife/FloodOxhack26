@@ -8,7 +8,7 @@
 - **needs**: 
 - **notes**: alfredo: #134 adds proof.warnAt (per-spot trigger chosen on pre-2021 floods). Thames x Cherwell for Abingdon: is it in your #125?
 - **branch**: main
-- **head**: e6e9188 Merge pull request #140 from outrolife/app/ux-one-screen
+- **head**: 46492da Merge pull request #141 from outrolife/data/live-hardening
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T20:51:04Z
+- **updated**: 2026-10-24T21:06:33Z
