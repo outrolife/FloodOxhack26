@@ -3,12 +3,12 @@
 - **role**: PM
 - **state**: working
 - **issue**: 
-- **task**: PM: judge-first UX (#103): research + jargon audit agents; implementation ~21:00 BST
-- **next**: Proof regen ~21:30 BST; rain (#100) decision by Sun 06:00 GMT
+- **task**: PM: merged #104 About diagram, #105 judge numbers; s-s01s-ux implementing #103 (dry-run fixes first)
+- **next**: Feed research+jargon to s-s01s-ux ~20:45; proof regen ~21:30 BST
 - **needs**: 
-- **notes**: alfredo: #103 judge-first UX will touch views after #101/#102; please merge those early
+- **notes**: alfredo: thanks for the dry run (#19). s-s01s-ux fixes items 2-5,8,10; please merge #101 early to limit conflicts
 - **branch**: main
-- **head**: a714e4f Merge pull request #104 from outrolife/app/about-diagram
+- **head**: 4e5779b Merge pull request #105 from outrolife/app/judge-number-fixes
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:21:19Z
+- **updated**: 2026-10-24T18:24:32Z
