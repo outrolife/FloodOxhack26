@@ -29,29 +29,46 @@ export function bestPair(key: string, pairs: TravelPair[]): TravelPair | undefin
 /** Travel times measured on fewer floods than this are shown greyed, tagged "low confidence" (#99). */
 export const LOW_CONFIDENCE_N = 5;
 
+/**
+ * Upstream gauges on a tributary, not the main river: their rises take a
+ * different (often longer) route, so a judge reading the strip needs telling.
+ */
+export const TRIBUTARY_NOTE: Record<string, { short: string; long: string }> = {
+  islip: {
+    short: "on the River Ray, a slower tributary",
+    long: "Islip is on the River Ray, a slow clay tributary that joins the Cherwell below Islip, so its rises can take longer to reach Oxford than Enslow's, even though Islip is closer.",
+  },
+};
+
 export type LinkInfo = {
-  /** "≈ 10 h to New Botley" (+ " (cross-correlation only)" when n < 3). */
+  /** "Farmoor → Cold Harbour ≈ 23 h" (+ " (cross-correlation only)" when n < 3). Names both ends, so it can't be read as the next box down. */
   text: string;
   n: number;
   lowConfidence: boolean;
   /** Tooltip: what the number rests on, including the peak-to-peak median for comparison. */
   title: string;
+  /** Short on-screen note when the upstream gauge is on a tributary (TRIBUTARY_NOTE). */
+  tributary?: string;
 };
 
 export function linkInfo(key: string, pairs: TravelPair[], stations: Pick<Station, "key" | "name">[]): LinkInfo | null {
   const p = bestPair(key, pairs);
   if (!p) return null;
   const down = stations.find((s) => s.key === p.down)?.name ?? p.down;
+  const up = stations.find((s) => s.key === p.up)?.name ?? p.up;
   const xc = p.n < 3 ? " (cross-correlation only)" : "";
   const lowConfidence = p.n < LOW_CONFIDENCE_N;
+  const trib = TRIBUTARY_NOTE[p.up];
   return {
-    text: `≈ ${Math.round(p.tHalf.median)} h to ${down}${xc}`,
+    text: `${up} → ${down} ≈ ${Math.round(p.tHalf.median)} h${xc}`,
     n: p.n,
     lowConfidence,
     title:
       `Median half-rise travel time T½ ${p.tHalf.median.toFixed(1)} h, n = ${p.n} events; ` +
       `peak-to-peak median ${p.tPeak.median.toFixed(1)} h.` +
-      (lowConfidence ? ` Fewer than ${LOW_CONFIDENCE_N} events: low confidence.` : ""),
+      (lowConfidence ? ` Fewer than ${LOW_CONFIDENCE_N} events: low confidence.` : "") +
+      (trib ? ` ${trib.long}` : ""),
+    tributary: trib?.short,
   };
 }
 
@@ -60,8 +77,9 @@ export const basedOn = (n: number): string => `based on ${n} past ${n === 1 ? "r
 
 function StripLink({ info }: { info: LinkInfo }) {
   return (
-    <div className={`strip-link${info.lowConfidence ? " low" : ""}`} title={info.title}>
-      {info.text} · {basedOn(info.n)}
+    <div className={`strip-link labelled${info.lowConfidence ? " low" : ""}`} title={info.title}>
+      <span className="strip-link-text">{info.text}</span> · {basedOn(info.n)}
+      {info.tributary && <span className="strip-trib"> ({info.tributary})</span>}
       {info.lowConfidence && <span className="tag-low">low confidence</span>}
     </div>
   );

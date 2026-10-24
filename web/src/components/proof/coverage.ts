@@ -55,9 +55,24 @@ export function direction(cells: Cell[]): Direction {
   return "on-target";
 }
 
+/**
+ * The plain one-line message a judge reads first (#103). It says only what
+ * proof.coverage shows (all test hours); it never claims in-flood numbers.
+ */
+export const HEADLINE: Record<Direction, string> = {
+  wide: "Our ranges are cautious: wider than they need to be, so they overstate the uncertainty rather than hide it.",
+  narrow: "Our ranges are too narrow: the real level falls outside them more often than they say.",
+  mixed: "Our ranges are cautious for some ranges and too narrow for others.",
+  "on-target": "Our ranges are about right: the real level falls inside them about as often as they say.",
+};
+
 export type CoverageSummary = {
   /** Overall direction over every cell. */
   direction: Direction;
+  /** HEADLINE[direction]: the first thing on the card. */
+  headline: string;
+  /** "our 50% range held the real level 65–78% of the time; …." (no lead-in) */
+  detail: string;
   /** Cells off nominal by more than COVERAGE_FLAG. */
   flagged: Cell[];
   /** e.g. "Our forecast ranges are cautious (wider than needed): our 50% range held the real level 65–78% of the time; …" */
@@ -76,6 +91,8 @@ export function coverageSummary(coverage: Cell[]): CoverageSummary | null {
   });
   return {
     direction: overall,
+    headline: HEADLINE[overall],
+    detail: `${parts.join("; ")}.`,
     flagged: coverage.filter((c) => Math.abs(c.actual - c.nominal) > COVERAGE_FLAG),
     text: `Our forecast ranges are ${DIRECTION_TEXT[overall]}: ${parts.join("; ")}.`,
   };

@@ -118,6 +118,11 @@ input[type="range"] { accent-color: var(--accent); }
 .strip-node .meta { font-size: 0.75rem; color: var(--ink-2); }
 .strip-link { text-align: center; font-size: 0.78rem; color: var(--ink-2); padding: 0.15rem 0; }
 .strip-link::before { content: "\2193  "; color: var(--muted); }
+/* A labelled link names both ends ("Farmoor → Cold Harbour"), so it reads as "from this gauge", not "to the next box". */
+.strip-link.labelled { text-align: left; padding-left: 0.6rem; }
+.strip-link.labelled::before { content: "\21B3  "; }
+.strip-link-text { font-weight: 600; color: var(--ink); }
+.strip-link.low .strip-link-text { color: var(--muted); }
 /* Travel times from fewer than 5 floods: greyed, with a text tag (never hidden). */
 .strip-link.low { color: var(--muted); }
 .tag-low {
