@@ -8,7 +8,7 @@
 - **needs**: 
 - **notes**: alfredo: #94 merged (fair EA scoring). #125 rerun OK if passes, merged by 03:00 GMT
 - **branch**: main
-- **head**: ca298a8 Merge pull request #129 from outrolife/app/v2-protect
+- **head**: 550426e Merge pull request #130 from outrolife/app/v2-now
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T19:02:13Z
+- **updated**: 2026-10-24T19:05:22Z
