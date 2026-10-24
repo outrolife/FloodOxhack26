@@ -205,54 +205,53 @@ def fetch_year(measure: str, year: int, today: pd.Timestamp) -> Path:
     return path
 
 
-def ingest(keys: Sequence[str] = tuple(NEW_GAUGES), start_year: int = START_YEAR) -> pd.DataFrame:
-    """Fetch, clean (pipeline.clean.clean_series) and write the new gauges' hourly levels."""
+def ingest_gauge(key: str, start_year: int = START_YEAR) -> Path:
+    """Fetch (cached per year) and clean one gauge; write ``data/raw/exp125/hourly/<key>.parquet``.
+
+    Skips a gauge whose interim file already exists, so a restart only redoes unfinished gauges.
+    Cleaning is ``pipeline.clean.clean_series`` (the same steps 1-4 as hourly.parquet).
+    """
     from pipeline import ea_client
     from pipeline.clean import clean_series
     from pipeline.ingest_history import parse_hydrology_csv
 
+    out = RAW_DIR / "hourly" / f"{key}.parquet"
+    if out.exists():
+        log.info("%s: already ingested (%s)", key, out)
+        return out
     today = pd.Timestamp.now(tz="UTC")
-    frames, stats = [], {}
-    for key in keys:
-        m = measure_id(key)
-        raw = []
-        for year in range(start_year, today.year + 1):
-            path = fetch_year(m, year, today)
-            raw.append(parse_hydrology_csv(ea_client.read_cached(path), key, "level", "hydrology"))
-        df = pd.concat(raw, ignore_index=True)
-        hourly, st = clean_series(df, "level")
-        frames.append(hourly)
-        stats[key] = {
-            k: st.get(k)
-            for k in (
-                "readings_in",
-                "quality_dropped",
-                "hours",
-                "hours_valid",
-                "spikes_removed",
-                "first_valid_ts",
-                "last_ts",
-            )
-        }
-        stats[key]["level_shifts"] = len(st.get("level_shifts", []))
-        log.info("%s: %s", key, stats[key])
+    m = measure_id(key)
+    raw = []
+    for year in range(start_year, today.year + 1):
+        path = fetch_year(m, year, today)
+        raw.append(parse_hydrology_csv(ea_client.read_cached(path), key, "level", "hydrology"))
+        log.info("%s %d: cached", key, year)
+    hourly, st = clean_series(pd.concat(raw, ignore_index=True), "level")
+    keys = ("readings_in", "quality_dropped", "hours", "hours_valid", "spikes_removed", "first_valid_ts")
+    stats = {k: st.get(k) for k in keys}
+    stats["level_shifts"] = len(st.get("level_shifts", []))
+    log.info("%s: %s", key, stats)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    hourly.to_parquet(out, index=False)
+    (out.parent / f"{key}.stats.json").write_text(json.dumps(stats, indent=1, default=str), encoding="utf-8")
+    return out
+
+
+def combine(keys: Sequence[str] = tuple(NEW_GAUGES)) -> pd.DataFrame:
+    """Concatenate the per-gauge interim files into ``exp125_upstream_hourly.parquet``."""
+    frames = [
+        pd.read_parquet(RAW_DIR / "hourly" / f"{k}.parquet")
+        for k in keys
+        if (RAW_DIR / "hourly" / f"{k}.parquet").exists()
+    ]
     out = pd.concat(frames, ignore_index=True)
     out["ts_utc"] = pd.to_datetime(out["ts_utc"], utc=True).astype("datetime64[ns, UTC]")
-    out = out.astype(
-        {
-            "gauge": str,
-            "kind": str,
-            "level_mean": float,
-            "level_max": float,
-            "rain_mm": float,
-            "filled": bool,
-            "flagged": bool,
-        }
-    )
+    types = {"gauge": str, "kind": str, "level_mean": float, "level_max": float, "rain_mm": float}
+    out = out.astype({**types, "filled": bool, "flagged": bool})
     out = out.sort_values(["gauge", "ts_utc"]).reset_index(drop=True)
     HOURLY_EXT_PATH.parent.mkdir(parents=True, exist_ok=True)
     out.to_parquet(HOURLY_EXT_PATH, index=False)
-    (RAW_DIR / "ingest_stats.json").write_text(json.dumps(stats, indent=1, default=str), encoding="utf-8")
+    log.info("wrote %s: %s", HOURLY_EXT_PATH, sorted(out["gauge"].unique()))
     return out
 
 
@@ -662,6 +661,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
     i = sub.add_parser("ingest")
     i.add_argument("--only", nargs="+", default=list(NEW_GAUGES))
+    sub.add_parser("combine")
     sub.add_parser("travel")
     t = sub.add_parser("train")
     t.add_argument("--targets", nargs="+", default=list(TARGETS))
@@ -670,7 +670,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     if args.cmd == "ingest":
-        ingest(args.only)
+        for key in args.only:
+            ingest_gauge(key)
+    elif args.cmd == "combine":
+        combine()
     elif args.cmd == "travel":
         travel()
     elif args.cmd == "train":
