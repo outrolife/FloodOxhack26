@@ -690,11 +690,13 @@ def adoption_check(res: Mapping[str, Any], cand: str, base: str = "baseline") ->
         for h in leads
     }
     cov_ok = all(y >= x - COVERAGE_TOL for x, y in cov.values())
+    skill = {h: (sk[0][h], sk[1][h]) for h in leads}
+    # (passed, all items as (baseline, candidate), the items that fail)
     parts = {
-        "skill36to72Improves": (skill_ok, {h: (sk[0][h], sk[1][h]) for h in leads}),
-        "noExtraFalseAlarmsP50": (fa_ok, fa),
-        "brierNoWorse": (brier_ok, br),
-        "inEventCoverageHolds": (cov_ok, cov),
+        "skill36to72Improves": (skill_ok, skill, {k: v for k, v in skill.items() if v[1] <= v[0]}),
+        "noExtraFalseAlarmsP50": (fa_ok, fa, {k: v for k, v in fa.items() if v[1] > v[0]}),
+        "brierNoWorse": (brier_ok, br, {k: v for k, v in br.items() if v[1] > v[0]}),
+        "inEventCoverageHolds": (cov_ok, cov, {k: v for k, v in cov.items() if v[1] < v[0] - COVERAGE_TOL}),
     }
     return {"arm": cand, "adopt": all(p[0] for p in parts.values()), "parts": parts}
 
@@ -802,9 +804,8 @@ def report(res: Mapping[str, Any]) -> str:
                 "",
                 f"### Adoption rule (#125): {cand} vs baseline: {'ADOPT' if chk['adopt'] else 'NOT ADOPTED'}",
             ]
-            for name, (ok, detail) in chk["parts"].items():
-                bad = {k: v for k, v in detail.items() if not ok} if isinstance(detail, dict) else detail
-                L.append(f"- {name}: {'pass' if ok else 'FAIL'} {bad if not ok else ''}".rstrip())
+            for name, (ok, _, failing) in chk["parts"].items():
+                L.append(f"- {name}: {'pass' if ok else 'FAIL ' + str(failing)} (baseline, {cand})")
     return "\n".join(L)
 
 
