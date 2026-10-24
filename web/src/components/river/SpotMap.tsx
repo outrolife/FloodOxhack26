@@ -1,7 +1,7 @@
 // Leaflet map of the five trouble spots, coloured by pFlood at 24 h.
 // OSM tiles are the app's only network dependency: if they fail, the map keeps
 // working on a plain background and says so.
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { CircleMarker, MapContainer, TileLayer, Tooltip } from "react-leaflet";
 import type { Forecast, Spot, Station } from "../../contracts";
 import { LEVEL_STYLE, pFloodAt, pct, spotLevel } from "../shared/forecast";
@@ -14,12 +14,15 @@ export function SpotMap({
   forecast,
   selected,
   onSelect,
+  children,
 }: {
   spots: Spot[];
   stations: Station[];
   forecast: Forecast | null;
   selected: string | null;
   onSelect: (key: string) => void;
+  /** Extra map layers, e.g. the S1 official flood-risk layers. */
+  children?: ReactNode;
 }) {
   const [tilesFailed, setTilesFailed] = useState(!navigator.onLine);
 
@@ -70,6 +73,7 @@ export function SpotMap({
               </CircleMarker>
             );
           })}
+          {children}
         </MapContainer>
         {tilesFailed && <div className="map-offline">Map tiles unavailable offline; spots and gauges still shown.</div>}
       </div>
