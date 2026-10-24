@@ -12,6 +12,7 @@ import {
   earlyTile,
   headline,
   leadWords,
+  officialComparison,
   oddsCaption,
   oddsVerdict,
   perEventVsOfficial,
@@ -223,6 +224,25 @@ describe("tile 3: early, without crying wolf", () => {
     const r = perEventVsOfficial({ perEvent });
     expect([r.ahead, r.behind, r.level, r.total]).toEqual([2, 1, 1, 4]);
     expect(r.text).toBe("Flood by flood: earlier than the official warning 2 times, later 1 time, level 1 time (of 4 floods with a warning to compare).");
+  });
+});
+
+describe("tile 3: fair side-by-side with the official warning", () => {
+  const officialOutcome: Proof["officialOutcome"] = {
+    botley: { hits: 8, misses: 0, falseAlarms: 0, meanLeadH: 37.8 },
+    osney: { hits: 5, misses: 2, falseAlarms: 1, meanLeadH: 24.3 },
+  };
+  it("totals both on the same spots and says the trade-off", () => {
+    const c = officialComparison(earlyTile({ tradeoff, officialOutcome }, spots))!;
+    expect(c.oursText).toBe("River Clock caught 15 of 15 floods (5 false alarms)");
+    expect(c.officialText).toBe("the official warning caught 13 of 15 (1 false alarm)");
+    expect(c.verdict).toBe("River Clock catches more floods; the official warning raises fewer false alarms.");
+  });
+  it("leaves out spots with no official score, and is null when none have one", () => {
+    const c = officialComparison(earlyTile({ tradeoff, officialOutcome: { botley: officialOutcome!.botley } }, spots))!;
+    expect(c.ours.floods).toBe(8);
+    expect(c.verdict).toBe("Both catch as many floods; the official warning raises fewer false alarms.");
+    expect(officialComparison(earlyTile({ tradeoff }, spots))).toBeNull();
   });
 });
 

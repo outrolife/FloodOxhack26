@@ -7,7 +7,7 @@ import fixture from "../../../../tests/fixtures/proof.json";
 import fixtureSpots from "../../../../tests/fixtures/spots.json";
 import { TrustView } from "./TrustView";
 import { WhatsNext } from "./WhatsNext";
-import { beatsTile, binsAt, earlyTile, pickInformativeBin, oddsCaption, POOLED } from "./trust";
+import { beatsTile, binsAt, earlyTile, officialComparison, pickInformativeBin, oddsCaption, POOLED } from "./trust";
 
 const readPublic = <T,>(f: string): T =>
   JSON.parse(readFileSync(new URL(`../../../public/data/${f}`, import.meta.url), "utf8")) as T;
@@ -37,11 +37,14 @@ for (const [label, proof, spots] of [
       expect(html).toMatch(/pooled across our (four )?gauges/i);
       expect(html).toContain("All spots (pooled)");
       expect(html).toContain("Against the official EA warning");
-      expect(html).toContain("lower bound, not a win for us");
+      const c = officialComparison(earlyTile(proof, spots))!;
+      expect(html).toContain(`${c.oursText} · ${c.officialText}. ${c.verdict}`);
+      expect(html).not.toContain("lower bound");
     });
 
     it("never calls our output a Flood Warning or Flood Alert", () => {
-      expect(html).not.toMatch(/Flood (Warning|Alert)/);
+      // testPeriodNote may name the EA's own "Flood Warning" product; that's about the EA, not us.
+      expect(html.replace(proof.testPeriodNote, "")).not.toMatch(/Flood (Warning|Alert)/);
     });
 
     it("keeps the working collapsed, with What's next inside", () => {

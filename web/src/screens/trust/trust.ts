@@ -363,6 +363,58 @@ export function vsOfficialLabel(h: number | null): string {
   return h > 0 ? `${Math.round(h)} h ahead` : `${Math.round(-h)} h behind`;
 }
 
+// ---------------------------------------------------------------- Tile 3: fair side-by-side with the EA
+
+export type OfficialComparison = {
+  ours: { caught: number; floods: number; falseAlarms: number };
+  official: { caught: number; floods: number; falseAlarms: number };
+  /** "River Clock caught 30 of 30 floods (5 false alarms)" */
+  oursText: string;
+  /** "the official warning caught 24 of 30 (1 false alarm)" */
+  officialText: string;
+  /** The trade-off in one plain sentence, from the four numbers. */
+  verdict: string;
+};
+
+const alarms = (n: number) => `${n} false ${plural(n, "alarm")}`;
+
+/**
+ * Our p* trigger and the official EA warnings, scored on the same floods and
+ * rules (proof.officialOutcome; fair since #92 was fixed in #94). Only spots
+ * with both are counted, so the two totals cover the same floods.
+ */
+export function officialComparison(t: Pick<EarlyTile, "rows">): OfficialComparison | null {
+  const rows = t.rows.filter((r) => r.official);
+  if (!rows.length) return null;
+  const ours = {
+    caught: rows.reduce((s, r) => s + r.hits, 0),
+    floods: rows.reduce((s, r) => s + r.floods, 0),
+    falseAlarms: rows.reduce((s, r) => s + r.falseAlarms, 0),
+  };
+  const official = {
+    caught: rows.reduce((s, r) => s + r.official!.hits, 0),
+    floods: rows.reduce((s, r) => s + r.official!.hits + r.official!.misses, 0),
+    falseAlarms: rows.reduce((s, r) => s + r.official!.falseAlarms, 0),
+  };
+  const oc = ours.floods ? ours.caught / ours.floods : 0;
+  const ec = official.floods ? official.caught / official.floods : 0;
+  const more =
+    oc > ec ? "River Clock catches more floods" : oc < ec ? "the official warning catches more floods" : "both catch as many floods";
+  const fewer =
+    ours.falseAlarms > official.falseAlarms
+      ? "the official warning raises fewer false alarms"
+      : ours.falseAlarms < official.falseAlarms
+        ? "River Clock raises fewer false alarms"
+        : "both raise as many false alarms";
+  return {
+    ours,
+    official,
+    oursText: `River Clock caught ${ours.caught} of ${ours.floods} ${plural(ours.floods, "flood")} (${alarms(ours.falseAlarms)})`,
+    officialText: `the official warning caught ${official.caught} of ${official.floods} (${alarms(official.falseAlarms)})`,
+    verdict: `${more[0].toUpperCase()}${more.slice(1)}; ${fewer}.`,
+  };
+}
+
 // ---------------------------------------------------------------- Headline
 
 /**

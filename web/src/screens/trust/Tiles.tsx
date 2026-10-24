@@ -11,6 +11,7 @@ import {
   leadWords,
   oddsCaption,
   oddsVerdict,
+  officialComparison,
   pct,
   perEventVsOfficial,
   pickInformativeBin,
@@ -235,6 +236,7 @@ export function EarlyTile({ data, proof }: { data: EarlyData; proof: Proof }) {
   const vs = vsOfficialSummary(data.rows);
   const vsMax = Math.max(1, ...data.rows.map((r) => Math.abs(r.vsOfficialH ?? 0)));
   const perEvent = perEventVsOfficial(proof);
+  const cmp = officialComparison(data);
   return (
     <Tile kicker="Early, without crying wolf" id={id}>
       <div className="trust-big is-model">
@@ -279,7 +281,33 @@ export function EarlyTile({ data, proof }: { data: EarlyData; proof: Proof }) {
       </ul>
 
       <h3 className="trust-sub">Against the official EA warning</h3>
-      <p className="trust-caption">{vs.text}</p>
+      {cmp && (
+        <>
+          <p className="trust-caption">
+            {cmp.oursText} · {cmp.officialText}. {cmp.verdict}
+          </p>
+          <ul className="trust-vs" aria-label="Floods caught and false alarms, River Clock and the official warning, same floods and rules">
+            {[
+              { who: "River Clock", s: cmp.ours, cls: "is-model" },
+              { who: "Official warning", s: cmp.official, cls: "is-official" },
+            ].map(({ who, s, cls }) => (
+              <li key={who}>
+                <span className="trust-spot-name">{who}</span>
+                <span className="trust-bar-track">
+                  <span className={`trust-bar ${cls}`} style={{ width: `${s.floods ? (s.caught / s.floods) * 100 : 0}%` }} />
+                </span>
+                <span className="trust-spot-value">
+                  {s.caught}/{s.floods}
+                </span>
+                <span className="trust-spot-meta">
+                  {s.falseAlarms} false {s.falseAlarms === 1 ? "alarm" : "alarms"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      <p className="trust-caption">How much earlier, per spot: {vs.text[0].toLowerCase() + vs.text.slice(1)}</p>
       <ul className="trust-diverge" aria-label="Hours ahead of (right) or behind (left) the official warning, per spot">
         {data.rows.map((r) => {
           const v = r.vsOfficialH;
@@ -343,9 +371,9 @@ export function OfficialOutcome({ data }: { data: EarlyData }) {
         </tbody>
       </table>
       <p className="small muted">
-        Both are scored with the same rules: an alarm counts if it came in the 72 hours before the river crossed. This is
-        unfair to the EA when a warning went out more than 3 days early and stayed in force (it then counts as a miss and a
-        false alarm), so read the EA column as a lower bound, not a win for us.
+        Both are scored on the same floods, hours and rules (how an official warning counts as in force is in the note
+        at the bottom). River Clock alarms at a {triggerWords(data.pStar)} chance; a lower trigger catches more and cries
+        wolf more often.
       </p>
     </div>
   );

@@ -27,6 +27,7 @@
 .trust-bar { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 4px 4px 0; }
 .trust-bar.is-model { background: var(--series-1); }
 .trust-bar.is-baseline { background: var(--series-2); }
+.trust-bar.is-official { background: var(--unknown); }
 .trust-whisker { position: absolute; top: 50%; height: 0; border-top: 2px solid var(--ink-2); }
 .trust-whisker::before, .trust-whisker::after {
   content: ""; position: absolute; top: -6px; height: 10px; border-left: 2px solid var(--ink-2);
@@ -51,15 +52,15 @@
 .trust-select select { font: inherit; padding: 0.2rem 0.4rem; }
 
 /* Per-spot lists (tile 3). */
-.trust-spots, .trust-diverge { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
-.trust-spots li {
+.trust-spots, .trust-diverge, .trust-vs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.trust-spots li, .trust-vs li {
   display: grid; grid-template-columns: 7.5rem minmax(0, 1fr) 3.6rem; grid-template-areas: "name bar value" ". meta meta";
   align-items: center; column-gap: 0.5rem; font-size: 0.9rem;
 }
-.trust-spots .trust-spot-name { grid-area: name; }
-.trust-spots .trust-bar-track { grid-area: bar; }
-.trust-spots .trust-spot-value { grid-area: value; }
-.trust-spots .trust-spot-meta { grid-area: meta; }
+.trust-spots .trust-spot-name, .trust-vs .trust-spot-name { grid-area: name; }
+.trust-spots .trust-bar-track, .trust-vs .trust-bar-track { grid-area: bar; }
+.trust-spots .trust-spot-value, .trust-vs .trust-spot-value { grid-area: value; }
+.trust-spots .trust-spot-meta, .trust-vs .trust-spot-meta { grid-area: meta; }
 .trust-spots li.is-none .trust-span { grid-column: 2 / -1; grid-row: 1; }
 .trust-spot-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trust-spot-value { font-variant-numeric: tabular-nums; font-weight: 650; text-align: right; }
