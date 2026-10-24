@@ -3,12 +3,12 @@
 - **role**: Data
 - **state**: working
 - **issue**: #17
-- **task**: Tiger Data (Timescale) mirror of hourly + live readings
-- **next**: Write pipeline/mirror_tiger.py and unit tests
+- **task**: Tiger mirror code+tests pushed (data/tiger-mirror)
+- **next**: Run mirror against real Tiger service, write docs/tiger-data.md
 - **needs**: 
 - **notes**: 
 - **branch**: data/tiger-mirror
-- **head**: eb8eb87 Merge pull request #33 from outrolife/app/decide
+- **head**: 2e0aa42 Add make mirror target, mirror extra and .env fallback for the
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:30:14Z
+- **updated**: 2026-10-24T16:41:40Z
