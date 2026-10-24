@@ -3,12 +3,12 @@
 - **role**: PM
 - **state**: working
 - **issue**: 
-- **task**: PM: merged #67 (arrival rule, unblocks #39/#66); waiting on #39 ready
-- **next**: Merge #39 as soon as ready, then #66 proof.json
+- **task**: PM: #39 CI red (arrival crossed wire, fix posted); started #19 results pass + demo kit
+- **next**: Merge #39 once green, then #66
 - **needs**: 
-- **notes**: Core 88%. alfredo: no change needed for arrival; rebase #39 + mark ready
+- **notes**: alfredo: #39 fails test_public_data on arrival; restore p0 anchor (see #39 comment)
 - **branch**: main
 - **head**: 0a61018 Merge pull request #67 from outrolife/integration/arrival-at-i
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:24:28Z
+- **updated**: 2026-10-24T17:27:55Z
