@@ -1,0 +1,21 @@
+// The visual kit (#118). Screens import from "../ui".
+export { Screen } from "./Screen";
+export { Headline } from "./Headline";
+export { StatTile, StatRow, type StatTone } from "./StatTile";
+export { ShowTheWorking } from "./ShowTheWorking";
+export { SpotClock, stateFor, countdownText, CLOCK_STYLE, WATCH_AT, LIKELY_AT, type ClockState } from "./SpotClock";
+// BaseMap is NOT re-exported here: Leaflet needs `window` at import time, which would break
+// node-environment tests of any screen. Import it directly: `import { BaseMap } from "../ui/BaseMap"`.
+export {
+  ROUTES,
+  ROUTE_LABEL,
+  PLAYPAUSE_EVENT,
+  STEP_EVENT,
+  navigate,
+  routeFromHash,
+  useRoute,
+  usePlayerKeys,
+  type Route,
+  type StepDetail,
+} from "./presenter";
+export { pctPlain, chanceWords, hoursWords, gaugeName } from "../lib/plain";
