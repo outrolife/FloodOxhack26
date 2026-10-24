@@ -45,21 +45,6 @@
   .now-pulse { animation: none; opacity: 1; transform: translateY(22px); }
 }
 
-/* Clocks on the map: an empty Leaflet marker at the spot, the clock portalled into it. */
-.leaflet-marker-icon.now-clock-marker { background: none; border: 0; overflow: visible; }
-.now-clock-anchor { position: relative; width: 0; height: 0; }
-.now-clock-pin {
-  position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; border-radius: 50%;
-  background: var(--ink); border: 2px solid #fff; box-sizing: content-box; transform: translate(-2px, -2px);
-}
-.now-clock-leader { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; }
-.now-clock-leader line { stroke: var(--ink-2); stroke-width: 1.5; }
-.now-clock-box {
-  position: absolute; left: 0; top: 0; pointer-events: auto; display: flex; flex-direction: column; align-items: center;
-  background: rgba(252, 252, 251, 0.92); border-radius: 14px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18); padding: 0.15rem 0.25rem 0.3rem;
-}
-.now-clock-status { font-size: 0.75rem; color: var(--ink-2); max-width: 9.5rem; text-align: center; line-height: 1.2; }
-
 /* Spot card */
 .now-card { margin: 0; }
 .now-card-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.6rem; align-items: start; }
