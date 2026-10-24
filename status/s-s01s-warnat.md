@@ -4,11 +4,11 @@
 - **state**: working
 - **issue**: #134
 - **task**: Per-spot warn-at levels chosen on validation floods
-- **next**: Regenerate data/models, add selection rule
+- **next**: Regenerate proof.json after make train, open PR
 - **needs**: 
 - **notes**: 
 - **branch**: model/warn-at
-- **head**: c114737 Merge pull request #138 from outrolife/app/clock-timeline
+- **head**: 35f7733 Add per-spot warn-at levels chosen on validation floods (proof
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T20:34:24Z
+- **updated**: 2026-10-24T20:46:05Z
