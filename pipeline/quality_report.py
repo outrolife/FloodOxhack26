@@ -1,8 +1,13 @@
 """Write web/public/data/quality.json: coverage, gaps, spikes, threshold mismatches (SPEC §5.3).
 
 Shape: SPEC §9 ``Quality``. Inputs: ``data/processed/clean_log.json`` and ``provenance.parquet`` from
-pipeline/clean.py, the gauge config, and flood-monitoring station metadata (``stageScale`` /
-``downstageScale`` ``typicalRangeHigh``, re-read at every run and cached for a day).
+pipeline/clean.py, ``warnings_provenance.json`` from pipeline/ingest_warnings.py (if present), the
+gauge config, and flood-monitoring station metadata (``stageScale`` / ``downstageScale``
+``typicalRangeHigh``, re-read at every run and cached for a day).
+
+``sources`` lists every source actually used: one entry per ``provenance.parquet`` source (Hydrology
+level, Hydrology rain, and the flood-monitoring daily archive only if the archive fallback was
+used), the flood-monitoring metadata, and EA Historic Flood Warnings whenever warnings data exists.
 
 - ``coveragePct``: hours with a valid value / hours from 2006-01-01 to the end of the data.
 - ``gapsFilled`` / ``gapsFlagged`` / ``spikesRemoved``: episodes, not hours.
@@ -17,7 +22,7 @@ from typing import Any
 
 import pandas as pd
 
-from pipeline import ea_client
+from pipeline import ea_client, ingest_warnings
 from pipeline.stations import RAIN_CATCHMENT, REPO_ROOT, UPSTREAM_SUFFIX, Gauge, data_root, load_gauges
 
 log = logging.getLogger("pipeline.quality_report")
@@ -34,6 +39,8 @@ SOURCE_INFO = {
                    "https://environment.data.gov.uk/flood-monitoring/archive"),
     "fm_meta": ("EA flood-monitoring API (station metadata and thresholds)",
                 "https://environment.data.gov.uk/flood-monitoring/"),
+    "warnings": ("EA Historic Flood Warnings (data.gov.uk historic-flood-warnings2), Oxford areas",
+                 ingest_warnings.FALLBACK_ZIP_URL),
 }
 
 
@@ -87,10 +94,6 @@ def gauge_entry(series: str, st: dict[str, Any], g: Gauge | None, end: pd.Timest
             notes.append("Qualifier u/s (upstream stage of a lock or mill), Hydrology API")
         else:
             notes.append("Qualifier single (one-trace station), Hydrology API")
-        spec = g.extra.get("spec") if isinstance(g.extra.get("spec"), dict) else {}
-        if spec.get("amber") is not None and g.amber is not None and spec["amber"] != g.amber:
-            notes.append(f"SPEC §4.1 table amber {spec['amber']} m is for another trace; "
-                         f"config uses {g.amber} m")
         t_api, err = api_threshold(g, upstream_stage)
         t_cfg = None if upstream_stage else g.amber
         if err:
@@ -122,7 +125,37 @@ def gauge_entry(series: str, st: dict[str, Any], g: Gauge | None, end: pd.Timest
     }
 
 
-def build_report(stats: dict[str, Any], prov: pd.DataFrame) -> dict[str, Any]:
+def _utc(s: Any) -> str:
+    ts = pd.Timestamp(s)
+    ts = ts.tz_localize("UTC") if ts.tzinfo is None else ts.tz_convert("UTC")
+    return ts.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def warnings_source(proc: Path) -> dict[str, Any] | None:
+    """The §9 source entry for EA Historic Flood Warnings, or None if no warnings data exists.
+
+    Reads ``warnings_provenance.json`` (written by pipeline/ingest_warnings.py); if only
+    ``warnings.parquet`` is present, uses its row count and file time.
+    """
+    meta_path, pq = proc / "warnings_provenance.json", proc / "warnings.parquet"
+    name, url = SOURCE_INFO["warnings"]
+    if meta_path.exists():
+        meta = json.loads(meta_path.read_text())
+        if meta.get("first_ts") and meta.get("last_ts"):
+            name += f", issued {str(meta['first_ts'])[:10]} to {str(meta['last_ts'])[:10]}"
+        return {"name": name, "url": meta.get("source_url") or url,
+                "licence": meta.get("licence") or ingest_warnings.LICENCE,
+                "downloadedAt": _utc(meta["downloaded_at"]), "rows": int(meta.get("n_rows", 0))}
+    if pq.exists():
+        return {"name": name, "url": url, "licence": ingest_warnings.LICENCE,
+                "downloadedAt": _utc(pd.Timestamp(pq.stat().st_mtime, unit="s")),
+                "rows": len(pd.read_parquet(pq, columns=["area_code"]))}
+    return None
+
+
+def build_report(stats: dict[str, Any], prov: pd.DataFrame,
+                 warnings: dict[str, Any] | None = None) -> dict[str, Any]:
+    """§9 ``Quality``. ``warnings`` is the Historic Flood Warnings source entry, if that data exists."""
     levels, rains = load_gauges()
     ends = [pd.Timestamp(s["last_ts"]) for s in stats.values() if s.get("last_ts")]
     end = max(ends) if ends else pd.Timestamp.now(tz="UTC")
@@ -146,9 +179,6 @@ def build_report(stats: dict[str, Any], prov: pd.DataFrame) -> dict[str, Any]:
                 f"{u['spikesRemoved']} spikes removed, API typicalRangeHigh {u['thresholdApi']} m")
         gauges.append(entry)
 
-    def utc(s: Any) -> str:
-        return pd.Timestamp(s).tz_convert("UTC").strftime("%Y-%m-%dT%H:%M:%SZ")
-
     sources = []
     rain_keys = {g.key for g in rains}
     prov = prov.assign(source=[
@@ -163,7 +193,7 @@ def build_report(stats: dict[str, Any], prov: pd.DataFrame) -> dict[str, Any]:
                     f"available gauges (hours with data: {share}; any gauge {cat.get('hours_valid', 0)} "
                     f"of {cat.get('hours', 0)} h)")
         sources.append({"name": name, "url": url, "licence": ea_client.LICENCE_OGL,
-                        "downloadedAt": utc(grp["downloaded_at"].dropna().max()),
+                        "downloadedAt": _utc(grp["downloaded_at"].dropna().max()),
                         "rows": int(grp["n_rows"].sum())})
     meta_dir = ea_client.raw_dir() / "flood_monitoring" / "stations"
     metas = [ea_client.cache_meta(p).get("downloaded_at") for p in meta_dir.glob("*.json")
@@ -172,7 +202,9 @@ def build_report(stats: dict[str, Any], prov: pd.DataFrame) -> dict[str, Any]:
     if metas:
         name, url = SOURCE_INFO["fm_meta"]
         sources.append({"name": name, "url": url, "licence": ea_client.LICENCE_OGL,
-                        "downloadedAt": utc(max(metas)), "rows": len(metas)})
+                        "downloadedAt": _utc(max(metas)), "rows": len(metas)})
+    if warnings:
+        sources.append(warnings)
     return {"gauges": gauges, "sources": sources}
 
 
@@ -181,7 +213,7 @@ def main(out: Path = OUT) -> None:
     proc = data_root() / "processed"
     stats = json.loads((proc / "clean_log.json").read_text())
     prov = pd.read_parquet(proc / "provenance.parquet")
-    report = build_report(stats, prov)
+    report = build_report(stats, prov, warnings_source(proc))
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(report, indent=1) + "\n")
     log.info("wrote %s (%d gauges, %d bytes)", out, len(report["gauges"]), out.stat().st_size)
