@@ -418,13 +418,11 @@ def test_refresh_without_processed_files_is_unavailable(
 
 def test_forecast_matches_contract_schema(tmp_path: Path) -> None:
     """build_forecast output passes the same SPEC §9 schema check as tests/fixtures/live.json."""
-    from tests.test_fixtures import FORECAST, NUM, ListOf, RecordOf, check
-    from tests.test_fixtures import UTC as UTC_STR
+    from tests.test_fixtures import FORECAST, check
 
-    # Forecast.observed was adopted on #38; until the contract PR adds it to FORECAST, check it here.
-    schema = {"observed?": RecordOf(ListOf({"t": UTC_STR, "level": NUM})), **FORECAST}
+    assert "observed?" in FORECAST  # #38 contract (PR #54)
     hourly, meta = _live(tmp_path, FakeEA(T0 - timedelta(minutes=15)), T0)
-    check(json.loads(json.dumps(fl.build_forecast(hourly, meta, T0))), schema)
+    check(json.loads(json.dumps(fl.build_forecast(hourly, meta, T0))), FORECAST)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -434,7 +432,8 @@ def test_forecast_matches_contract_schema(tmp_path: Path) -> None:
 
 def test_observed_last_7_days_hourly_every_level_gauge(tmp_path: Path) -> None:
     hourly, meta = _live(tmp_path, FakeEA(T0 - timedelta(minutes=15), hours=24 * 28), T0)
-    obs = fl.build_forecast(hourly, meta, T0)["observed"]
+    fc = fl.build_forecast(hourly, meta, T0)
+    obs = fc["observed"]
     assert list(obs) == sorted(il.LEVEL_MEASURES)  # every level gauge, rain gauges excluded
     assert fl.LIVE_ONLY_GAUGES <= set(obs)  # osney, godstow, iffley have sparklines too
     issued = pd.Timestamp(T0)
@@ -443,6 +442,7 @@ def test_observed_last_7_days_hourly_every_level_gauge(tmp_path: Path) -> None:
         assert len(ts) == 7 * 24, g  # 02:00 today back to 03:00 seven days ago
         assert all(b - a == pd.Timedelta(hours=1) for a, b in zip(ts, ts[1:], strict=False))
         assert ts[-1] <= issued and ts[0] > issued - pd.Timedelta(days=7)
+        assert ts[-1] <= pd.Timestamp(fc["dataAsOf"][g])  # never past the gauge's latest reading
         assert all(p["t"].endswith("Z") and round(p["level"], 3) == p["level"] for p in series)
     # Matches the hourly mean it came from.
     row = hourly[(hourly["gauge"] == "osney") & (hourly["ts_utc"] == pd.Timestamp(obs["osney"][-1]["t"]))]
