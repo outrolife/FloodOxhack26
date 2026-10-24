@@ -7,30 +7,32 @@ import { useData } from "../data";
 import { HOUR, formatDateTimeYear, hoursBetween } from "../time";
 import { FanChart, type Marker } from "../components/timemachine/FanChart";
 import {
-  compareSentence,
-  firstOfficials,
   focusWindow,
   formatOfficial,
+  matchTier,
   officialLabel,
+  tierSentence,
+  type Tier,
+  type TierMatch,
 } from "../components/timemachine/timeline";
 import { FixtureNotice, Pending } from "../components/shared/DataNotice";
 import { ProbBars } from "../components/shared/ProbBars";
 import { RiverStrip } from "../components/shared/RiverStrip";
-import { arrivalSentence, pFloodMax } from "../components/shared/forecast";
+import { arrivalSentence } from "../components/shared/forecast";
 
 const SIM_HOURS_PER_2S = 12; // SPEC §10.2: one simulated 12 h per 2 s (speed 1×)
 const SPEEDS = [0.5, 1, 2, 4] as const;
 
-// First forecast with P(flood within 72 h) >= 50%, per spot; cached per
-// replay so the slider doesn't rescan 1,489 forecasts on every step.
-const first50Cache = new WeakMap<Forecast[], Map<string, Forecast | undefined>>();
-function first50For(forecasts: Forecast[], spot: string): Forecast | undefined {
-  let bySpot = first50Cache.get(forecasts);
-  if (!bySpot) first50Cache.set(forecasts, (bySpot = new Map()));
-  if (!bySpot.has(spot)) {
-    bySpot.set(spot, forecasts.find((fc) => (pFloodMax(fc.spots.find((s) => s.spot === spot)) ?? 0) >= 0.5));
-  }
-  return bySpot.get(spot);
+// River Clock vs EA matches per spot and tier (#82); cached per replay so the
+// slider doesn't rescan every forecast on each step.
+const matchCache = new WeakMap<Forecast[], Map<string, TierMatch>>();
+function cachedMatch(replay: Replay, spot: string, threshold: number, tier: Tier): TierMatch {
+  let bySpot = matchCache.get(replay.forecasts);
+  if (!bySpot) matchCache.set(replay.forecasts, (bySpot = new Map()));
+  const key = `${spot}|${tier}`;
+  let m = bySpot.get(key);
+  if (!m) bySpot.set(key, (m = matchTier(replay, spot, threshold, tier)));
+  return m;
 }
 
 
@@ -195,28 +197,36 @@ function ReplayPlayer({
   const observed = replay.observed[spot.gauge] ?? [];
 
   // Timeline markers.
-  const first50 = first50For(forecasts, spot.key);
-  const { alert: officialAlert, warning: officialWarning } = firstOfficials(replay, spot.key);
-  const crossing = replay.crossings.find((c) => c.spot === spot.key);
+  // River Clock vs EA, tiers matched and tied to the same flood (#82):
+  // alert vs first >= 10%, warning vs first >= 50%.
+  const alertMatch = cachedMatch(replay, spot.key, spot.threshold, "alert");
+  const warnMatch = cachedMatch(replay, spot.key, spot.threshold, "warning");
+  const crossing = warnMatch.crossing;
+  const officialAlert = alertMatch.official ?? alertMatch.lateOfficial;
+  const officialWarning = warnMatch.official ?? warnMatch.lateOfficial;
 
   // Markers appear only once the slider has reached them, so playing the
-  // replay tells the story in order (SPEC §17.2).
+  // replay tells the story in order (SPEC §17.2). Only matched times are
+  // marked, so nothing sits days away from the flood it doesn't belong to.
   const revealed = (t: string) => Date.parse(t) <= Date.parse(seenT);
   const markers: Marker[] = [];
-  if (first50 && revealed(first50.issuedAt))
-    markers.push({ t: first50.issuedAt, label: "River Clock ≥ 50%", colour: "#184f95" });
+  if (alertMatch.official && alertMatch.rc && revealed(alertMatch.rc))
+    markers.push({ t: alertMatch.rc, label: "River Clock ≥ 10%", colour: "#2a78d6" });
+  if (warnMatch.rc && revealed(warnMatch.rc))
+    markers.push({ t: warnMatch.rc, label: "River Clock ≥ 50%", colour: "#184f95" });
   if (officialAlert && revealed(officialAlert.issuedAt))
     markers.push({ t: officialAlert.issuedAt, label: `EA ${officialLabel(officialAlert)}`, colour: "#a8336a" });
   if (officialWarning && revealed(officialWarning.issuedAt))
     markers.push({ t: officialWarning.issuedAt, label: `EA ${officialLabel(officialWarning)}`, colour: "#6250d6" });
-  if (crossing && revealed(crossing.t)) markers.push({ t: crossing.t, label: "Threshold crossed", colour: "#d03b3b" });
+  if (crossing && revealed(crossing)) markers.push({ t: crossing, label: "Threshold crossed", colour: "#d03b3b" });
 
   const lastF = Date.parse(forecasts[forecasts.length - 1].issuedAt);
   const eventDomain: [number, number] = [Date.parse(replay.start), Math.max(Date.parse(replay.end), lastF + 72 * HOUR)];
   const domain = zoom === "event" ? eventDomain : focusWindow(Date.parse(sliderT), eventDomain);
 
-  const warningSentence = compareSentence(first50?.issuedAt, officialWarning, "warning", revealed);
-  const alertSentence = compareSentence(first50?.issuedAt, officialAlert, "alert", revealed);
+  const endT = forecasts[forecasts.length - 1].issuedAt;
+  const warningSentence = tierSentence(warnMatch, revealed, endT);
+  const alertSentence = tierSentence(alertMatch, revealed, endT);
 
   return (
     <div className="grid-2">
