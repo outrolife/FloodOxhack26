@@ -3,12 +3,12 @@
 - **role**: PM
 - **state**: working
 - **issue**: 
-- **task**: PM: merged #89 S2, #96 poster, #97 TM fix; 4 agents (live2, proof2, calib, qa2)
-- **next**: After proof regen (~22:00 BST): numbers-refresh agent for README/Devpost/poster
+- **task**: PM: rain-forecast experiment started (#100); #98 live models merged; #85 closed (keep CQR)
+- **next**: Proof regen ~21:30 BST; rain decision by Sun 06:00 GMT
 - **needs**: 
-- **notes**: Core gate met; S1+S2 live; S3 alfredo by Sun 09:00 GMT
+- **notes**: alfredo: #100 rain features may touch features.py behind a flag; you'll be tagged for review
 - **branch**: main
-- **head**: cfdc6ab Merge pull request #97 from outrolife/app/tm-official-pairing
+- **head**: b958dd2 Merge pull request #98 from outrolife/data/live-models-clean
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:04:30Z
+- **updated**: 2026-10-24T18:10:58Z
