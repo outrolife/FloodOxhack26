@@ -12,9 +12,10 @@ What it does
    is polled at most every 15 minutes (CLAUDE.md rule 5). The requests run in a small thread pool
    (``MAX_WORKERS = 4`` at once, polite to the EA); results are collected in a fixed gauge order, so
    the output does not depend on which request finishes first. HTTP goes through
-   ``pipeline.ea_client.http_get`` (2 attempts, 20 s timeout, backoff on network errors, 429 and 5xx).
-   When the EA is slow or down, a per-poll circuit breaker stops calling it after 3 failures and the
-   cached copies are used, so a poll never hangs for minutes; those gauges then go stale downstream.
+   ``pipeline.ea_client.http_get`` (2 attempts, 10 s connect / 30 s read timeout, backoff on network
+   errors, 429 and 5xx). When the EA is slow or down, a per-poll circuit breaker stops calling it after
+   3 failures and the cached copies are used, so a poll does not hang for minutes; the cached readings
+   keep their own times, so the stale rule (> 3 h) flags them once they are old.
 2. Keeps ``observed_at`` (the reading's own time) and ``received_at`` (when we downloaded it).
 3. Cleans the readings (``clean_readings``): drops values the EA flags as suspect/rejected/missing and
    values outside the gauge's plausible band (below), so one junk reading such as the -52.477 m at
@@ -86,10 +87,11 @@ OUT_META = DATA_DIR / "processed" / "live_meta.json"
 LIVE_DAYS = 28
 CACHE_TTL_S = 15 * 60  # poll EA at most every 15 minutes
 MAX_WORKERS = 4  # concurrent EA requests per poll (bounded, polite)
-HTTP_TIMEOUT_S = 20
+HTTP_TIMEOUT_S = (10, 30)  # (connect, read) seconds: an unreachable host fails fast
 # A slow or dead EA must not hold a poll for minutes (#125 hardening): each request gets 2 attempts
-# (20 s timeout each, 2 s backoff), and after BREAKER_FAILURES network failures in one poll the
-# remaining gauges skip the network and use their cached copies. Worst case ~45 s per poll.
+# (2 s backoff), and after BREAKER_FAILURES network failures in one poll the remaining gauges skip
+# the network and use their cached copies. Measured on a real unreachable host: ~45 s per poll
+# (it was ~15 min: 5 attempts x 30 s per request, every request tried). DNS failure: ~5 s.
 LIVE_RETRIES = 2
 BREAKER_FAILURES = 3
 FUTURE_TOLERANCE = timedelta(minutes=15)  # readings stamped later than received_at + this are dropped

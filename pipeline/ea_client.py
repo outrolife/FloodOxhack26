@@ -86,7 +86,8 @@ def read_cached(path: Path) -> bytes:
 
 
 def http_get(url: str, params: dict[str, Any] | None = None, stream: bool = False,
-             timeout: float = 120, retries: int = MAX_RETRIES) -> requests.Response:
+             timeout: float | tuple[float, float] = 120,
+             retries: int = MAX_RETRIES) -> requests.Response:
     """GET with up to ``retries`` attempts and exponential backoff on network errors, 429 and 5xx.
 
     4xx other than 429 is raised at once. Live mode passes a small ``retries`` so a slow or dead EA
