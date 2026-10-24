@@ -15,16 +15,15 @@ import {
   optimalTrigger,
   type Costs,
   type Forecast,
-  type PerEventRow,
   type ReplayOfficial,
-  type TradeoffRow,
 } from "../lib/costLoss";
+import type { EventMeta, Proof, Spot } from "../contracts";
 import { CostChart } from "../components/decide/CostChart";
 import { formatCount, formatGBP, formatHours, niceRound } from "../components/decide/format";
 
 // The slices of the §9 contracts this tab reads.
-type ProofSlice = { tradeoff: Record<string, TradeoffRow[]>; perEvent: PerEventRow[] };
-type SpotSlice = { key: string; name: string; mode: "probability" | "timing_only" };
+type ProofSlice = Pick<Proof, "tradeoff" | "perEvent">;
+type SpotSlice = Pick<Spot, "key" | "name" | "mode">;
 
 type LiveState =
   | { status: "loading" }
@@ -70,7 +69,7 @@ function useAllReplays(): ReplayOfficial[] | null {
     let alive = true;
     (async () => {
       try {
-        const events = (await loadData<{ id: string }[]>("events.json")).value;
+        const events = (await loadData<EventMeta[]>("events.json")).value;
         const loaded = await Promise.all(
           events.map((e) =>
             loadData<ReplayOfficial>(`replays/${e.id}.json`).then(

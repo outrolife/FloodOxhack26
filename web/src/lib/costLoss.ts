@@ -36,50 +36,15 @@
 //     acting all the time, which the backtest can't count; it is the cheapest
 //     way to never be caught out given the episodes we know about.
 
-// ---- Input types (mirror SPEC §9 exactly; swap for ../contracts later) ----
+// ---- Input types (from the §9 contracts) ----
 
-export type TradeoffRow = {
-  pStar: number;
-  hits: number;
-  misses: number;
-  falseAlarms: number;
-  meanLeadH: number | null;
-  meanLeadVsOfficialH: number | null;
-  ci90?: [number, number];
-};
+import type { Forecast, Proof, Replay } from "../contracts";
 
-export type PerEventRow = {
-  eventId: string;
-  spot: string;
-  crossed: boolean;
-  peakObs: number;
-  arrivalErrH: number | null;
-  leadVsOfficialH: number | null;
-};
-
-export type QuantKey = "05" | "10" | "25" | "50" | "75" | "90" | "95";
-
-export type SpotForecast = {
-  spot: string;
-  levelNow: number;
-  leads: { h: number; q: Record<QuantKey, number>; pFlood: number | null; pAmber: number }[];
-  arrival: { p10: string | null; p50: string | null; p90: string | null } | null;
-  mode: "probability" | "timing_only";
-};
-
-export type Forecast = {
-  issuedAt: string;
-  dataAsOf: Record<string, string>;
-  stale: string[];
-  spots: SpotForecast[];
-};
-
-/** The parts of a Replay (§9) needed to score official warnings. */
-export type ReplayOfficial = {
-  eventId: string;
-  official: { spot: string; type: "alert" | "warning" | "severe"; issuedAt: string; precision: "time" | "date" }[];
-  crossings: { spot: string; t: string }[];
-};
+export type { Forecast, SpotForecast } from "../contracts";
+export type TradeoffRow = Proof["tradeoff"][string][number];
+export type PerEventRow = Proof["perEvent"][number];
+/** The parts of a Replay needed to score official warnings. */
+export type ReplayOfficial = Pick<Replay, "eventId" | "official" | "crossings">;
 
 // ---- Presets ----
 
