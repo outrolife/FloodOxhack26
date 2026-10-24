@@ -15,13 +15,14 @@ export const NAMES_FROM_ZOOM = 14;
 const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
 const iconCache = new Map<string, L.DivIcon>();
-function iconFor(look: GaugeLook, name: string, emphasis: boolean): L.DivIcon {
-  const k = `${look}|${emphasis ? 1 : 0}|${name}`;
+type Emphasis = "normal" | "emph" | "dim";
+function iconFor(look: GaugeLook, name: string, emphasis: Emphasis): L.DivIcon {
+  const k = `${look}|${emphasis}|${name}`;
   let icon = iconCache.get(k);
   if (!icon) {
     icon = L.divIcon({
-      className: `rc-gauge-icon rc-gauge-${look}${emphasis ? " emph" : ""}`,
-      html: `${gaugeIconSvg(look, emphasis)}<span class="rc-gauge-name">${escapeHtml(name)}</span>`,
+      className: `rc-gauge-icon rc-gauge-${look}${emphasis === "normal" ? "" : ` ${emphasis}`}`,
+      html: `${gaugeIconSvg(look, emphasis === "emph")}<span class="rc-gauge-name">${escapeHtml(name)}</span>`,
       iconSize: [14, 18],
       iconAnchor: [7, 9],
       popupAnchor: [0, -10],
@@ -82,7 +83,7 @@ function GaugeMarker({
   t: number | null;
   lagH: number;
   reaches: { name: string; hours: number } | null;
-  emphasis: boolean;
+  emphasis: Emphasis;
 }) {
   const name = gaugeName(station.name).replace(/ \(.*\)$/, "");
   const pinned = useRef(false);
@@ -134,7 +135,7 @@ export function GaugeLayer({
   lagH?: number;
   /** Per upstream gauge: where its water goes next and how long it takes. */
   reaches: Record<string, { name: string; hours: number }>;
-  /** Gauges drawn a little bolder (e.g. the selected spot's river walk). */
+  /** The selected spot's river walk: these gauges drawn bolder, the others dimmed. */
   emphasised?: ReadonlySet<string>;
 }) {
   return (
@@ -151,7 +152,7 @@ export function GaugeLayer({
             t={t}
             lagH={lagH}
             reaches={reaches[s.key] ?? null}
-            emphasis={emphasised?.has(s.key) ?? false}
+            emphasis={!emphasised ? "normal" : emphasised.has(s.key) ? "emph" : "dim"}
           />
         ))}
     </>

@@ -182,17 +182,47 @@ export function chainLinks(stations: Pick<Station, "key" | "role">[], pairs: Tra
       (pairs ?? []).filter((x) => targets.has(x.down) && x.down !== s.key),
     );
     if (!p) continue;
-    const tHalfH = p.tHalf.median;
-    out.push({
-      up: s.key,
-      down: p.down,
-      tHalfH,
-      n: p.n,
-      lowConfidence: p.n < LOW_CONFIDENCE_N,
-      seconds: Math.min(16, Math.max(1.5, tHalfH * SECONDS_PER_HOUR)),
-    });
+    out.push(linkOf(p));
   }
   return out;
+}
+
+/** A travel_times pair as a map link. */
+export function linkOf(p: Pick<TravelPair, "up" | "down" | "n" | "tHalf">): ChainLink {
+  const tHalfH = p.tHalf.median;
+  return {
+    up: p.up,
+    down: p.down,
+    tHalfH,
+    n: p.n,
+    lowConfidence: p.n < LOW_CONFIDENCE_N,
+    seconds: Math.min(16, Math.max(1.5, tHalfH * SECONDS_PER_HOUR)),
+  };
+}
+
+/**
+ * "The river walk" for a spot: every gauge whose water reaches the spot's
+ * gauge (travel_times.json pairs with that `down`, followed upstream), and one
+ * link per such pair. Empty when nothing upstream is measured for it.
+ */
+export function riverWalk(gauge: string, pairs: Pick<TravelPair, "up" | "down" | "n" | "tHalf">[]): { gauges: Set<string>; links: ChainLink[] } {
+  const gauges = new Set<string>();
+  const links: ChainLink[] = [];
+  const queue = [gauge];
+  const seen = new Set<string>([gauge]);
+  while (queue.length) {
+    const down = queue.shift()!;
+    for (const p of pairs ?? []) {
+      if (p.down !== down || p.up === down) continue;
+      links.push(linkOf(p));
+      if (!seen.has(p.up)) {
+        seen.add(p.up);
+        queue.push(p.up);
+      }
+    }
+  }
+  if (links.length) for (const g of seen) gauges.add(g);
+  return { gauges, links };
 }
 
 /** Map bounds: the spots plus the upstream gauges the chain starts from, padded. Oxford until any are known. */

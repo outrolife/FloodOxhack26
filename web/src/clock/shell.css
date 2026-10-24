@@ -119,6 +119,11 @@ span.rc-dot-btn { cursor: help; }
   font-size: 0.7rem; color: var(--ink-2); text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 2px #fff; pointer-events: none;
 }
 .rc-near .rc-gauge-name { display: block; }
+/* The river walk: the selected spot's upstream gauges stand out and light up as the water rises at each. */
+.leaflet-marker-icon.rc-gauge-icon.dim { opacity: 0.4; }
+.leaflet-marker-icon.rc-gauge-icon.emph svg { transform: scale(1.2); transition: filter 0.4s; }
+.leaflet-marker-icon.rc-gauge-icon.emph.rc-gauge-above svg { filter: drop-shadow(0 0 3px #2a78d6) drop-shadow(0 0 1px #fff); }
+.leaflet-marker-icon.rc-gauge-icon.emph.rc-gauge-high svg { filter: drop-shadow(0 0 5px #0d366b) drop-shadow(0 0 2px #2a78d6); }
 .rc-gauge-popup .leaflet-popup-content { margin: 0.5rem 0.7rem; font-size: 0.82rem; line-height: 1.35; color: var(--ink); }
 .rc-gauge-popup .leaflet-popup-content-wrapper { border-radius: 8px; }
 .rc-gauge-card { display: grid; gap: 0.1rem; }
