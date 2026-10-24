@@ -8,7 +8,7 @@
 - **needs**: 
 - **notes**: alfredo: A ADOPTED per-target, see #125: merge-ready by 01:30, coordinate gauge entries with s-s01s-gauges (#146)
 - **branch**: main
-- **head**: 85e2229 Merge pull request #142 from outrolife/model/warn-at
+- **head**: 8b0203c Merge pull request #148 from outrolife/app/ux-gauges
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T21:38:39Z
+- **updated**: 2026-10-24T21:52:19Z
