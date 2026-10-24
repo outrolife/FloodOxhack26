@@ -25,7 +25,8 @@ noise fields for every frame, so frames change smoothly with time and runs are r
 Outputs (SPEC §11 contract): transparent PNGs, north-up in EPSG:4326 for a Leaflet imageOverlay,
 under ``web/public/data/spread/{event}/``, plus ``manifest.json``. PNGs are named by content hash,
 so identical frames (often empty ones) share a file. Per-cell rasters (frequency, median depth,
-first tau) for the key issue times go to ``$RC_DATA_DIR/processed/s3/`` for S4.
+first tau) for every exported issue time go to ``$RC_DATA_DIR/processed/s3/{event}/cells.npz``
+for S4 (keys in ``save_cells``).
 """
 
 from __future__ import annotations
@@ -150,7 +151,9 @@ def spill_index(dtm: np.ndarray, river: np.ndarray, levels: np.ndarray) -> np.nd
     return out
 
 
-def noise_field(shape: tuple[int, int], rng: np.random.Generator, sigma_m: float, radius_cells: float) -> np.ndarray:
+def noise_field(
+    shape: tuple[int, int], rng: np.random.Generator, sigma_m: float, radius_cells: float
+) -> np.ndarray:
     """Spatially smoothed Gaussian noise with standard deviation ``sigma_m``."""
     f = ndimage.gaussian_filter(rng.standard_normal(shape), radius_cells, mode="reflect")
     return (f / f.std() * sigma_m).astype(np.float32)
@@ -189,7 +192,9 @@ class Ensemble:
     def median_depth(self, wse: np.ndarray) -> np.ndarray:
         """Median depth (m) among wet runs; NaN where never wet."""
         wet = self.wet(wse)
-        depth = np.asarray(wse, dtype=np.float32)[:, None, None] - (self.dtm.astype(np.float32)[None] + self.noise)
+        depth = np.asarray(wse, dtype=np.float32)[:, None, None] - (
+            self.dtm.astype(np.float32)[None] + self.noise
+        )
         depth = np.where(wet, np.maximum(depth, 0.0), np.nan)
         with np.errstate(all="ignore"):
             import warnings
@@ -225,7 +230,9 @@ def build_ensemble(
         spill[k] = spill_index(dtm + noise[k], river, levels)
         if log and (k + 1) % 20 == 0:
             print(f"  spill levels: {k + 1}/{n_runs} runs ({time.time() - t0:.0f} s)", flush=True)
-    return Ensemble(dtm=dtm, noise=noise, river=river, levels=levels, spill=spill, u=stratified_uniforms(n_runs, seed))
+    return Ensemble(
+        dtm=dtm, noise=noise, river=river, levels=levels, spill=spill, u=stratified_uniforms(n_runs, seed)
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -250,7 +257,12 @@ class Grid:
 
     @property
     def bounds(self) -> fetch.Bounds:
-        return (int(self.xmin), int(self.ymax - self.ny * CELL_M), int(self.xmin + self.nx * CELL_M), int(self.ymax))
+        return (
+            int(self.xmin),
+            int(self.ymax - self.ny * CELL_M),
+            int(self.xmin + self.nx * CELL_M),
+            int(self.ymax),
+        )
 
 
 def bbox_bng() -> tuple[float, float, float, float]:
@@ -258,8 +270,12 @@ def bbox_bng() -> tuple[float, float, float, float]:
     from pyproj import Transformer
 
     t = Transformer.from_crs(4326, 27700, always_xy=True)
-    lons = np.r_[np.linspace(LON_W, LON_E, 50), np.full(50, LON_E), np.linspace(LON_E, LON_W, 50), np.full(50, LON_W)]
-    lats = np.r_[np.full(50, LAT_S), np.linspace(LAT_S, LAT_N, 50), np.full(50, LAT_N), np.linspace(LAT_N, LAT_S, 50)]
+    lons = np.r_[
+        np.linspace(LON_W, LON_E, 50), np.full(50, LON_E), np.linspace(LON_E, LON_W, 50), np.full(50, LON_W)
+    ]
+    lats = np.r_[
+        np.full(50, LAT_S), np.linspace(LAT_S, LAT_N, 50), np.full(50, LAT_N), np.linspace(LAT_N, LAT_S, 50)
+    ]
     x, y = t.transform(lons, lats)
     return float(np.min(x)), float(np.min(y)), float(np.max(x)), float(np.max(y))
 
@@ -430,7 +446,12 @@ def recorded_mask(grid: Grid, path: Path, fluvial_only: bool = True) -> np.ndarr
         g = g[g["flood_src"].astype(str).str.lower() == "main river"]
     if g.empty:
         raise RuntimeError(f"no recorded outline in {path}")
-    r = rasterize([(geom, 1) for geom in g.geometry], out_shape=(grid.ny, grid.nx), transform=grid.transform, dtype="uint8")
+    r = rasterize(
+        [(geom, 1) for geom in g.geometry],
+        out_shape=(grid.ny, grid.nx),
+        transform=grid.transform,
+        dtype="uint8",
+    )
     return r.astype(bool)
 
 
@@ -445,7 +466,9 @@ def iou(a: np.ndarray, b: np.ndarray, within: np.ndarray) -> float:
 # ---------------------------------------------------------------------------
 
 
-def _write_png(out_dir: Path, rel_dir: str, tau: int, idx: np.ndarray, cache: dict[str, str]) -> tuple[str, int]:
+def _write_png(
+    out_dir: Path, rel_dir: str, tau: int, idx: np.ndarray, cache: dict[str, str]
+) -> tuple[str, int]:
     """Write a frame named by lead and content hash; identical images share one file."""
     data = encode_indexed_png(idx, PALETTE)
     h = hashlib.sha1(data).hexdigest()[:10]
@@ -456,18 +479,45 @@ def _write_png(out_dir: Path, rel_dir: str, tau: int, idx: np.ndarray, cache: di
     return cache[h], len(data)
 
 
-def _save_rasters(path: Path, grid: Grid, **layers: np.ndarray) -> None:
-    import rasterio
+def save_cells(
+    path: Path,
+    grid: Grid,
+    river: np.ndarray,
+    dtm: np.ndarray,
+    within: np.ndarray,
+    issued_at: list[str],
+    freq: np.ndarray,
+    depth: np.ndarray,
+    first_tau: np.ndarray,
+) -> None:
+    """Per-cell outputs for S4 (#23), on the 5 m EPSG:27700 model grid (row 0 = north).
 
+    Keys: ``issued_at`` (I,) str; ``tau_h`` (T,); ``freq`` (I, T, H, W) share of runs wet;
+    ``median_depth_m`` (I, T, H, W), NaN where never wet; ``first_tau_h`` (I, H, W), earliest tau
+    with freq >= 0.5, NaN if none; ``transform`` (6,) affine a, b, c, d, e, f (x = a*col + b*row + c,
+    y = d*col + e*row + f, at cell corners); ``crs`` "EPSG:27700"; ``cell_m``; ``river`` (H, W)
+    seed cells; ``dtm_maod`` (H, W) unperturbed 5 m DTM; ``in_bbox`` (H, W) cell centre inside the
+    WGS84 bbox; ``runs``; ``seed``; ``datum_maod``.
+    """
+    t = grid.transform
     path.parent.mkdir(parents=True, exist_ok=True)
-    names = list(layers)
-    with rasterio.open(
-        path, "w", driver="GTiff", width=grid.nx, height=grid.ny, count=len(names), dtype="float32",
-        crs="EPSG:27700", transform=grid.transform, nodata=np.nan, compress="deflate",
-    ) as dst:
-        for i, n in enumerate(names, start=1):
-            dst.write(layers[n].astype(np.float32), i)
-            dst.set_band_description(i, n)
+    np.savez_compressed(
+        path,
+        issued_at=np.array(issued_at),
+        tau_h=np.array(TAUS),
+        freq=freq.astype(np.float32),
+        median_depth_m=depth.astype(np.float32),
+        first_tau_h=first_tau.astype(np.float32),
+        transform=np.array([t.a, t.b, t.c, t.d, t.e, t.f]),
+        crs=np.array("EPSG:27700"),
+        cell_m=np.array(CELL_M),
+        river=river,
+        dtm_maod=dtm.astype(np.float32),
+        in_bbox=within,
+        runs=np.array(N_RUNS),
+        seed=np.array(SEED),
+        datum_maod=np.array(DATUM_MAOD),
+    )
 
 
 def select_issues(issues: list[Issue], every_h: int, keep: Sequence[str]) -> list[Issue]:
@@ -514,7 +564,10 @@ def run(event: str, every_h: int = 0, n_runs: int = N_RUNS, seed: int = SEED) ->
         chosen = [i for i in issues if i.issued_at in set(key.values())]
 
     grid = model_grid()
-    print(f"[s3] {event}: {len(chosen)} issue times x {len(TAUS)} leads; grid {grid.nx}x{grid.ny} @ {CELL_M:g} m")
+    print(
+        f"[s3] {event}: {len(chosen)} issue times x {len(TAUS)} leads; "
+        f"grid {grid.nx}x{grid.ny} @ {CELL_M:g} m"
+    )
     dtm = load_dtm(grid)
     river = river_cells(grid)
     u = stratified_uniforms(n_runs, seed)
@@ -534,10 +587,12 @@ def run(event: str, every_h: int = 0, n_runs: int = N_RUNS, seed: int = SEED) ->
     ov = overlay_grid()
     cache: dict[str, str] = {}
     frames = []
-    key_by_issue = {v: k for k, v in key.items()}
     proc_dir = fetch.DATA_DIR / "processed" / "s3" / event
     within = in_bbox_mask(grid)
     max_ha = 0.0
+    cell_freq: list[np.ndarray] = []
+    cell_depth: list[np.ndarray] = []
+    cell_first: list[np.ndarray] = []
     for issue in chosen:
         freqs: dict[int, np.ndarray] = {}
         for tau in TAUS:
@@ -551,17 +606,34 @@ def run(event: str, every_h: int = 0, n_runs: int = N_RUNS, seed: int = SEED) ->
             cls = np.where(river, 0, classify(freq)).astype(np.uint8)
             png, _ = _write_png(out_dir, rel_dir, tau, to_wgs84(cls, grid, ov), cache)
             frames.append({"tau": tau, "issuedAt": issue.issued_at, "png": png})
-        if issue.issued_at in key_by_issue or event == "live":
-            first_tau = np.full((grid.ny, grid.nx), np.nan)
-            for tau in sorted(freqs, reverse=True):
-                first_tau[freqs[tau] >= 0.5] = tau
-            layers: dict[str, np.ndarray] = {"first_tau_h": first_tau}
-            for tau in sorted(freqs):
-                wse = sampled_wse(issue, tau, ens.u)
-                layers[f"freq_{tau:02d}"] = freqs[tau]
-                layers[f"median_depth_{tau:02d}"] = ens.median_depth(wse)
-            name = issue.issued_at.replace(":", "")
-            _save_rasters(proc_dir / f"{name}.tif", grid, **layers)
+        cell_freq.append(np.stack([freqs.get(t, np.full(river.shape, np.nan)) for t in TAUS]))
+        cell_depth.append(
+            np.stack(
+                [
+                    ens.median_depth(sampled_wse(issue, t, ens.u))
+                    if t in freqs
+                    else np.full(river.shape, np.nan)
+                    for t in TAUS
+                ]
+            )
+        )
+        ft = np.full(river.shape, np.nan)
+        for t in sorted(freqs, reverse=True):
+            ft[freqs[t] >= 0.5] = t
+        cell_first.append(ft)
+    cells_path = proc_dir / "cells.npz"
+    save_cells(
+        cells_path,
+        grid,
+        river,
+        dtm,
+        within,
+        [i.issued_at for i in chosen],
+        np.stack(cell_freq),
+        np.stack(cell_depth),
+        np.stack(cell_first),
+    )
+    print(f"[s3] per-cell outputs: {cells_path}")
 
     # Validation (replays): frequency >= 0.5 at the peak vs the Winter 2013/2014 outline.
     validation = None
@@ -590,7 +662,8 @@ def run(event: str, every_h: int = 0, n_runs: int = N_RUNS, seed: int = SEED) ->
     )
     if validation:
         caveats.append(
-            f"Check against the EA Recorded Flood Outline for winter 2013/14 at the {diag['peak']['t'][:10]} peak "
+            f"Check against the EA Recorded Flood Outline for winter 2013/14 "
+            f"at the {diag['peak']['t'][:10]} peak "
             f"(forecast issued 6 h ahead, 50% ensemble extent): IoU {validation['iou']:.2f} inside the box."
         )
     manifest = {
@@ -621,7 +694,9 @@ def main(argv: Sequence[str] | None = None) -> None:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--event", default="e2014", help="replay id (e.g. e2014) or 'live'")
     p.add_argument(
-        "--every", type=int, default=0,
+        "--every",
+        type=int,
+        default=0,
         help="also add every issue time on an N-hour UTC grid (replays; default 0 = demo issue times only)",
     )
     p.add_argument("--runs", type=int, default=N_RUNS)

@@ -17,6 +17,7 @@ Notes:
 
 Usage: ``python -m stretch.s2_ensemble_rain [--write-web] [--refresh]`` (or ``make s2``).
 """
+
 from __future__ import annotations
 
 import argparse

@@ -1,0 +1,191 @@
+"""Tests for the S3 flood-spread ensemble (stretch/s3, SPEC §11 S3) on a synthetic DTM.
+
+No network or geodata libraries needed: everything here uses numpy/scipy only.
+"""
+
+from __future__ import annotations
+
+import json
+import struct
+import zlib
+from pathlib import Path
+
+import numpy as np
+import pytest
+from test_fixtures import LEADS, SPREAD_MANIFEST, check, parse_utc
+
+from model.probability import ALPHAS, cdf
+from stretch.s3 import spread as s3
+from stretch.s3.png import encode_indexed_png
+
+PUBLIC = Path(__file__).resolve().parent.parent / "web" / "public" / "data"
+FIXTURE = Path(__file__).resolve().parent / "fixtures" / "stretch" / "spread" / "e2014" / "manifest.json"
+
+
+def synthetic() -> tuple[np.ndarray, np.ndarray]:
+    """A 30x40 valley: a river in column 2, ground rising eastwards, and an isolated pit.
+
+    The pit (rows 10-14, cols 25-29) sits at 50.0 m, behind ground at 53+ m, so it is below a
+    51 m water level but not connected to the river.
+    """
+    ny, nx = 30, 40
+    x = np.arange(nx)
+    dtm = np.tile(50.0 + 0.1 * x, (ny, 1))  # 50.0 at the river, 53.9 at the east edge
+    dtm[10:15, 25:30] = 50.0
+    river = np.zeros((ny, nx), dtype=bool)
+    river[:, 2] = True
+    return dtm, river
+
+
+def test_connectivity_excludes_isolated_depression() -> None:
+    dtm, river = synthetic()
+    wet = s3.wet_mask(dtm, 51.0, river)
+    assert wet[:, 2].all(), "river cells are wet"
+    assert wet[:, :10].all(), "ground below the level next to the river is wet"
+    assert not wet[10:15, 25:30].any(), "a pit below the level but cut off from the river stays dry"
+    assert not wet[:, 11:].any(), "nothing above the level is wet"
+
+
+def test_diagonal_contact_does_not_connect() -> None:
+    """4-connectivity: water does not leak through a diagonal gap between two high cells."""
+    dtm = np.full((5, 5), 60.0)
+    river = np.zeros((5, 5), dtype=bool)
+    river[0, 0] = True
+    dtm[0, 0] = 50.0
+    dtm[1, 1] = 50.0  # touches the river cell only at a corner
+    wet = s3.wet_mask(dtm, 55.0, river)
+    assert wet[0, 0] and not wet[1, 1]
+
+
+def test_spill_index_matches_per_level_fill() -> None:
+    rng = np.random.default_rng(0)
+    dtm, river = synthetic()
+    dtm = dtm + rng.normal(0, 0.3, dtm.shape)
+    levels = np.round(np.arange(50.0, 54.0, 0.05), 4)
+    spill = s3.spill_index(dtm, river, levels)
+    for j, lev in enumerate(levels):
+        np.testing.assert_array_equal(spill <= j, s3.wet_mask(dtm, float(lev), river), err_msg=f"level {lev}")
+
+
+def test_frequency_is_monotone_in_wse() -> None:
+    dtm, river = synthetic()
+    ens = s3.build_ensemble(dtm, river, 50.0, 54.0, n_runs=20, radius_cells=2.0, seed=1)
+    prev = np.zeros(dtm.shape)
+    for wse in np.arange(50.0, 54.0, 0.1):
+        freq = ens.frequency(np.full(ens.runs, wse))
+        assert ((freq >= 0) & (freq <= 1)).all()
+        assert (freq >= prev - 1e-12).all(), f"frequency fell somewhere when WSE rose to {wse:.2f}"
+        prev = freq
+    assert prev[:, 2].min() == 1.0  # the river is always wet
+    low = ens.frequency(np.full(ens.runs, 51.0))
+    assert low[10:15, 25:30].max() == 0.0, "the pit stays dry while the ridge (>= 52.5 m) holds"
+
+
+def test_ensemble_is_reproducible() -> None:
+    dtm, river = synthetic()
+    a = s3.build_ensemble(dtm, river, 50.0, 53.0, n_runs=5, radius_cells=2.0, seed=7)
+    b = s3.build_ensemble(dtm, river, 50.0, 53.0, n_runs=5, radius_cells=2.0, seed=7)
+    np.testing.assert_array_equal(a.spill, b.spill)
+    np.testing.assert_array_equal(a.u, b.u)
+
+
+def test_noise_field_has_target_sigma() -> None:
+    f = s3.noise_field((80, 80), np.random.default_rng(3), 0.15, 5.0)
+    assert abs(float(f.std()) - 0.15) < 1e-4
+
+
+def test_inverse_cdf_inverts_spec_cdf() -> None:
+    q = np.array([1.0, 1.1, 1.3, 1.5, 1.6, 1.9, 2.1])
+    u = np.array([0.01, 0.05, 0.2, 0.5, 0.8, 0.95, 0.99])
+    x = s3.inverse_cdf(q, u)
+    np.testing.assert_allclose(cdf(np.tile(q, (len(u), 1)), x), u, atol=1e-9)
+    np.testing.assert_allclose(s3.inverse_cdf(q, np.asarray(ALPHAS)), q)
+
+
+def test_stratified_uniforms_cover_each_stratum() -> None:
+    u = s3.stratified_uniforms(200)
+    assert sorted(np.floor(u * 200).astype(int)) == list(range(200))
+
+
+def _decode_png(data: bytes) -> tuple[np.ndarray, bytes]:
+    assert data[:8] == b"\x89PNG\r\n\x1a\n"
+    i, idat, ihdr, trns = 8, b"", b"", b""
+    while i < len(data):
+        n = struct.unpack(">I", data[i : i + 4])[0]
+        tag, body = data[i + 4 : i + 8], data[i + 8 : i + 8 + n]
+        assert struct.unpack(">I", data[i + 8 + n : i + 12 + n])[0] == zlib.crc32(tag + body) & 0xFFFFFFFF
+        if tag == b"IHDR":
+            ihdr = body
+        elif tag == b"IDAT":
+            idat += body
+        elif tag == b"tRNS":
+            trns = body
+        i += 12 + n
+    w, h, depth, ctype = struct.unpack(">IIBB", ihdr[:10])
+    assert ctype == 3
+    rows = np.frombuffer(zlib.decompress(idat), np.uint8).reshape(h, -1)
+    assert (rows[:, 0] == 0).all()
+    rows = rows[:, 1:]
+    if depth == 4:
+        out = np.empty((h, rows.shape[1] * 2), np.uint8)
+        out[:, 0::2], out[:, 1::2] = rows >> 4, rows & 15
+        rows = out[:, :w]
+    return rows, trns
+
+
+@pytest.mark.parametrize("w", [7, 8])
+def test_png_round_trip(w: int) -> None:
+    idx = (np.arange(5 * w).reshape(5, w) % len(s3.PALETTE)).astype(np.uint8)
+    back, trns = _decode_png(encode_indexed_png(idx, s3.PALETTE))
+    np.testing.assert_array_equal(back, idx)
+    assert trns[0] == 0, "class 0 (below 10%) is transparent"
+
+
+def test_classify_uses_agreed_breaks() -> None:
+    freq = np.array([0.0, 0.09, 0.1, 0.24, 0.25, 0.5, 0.74, 0.75, 1.0])
+    assert s3.classify(freq).tolist() == [0, 0, 1, 1, 2, 3, 3, 4, 4]
+
+
+def _manifests() -> list[Path]:
+    found = sorted(PUBLIC.glob("spread/*/manifest.json"))
+    return [FIXTURE, *found]
+
+
+@pytest.mark.parametrize(
+    "path", _manifests(), ids=lambda p: str(p.parent.name) + ("-fixture" if "fixtures" in str(p) else "")
+)
+def test_manifest_matches_contract(path: Path) -> None:
+    m = json.loads(path.read_text(encoding="utf-8"))
+    check(m, SPREAD_MANIFEST, "spread_manifest")
+    (lat_s, lon_w), (lat_n, lon_e) = m["bounds"]
+    assert lat_s < lat_n and lon_w < lon_e
+    assert m["runs"] > 0 and m["frames"], "at least one frame"
+    for f in m["frames"]:
+        assert f["tau"] in LEADS
+        parse_utc(f["issuedAt"])
+    if m["validation"] is not None:
+        assert 0 <= m["validation"]["iou"] <= 1
+    assert any("Experimental." in c for c in m["caveats"])
+    if "fixtures" in str(path):
+        return
+    # Committed outputs: the exact SPEC caveat, every PNG present and sized to the overlay grid.
+    assert s3.CAVEATS_BASE[0] in m["caveats"]
+    assert m["bounds"] == s3.BOUNDS_WGS84
+    ov = s3.overlay_grid()
+    for f in m["frames"]:
+        assert f["png"].startswith(f"spread/{path.parent.name}/"), "png paths are relative to /data/"
+        png = PUBLIC / f["png"]
+        assert png.is_file(), f"missing {f['png']}"
+        w, h = struct.unpack(">II", png.read_bytes()[16:24])
+        assert (w, h) == (ov.width, ov.height)
+    keys = [(f["issuedAt"], f["tau"]) for f in m["frames"]]
+    assert len(keys) == len(set(keys)), "one frame per (issuedAt, tau)"
+
+
+def test_committed_spread_is_small() -> None:
+    total = (
+        sum(p.stat().st_size for p in (PUBLIC / "spread").rglob("*") if p.is_file())
+        if (PUBLIC / "spread").is_dir()
+        else 0
+    )
+    assert total < 5 * 1024 * 1024

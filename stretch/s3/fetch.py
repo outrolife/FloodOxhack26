@@ -97,7 +97,8 @@ def fetch_recorded_2014(b: Bounds) -> Path:
     if not path.exists():
         gj = _wfs_geojson(RFO_WFS, RFO_TYPE, b)
         keep = [
-            f for f in gj.get("features", [])
+            f
+            for f in gj.get("features", [])
             if str(f.get("properties", {}).get("start_date", "")).startswith("2013")
             and str(f.get("properties", {}).get("end_date", "")).startswith("2014")
         ]
