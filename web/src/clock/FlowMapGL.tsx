@@ -19,7 +19,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import "./glmap.css";
 import { Component, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { addProtocol } from "maplibre-gl";
-import type { ExpressionSpecification, Map as MapLibreMap, StyleSpecification } from "maplibre-gl";
+import type { Map as MapLibreMap, StyleSpecification } from "maplibre-gl";
 import { Protocol } from "pmtiles";
 import MapGL, { AttributionControl, Layer, Marker, NavigationControl, Popup, Source, useControl, type MapRef } from "react-map-gl/maplibre";
 import { MapboxOverlay } from "@deck.gl/mapbox";
@@ -42,10 +42,13 @@ import {
   PATHS_FILE,
   PULSE_PERIOD_S,
   RIVERS_FILE,
+  SPRITE_PATH,
   TILES_PATH,
   TRAIL_S,
   assignGauges,
   buildNetwork,
+  contextCourses,
+  contextWords,
   copiesFor,
   copyTimestamps,
   coursesFrom,
@@ -62,7 +65,7 @@ import {
   type FlowPath,
   type LngLatBounds,
 } from "./flowgl";
-import { BASEMAP_SOURCE, basemapLayers, baseStyle } from "./glstyle";
+import { BASEMAP_SOURCE, RIVER_LAYOUT, basemapLayers, baseStyle, fallbackLayers, riverPaint } from "./glstyle";
 import { GAUGE_LOOK, gaugeCard, gaugeIconSvg, lookFor, type GaugeLook } from "./gauges";
 import { setHiddenSpots } from "./hiddenSpots";
 import { DOT_BOX, spotDots } from "./markers";
@@ -77,6 +80,8 @@ const BASE = import.meta.env.BASE_URL;
 const NO_READING = "#b7c3cc";
 /** River lines no gauge speaks for: plain water. */
 const PLAIN_WATER = "#9fc0dc";
+/** Paths with no measured travel time: faint grey-blue, never animated. */
+const CONTEXT = "#7d93a6";
 /** Gauge names appear from this zoom (MapLibre zooms run one below Leaflet's). */
 const NAMES_FROM_ZOOM = 13;
 
@@ -130,15 +135,6 @@ function rgba(hex: string, alpha = 1): RGBA {
   return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), Math.round(alpha * 255)];
 }
 
-const expr = (e: unknown) => e as ExpressionSpecification;
-
-/** ["match", gauge, k1, v1, ..., fallback], or just the fallback when there are no gauges. */
-function byGauge(values: Record<string, string | number>, fallback: string | number): ExpressionSpecification | string | number {
-  const pairs = Object.entries(values);
-  if (pairs.length === 0) return fallback;
-  return expr(["match", ["to-string", ["get", "gauge"]], ...pairs.flat(), fallback]);
-}
-
 /** Room (px) kept clear of the panels over the map when fitting (matches shell.css). */
 function fitPadding() {
   const wide = typeof window === "undefined" || window.innerWidth > 700;
@@ -169,7 +165,9 @@ export default function FlowMapGL(props: FlowMapGLProps) {
 }
 
 type LinkMode = "normal" | "walk" | "dim";
-type FlowDatum = FlowPath & { mode: LinkMode; words: string; course: RGBA; courseW: number; pulse: RGBA | null; pulseW: number };
+/** A course drawn on the map (hover for its words): a timed link, or a context path. */
+type CourseDatum = { path: Position[]; words: string; course: RGBA; courseW: number };
+type FlowDatum = FlowPath & CourseDatum & { mode: LinkMode; pulse: RGBA | null; pulseW: number };
 type TripDatum = { path: Position[]; timestamps: number[]; colour: RGBA; width: number };
 
 function FlowMapGLInner({
@@ -248,17 +246,48 @@ function FlowMapGLInner({
       ]
     : links.map((link) => ({ link, mode: "normal" as const }));
 
+  // Paths with no measured travel time: faint, still context (one per upstream gauge; on the walk, those into
+  // the selected spot's gauge). Never animated and never given an hour count.
+  const measured = useMemo(() => new Set(pairs.map((p) => linkKey(p))), [pairs]);
+  const context = useMemo(() => {
+    if (!walking || !spotGauge) return contextCourses(courses, measured).map((c) => ({ ...c, onWalk: false }));
+    const into = new Map([...courses].filter(([k]) => k.endsWith(`>${spotGauge}`)));
+    const onWalk = contextCourses(into, measured);
+    const ups = new Set(onWalk.map((c) => c.up));
+    return [
+      ...contextCourses(courses, measured)
+        .filter((c) => !ups.has(c.up))
+        .map((c) => ({ ...c, onWalk: false })),
+      ...onWalk.map((c) => ({ ...c, onWalk: true })),
+    ];
+  }, [courses, measured, walking, spotGauge]);
+
   // One signature for everything the flow layers draw, so deck.gl recomputes only when it changes.
-  const flowSig = shownLinks
-    .map(({ link, mode }) => {
-      const b = bucketOf(link.up);
-      return `${linkKey(link)}:${mode}:${b.known ? b.bucket : "-"}`;
-    })
-    .join("|");
+  const flowSig =
+    shownLinks
+      .map(({ link, mode }) => {
+        const b = bucketOf(link.up);
+        return `${linkKey(link)}:${mode}:${b.known ? b.bucket : "-"}`;
+      })
+      .join("|") +
+    "#" +
+    context.map((c) => `${c.up}>${c.down}:${c.onWalk ? 1 : 0}`).join("|");
   const courseSig = [...courses.keys()].join();
 
   const { flows, trips, copies } = useMemo(() => {
-    const flows: FlowDatum[] = [];
+    const flows: CourseDatum[] = [];
+    for (const c of context) {
+      const up = byKey.get(c.up);
+      const down = byKey.get(c.down);
+      if (!up || !down) continue;
+      const spot = spots.find((p) => p.gauge === c.down);
+      flows.push({
+        path: c.path,
+        words: contextWords(shortGauge(up.name), spot ? spot.name.split(" / ")[0].trim() : shortGauge(down.name)),
+        course: rgba(CONTEXT, walking && !c.onWalk ? 0.18 : 0.4),
+        courseW: c.onWalk ? 2.5 : 1.8,
+      });
+    }
     for (const { link, mode } of shownLinks) {
       const fp = flowPathFor(link, courses.get(linkKey(link)));
       const up = byKey.get(link.up);
@@ -271,7 +300,7 @@ function FlowMapGLInner({
       // The course: the water's colour, faint; brighter on the walk. The pulses: a deeper blue as the level rises.
       const course = known ? rgba(look.colour, dim ? 0.25 : 0.35 + 0.35 * c) : rgba(NO_READING, dim ? 0.3 : 0.6);
       const pulseHex = FLOW_LOOK[Math.min(4, bucket + 2) as Bucket].colour;
-      flows.push({
+      const timed: FlowDatum = {
         ...fp,
         mode,
         words: linkWords(fp, shortGauge(up.name), shortGauge(down.name)),
@@ -279,19 +308,21 @@ function FlowMapGLInner({
         courseW: (mode === "walk" ? 3.5 : 2.5) * (dim ? 0.8 : 1),
         pulse: known && !dim ? rgba(pulseHex, 0.45 + 0.55 * c) : null,
         pulseW: (mode === "walk" ? 6 : 4.5) * look.widthX ** 0.5 * (0.7 + 0.3 * c),
-      });
+      };
+      flows.push(timed);
     }
-    const maxS = Math.max(0, ...flows.map((f) => f.tripS));
+    const timed = flows.filter((f): f is FlowDatum => "tripS" in f);
+    const maxS = Math.max(0, ...timed.map((f) => f.tripS));
     const copies = copiesFor(maxS);
     const trips: TripDatum[] = [];
-    for (const f of flows) {
+    for (const f of timed) {
       if (!f.pulse) continue;
       for (let k = 0; k < copies; k++) trips.push({ path: f.path, timestamps: copyTimestamps(f.timestamps, k), colour: f.pulse, width: f.pulseW });
     }
     return { flows, trips, copies };
-    // flowSig + courseSig stand for shownLinks, the levels and the courses.
+    // flowSig + courseSig stand for shownLinks, the context paths, the levels and the courses.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flowSig, courseSig, byKey]);
+  }, [flowSig, courseSig, byKey, spots]);
 
   // ------------------------------------------------ river paint (from the levels at the playhead)
   const colours: Record<string, string> = {};
@@ -301,16 +332,7 @@ function FlowMapGLInner({
     colours[s.key] = known ? FLOW_LOOK[bucket].colour : NO_READING;
     widths[s.key] = known ? FLOW_LOOK[bucket].widthX : 1;
   }
-  const widthX = byGauge(widths, 0.85);
-  // Zoom may only drive a top-level interpolate, so the casing (2 px wider) gets its own.
-  const byZoom = (extra: number) => {
-    const w = (k: number) => (extra ? ["+", ["*", ["get", "w"], k, widthX], extra] : ["*", ["get", "w"], k, widthX]);
-    return expr(["interpolate", ["linear"], ["zoom"], 8, w(0.45), 11, w(0.8), 14, w(1.5), 17, w(2.6)]);
-  };
-  const riverWidth = byZoom(0);
-  const casingWidth = byZoom(2);
-  const walkGauges = [...walk.gauges];
-  const riverOpacity = walking && walkGauges.length ? expr(["match", ["to-string", ["get", "gauge"]], walkGauges, 1, 0.4]) : 1;
+  const paint = riverPaint({ colours, widths, plain: PLAIN_WATER, walk: walking ? [...walk.gauges] : [] });
 
   // ------------------------------------------------ gauges and spots
   const looks: Record<string, GaugeLook> = {};
@@ -398,6 +420,7 @@ function FlowMapGLInner({
     return baseStyle({
       tilesUrl: basemap.tiles ? `pmtiles://${origin}${BASE}${TILES_PATH}` : null,
       glyphsUrl: basemap.tiles && basemap.glyphs ? `${origin}${BASE}${GLYPHS_PATH}` : null,
+      spriteUrl: basemap.tiles && basemap.sprite ? `${origin}${BASE}${SPRITE_PATH}` : null,
     });
   }, [basemap]);
   // Our water goes under the basemap's labels when there are any.
@@ -413,7 +436,7 @@ function FlowMapGLInner({
   }, [basemap, base]);
 
   const [hover, setHover] = useState<{ x: number; y: number; text: string } | null>(null);
-  const onHover = useCallback((info: PickingInfo<FlowDatum>) => {
+  const onHover = useCallback((info: PickingInfo<CourseDatum>) => {
     setHover(info.object ? { x: info.x, y: info.y, text: info.object.words } : null);
   }, []);
 
@@ -450,52 +473,15 @@ function FlowMapGLInner({
 
         {fallbackFc && (
           <Source id="rc-base" type="geojson" data={fallbackFc}>
-            <Layer id="rc-base-park" type="fill" filter={["==", ["get", "kind"], "park"]} paint={{ "fill-color": "#e6ebe0" }} />
-            <Layer id="rc-base-water" type="fill" filter={["==", ["get", "kind"], "water"]} paint={{ "fill-color": "#d9e2e9" }} />
-            <Layer
-              id="rc-base-building"
-              type="fill"
-              minzoom={13}
-              filter={["==", ["get", "kind"], "building"]}
-              paint={{ "fill-color": "#e4e1da", "fill-outline-color": "#d6d2ca" }}
-            />
-            <Layer
-              id="rc-base-minor"
-              type="line"
-              minzoom={12}
-              filter={["==", ["get", "kind"], "minor_road"]}
-              paint={{ "line-color": "#ffffff", "line-width": ["interpolate", ["linear"], ["zoom"], 12, 0.6, 16, 3] }}
-            />
-            <Layer
-              id="rc-base-road"
-              type="line"
-              filter={["==", ["get", "kind"], "road"]}
-              paint={{ "line-color": "#ffffff", "line-width": ["interpolate", ["linear"], ["zoom"], 9, 0.6, 13, 2.2, 16, 6] }}
-            />
-            <Layer
-              id="rc-base-rail"
-              type="line"
-              filter={["==", ["get", "kind"], "rail"]}
-              paint={{ "line-color": "#bdb9b1", "line-width": 1.2, "line-dasharray": [3, 2] }}
-            />
+            {fallbackLayers("rc-base").map((l) => (
+              <Layer key={l.id} {...l} />
+            ))}
           </Source>
         )}
 
         <Source id="rc-rivers" type="geojson" data={rivers}>
-          <Layer
-            id="rc-river-casing"
-            type="line"
-            beforeId={beforeId}
-            layout={{ "line-cap": "round", "line-join": "round" }}
-            paint={{ "line-color": "#ffffff", "line-opacity": 0.85, "line-width": casingWidth }}
-          />
-          <Layer
-            id="rc-river"
-            type="line"
-            beforeId={beforeId}
-            layout={{ "line-cap": "round", "line-join": "round" }}
-            paint={{ "line-color": byGauge(colours, PLAIN_WATER) as ExpressionSpecification, "line-width": riverWidth, "line-opacity": riverOpacity }}
-          />
+          <Layer id="rc-river-casing" type="line" beforeId={beforeId} layout={RIVER_LAYOUT} paint={paint.casing} />
+          <Layer id="rc-river" type="line" beforeId={beforeId} layout={RIVER_LAYOUT} paint={paint.river} />
         </Source>
 
         <DeckFlow flows={flows} trips={trips} copies={copies} sig={`${flowSig}#${courseSig}`} onHover={onHover} />
@@ -563,11 +549,11 @@ function DeckFlow({
   sig,
   onHover,
 }: {
-  flows: FlowDatum[];
+  flows: CourseDatum[];
   trips: TripDatum[];
   copies: number;
   sig: string;
-  onHover: (info: PickingInfo<FlowDatum>) => void;
+  onHover: (info: PickingInfo<CourseDatum>) => void;
 }) {
   const overlay = useControl<MapboxOverlay>(() => new MapboxOverlay({ interleaved: false, pickingRadius: 6 }));
   const latest = useRef({ flows, trips, copies, sig, onHover });
@@ -580,7 +566,7 @@ function DeckFlow({
       const nowS = still ? PULSE_PERIOD_S * 0.6 : ms / 1000;
       overlay.setProps({
         layers: [
-          new PathLayer<FlowDatum>({
+          new PathLayer<CourseDatum>({
             id: "rc-course",
             data: flows,
             getPath: (d) => d.path as [number, number][],

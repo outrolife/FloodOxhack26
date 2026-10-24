@@ -11,6 +11,9 @@ import {
   TRAIL_S,
   assignGauges,
   buildNetwork,
+  contextCourses,
+  contextWords,
+  splitLine,
   confidenceOf,
   copiesFor,
   copyTimestamps,
@@ -28,7 +31,11 @@ import {
   tripClock,
   tripSeconds,
 } from "./flowgl";
-import { baseStyle } from "./glstyle";
+import { validateStyleMin } from "@maplibre/maplibre-gl-style-spec";
+import type { StyleSpecification } from "maplibre-gl";
+import type { Station, TravelPair } from "../contracts";
+import { chainLinks } from "./flow";
+import { RIVER_LAYOUT, baseStyle, fallbackLayers, riverPaint } from "./glstyle";
 
 const DATA = resolve(__dirname, "../../public/data") + "/";
 const line = (coords: Position[], properties: Record<string, unknown> = {}): Feature => ({
@@ -243,13 +250,13 @@ describe("the offline basemap: never the internet, never a crash", () => {
   });
 
   it("missing tiles (a 404, or the dev server's index.html) fall back to the plain map", async () => {
-    expect(await probeBasemap("/", async () => res(404, "text/plain"))).toEqual({ tiles: false, glyphs: false });
-    expect(await probeBasemap("/", async () => res(200, "text/html", new TextEncoder().encode("<!doctype html>")))).toEqual({ tiles: false, glyphs: false });
+    expect(await probeBasemap("/", async () => res(404, "text/plain"))).toEqual({ tiles: false, glyphs: false, sprite: false });
+    expect(await probeBasemap("/", async () => res(200, "text/html", new TextEncoder().encode("<!doctype html>")))).toEqual({ tiles: false, glyphs: false, sprite: false });
     expect(
       await probeBasemap("/", async () => {
         throw new TypeError("offline");
       }),
-    ).toEqual({ tiles: false, glyphs: false });
+    ).toEqual({ tiles: false, glyphs: false, sprite: false });
     // A server without byte ranges (200 for the whole file) can't serve PMTiles either.
     expect((await probeBasemap("/", async () => res(200, "application/octet-stream", magic))).tiles).toBe(false);
   });
@@ -260,10 +267,10 @@ describe("the offline basemap: never the internet, never a crash", () => {
       urls.push(url);
       return url.endsWith(".pmtiles") ? res(206, "application/octet-stream", magic) : res(200, "application/x-protobuf");
     });
-    expect(withFonts).toEqual({ tiles: true, glyphs: true });
+    expect(withFonts).toEqual({ tiles: true, glyphs: true, sprite: true });
     expect(urls.every((u) => u.startsWith("/tiles/"))).toBe(true);
     const noFonts = await probeBasemap("/", async (url) => (url.endsWith(".pmtiles") ? res(206, "application/octet-stream", magic) : res(404, "text/plain")));
-    expect(noFonts).toEqual({ tiles: true, glyphs: false });
+    expect(noFonts).toEqual({ tiles: true, glyphs: false, sprite: false });
   });
 
   it("the style: just a background without tiles; the muted Protomaps layers with them, text only with fonts", () => {
@@ -281,5 +288,84 @@ describe("the offline basemap: never the internet, never a crash", () => {
     const noText = baseStyle({ tilesUrl: "pmtiles://http://localhost/tiles/oxon.pmtiles", glyphsUrl: null });
     expect(noText.layers.some((l) => l.type === "symbol")).toBe(false);
     expect(noText.glyphs).toBeUndefined();
+  });
+});
+
+describe("our layers are valid MapLibre style (no browser needed to catch a bad expression)", () => {
+  const withOurLayers = (base: StyleSpecification, paint: ReturnType<typeof riverPaint>): StyleSpecification => ({
+    ...base,
+    sources: {
+      ...base.sources,
+      "rc-base": { type: "geojson", data: { type: "FeatureCollection", features: [] } },
+      "rc-rivers": { type: "geojson", data: { type: "FeatureCollection", features: [] } },
+    },
+    layers: [
+      ...base.layers,
+      ...fallbackLayers("rc-base"),
+      { id: "rc-river-casing", type: "line", source: "rc-rivers", layout: RIVER_LAYOUT, paint: paint.casing },
+      { id: "rc-river", type: "line", source: "rc-rivers", layout: RIVER_LAYOUT, paint: paint.river },
+    ],
+  });
+  const cases = {
+    "levels known, on a river walk": riverPaint({ colours: { osney: "#2a78d6", minns: "#b7c3cc" }, widths: { osney: 2, minns: 1 }, plain: "#9fc0dc", walk: ["osney", "minns"] }),
+    "no gauges yet, no walk": riverPaint({ colours: {}, widths: {}, plain: "#9fc0dc", walk: [] }),
+  };
+  for (const [name, paint] of Object.entries(cases)) {
+    it(`plain fallback style: ${name}`, () => {
+      expect(validateStyleMin(withOurLayers(baseStyle({ tilesUrl: null, glyphsUrl: null }), paint))).toEqual([]);
+    });
+  }
+  it("full PMTiles style with labels and our layers", () => {
+    const full = baseStyle({ tilesUrl: "pmtiles://http://localhost/tiles/oxon.pmtiles", glyphsUrl: "http://localhost/tiles/fonts/{fontstack}/{range}.pbf" });
+    expect(validateStyleMin(withOurLayers(full, cases["levels known, on a river walk"]))).toEqual([]);
+  });
+});
+
+describe("river pieces and context paths", () => {
+  it("long rivers are split into pieces of about 1.5 km that join end to end", () => {
+    const path: Position[] = Array.from({ length: 41 }, (_, i) => [-1.4 + i * 0.002, 51.75]); // about 5.5 km
+    const pieces = splitLine(path);
+    expect(pieces.length).toBeGreaterThanOrEqual(3);
+    for (let i = 1; i < pieces.length; i++) expect(pieces[i][0]).toEqual(pieces[i - 1][pieces[i - 1].length - 1]);
+    expect(pieces.flat().length - (pieces.length - 1)).toBe(path.length);
+  });
+
+  it('"River Thames" matches a Thames gauge, piece by piece', () => {
+    const path: Position[] = Array.from({ length: 81 }, (_, i) => [-1.45 + i * 0.002, 51.75]); // about 11 km
+    const out = assignGauges([line(path, { name: "River Thames", kind: "river" })], [
+      { key: "west", lat: 51.75, lon: -1.45, river: "Thames" },
+      { key: "east", lat: 51.75, lon: -1.29, river: "Thames" },
+    ]);
+    const gauges = out.features.map((f) => f.properties?.gauge);
+    expect(gauges[0]).toBe("west");
+    expect(gauges[gauges.length - 1]).toBe("east");
+  });
+
+  it("context paths: untimed only, one per upstream gauge (its shortest), and words with no hour count", () => {
+    const short: Position[] = [[0, 0], [0.01, 0.01], [0.02, 0]];
+    const long: Position[] = [[0, 0], [0.05, 0.05], [0.1, 0]];
+    const courses = new Map([
+      ["shipton>minns", { path: long }],
+      ["shipton>newbotley", { path: short }],
+      ["islip>kingsmill", { path: short, travelH: 31 }],
+    ]);
+    expect(contextCourses(courses, new Set())).toEqual([{ up: "shipton", down: "newbotley", path: short }]);
+    expect(contextWords("Shipton", "Botley Road")).not.toMatch(/\d/);
+  });
+
+  const files = ["geo/river-paths.geojson", "geo/catchment-rivers.geojson", "stations.json", "travel_times.json"];
+  it.skipIf(!files.every((f) => existsSync(DATA + f)))("with the real files: every measured chain link has a river course, none straight", () => {
+    const paths = JSON.parse(readFileSync(DATA + files[0], "utf8")) as FeatureCollection;
+    const rivers = JSON.parse(readFileSync(DATA + files[1], "utf8")) as FeatureCollection;
+    const stations = JSON.parse(readFileSync(DATA + files[2], "utf8")) as Station[];
+    const pairs = JSON.parse(readFileSync(DATA + files[3], "utf8")) as TravelPair[];
+    const courses = coursesFrom(paths);
+    for (const c of courses.values()) expect(c.path.length).toBeGreaterThanOrEqual(3);
+    for (const l of chainLinks(stations, pairs)) expect(courses.has(`${l.up}>${l.down}`), `${l.up}>${l.down}`).toBe(true);
+    // Every river piece is either a gauge's or plain water; most of the Thames has a gauge.
+    const pieces = assignGauges(rivers.features, stations).features;
+    const thames = pieces.filter((f) => f.properties?.name === "River Thames");
+    expect(thames.filter((f) => f.properties?.gauge != null).length / thames.length).toBeGreaterThan(0.8);
+    expect(geoBounds(rivers)).not.toBeNull();
   });
 });

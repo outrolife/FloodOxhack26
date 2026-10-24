@@ -11,7 +11,7 @@
 // - Whether the offline PMTiles basemap is there (else a plain fallback).
 // - Each river line's gauge: its own river's nearest gauge (levels are only
 //   ever compared with that gauge's own usual high and flood level).
-import type { Feature, FeatureCollection, LineString, MultiLineString, Position } from "geojson";
+import type { Feature, FeatureCollection, LineString, Position } from "geojson";
 import type { Forecast, Spot, Station } from "../contracts";
 import { LOW_CONFIDENCE_N } from "../components/shared/RiverStrip";
 import { SECONDS_PER_HOUR, type ChainLink } from "./flow";
@@ -38,6 +38,8 @@ export const TILES_PATH = "tiles/oxon.pmtiles";
 export const GLYPHS_PATH = "tiles/fonts/{fontstack}/{range}.pbf";
 /** One glyph file that must exist for labels to be drawn. */
 export const GLYPH_PROBE = "tiles/fonts/Noto%20Sans%20Regular/0-255.pbf";
+/** The Protomaps icon sprite matching our grey flavour (town dots), without its .json / .png. */
+export const SPRITE_PATH = "tiles/sprites/v4/grayscale";
 
 // ---------------------------------------------------------------- geometry
 
@@ -453,34 +455,56 @@ export function riverWidth(p: Record<string, unknown> | null | undefined): numbe
   return kind === "river" ? 2.6 : 2.2;
 }
 
-function midpointOf(f: Feature): Position | null {
-  const c = coordsOf(f);
-  return c.length ? c[Math.floor(c.length / 2)] : null;
+/** "River Thames" and "Thames" are the same river (stations.json says "Thames"). */
+export const riverName = (s: unknown) => norm(s).replace(/^river\s+/, "");
+
+/** Long rivers are coloured piece by piece: no piece longer than this (m). */
+export const PIECE_M = 1_500;
+
+/** A line split into pieces of at most `maxM` metres (pieces share their end vertices, so the line stays whole). */
+export function splitLine(path: Position[], maxM = PIECE_M): Position[][] {
+  if (path.length < 2) return [];
+  const out: Position[][] = [];
+  let cur: Position[] = [path[0]];
+  let len = 0;
+  for (let i = 1; i < path.length; i++) {
+    cur.push(path[i]);
+    len += metresBetween(path[i - 1], path[i]);
+    if (len >= maxM && i < path.length - 1) {
+      out.push(cur);
+      cur = [path[i]];
+      len = 0;
+    }
+  }
+  if (cur.length >= 2) out.push(cur);
+  return out;
 }
 
 /**
- * Each river line with `gauge` (the key of its own river's nearest gauge with
- * data in this view, or of the nearest gauge within NEAR_GAUGE_M, else null)
- * and `w` (its width) in its properties.
+ * The river lines in pieces (each part of a MultiLineString, split every
+ * PIECE_M), each with `gauge`: the key of its own river's nearest gauge with
+ * data in this view (within SAME_RIVER_M), else of the nearest gauge within
+ * NEAR_GAUGE_M, else null; and `w`, its width. So the Thames at Shifford takes
+ * Shifford's level and the Thames at Osney takes Osney's.
  */
 export function assignGauges(
   lines: Feature[],
   gauges: Pick<Station, "key" | "lat" | "lon" | "river">[],
-): FeatureCollection<LineString | MultiLineString> {
-  const features: Feature<LineString | MultiLineString>[] = [];
+): FeatureCollection<LineString> {
+  const features: Feature<LineString>[] = [];
   for (const f of lines) {
     const g = f.geometry;
-    if (g?.type !== "LineString" && g?.type !== "MultiLineString") continue;
-    const m = midpointOf(f);
+    const parts = g?.type === "LineString" ? [g.coordinates] : g?.type === "MultiLineString" ? g.coordinates : [];
     const props = (f.properties ?? {}) as Record<string, unknown>;
-    let gauge: string | null = null;
-    if (m) {
-      const name = norm(props.name);
+    const name = riverName(props.name);
+    const w = riverWidth(props);
+    for (const piece of parts.flatMap((p) => splitLine(p))) {
+      const m = piece[Math.floor(piece.length / 2)];
+      let gauge: string | null = null;
       let best = Infinity;
       for (const s of gauges) {
         const d = metresBetween(m, [s.lon, s.lat]);
-        const same = name !== "" && norm(s.river) === name;
-        if (same && d < SAME_RIVER_M && d < best) {
+        if (name !== "" && riverName(s.river) === name && d < SAME_RIVER_M && d < best) {
           best = d;
           gauge = s.key;
         }
@@ -494,11 +518,37 @@ export function assignGauges(
           }
         }
       }
+      features.push({ type: "Feature", geometry: { type: "LineString", coordinates: piece }, properties: { ...props, gauge, w } });
     }
-    features.push({ type: "Feature", geometry: g, properties: { ...props, gauge, w: riverWidth(props) } });
   }
   return { type: "FeatureCollection", features };
 }
+
+// ---------------------------------------------------------------- context paths (no measured travel time)
+
+/**
+ * River paths with no measured travel time (travelH null: found on the river
+ * network, not timed): drawn as faint, still context, one per upstream gauge
+ * (its shortest), never with an hour count.
+ */
+export function contextCourses(
+  courses: Map<string, { path: Position[]; travelH?: number }>,
+  measured: Set<string>,
+): { up: string; down: string; path: Position[] }[] {
+  const best = new Map<string, { up: string; down: string; path: Position[]; len: number }>();
+  for (const [k, c] of courses) {
+    if (c.travelH != null || measured.has(k)) continue;
+    const [up, down] = k.split(">");
+    const len = pathLengthM(c.path);
+    const cur = best.get(up);
+    if (!cur || len < cur.len) best.set(up, { up, down, path: c.path, len });
+  }
+  return [...best.values()].map(({ up, down, path }) => ({ up, down, path }));
+}
+
+/** Hover words for a context path: where the water goes, and honestly no hours. */
+export const contextWords = (upName: string, downName: string) =>
+  `Water passing ${upName} flows on towards ${downName} (travel time not measured yet)`;
 
 // ---------------------------------------------------------------- the offline basemap
 
@@ -509,7 +559,7 @@ export function isPmtiles(bytes: Uint8Array): boolean {
   return bytes.length >= MAGIC.length && MAGIC.every((b, i) => bytes[i] === b);
 }
 
-export type BasemapProbe = { tiles: boolean; glyphs: boolean };
+export type BasemapProbe = { tiles: boolean; glyphs: boolean; sprite: boolean };
 
 type FetchLike = (url: string, init?: RequestInit) => Promise<Pick<Response, "ok" | "status" | "headers" | "arrayBuffer">>;
 
@@ -538,14 +588,15 @@ export async function probeBasemap(base: string, fetchFn: FetchLike = fetch, tim
   } catch {
     tiles = false;
   }
-  let glyphs = false;
-  if (tiles) {
+  const exists = async (path: string) => {
     try {
-      const r = await get(`${base}${GLYPH_PROBE}`);
-      glyphs = r.ok && !isHtml(r);
+      const r = await get(`${base}${path}`);
+      return r.ok && !isHtml(r);
     } catch {
-      glyphs = false;
+      return false;
     }
-  }
-  return { tiles, glyphs };
+  };
+  if (!tiles) return { tiles, glyphs: false, sprite: false };
+  const [glyphs, sprite] = await Promise.all([exists(GLYPH_PROBE), exists(`${SPRITE_PATH}.json`)]);
+  return { tiles, glyphs, sprite };
 }
