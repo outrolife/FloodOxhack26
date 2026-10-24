@@ -3,12 +3,12 @@
 - **role**: Data
 - **state**: working
 - **issue**: #152
-- **task**: Map v3 data: river paths, catchment rivers, PMTiles basemap
-- **next**: Overpass fetch of catchment waterways
+- **task**: Map v3 data: geojson pushed on data/map-v3; release basemap-v1 up
+- **next**: Makefile tiles step + preflight check, then PR
 - **needs**: 
 - **notes**: 
 - **branch**: data/map-v3
-- **head**: 728aa2d Merge pull request #150 from outrolife/app/ux-river-walk
+- **head**: c2a39be Add river-following gauge paths and catchment rivers for map v
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T22:03:43Z
+- **updated**: 2026-10-24T22:12:31Z
