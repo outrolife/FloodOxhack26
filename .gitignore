@@ -21,6 +21,8 @@ venv/
 # Node / web
 node_modules/
 web/dist/
+# Offline basemap (#152): release asset basemap-v1, fetched by `make tiles`
+web/public/tiles/
 
 # Secrets
 .env

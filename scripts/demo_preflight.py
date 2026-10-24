@@ -34,6 +34,10 @@ ROOT = Path(__file__).resolve().parent.parent
 PUBLIC = ROOT / "web" / "public" / "data"
 FIXTURES = ROOT / "tests" / "fixtures"
 DIST = ROOT / "web" / "dist"
+# Offline basemap for map v3 (#152): release asset basemap-v1, fetched by `make tiles` (gitignored).
+TILES = ROOT / "web" / "public" / "tiles"
+PMTILES = "oxon.pmtiles"
+GLYPHS = "fonts/Noto Sans Regular/0-255.pbf"
 STAMP_NAME = "build-info.json"
 
 # Everything the web build reads (keep in step with WEB_SOURCES in the Makefile).
@@ -81,6 +85,8 @@ LINK_HOSTS = {
     "archive-api.open-meteo.com",  # data credit in quality.json
     "open-meteo.com",  # S2 rain panel + About credit (data is pre-fetched into ensemble_rain.json)
     "creativecommons.org",  # CC BY 4.0 licence link for Open-Meteo
+    "protomaps.com",  # map v3 basemap credit (tiles are local: web/public/tiles/oxon.pmtiles)
+    "maplibre.org",  # MapLibre attribution link
 }
 TILE_HOST_RE = re.compile(r"tile\.openstreetmap\.org$")
 
@@ -276,6 +282,20 @@ def check_dist_data(dist: Path, public_dir: Path) -> Check:
     return Check(OK, title, "")
 
 
+def check_basemap(tiles: Path = TILES, dist: Path = DIST) -> Check:
+    """Map v3's offline basemap (#152): PMTiles + glyphs downloaded, and copied into the build."""
+    title = "offline basemap (map v3)"
+    pm, glyphs = tiles / PMTILES, tiles / GLYPHS
+    if not pm.is_file() or not glyphs.is_file():
+        missing = ", ".join(str(p.relative_to(tiles)) for p in (pm, glyphs) if not p.is_file())
+        return Check(WARN, title, f"missing {missing} in web/public/tiles: run `make tiles` (needs gh + internet once); "
+                                  "the Leaflet map does not need it")
+    size = f"{pm.stat().st_size / 1024 / 1024:.0f} MB"
+    if (dist / "index.html").is_file() and not (dist / "tiles" / PMTILES).is_file():
+        return Check(WARN, title, f"{size} downloaded but not in web/dist: restart `make demo` to rebuild")
+    return Check(OK, title, f"web/public/tiles/{PMTILES} {size} + glyphs, served from /tiles/")
+
+
 # ---- network ----------------------------------------------------------------------------------
 
 URL_RE = re.compile(r"https?://([A-Za-z0-9{}._-]+)")
@@ -367,6 +387,19 @@ def check_server(base: str) -> List[Check]:
     else:
         detail = f"{status}: unexpected; the app falls back to the saved live.json"
     out.append(Check(INFO, "GET /api/live", detail))
+    if (TILES / PMTILES).is_file():
+        # PMTiles needs HTTP Range requests (206 Partial Content), or map v3 shows no basemap.
+        req = urllib.request.Request(base + "tiles/" + PMTILES, headers={"Range": "bytes=0-126"})
+        try:
+            with urllib.request.urlopen(req, timeout=2.0) as r:
+                status, n = r.status, len(r.read())
+        except urllib.error.HTTPError as exc:
+            status, n = exc.code, 0
+        except Exception:
+            status, n = None, 0
+        ok = status == 206 and n == 127
+        out.append(Check(OK if ok else WARN, f"GET /tiles/{PMTILES} (Range)", f"{status}, {n} bytes"
+                         + ("" if ok else ": map v3 basemap won't load; restart `make demo`")))
     return out
 
 
@@ -467,6 +500,7 @@ def run_all(port: int, server: bool) -> List[Check]:
     checks.append(check_event_replays(PUBLIC, events))
     checks.append(check_data_size(PUBLIC))
     checks.append(check_dist(DIST))
+    checks.append(check_basemap())
     if (DIST / "index.html").is_file():
         checks.append(check_dist_data(DIST, PUBLIC))
     if server:
