@@ -1,14 +1,14 @@
 # s-s01s-ux
 
 - **role**: App
-- **state**: reviewing
-- **issue**: #103
-- **task**: Phase 2 PRs open: #116 vocab, headlines PR
-- **next**: Map labels on top of #112; follow-ups from review
+- **state**: working
+- **issue**: #118
+- **task**: Part A: kit + shell (#124); next offline basemap GeoJSON
+- **next**: Bundle oxford-base.geojson, then review screen PRs
 - **needs**: 
 - **notes**: 
-- **branch**: app/ux-headlines
-- **head**: 5f2c62a Merge branch 'app/ux-plain-language' into app/ux-headlines
+- **branch**: app/ux-kit
+- **head**: 2d2f62b UX kit and shell for the visual-first rebuild (#118)
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:48:47Z
+- **updated**: 2026-10-24T18:53:58Z
