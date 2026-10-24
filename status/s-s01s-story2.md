@@ -1,14 +1,14 @@
 # s-s01s-story2
 
 - **role**: Story
-- **state**: working
+- **state**: reviewing
 - **issue**: #19
-- **task**: README pushed; writing Devpost draft and demo script
-- **next**: docs/devpost.md, docs/demo.md, then PR
+- **task**: PR open: README, Devpost draft, demo script
+- **next**: Fill results placeholders from proof.json; rehearse demo
 - **needs**: 
 - **notes**: 
 - **branch**: story/readme-devpost
-- **head**: 158a5c3 Add README: method, re-target story, spots, events, sources, l
+- **head**: 35658f4 Add Devpost draft and demo script with judge Q&A
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:33:15Z
+- **updated**: 2026-10-24T16:35:51Z
