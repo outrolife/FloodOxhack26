@@ -5,7 +5,7 @@
   --page: #f4f4f1;
   --ink: #0b0b0b;
   --ink-2: #52514e;
-  --muted: #898781;
+  --muted: #6b6a65; /* 5.3:1 on --surface (WCAG AA) */
   --grid: #e1e0d9;
   --axis: #c3c2b7;
   --border: rgba(11, 11, 11, 0.1);
@@ -13,7 +13,7 @@
   --series-1-light: #9ec5f4;
   --series-1-faint: #cde2fb;
   --series-2: #eb6834; /* persistence / comparison */
-  --good: #0ca30c;
+  --good: #009e73;
   --warning: #fab219;
   --critical: #d03b3b;
   --unknown: #898781;
@@ -25,6 +25,11 @@
 }
 
 * { box-sizing: border-box; }
+
+/* Keyboard focus: one clear ring everywhere (white on the dark header). */
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.app-header :focus-visible { outline-color: #fff; }
+.leaflet-container a:focus-visible, .leaflet-container button:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
 body { margin: 0; }
 a { color: var(--accent); }
 h1, h2, h3 { margin: 0 0 0.4em; line-height: 1.2; }
@@ -90,6 +95,13 @@ input[type="range"] { accent-color: var(--accent); }
   padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; color: var(--ink-2);
 }
 .legend { display: flex; gap: 0.9rem; flex-wrap: wrap; font-size: 0.8rem; color: var(--ink-2); margin-top: 0.4rem; }
+.legend-item { display: inline-flex; align-items: center; gap: 4px; }
+.glyph { display: inline-block; flex: none; line-height: 0; vertical-align: -2px; }
+.glyph svg { display: block; }
+/* Spot markers (divIcon): no default Leaflet box, a focus ring when tabbed to. */
+.leaflet-marker-icon.spot-marker { background: none; border: 0; }
+.leaflet-marker-icon.spot-marker svg { display: block; filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.35)); }
+.leaflet-marker-icon.spot-marker:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 50%; }
 .legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
 
 /* Status chips: colour + text, never colour alone */
@@ -98,11 +110,12 @@ input[type="range"] { accent-color: var(--accent); }
   font-size: 0.8rem; font-weight: 600; border: 1px solid var(--border); background: #fff;
 }
 .chip .dot { width: 9px; height: 9px; border-radius: 50%; }
+.chip .glyph { vertical-align: 0; }
 
 /* Probability bars */
 .pbars { display: grid; grid-template-columns: 3.2rem 1fr 3rem; gap: 0.3rem 0.5rem; align-items: center; font-size: 0.85rem; }
 .pbar-track { height: 12px; background: #f0efec; border-radius: 4px; overflow: hidden; }
-.pbar-fill { height: 100%; border-radius: 0 4px 4px 0; }
+.pbar-fill { height: 100%; border-radius: 0 4px 4px 0; box-shadow: inset 0 0 0 1px rgba(11, 11, 11, 0.25); }
 .pbars .val { text-align: right; font-variant-numeric: tabular-nums; }
 
 /* River strip */

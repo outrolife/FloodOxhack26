@@ -4,9 +4,11 @@ import { formatShort } from "../../time";
 
 export type Level = "low" | "elevated" | "high" | "unknown";
 
-/** Status colours, reserved for flood state. Always shown with a text label. */
+/** Status colours, reserved for flood state. Always shown with a text label and a
+ *  per-tier shape (LevelGlyph). Green is a bluish green so that, for red-green
+ *  colour blindness, it stays distinct from red (which reads as olive-brown). */
 export const LEVEL_STYLE: Record<Level, { colour: string; label: string }> = {
-  low: { colour: "#0ca30c", label: "Low (< 10%)" },
+  low: { colour: "#009e73", label: "Low (< 10%)" },
   elevated: { colour: "#fab219", label: "Elevated (10–50%)" },
   high: { colour: "#d03b3b", label: "High (≥ 50%)" },
   unknown: { colour: "#898781", label: "No probability (timing only or stale)" },
