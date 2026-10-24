@@ -11,7 +11,7 @@ All times here are UK local time. Judging is on **Sun 25 Oct 2026, after the clo
 ## Before each judging slot (2 minutes)
 
 1. Laptop on mains power. Wi-Fi **off** (we demo offline; turn it on only for step 5 if the live API is running).
-2. `make web` already running; browser at http://localhost:5173, zoomed to fit, on the **River** tab.
+2. `make demo` already running (offline, one process; see `docs/demo-backup.md`); browser at http://127.0.0.1:8080, zoomed to fit, on the **River** tab. `make preflight` shows only ✅/ℹ️.
 3. **Check for the "sample data" notice.** If any tab shows "Showing sample data (test fixtures)", that tab is not real results. Either skip that tab or say clearly: "this tab is showing our test fixture, not results."
 4. Time Machine: e2014 selected, slider at the start, spot **Botley Road**.
 5. Decide: preset **Resident**.
@@ -99,7 +99,7 @@ All times here are UK local time. Judging is on **Sun 25 Oct 2026, after the clo
 
 | Problem | What to do |
 |---|---|
-| App won't start | `cd web && npm run dev`. If that fails, `npm run build && npm run preview` (serves the built app on port 4173). |
+| App won't start | See `docs/demo-backup.md` plan B: check out the last `demo-ready-*` tag and `make demo`, or `cd web && npm run preview` (port 4173). |
 | A tab shows "sample data" | Say so. Don't present fixture numbers as results. |
 | Map tiles blank | Expected offline. Spots and gauges still show. |
 | "Live data unavailable" | Expected offline. Use the step 5 offline line. |
