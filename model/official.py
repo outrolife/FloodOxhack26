@@ -26,7 +26,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-P_STARS: tuple[float, ...] = (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
+P_STARS: tuple[float, ...] = (0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)  # SPEC §8.2
 LEVEL_RANK: dict[str, int] = {"alert": 0, "warning": 1, "severe": 2}
 LOCAL_TZ = "Europe/London"
 

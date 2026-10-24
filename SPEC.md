@@ -243,13 +243,14 @@ Computed on the test period and across replay events.
 - **Pinball loss** (mean over α) per h, model and persistence; **skill** = 1 − model / persistence.
 - **Interval coverage** for 50/80/90% intervals per h.
 - **Threshold exceedance:** Brier score and 10-bin reliability per spot and h; Brier skill vs persistence.
-- **Event outcomes** per spot for trigger p* ∈ {0.1, …, 0.9}:
+- **Event outcomes** per spot for trigger p* ∈ {0.01, 0.02, 0.05, 0.1, …, 0.9} (the low values cover the Decide presets, #38):
   - hit: trigger fired before the actual crossing (within 72 h before); lead = crossing time − first trigger time;
   - miss: crossing with no prior trigger;
   - false alarm: trigger episode (episodes ≥ 24 h apart) with no crossing within 72 h.
 - **Arrival timing error:** predicted 50% time − actual crossing time, for forecasts issued 24 h and 48 h before the crossing.
-- **Versus official warnings:** for each event and spot, first EA Flood Warning (and Flood Alert) issue time in the spot's area; lead gained = official issue time − our first trigger time, per p*. Fallback if dates only: compare in days, set `precision: "date"`, and say so in the UI.
-- **Uncertainty:** bootstrap over events (1,000 resamples), 90% intervals for event-level numbers.
+- **Versus official warnings:** for each event and spot, first EA Flood Warning (and Flood Alert) issue time in the spot's area (`perEvent.officialIssuedAt`; null when the EA issued none); lead gained = official issue time − our first trigger time, per p*. Fallback if dates only: compare in days, set `precision: "date"`, and say so in the UI.
+- **Official warnings as a trigger** (`officialOutcome`): score the first EA Flood Warning per event and spot with the same hit / miss / false-alarm rules as our trigger, so the Decide tab can price "act on official warnings". e2026 has no Oxford warning messages at all.
+- **Uncertainty:** bootstrap over events (1,000 resamples), 90% intervals for event-level numbers. `tradeoff[].ci90` is the 90% bootstrap interval of `meanLeadH` (hours).
 
 ---
 
@@ -287,7 +288,10 @@ type SpotForecast = { spot: string; levelNow: number;
 type Forecast = { issuedAt: string; dataAsOf: Record<string /*gauge*/, string>;
   stale: string[]; spots: SpotForecast[];
   method?: "model" | "persistence";   // optional; "persistence" = labelled fallback until models exist
-  note?: string; };                   // shown in the UI when non-empty
+  note?: string;                      // shown in the UI when non-empty
+  observed?: Record<string /*gauge*/, { t: string; level: number }[]>; };
+  // optional, live.json only: hourly levels over the last 7 days for every gauge with live data,
+  // live_only gauges included (River sparklines); same shape as Replay.observed
 
 // replays/{eventId}.json
 type Replay = { eventId: string; name: string; start: string; end: string;
@@ -303,9 +307,14 @@ type Proof = {
   reliability: Record<string /*spot*/, { h: number; bins: { pPred: number; pObs: number; n: number }[];
       brier: number; brierPersistence: number }[]>;
   tradeoff: Record<string /*spot*/, { pStar: number; hits: number; misses: number; falseAlarms: number;
-      meanLeadH: number | null; meanLeadVsOfficialH: number | null; ci90?: [number, number] }[]>;
+      meanLeadH: number | null; meanLeadVsOfficialH: number | null;
+      ci90?: [number, number] }[]>;          // ci90: 90% bootstrap interval of meanLeadH (hours)
+                                             // pStar rows: 0.01, 0.02, 0.05, 0.1 … 0.9 (§8.2)
   perEvent: { eventId: string; spot: string; crossed: boolean; peakObs: number;
-      arrivalErrH: number | null; leadVsOfficialH: number | null }[];
+      arrivalErrH: number | null; leadVsOfficialH: number | null;
+      officialIssuedAt?: string | null }[];  // first EA Flood Warning in the spot's area; null = none issued
+  officialOutcome?: Record<string /*spot*/, { hits: number; misses: number; falseAlarms: number;
+      meanLeadH: number | null }>;           // official warnings scored as a trigger (§8.2)
   testPeriodNote: string; };
 
 // quality.json

@@ -97,6 +97,9 @@ export type Forecast = {
   spots: SpotForecast[];
   method?: "model" | "persistence"; // "persistence" = labelled fallback until trained models exist
   note?: string; // show in the UI when non-empty (always set when method is "persistence")
+  // live.json only: hourly levels over the last 7 days for every gauge with live data,
+  // live_only gauges included (River sparklines). Same shape as Replay.observed.
+  observed?: Record<string /*gauge*/, { t: string; level: number }[]>;
 };
 
 /** replays/{eventId}.json: the Time Machine data for one event (SPEC §8.1). */
@@ -137,13 +140,13 @@ export type Proof = {
   tradeoff: Record<
     string /*spot*/,
     {
-      pStar: number; // trigger probability 0.1 ... 0.9
+      pStar: number; // trigger probability: 0.01, 0.02, 0.05, 0.1 ... 0.9
       hits: number;
       misses: number;
       falseAlarms: number;
       meanLeadH: number | null; // hours
       meanLeadVsOfficialH: number | null; // hours; positive = earlier than official
-      ci90?: [number, number];
+      ci90?: [number, number]; // 90% bootstrap interval of meanLeadH, hours
     }[]
   >;
   perEvent: {
@@ -153,7 +156,18 @@ export type Proof = {
     peakObs: number; // m, gauge datum
     arrivalErrH: number | null; // hours: predicted 50% time - actual crossing
     leadVsOfficialH: number | null; // hours
+    officialIssuedAt?: string | null; // first EA Flood Warning in the spot's area, ISO 8601 UTC; null = none issued
   }[];
+  /** Official EA warnings scored as a trigger, with the same hit/miss/false-alarm rules (SPEC §8.2). */
+  officialOutcome?: Record<
+    string /*spot*/,
+    {
+      hits: number;
+      misses: number;
+      falseAlarms: number;
+      meanLeadH: number | null; // hours: crossing time - official issue time
+    }
+  >;
   testPeriodNote: string;
 };
 
