@@ -1,6 +1,6 @@
-// Timeline comparison for the Time Machine (#14): when River Clock first
-// reached 50% for a spot vs when the EA issued its first Flood Alert and its
-// first Flood Warning for that spot's area.
+// Timeline comparison for the Time Machine (#14, #82): when River Clock
+// reached 10% / 50% for a spot vs the EA Flood Alert / Flood Warning for that
+// spot's area, matched to the same flood (rules below).
 import type { Replay } from "../../contracts";
 import { formatDate, formatDateTimeYear, hoursBetween, londonDaysBetween } from "../../time";
 
@@ -32,45 +32,159 @@ export function focusWindow(t: number, [a, b]: [number, number]): [number, numbe
 export const formatOfficial = (o: Official): string =>
   o.precision === "date" ? `on ${formatDate(o.issuedAt)} (time not recorded)` : formatDateTimeYear(o.issuedAt);
 
-/** First alert and first warning (warning or severe) for one spot. */
-export function firstOfficials(replay: Replay, spot: string): { alert?: Official; warning?: Official } {
-  const list = replay.official
-    .filter((o) => o.spot === spot)
-    .sort((a, b) => Date.parse(a.issuedAt) - Date.parse(b.issuedAt));
-  return { alert: list.find((o) => o.type === "alert"), warning: list.find((o) => o.type !== "alert") };
+// ---- Matching River Clock with official messages (#82) ----
+//
+// Tiers are matched: a Flood Alert ("flooding is possible") is compared with
+// River Clock's first >= 10%, a Flood Warning (or Severe) with its first >= 50%.
+//
+// Which times are compared follows model/metrics.py:
+//   - flood onset c = the spot's first threshold crossing in the event;
+//   - River Clock trigger = first issue time in [c - 72 h, c) with flood
+//     probability (max pFlood over leads) >= p while the level is still below
+//     the threshold (once it is above, the flood is here);
+//   - official message = first one of the tier issued in [c - 72 h, c), the
+//     same window metrics.event_outcomes scores official warnings with.
+// With no crossing in the event: River Clock's first trigger in the event, and
+// the first official of the tier within 72 h of it (either side), or none.
+// So an alert for an earlier rise that never flooded (e2014's Christmas alert)
+// is never set against the January flood.
+
+export const MATCH_WINDOW_H = 72;
+
+export type Tier = "alert" | "warning";
+
+export const TIER: Record<Tier, { p: number; noun: string; types: Official["type"][] }> = {
+  alert: { p: 0.1, noun: "Flood Alert", types: ["alert"] },
+  warning: { p: 0.5, noun: "Flood Warning", types: ["warning", "severe"] },
+};
+
+/** The parts of a Replay the comparison reads. */
+export type ReplayTimeline = Pick<Replay, "forecasts" | "official" | "crossings">;
+
+export type TierMatch = {
+  tier: Tier;
+  /** First threshold crossing for the spot in this event, or null. */
+  crossing: string | null;
+  /** River Clock's matched trigger time (issue time), or null. */
+  rc: string | null;
+  /**
+   * The forecast just before `rc` was already a trigger, i.e. River Clock was
+   * at or above the level before the 72 h window opened: `rc` is then only
+   * the window edge, so its lead is a lower bound.
+   */
+  alreadyOn: boolean;
+  /** The official message matched to it, or null. */
+  official: Official | null;
+  /** With a crossing but no official in the 72 h before it: the first one issued within 72 h after. */
+  lateOfficial: Official | null;
+};
+
+const H = 3_600_000;
+const ms = (t: string) => Date.parse(t);
+
+/** Flood probability of one forecast for a spot (max pFlood over leads), null if none or already above threshold. */
+function triggerP(f: Replay["forecasts"][number], spot: string, threshold: number): number | null {
+  const sf = f.spots.find((s) => s.spot === spot);
+  if (!sf || sf.levelNow >= threshold) return null;
+  let best: number | null = null;
+  for (const l of sf.leads) if (l.pFlood != null) best = Math.max(best ?? 0, l.pFlood);
+  return best;
 }
 
-/**
- * One sentence comparing River Clock's first >= 50% time with an official
- * issue time, e.g. "River Clock reached 50% 34 h earlier than the official
- * Flood Warning." Returns null until both known times have been revealed.
- */
-export function compareSentence(
-  rc50: string | undefined,
-  official: Official | undefined,
-  kind: "alert" | "warning",
-  revealed: (t: string) => boolean,
-): string | null {
-  const noun = official ? officialLabel(official) : kind === "alert" ? "Flood Alert" : "Flood Warning";
-  if (rc50 && official) {
-    if (!revealed(rc50) || !revealed(official.issuedAt)) return null;
-    // Date-only official times are compared as UK calendar days x 24, like model/official.py.
-    const dateOnly = official.precision === "date";
-    const d = dateOnly ? londonDaysBetween(rc50, official.issuedAt) * 24 : hoursBetween(rc50, official.issuedAt);
-    const approx = dateOnly ? " (official issue known to the day only, so compared in whole days)" : "";
-    const h = Math.abs(d).toFixed(0);
-    if (Math.abs(d) < 0.5) return `River Clock reached 50% at about the same time as the official ${noun}${approx}.`;
-    return d > 0
-      ? `River Clock reached 50% ${h} h earlier than the official ${noun}${approx}.`
-      : `River Clock reached 50% ${h} h later than the official ${noun}${approx}.`;
+/** Match River Clock and the EA for one spot and tier (see the rules above). */
+export function matchTier(replay: ReplayTimeline, spot: string, threshold: number, tier: Tier): TierMatch {
+  const { p, types } = TIER[tier];
+  const officials = replay.official
+    .filter((o) => o.spot === spot && types.includes(o.type))
+    .sort((a, b) => ms(a.issuedAt) - ms(b.issuedAt));
+  const forecasts = [...replay.forecasts].sort((a, b) => ms(a.issuedAt) - ms(b.issuedAt));
+  const isTrigger = (f: (typeof forecasts)[number]) => (triggerP(f, spot, threshold) ?? -1) >= p;
+  const triggers = forecasts.filter(isTrigger).map((f) => f.issuedAt);
+  const alreadyOnAt = (rc: string | null) => {
+    if (!rc) return false;
+    const i = forecasts.findIndex((f) => f.issuedAt === rc);
+    return i > 0 && isTrigger(forecasts[i - 1]);
+  };
+  const crossing =
+    replay.crossings
+      .filter((c) => c.spot === spot)
+      .map((c) => c.t)
+      .sort((a, b) => ms(a) - ms(b))[0] ?? null;
+  const win = MATCH_WINDOW_H * H;
+
+  if (crossing) {
+    const c = ms(crossing);
+    const inWindow = (t: string) => ms(t) >= c - win && ms(t) < c;
+    const official = officials.find((o) => inWindow(o.issuedAt)) ?? null;
+    const lateOfficial = official
+      ? null
+      : (officials.find((o) => ms(o.issuedAt) >= c && ms(o.issuedAt) <= c + win) ?? null);
+    const rc = triggers.find(inWindow) ?? null;
+    return { tier, crossing, rc, alreadyOn: alreadyOnAt(rc), official, lateOfficial };
   }
-  if (rc50 && !official) {
-    if (!revealed(rc50)) return null;
-    return `River Clock reached 50%; no official ${noun} for this spot so far.`;
-  }
-  if (official && !rc50) {
-    if (!revealed(official.issuedAt)) return null;
-    return `The EA issued a ${noun}; River Clock has not reached 50% for this spot.`;
-  }
-  return null;
+  const rc = triggers[0] ?? null;
+  const official = rc ? (officials.find((o) => Math.abs(ms(o.issuedAt) - ms(rc)) <= win) ?? null) : null;
+  return { tier, crossing: null, rc, alreadyOn: false, official, lateOfficial: null };
 }
+
+/** Signed hours from River Clock's trigger to the official issue (positive: River Clock earlier). */
+function gainH(rc: string, o: Official): { h: number; approx: string } {
+  // Date-only official times are compared as UK calendar days x 24, like model/official.py.
+  if (o.precision === "date") {
+    return { h: londonDaysBetween(rc, o.issuedAt) * 24, approx: " (EA issue known to the day only, so compared in whole days)" };
+  }
+  return { h: hoursBetween(rc, o.issuedAt), approx: "" };
+}
+
+const hrs = (h: number) => `${Math.abs(h).toFixed(0)} h`;
+
+/**
+ * One sentence for a tier match, or null if there is nothing to say or the
+ * slider hasn't reached every time it mentions yet (no spoilers). `endT` is
+ * the event's last forecast time: "stayed below the threshold" is only known
+ * there.
+ */
+export function tierSentence(m: TierMatch, revealed: (t: string) => boolean, endT: string): string | null {
+  const { p, noun: tierNoun } = TIER[m.tier];
+  const pct = `${Math.round(p * 100)}%`;
+  const noun = m.official ? officialLabel(m.official) : tierNoun;
+  const seen = (...ts: (string | null | undefined)[]) => ts.every((t) => t == null || revealed(t));
+
+  if (m.crossing) {
+    if (!seen(m.crossing, m.rc, m.official?.issuedAt)) return null;
+    const c = m.crossing;
+    // Already at the level when the 72 h window opened: say so, and leads are lower bounds.
+    const already = m.alreadyOn
+      ? `River Clock was already at ${pct} or more ${MATCH_WINDOW_H} h before the river crossed the threshold`
+      : null;
+    if (m.rc && m.official) {
+      const { h, approx } = gainH(m.rc, m.official);
+      if (already) return `${already}, at least ${hrs(h)} before the EA ${noun}${approx}.`;
+      if (Math.abs(h) < 0.5) return `River Clock reached ${pct} at about the same time as the EA ${noun}${approx}.`;
+      return `River Clock reached ${pct} ${hrs(h)} ${h > 0 ? "earlier" : "later"} than the EA ${noun}${approx}.`;
+    }
+    if (m.rc) {
+      const before =
+        already ?? `River Clock reached ${pct} ${hrs(hoursBetween(m.rc, c))} before the river crossed the threshold`;
+      if (m.lateOfficial && seen(m.lateOfficial.issuedAt)) {
+        return `${before}; the EA ${officialLabel(m.lateOfficial)} came ${hrs(hoursBetween(c, m.lateOfficial.issuedAt))} after the crossing.`;
+      }
+      return `${before}; no EA ${tierNoun} in the ${MATCH_WINDOW_H} h before it.`;
+    }
+    if (m.official) {
+      return `The EA ${noun} came ${hrs(hoursBetween(m.official.issuedAt, c))} before the river crossed the threshold; River Clock did not reach ${pct} in the ${MATCH_WINDOW_H} h before it.`;
+    }
+    return `Neither River Clock (${pct}) nor an EA ${tierNoun} came in the ${MATCH_WINDOW_H} h before the river crossed the threshold.`;
+  }
+
+  // No crossing in this event.
+  if (!m.rc || !seen(m.rc, m.official?.issuedAt, endT)) return null;
+  const stayed = "the river stayed below the flood threshold";
+  if (m.official) {
+    const { h, approx } = gainH(m.rc, m.official);
+    const when = Math.abs(h) < 0.5 ? "at about the same time as" : `${hrs(h)} ${h > 0 ? "earlier" : "later"} than`;
+    return `River Clock reached ${pct} ${when} the EA ${noun}${approx}, and ${stayed}.`;
+  }
+  return `River Clock reached ${pct} on ${formatDateTimeYear(m.rc)} and ${stayed}; no EA ${tierNoun} within ${MATCH_WINDOW_H} h of it.`;
+}
+
