@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>River Clock poster</title>
+<!--
+  River Clock, A3 portrait poster for the OxHack26 judging table (issue #84).
+  Print: open in a browser, Print, A3, portrait, margins "Default", scale 100%,
+  "Background graphics" on, then Save as PDF. See docs/poster/README.md.
+  Every number carries a "src:" comment naming the committed file it comes from.
+  Self-contained: no external fonts, images or scripts.
+-->
+<style>
+  :root {
+    /* palette copied from web/src/styles.css */
+    --surface: #fcfcfb;
+    --page: #f4f4f1;
+    --ink: #0b0b0b;
+    --ink-2: #52514e;
+    --muted: #898781;
+    --grid: #e1e0d9;
+    --axis: #c3c2b7;
+    --series-1: #2a78d6; /* model / forecast */
+    --series-1-light: #9ec5f4;
+    --series-1-faint: #cde2fb;
+    --series-2: #eb6834; /* persistence / comparison */
+    --accent: #184f95;
+    --header: #0d366b;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--ink);
+    line-height: 1.25;
+  }
+  @page { size: A3 portrait; margin: 12mm; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #d6d5cf; }
+  .poster {
+    width: 273mm; height: 396mm; margin: 12mm auto; overflow: hidden;
+    background: var(--surface); display: flex; flex-direction: column;
+    box-shadow: 0 2mm 8mm rgba(0, 0, 0, 0.18);
+  }
+  @media print {
+    body { background: none; }
+    .poster { margin: 0; box-shadow: none; }
+  }
+  h1, h2, h3, p, ul { margin: 0; }
+  section { padding: 0 10mm; }
+  h2 {
+    font-size: 21pt; font-weight: 800; color: var(--accent);
+    letter-spacing: -0.01em; margin-bottom: 2mm;
+  }
+  h2 .k { color: var(--ink-2); font-weight: 600; }
+  .note { font-size: 12.5pt; color: var(--ink-2); }
+  svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+
+  /* 1. header */
+  header {
+    background: var(--header); color: #fff; padding: 5mm 10mm 4.5mm;
+    display: flex; align-items: center; justify-content: space-between; gap: 8mm;
+  }
+  header h1 { font-size: 72pt; font-weight: 800; letter-spacing: -0.03em; line-height: 0.95; }
+  header .tagline { font-size: 20pt; margin-top: 2mm; opacity: 0.92; font-style: italic; }
+  header svg { width: 30mm; height: 30mm; flex: none; }
+
+  /* 2. question */
+  .question { padding-top: 4.5mm; padding-bottom: 3.5mm; }
+  .question p { font-size: 21pt; font-weight: 650; line-height: 1.18; }
+  .question p span { color: var(--series-1); }
+
+  /* 3. finding */
+  .finding svg { width: 100%; height: auto; display: block; }
+  .finding .note { margin-top: 1mm; }
+
+  /* 4. how it works */
+  .how { padding-top: 4mm; }
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5mm; }
+  .step { display: flex; gap: 3mm; align-items: flex-start; }
+  .step svg { width: 14mm; height: 14mm; flex: none; }
+  .step p { font-size: 14pt; line-height: 1.2; }
+  .step b { display: block; font-size: 15pt; }
+
+  /* 5. results */
+  .results { padding-top: 4.5mm; }
+  .results-grid { display: grid; grid-template-columns: 102mm 1fr; gap: 8mm; }
+  .chart h3, .table h3 { font-size: 16pt; font-weight: 700; margin-bottom: 1.5mm; }
+  .legend { display: flex; gap: 6mm; font-size: 13.5pt; color: var(--ink-2); margin-bottom: 1mm; }
+  .legend i { display: inline-block; width: 5mm; height: 5mm; border-radius: 1mm; vertical-align: -0.6mm; margin-right: 1.5mm; }
+  .chart svg { width: 100%; height: auto; display: block; }
+  .chart .m { fill: var(--series-1); }
+  .chart .p { fill: var(--series-2); }
+  .chart .sk { font-size: 27px; font-weight: 800; fill: var(--ink); text-anchor: middle; }
+  .chart .ax { font-size: 26px; fill: var(--ink-2); text-anchor: middle; }
+  table { border-collapse: collapse; width: 100%; font-size: 15pt; }
+  th { font-size: 12.5pt; font-weight: 600; color: var(--ink-2); text-align: right; padding: 0 0 1.5mm 2mm; vertical-align: bottom; line-height: 1.1; }
+  th:first-child, td:first-child { text-align: left; padding-left: 0; }
+  td { text-align: right; padding: 1.4mm 0 1.4mm 2mm; white-space: nowrap; border-top: 0.3mm solid var(--grid); font-variant-numeric: tabular-nums; }
+  td.ahead { font-weight: 800; }
+  .callouts { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; margin-top: 3.5mm; }
+  .callout {
+    background: var(--page); border-left: 2mm solid var(--series-1);
+    border-radius: 0 2mm 2mm 0; padding: 3mm 5mm;
+  }
+  .callout .big { font-size: 28pt; font-weight: 800; line-height: 1; color: var(--accent); }
+  .callout h3 { font-size: 14.5pt; font-weight: 700; margin: 1.2mm 0 0.8mm; }
+  .callout p { font-size: 13.5pt; line-height: 1.2; }
+
+  /* 6-8. bottom row */
+  .bottom {
+    display: grid; grid-template-columns: 1.15fr 1fr 0.85fr; gap: 7mm;
+    padding-top: 4mm; margin-top: auto; padding-bottom: 4mm;
+  }
+  .bottom h2 { font-size: 17pt; margin-bottom: 1.5mm; }
+  .bottom ul { padding-left: 5mm; font-size: 13pt; line-height: 1.22; }
+  .bottom li { margin-bottom: 1mm; }
+  .team { display: flex; gap: 4mm; align-items: flex-start; }
+  .team .names { font-size: 15pt; font-weight: 700; line-height: 1.35; }
+  .team .repo { font-size: 11pt; color: var(--ink-2); margin-top: 1.5mm; }
+  .qr { width: 34mm; height: 34mm; flex: none; display: block; }
+
+  /* 9. disclaimer */
+  .disclaimer {
+    margin: 0 10mm 5mm; padding: 2.5mm 5mm; border: 0.7mm solid var(--ink);
+    border-radius: 2mm; font-size: 17pt; font-weight: 700; text-align: center;
+  }
+</style>
+</head>
+<body>
+<main class="poster">
+
+  <!-- 1. Title -->
+  <header>
+    <div>
+      <h1>River Clock</h1>
+      <p class="tagline">Water upstream is Oxford's future. We read it as a clock.</p>
+    </div>
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="44" fill="none" stroke="#fff" stroke-width="5"/>
+      <path d="M50 14v6M50 80v6M14 50h6M80 50h6" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+      <path d="M50 50V27M50 50l15 9" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+      <path d="M17 70q8-6 16.5 0t16.5 0t16.5 0t16.5 0" fill="none" stroke="#9ec5f4" stroke-width="5" stroke-linecap="round"/>
+    </svg>
+  </header>
+
+  <!-- 2. The question -->
+  <section class="question">
+    <!-- src: SPEC.md §1 (72 h horizon); web/public/data/spots.json (5 spots) -->
+    <p>When, and how likely, will <span>five Oxford trouble spots</span> flood in the <span>next 72 h</span>?</p>
+  </section>
+
+  <!-- 3. The finding -->
+  <section class="finding">
+    <h2>The finding: <span class="k">the flood is already on its way</span></h2>
+    <svg viewBox="0 0 1000 278" role="img" aria-labelledby="chain-title">
+      <title id="chain-title">Travel times: a rise at Cassington reaches New Botley (Botley Road) in about 9.5 hours; a rise at Enslow reaches Kings Mill (Cherwell) in about 18.6 hours.</title>
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="3.2" markerHeight="3.2" orient="auto">
+          <path d="M0 0L10 5L0 10Z" fill="#2a78d6"/>
+        </marker>
+      </defs>
+      <!-- time axis: 0 h at Oxford (x=760), 27.5 units per hour, so arrow length is proportional to travel time -->
+      <g stroke="#c3c2b7" stroke-width="2">
+        <line x1="100" y1="242" x2="760" y2="242"/>
+        <line x1="760" y1="242" x2="760" y2="251"/><line x1="595" y1="242" x2="595" y2="251"/>
+        <line x1="430" y1="242" x2="430" y2="251"/><line x1="265" y1="242" x2="265" y2="251"/>
+        <line x1="100" y1="242" x2="100" y2="251"/>
+      </g>
+      <g font-size="23" fill="#52514e" text-anchor="middle">
+        <text x="760" y="275">0 h</text><text x="595" y="275">6 h</text><text x="430" y="275">12 h</text>
+        <text x="265" y="275">18 h</text><text x="100" y="275">24 h</text>
+      </g>
+      <text x="800" y="275" font-size="21" fill="#898781">&#8592; hours before Oxford</text>
+
+      <!-- Oxford block -->
+      <rect x="790" y="0" width="206" height="226" rx="14" fill="#cde2fb"/>
+      <text x="808" y="30" font-size="22" font-weight="800" fill="#184f95" letter-spacing="3">OXFORD</text>
+      <text x="808" y="72" font-size="30" font-weight="700" fill="#0b0b0b">Botley Road</text>
+      <text x="808" y="98" font-size="21" fill="#52514e">New Botley gauge</text>
+      <text x="808" y="180" font-size="30" font-weight="700" fill="#0b0b0b">Cherwell</text>
+      <text x="808" y="206" font-size="21" fill="#52514e">Kings Mill gauge</text>
+
+      <!-- Row 1: Cassington (Evenlode) -> New Botley. src: web/public/data/travel_times.json cassington->newbotley n=24, tHalf median 9.5 h (p10 1.3, p90 42.5) -->
+      <path d="M513.0 62Q527.1 55 541.1 62T569.2 62T597.4 62T625.5 62T653.6 62T681.8 62T709.9 62T738.0 62" fill="none" stroke="#2a78d6" stroke-width="9" stroke-linecap="round" marker-end="url(#arrow)"/>
+      <circle cx="498.75" cy="62" r="15" fill="#fcfcfb" stroke="#2a78d6" stroke-width="6"/>
+      <circle cx="760" cy="62" r="11" fill="#184f95"/>
+      <text x="474" y="64" font-size="32" font-weight="700" fill="#0b0b0b" text-anchor="end">Cassington</text>
+      <text x="474" y="90" font-size="21" fill="#52514e" text-anchor="end">River Evenlode</text>
+      <!-- src: web/public/data/travel_times.json (cassington->newbotley tHalf.median 9.5, n 24) -->
+      <rect x="548" y="32" width="164" height="60" rx="30" fill="#fcfcfb" stroke="#2a78d6" stroke-width="4"/>
+      <text x="630" y="79" font-size="46" font-weight="800" fill="#0b0b0b" text-anchor="middle">9.5 h</text>
+      <text x="630" y="122" font-size="23" fill="#52514e" text-anchor="middle">median of 24 floods</text>
+
+      <!-- Row 2: Enslow (Cherwell) -> Kings Mill. src: web/public/data/travel_times.json enslow->kingsmill n=6, tHalf median 18.6 h (p10 15.0, p90 22.8) -->
+      <path d="M262.5 170Q277.4 163 292.2 170T321.9 170T351.7 170T381.4 170T411.1 170T440.8 170T470.5 170T500.2 170T530.0 170T559.7 170T589.4 170T619.1 170T648.8 170T678.6 170T708.3 170T738.0 170" fill="none" stroke="#2a78d6" stroke-width="9" stroke-linecap="round" marker-end="url(#arrow)"/>
+      <circle cx="248.5" cy="170" r="15" fill="#fcfcfb" stroke="#2a78d6" stroke-width="6"/>
+      <circle cx="760" cy="170" r="11" fill="#184f95"/>
+      <text x="224" y="172" font-size="32" font-weight="700" fill="#0b0b0b" text-anchor="end">Enslow</text>
+      <text x="224" y="198" font-size="21" fill="#52514e" text-anchor="end">River Cherwell</text>
+      <!-- src: web/public/data/travel_times.json (enslow->kingsmill tHalf.median 18.6, p10 15.0, p90 22.8, n 6) -->
+      <rect x="402" y="140" width="196" height="60" rx="30" fill="#fcfcfb" stroke="#2a78d6" stroke-width="4"/>
+      <text x="500" y="187" font-size="46" font-weight="800" fill="#0b0b0b" text-anchor="middle">18.6 h</text>
+      <text x="500" y="228" font-size="23" fill="#52514e" text-anchor="middle">6 floods, range 15&#8211;23 h</text>
+    </svg>
+    <p class="note">Median time for a flood's half-rise to travel between gauges. We only use gauge pairs seen in 3 or more past floods<!-- src: web/public/data/travel_times.json (9 of 11 pairs have n >= 3) --> (9 of 11).</p>
+  </section>
+
+  <!-- 4. How it works -->
+  <section class="how">
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="step">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <rect x="22" y="4" width="20" height="56" rx="3" fill="none" stroke="#184f95" stroke-width="4"/>
+          <path d="M22 14h9M22 24h13M22 34h9M22 44h13" stroke="#184f95" stroke-width="3"/>
+          <path d="M4 40q7-5 14 0t14 0t14 0t14 0" fill="none" stroke="#2a78d6" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <p><b>1. Read</b>EA river levels upstream, every 15&nbsp;min<!-- src: docs/judges.md (EA flood-monitoring API, live, every 15 min) --></p>
+      </div>
+      <div class="step">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <circle cx="32" cy="32" r="27" fill="none" stroke="#184f95" stroke-width="4"/>
+          <path d="M32 32V15M32 32l11 7" stroke="#184f95" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="32" cy="32" r="3" fill="#184f95"/>
+        </svg>
+        <p><b>2. Time</b>how long past floods took to reach Oxford</p>
+      </div>
+      <div class="step">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M6 36L58 12L58 56Z" fill="#cde2fb"/>
+          <path d="M6 36L58 22L58 46Z" fill="#9ec5f4"/>
+          <path d="M6 36L58 34" stroke="#2a78d6" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="6" cy="36" r="4" fill="#184f95"/>
+        </svg>
+        <p><b>3. Forecast</b>Oxford levels <span style="white-space:nowrap">6&#8211;72&nbsp;h</span> ahead<!-- src: web/public/data/proof.json skillByLead h 6..72 --> (LightGBM)</p>
+      </div>
+      <div class="step">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M32 8v48M16 56h32M10 18h44" stroke="#184f95" stroke-width="4" stroke-linecap="round"/>
+          <path d="M10 18L3 36h14ZM54 18l-7 18h14Z" fill="none" stroke="#184f95" stroke-width="3" stroke-linejoin="round"/>
+          <path d="M3 36a7 4 0 0 0 14 0ZM47 36a7 4 0 0 0 14 0Z" fill="#9ec5f4"/>
+        </svg>
+        <p><b>4. Decide</b>act when the chance beats cost&nbsp;&#247;&nbsp;loss</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Results -->
+  <section class="results">
+    <h2>Results, honestly <span class="k">7 past floods, replayed hour by hour</span><!-- src: web/public/data/events.json (7 events, e2007..e2026) --></h2>
+    <div class="results-grid">
+      <div class="chart">
+        <h3>Forecast error, lower is better</h3>
+        <div class="legend"><span><i style="background:var(--series-1)"></i>River Clock</span><span><i style="background:var(--series-2)"></i>&#8220;Level stays the same&#8221;</span></div>
+        <svg viewBox="0 0 610 306" role="img" aria-label="Pinball loss by lead time: River Clock below persistence at every lead, 39% lower at 6 h to 11% lower at 72 h.">
+          <line x1="70" y1="262" x2="600" y2="262" stroke="#c3c2b7" stroke-width="2"/>
+          <!-- src: web/public/data/proof.json skillByLead h=6: model 0.0033, persistence 0.0054, skill 0.3915 -->
+          <g><path class="m" d="M79.2 262V246.0Q79.2 242.0 83.2 242.0H109.2Q113.2 242.0 113.2 246.0V262Z"/><path class="p" d="M115.2 262V233.3Q115.2 229.3 119.2 229.3H145.2Q149.2 229.3 149.2 233.3V262Z"/>
+          <text class="sk" x="114.2" y="217.3">&#8722;39%</text>
+          <text class="ax" x="114.2" y="296">6 h</text></g>
+          <!-- src: web/public/data/proof.json skillByLead h=12: model 0.0061, persistence 0.0093, skill 0.3469 -->
+          <g><path class="m" d="M167.5 262V229.1Q167.5 225.1 171.5 225.1H197.5Q201.5 225.1 201.5 229.1V262Z"/><path class="p" d="M203.5 262V209.7Q203.5 205.7 207.5 205.7H233.5Q237.5 205.7 237.5 209.7V262Z"/>
+          <text class="sk" x="202.5" y="193.7">&#8722;35%</text>
+          <text class="ax" x="202.5" y="296">12 h</text></g>
+          <!-- src: web/public/data/proof.json skillByLead h=24: model 0.0113, persistence 0.0154, skill 0.2664 -->
+          <g><path class="m" d="M255.8 262V197.6Q255.8 193.6 259.8 193.6H285.8Q289.8 193.6 289.8 197.6V262Z"/><path class="p" d="M291.8 262V172.7Q291.8 168.7 295.8 168.7H321.8Q325.8 168.7 325.8 172.7V262Z"/>
+          <text class="sk" x="290.8" y="156.7">&#8722;27%</text>
+          <text class="ax" x="290.8" y="296">24 h</text></g>
+          <!-- src: web/public/data/proof.json skillByLead h=36: model 0.0163, persistence 0.0209, skill 0.2162 -->
+          <g><path class="m" d="M344.2 262V167.3Q344.2 163.3 348.2 163.3H374.2Q378.2 163.3 378.2 167.3V262Z"/><path class="p" d="M380.2 262V139.4Q380.2 135.4 384.2 135.4H410.2Q414.2 135.4 414.2 139.4V262Z"/>
+          <text class="sk" x="379.2" y="123.4">&#8722;22%</text>
+          <text class="ax" x="379.2" y="296">36 h</text></g>
+          <!-- src: web/public/data/proof.json skillByLead h=48: model 0.021, persistence 0.0255, skill 0.1751 -->
+          <g><path class="m" d="M432.5 262V138.8Q432.5 134.8 436.5 134.8H462.5Q466.5 134.8 466.5 138.8V262Z"/><path class="p" d="M468.5 262V111.5Q468.5 107.5 472.5 107.5H498.5Q502.5 107.5 502.5 111.5V262Z"/>
+          <text class="sk" x="467.5" y="95.5">&#8722;18%</text>
+          <text class="ax" x="467.5" y="296">48 h</text></g>
+          <!-- src: web/public/data/proof.json skillByLead h=72: model 0.03, persistence 0.0337, skill 0.1079 -->
+          <g><path class="m" d="M520.8 262V84.3Q520.8 80.3 524.8 80.3H550.8Q554.8 80.3 554.8 84.3V262Z"/><path class="p" d="M556.8 262V61.9Q556.8 57.9 560.8 57.9H586.8Q590.8 57.9 590.8 61.9V262Z"/>
+          <text class="sk" x="555.8" y="45.9">&#8722;11%</text>
+          <text class="ax" x="555.8" y="296">72 h</text></g>
+        </svg>
+        <p class="note">Pinball loss by lead time; forecasts from Oct 2021 on, unseen in training.<!-- src: web/public/data/proof.json testPeriodNote (issue times from 2021-10-01) --></p>
+      </div>
+      <div class="table">
+        <h3>No flood missed at a 50% trigger</h3>
+        <!-- src: web/public/data/proof.json tradeoff[spot] row pStar 0.5: hits, misses, falseAlarms, meanLeadH, meanLeadVsOfficialH -->
+        <table>
+          <thead><tr><th>Spot</th><th>Floods caught</th><th>False alarms</th><th>Lead time</th><th>vs EA warning</th></tr></thead>
+          <tbody>
+            <tr><td>Osney</td><td>7 / 7</td><td>2</td><td>17 h</td><td class="ahead">2.9 h ahead</td></tr><!-- src: web/public/data/proof.json tradeoff.osney pStar 0.5: hits 7, misses 0, falseAlarms 2, meanLeadH 17.0, meanLeadVsOfficialH 2.88 -->
+            <tr><td>Botley Rd</td><td>8 / 8</td><td>3</td><td>28 h</td><td>5.1 h behind</td></tr><!-- src: web/public/data/proof.json tradeoff.botley pStar 0.5: hits 8, misses 0, falseAlarms 3, meanLeadH 28.12, meanLeadVsOfficialH -5.08 -->
+            <tr><td>Abingdon Rd</td><td>8 / 8</td><td>0</td><td>23 h</td><td>13.8 h behind</td></tr><!-- src: web/public/data/proof.json tradeoff.abingdonrd pStar 0.5: hits 8, misses 0, falseAlarms 0, meanLeadH 22.88, meanLeadVsOfficialH -13.75 -->
+            <tr><td>Cherwell</td><td>7 / 7</td><td>0</td><td>9 h</td><td class="ahead">9.2 h ahead</td></tr><!-- src: web/public/data/proof.json tradeoff.cherwell pStar 0.5: hits 7, misses 0, falseAlarms 0, meanLeadH 9.29, meanLeadVsOfficialH 9.16 -->
+          </tbody>
+        </table>
+        <p class="note" style="margin-top:1.5mm">Mean hours before the flood, and versus the EA Flood Warning: ahead at two spots, behind at two.</p>
+      </div>
+    </div>
+    <div class="callouts">
+      <div class="callout">
+        <!-- src: web/public/data/replays/e2014.json (botley pFlood first >= 0.5 at issuedAt 2014-01-04T12:00Z; official warning 2014-01-04T19:03:30Z; first crossing 2014-01-06T01:00Z); proof.json perEvent e2014 botley leadVsOfficialH 7.06 -->
+        <div class="big">7 h before the EA</div>
+        <h3>Jan 2014 replay, Botley Road</h3>
+        <p>Passed 50% at 12:00 on 4 Jan: 7 h before the EA Flood Warning (19:03), 37 h before the flood (GMT).</p>
+      </div>
+      <div class="callout">
+        <!-- src: web/public/data/replays/e2026.json (max pFlood 0.2767, botley, 2026-02-15T14:00Z; no crossings) -->
+        <div class="big">28% at most</div>
+        <h3>2026 near miss: no flood came</h3>
+        <p>Our highest chance was 28%, so no false alarm at any trigger of 30% or more.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6-8. Limits, tech, team -->
+  <section class="bottom">
+    <div>
+      <h2>What it can't do</h2>
+      <ul>
+        <li><b>Few floods:</b> 7 events since 2007<!-- src: web/public/data/events.json -->, so uncertainty is wide.</li>
+        <li><b>No future rain:</b> only water already in the river. River flooding only.</li>
+        <li><b>Stand-ins:</b> Osney uses a gauge 1.2 km west<!-- src: README.md (Minns Estate, about 1.2 km west); web/public/data/spots.json osney gauge minns -->. Wolvercote has no forecast.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Built with</h2>
+      <ul>
+        <li>EA open data (OGL)</li>
+        <li>LightGBM</li>
+        <li>Tiger Data (Timescale): 3.29M rows, 434&#8594;35 MB<!-- src: docs/tiger-data.md (3,287,615 rows; 434 MB -> 35 MB) --></li>
+        <li>React, Leaflet, Recharts</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Team</h2>
+      <div class="team">
+        <div>
+          <p class="names">s-s01s<br>alfredo<br>adi</p>
+          <p class="repo">github.com/<br>outrolife/<br>FloodOxhack26</p>
+        </div>
+        <!-- QR:BEGIN --><svg viewBox="0 0 37 37" class="qr"><title>QR code: github.com/outrolife/FloodOxhack26</title><path stroke="#0b0b0b" d="M4 4.5h7m3 0h1m3 0h1m2 0h1m4 0h7m-29 1h1m5 0h1m1 0h2m1 0h1m5 0h2m3 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m1 0h2m5 0h1m2 0h1m1 0h1m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h2m1 0h3m1 0h1m1 0h1m4 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m3 0h3m3 0h5m1 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m2 0h1m1 0h1m4 0h2m2 0h1m1 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-21 1h1m1 0h1m1 0h1m1 0h3m3 0h1m-21 1h1m5 0h1m1 0h2m3 0h2m2 0h1m2 0h3m2 0h3m-28 1h1m1 0h1m4 0h2m2 0h1m2 0h1m2 0h3m1 0h1m1 0h2m1 0h2m-27 1h1m3 0h3m2 0h1m2 0h1m1 0h1m4 0h1m3 0h1m-25 1h1m2 0h3m1 0h4m3 0h1m1 0h1m1 0h4m3 0h1m-26 1h3m1 0h4m1 0h1m5 0h2m3 0h1m1 0h2m4 0h1m-28 1h1m1 0h2m2 0h1m2 0h1m1 0h2m1 0h6m1 0h3m2 0h2m-29 1h4m2 0h1m1 0h2m3 0h1m1 0h2m1 0h1m1 0h2m2 0h3m-25 1h2m1 0h1m2 0h1m1 0h3m2 0h1m3 0h1m3 0h2m1 0h1m1 0h1m-28 1h1m2 0h1m1 0h1m3 0h1m2 0h1m3 0h1m1 0h1m1 0h1m1 0h1m1 0h2m-27 1h2m2 0h1m2 0h2m1 0h3m1 0h3m1 0h2m2 0h3m1 0h3m-29 1h4m2 0h2m2 0h1m1 0h1m1 0h2m3 0h1m4 0h2m2 0h1m-29 1h1m2 0h3m1 0h2m1 0h2m3 0h2m1 0h1m1 0h1m1 0h1m-23 1h1m1 0h5m1 0h4m1 0h1m3 0h1m1 0h6m1 0h3m-21 1h5m2 0h1m2 0h1m1 0h1m3 0h2m-26 1h7m3 0h1m2 0h3m3 0h2m1 0h1m1 0h3m-27 1h1m5 0h1m4 0h2m3 0h1m2 0h2m3 0h1m3 0h1m-29 1h1m1 0h3m1 0h1m3 0h5m1 0h1m1 0h8m1 0h1m-28 1h1m1 0h3m1 0h1m2 0h4m2 0h7m3 0h2m1 0h1m-29 1h1m1 0h3m1 0h1m6 0h1m1 0h1m1 0h1m1 0h9m-28 1h1m5 0h1m2 0h2m2 0h1m1 0h1m6 0h2m1 0h2m1 0h1m-29 1h7m1 0h5m1 0h2m3 0h1m2 0h3m1 0h1"/></svg><!-- QR:END -->
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. Disclaimer -->
+  <p class="disclaimer">Decision-support prototype, not an official warning. Check gov.uk/check-flooding.</p>
+
+</main>
+</body>
+</html>

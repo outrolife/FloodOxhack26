@@ -42,6 +42,7 @@ git push origin --tags
 1. Borrow any laptop: the Devpost page has the **video** and **screenshots**; play the video, or open the screenshots full screen.
 2. No laptop at all: show the screenshots on a phone and use the 60-second script below.
 3. Keep copies of the screenshots and video on **two** phones (they're taken Sunday 09:00–10:30 from the tagged build: River, Time Machine paused at the 50% marker, Decide, Proof, About).
+4. The printed A3 poster on the table tells the whole story with no screen at all: walk the judge through it top to bottom. Source and print steps: `docs/poster/` (`poster.html`, see its `README.md`).
 
 ## 60 seconds over the screenshots
 
