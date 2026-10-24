@@ -16,6 +16,7 @@ import {
   XAxis,
   YAxis,
   ZAxis,
+  ErrorBar,
 } from "recharts";
 import type { Proof, Spot } from "../../contracts";
 
@@ -182,10 +183,29 @@ export function Reliability({ proof, spots }: { proof: Proof; spots: Spot[] }) {
   );
 }
 
-export function Tradeoff({ proof, spots }: { proof: Proof; spots: Spot[] }) {
+export function Tradeoff({
+  proof,
+  spots,
+  dateOnlySpots,
+}: {
+  proof: Proof;
+  spots: Spot[];
+  /** Spots with at least one date-only official issue time (SPEC §8.2). */
+  dateOnlySpots: Set<string>;
+}) {
   const spotKeys = Object.keys(proof.tradeoff);
   const [spot, setSpot] = useState(spotKeys.includes("osney") ? "osney" : (spotKeys[0] ?? ""));
-  const rows = [...(proof.tradeoff[spot] ?? [])].sort((a, b) => a.pStar - b.pStar);
+  // ci90 is read as the 90% bootstrap interval of meanLeadH (proposed wording in #38).
+  const rows = [...(proof.tradeoff[spot] ?? [])]
+    .sort((a, b) => a.pStar - b.pStar)
+    .map((r) => ({
+      ...r,
+      leadErr:
+        r.ci90 && r.meanLeadH != null
+          ? [Math.max(r.meanLeadH - r.ci90[0], 0), Math.max(r.ci90[1] - r.meanLeadH, 0)]
+          : undefined,
+    }));
+  const anyCi = rows.some((r) => r.ci90);
   const name = (k: string) => spots.find((s) => s.key === k)?.name ?? k;
   return (
     <div className="card">
@@ -193,7 +213,14 @@ export function Tradeoff({ proof, spots }: { proof: Proof; spots: Spot[] }) {
       <p className="sub">
         Each point is a trigger probability p*. Lower p* gives earlier warning but more false alarms.
         The dashed zero line is the official EA warning time.
+        {anyCi && " Whiskers: 90% bootstrap interval over events."}
       </p>
+      {dateOnlySpots.has(spot) && (
+        <div className="notice warn">
+          Some official issue times for this spot are known to the day only, so "vs official" for
+          those events is compared in whole days (multiples of 24 h).
+        </div>
+      )}
       <div className="controls">
         <label>
           Spot
@@ -222,7 +249,9 @@ export function Tradeoff({ proof, spots }: { proof: Proof; spots: Spot[] }) {
             />
             <Legend verticalAlign="top" wrapperStyle={{ fontSize: 12, paddingBottom: 6 }} />
             <ReferenceLine y={0} stroke="#6250d6" strokeDasharray="5 3" label={{ value: "Official warning", position: "insideBottomRight", fill: "#6250d6", fontSize: 11 }} />
-            <Line dataKey="meanLeadH" name="Mean lead before flooding" stroke={SERIES[0]} strokeWidth={2} dot={{ r: 4 }} isAnimationActive={false} connectNulls />
+            <Line dataKey="meanLeadH" name="Mean lead before flooding" stroke={SERIES[0]} strokeWidth={2} dot={{ r: 4 }} isAnimationActive={false} connectNulls>
+              {anyCi && <ErrorBar dataKey="leadErr" direction="y" width={6} stroke={SERIES[0]} strokeWidth={1.5} isAnimationActive={false} />}
+            </Line>
             <Line dataKey="meanLeadVsOfficialH" name="Mean lead vs official warning" stroke={SERIES[1]} strokeWidth={2} dot={{ r: 4 }} isAnimationActive={false} connectNulls />
           </LineChart>
         </ResponsiveContainer>
@@ -237,7 +266,7 @@ export function Tradeoff({ proof, spots }: { proof: Proof; spots: Spot[] }) {
               <th>False alarms</th>
               <th>Mean lead</th>
               <th>vs official</th>
-              <th>90% interval</th>
+              <th>Mean lead, 90% interval</th>
             </tr>
           </thead>
           <tbody>

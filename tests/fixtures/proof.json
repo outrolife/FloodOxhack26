@@ -594,6 +594,42 @@
  "tradeoff": {
   "osney": [
    {
+    "pStar": 0.01,
+    "hits": 5,
+    "misses": 0,
+    "falseAlarms": 9,
+    "meanLeadH": 70.5,
+    "meanLeadVsOfficialH": 43.0,
+    "ci90": [
+     60.0,
+     81.5
+    ]
+   },
+   {
+    "pStar": 0.02,
+    "hits": 5,
+    "misses": 0,
+    "falseAlarms": 7,
+    "meanLeadH": 68.1,
+    "meanLeadVsOfficialH": 40.6,
+    "ci90": [
+     57.6,
+     79.1
+    ]
+   },
+   {
+    "pStar": 0.05,
+    "hits": 5,
+    "misses": 0,
+    "falseAlarms": 5,
+    "meanLeadH": 64.5,
+    "meanLeadVsOfficialH": 37.0,
+    "ci90": [
+     54.0,
+     75.5
+    ]
+   },
+   {
     "pStar": 0.1,
     "hits": 4,
     "misses": 1,
@@ -679,6 +715,42 @@
    }
   ],
   "abingdonrd": [
+   {
+    "pStar": 0.01,
+    "hits": 6,
+    "misses": 0,
+    "falseAlarms": 10,
+    "meanLeadH": 61.0,
+    "meanLeadVsOfficialH": 34.0,
+    "ci90": [
+     50.5,
+     72.0
+    ]
+   },
+   {
+    "pStar": 0.02,
+    "hits": 6,
+    "misses": 0,
+    "falseAlarms": 8,
+    "meanLeadH": 58.6,
+    "meanLeadVsOfficialH": 31.6,
+    "ci90": [
+     48.1,
+     69.6
+    ]
+   },
+   {
+    "pStar": 0.05,
+    "hits": 6,
+    "misses": 0,
+    "falseAlarms": 6,
+    "meanLeadH": 55.0,
+    "meanLeadVsOfficialH": 28.0,
+    "ci90": [
+     44.5,
+     66.0
+    ]
+   },
    {
     "pStar": 0.1,
     "hits": 5,
@@ -772,7 +844,8 @@
    "crossed": true,
    "peakObs": 3.117,
    "arrivalErrH": -3.5,
-   "leadVsOfficialH": 18.0
+   "leadVsOfficialH": 18.0,
+   "officialIssuedAt": "2007-07-21T20:16:39Z"
   },
   {
    "eventId": "e2012",
@@ -780,7 +853,8 @@
    "crossed": true,
    "peakObs": 2.927,
    "arrivalErrH": 2.0,
-   "leadVsOfficialH": 9.5
+   "leadVsOfficialH": 9.5,
+   "officialIssuedAt": "2012-11-26T09:47:53Z"
   },
   {
    "eventId": "e2014",
@@ -788,7 +862,8 @@
    "crossed": true,
    "peakObs": 3.09,
    "arrivalErrH": -2.5,
-   "leadVsOfficialH": 27.4
+   "leadVsOfficialH": 27.4,
+   "officialIssuedAt": "2014-01-06T12:56:13Z"
   },
   {
    "eventId": "e2021",
@@ -796,7 +871,8 @@
    "crossed": true,
    "peakObs": 2.903,
    "arrivalErrH": 5.5,
-   "leadVsOfficialH": null
+   "leadVsOfficialH": null,
+   "officialIssuedAt": null
   },
   {
    "eventId": "e2024a",
@@ -804,7 +880,8 @@
    "crossed": true,
    "peakObs": 2.968,
    "arrivalErrH": 4.5,
-   "leadVsOfficialH": 6.0
+   "leadVsOfficialH": 6.0,
+   "officialIssuedAt": "2024-01-04T20:30:08Z"
   },
   {
    "eventId": "e2024b",
@@ -812,7 +889,8 @@
    "crossed": false,
    "peakObs": 2.819,
    "arrivalErrH": null,
-   "leadVsOfficialH": null
+   "leadVsOfficialH": null,
+   "officialIssuedAt": null
   },
   {
    "eventId": "e2026",
@@ -820,7 +898,8 @@
    "crossed": false,
    "peakObs": 2.742,
    "arrivalErrH": null,
-   "leadVsOfficialH": null
+   "leadVsOfficialH": null,
+   "officialIssuedAt": null
   },
   {
    "eventId": "e2007",
@@ -828,7 +907,8 @@
    "crossed": true,
    "peakObs": 2.69,
    "arrivalErrH": -5.0,
-   "leadVsOfficialH": 12.0
+   "leadVsOfficialH": 12.0,
+   "officialIssuedAt": "2007-07-21T20:16:39Z"
   },
   {
    "eventId": "e2012",
@@ -836,7 +916,8 @@
    "crossed": true,
    "peakObs": 2.558,
    "arrivalErrH": 3.0,
-   "leadVsOfficialH": 7.5
+   "leadVsOfficialH": 7.5,
+   "officialIssuedAt": "2012-11-26T08:43:20Z"
   },
   {
    "eventId": "e2014",
@@ -844,7 +925,8 @@
    "crossed": true,
    "peakObs": 2.699,
    "arrivalErrH": 1.5,
-   "leadVsOfficialH": 15.5
+   "leadVsOfficialH": 15.5,
+   "officialIssuedAt": "2014-01-04T19:03:30Z"
   },
   {
    "eventId": "e2021",
@@ -852,7 +934,8 @@
    "crossed": true,
    "peakObs": 2.503,
    "arrivalErrH": -2.0,
-   "leadVsOfficialH": 10.0
+   "leadVsOfficialH": 10.0,
+   "officialIssuedAt": "2021-01-31T18:03:21Z"
   },
   {
    "eventId": "e2024a",
@@ -860,7 +943,8 @@
    "crossed": true,
    "peakObs": 2.659,
    "arrivalErrH": 3.0,
-   "leadVsOfficialH": 4.0
+   "leadVsOfficialH": 4.0,
+   "officialIssuedAt": "2024-01-04T09:30:45Z"
   },
   {
    "eventId": "e2024b",
@@ -868,7 +952,8 @@
    "crossed": true,
    "peakObs": 2.455,
    "arrivalErrH": 6.5,
-   "leadVsOfficialH": -3.0
+   "leadVsOfficialH": -3.0,
+   "officialIssuedAt": "2024-11-25T19:51:24Z"
   },
   {
    "eventId": "e2026",
@@ -876,8 +961,23 @@
    "crossed": false,
    "peakObs": 2.12,
    "arrivalErrH": null,
-   "leadVsOfficialH": null
+   "leadVsOfficialH": null,
+   "officialIssuedAt": null
   }
  ],
- "testPeriodNote": "Skill and coverage: strict time split, test period from 2021-10-01. Event outcomes and official-warning comparison: leave-one-flood-out replays, which may train on floods after the replayed one."
+ "testPeriodNote": "Skill and coverage: strict time split, test period from 2021-10-01. Event outcomes and official-warning comparison: leave-one-flood-out replays, which may train on floods after the replayed one.",
+ "officialOutcome": {
+  "osney": {
+   "hits": 3,
+   "misses": 2,
+   "falseAlarms": 0,
+   "meanLeadH": 8.5
+  },
+  "abingdonrd": {
+   "hits": 5,
+   "misses": 1,
+   "falseAlarms": 0,
+   "meanLeadH": 21.5
+  }
+ }
 }

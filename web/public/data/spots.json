@@ -1,0 +1,57 @@
+[
+ {
+  "key": "osney",
+  "name": "Osney Island / Binsey",
+  "gauge": "minns",
+  "threshold": 2.9,
+  "amber": 2.13,
+  "lat": 51.7503,
+  "lon": -1.2735,
+  "warningArea": "061FWF23BnsyOsny",
+  "mode": "probability"
+ },
+ {
+  "key": "botley",
+  "name": "Botley Road / New Botley / Hinksey",
+  "gauge": "newbotley",
+  "threshold": 2.76,
+  "amber": 2.01,
+  "lat": 51.7525,
+  "lon": -1.279,
+  "warningArea": "061FWF23NwBotley",
+  "mode": "probability"
+ },
+ {
+  "key": "abingdonrd",
+  "name": "Abingdon Road / Grandpont",
+  "gauge": "coldharbour",
+  "threshold": 2.44,
+  "amber": 2.3,
+  "lat": 51.733,
+  "lon": -1.2493,
+  "warningArea": "061FWF23NwBotley",
+  "mode": "probability"
+ },
+ {
+  "key": "wolvercote",
+  "name": "Wolvercote / Port Meadow",
+  "gauge": "godstow",
+  "threshold": 3.07,
+  "amber": 2.57,
+  "lat": 51.779,
+  "lon": -1.295,
+  "warningArea": "061FWF23Wlvrcote",
+  "mode": "timing_only"
+ },
+ {
+  "key": "cherwell",
+  "name": "Cherwell (Kings Mill)",
+  "gauge": "kingsmill",
+  "threshold": 2.6,
+  "amber": 2.4,
+  "lat": 51.7575,
+  "lon": -1.2395,
+  "warningArea": "061FWF14CherOxfd",
+  "mode": "probability"
+ }
+]

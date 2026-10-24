@@ -132,3 +132,6 @@ table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
 
 .timeline-note { font-size: 0.85rem; color: var(--ink-2); margin-top: 0.4rem; }
 .tm-slider { width: 100%; }
+
+.speed { display: inline-flex; gap: 0.2rem; }
+.speed .btn { padding: 0.2rem 0.5rem; font-size: 0.85rem; }

@@ -1,0 +1,17 @@
+#cloud-config
+# First-boot setup for a River Clock VM (issue #18). Paste into Vultr's "Cloud-Init User-Data" box,
+# or let deploy/vultr.sh send it. Installs Docker (with the compose plugin), adds 2 GB of swap so the
+# image builds on a small plan, and opens ports 80/443 in ufw (Vultr's Ubuntu images allow only SSH).
+package_update: true
+packages:
+  - ca-certificates
+  - curl
+swap:
+  filename: /swapfile
+  size: 2G
+runcmd:
+  - curl -fsSL https://get.docker.com | sh
+  - systemctl enable --now docker
+  - (command -v ufw && ufw allow 80/tcp && ufw allow 443/tcp) || true
+  - mkdir -p /opt/river-clock
+  - touch /var/run/river-clock-ready

@@ -6,7 +6,7 @@ PY   := $(VENV)/bin/python
 DATA_DIR     := $(if $(RC_DATA_DIR),$(RC_DATA_DIR),data)
 DATA_RELEASE ?= data-hourly-v1
 
-.PHONY: setup data fetch-data travel train backtest live api web test lint
+.PHONY: setup data fetch-data travel train backtest live api web test lint mirror
 
 setup: $(VENV)/.installed
 
@@ -17,12 +17,13 @@ $(VENV)/.installed: pyproject.toml
 	@$(PY) -c "import lightgbm" 2>/dev/null || echo "WARNING: lightgbm can't load. On macOS run: brew install libomp"
 	@touch $@
 
-# Ingest history + warnings, clean, quality report (SPEC §5)
+# Ingest history + warnings, clean, quality report (SPEC §5); export stations/spots/events.json (§9)
 data: setup
 	$(PY) -m pipeline.ingest_history
 	$(PY) -m pipeline.ingest_warnings
 	$(PY) -m pipeline.clean
 	$(PY) -m pipeline.quality_report
+	$(PY) -m pipeline.export_static
 
 # Skip the long download: fetch the cleaned hourly.parquet + provenance.parquet from a GitHub
 # release asset (not in git). Override the tag with `make fetch-data DATA_RELEASE=data-hourly-v2`.
@@ -61,3 +62,19 @@ test: setup
 
 lint: setup
 	$(VENV)/bin/ruff check .
+
+# Single-container deploy (issue #18; deploy/README.md)
+.PHONY: serve docker
+
+# Production-style run without Docker: build the web app, then serve it and the API from one process on :8000
+serve: setup
+	cd web && npm ci && npm run build
+	RIVER_CLOCK_STATIC_DIR=web/dist $(VENV)/bin/uvicorn api.main:app --port 8000
+
+docker:
+	docker build -f deploy/Dockerfile -t river-clock .
+
+# Optional Tiger Data mirror of hourly + live readings (SPEC §2, P2; docs/tiger-data.md). Needs
+# TIGER_DATABASE_URL and the extra: uv pip install --python .venv/bin/python -r pyproject.toml --extra mirror
+mirror: setup
+	$(PY) -m pipeline.mirror_tiger --hourly --live

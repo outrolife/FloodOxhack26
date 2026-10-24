@@ -30,6 +30,11 @@ quantiles and ``pAmber``, but ``pFlood: null`` and no arrival window.
 Probabilities follow SPEC §7.5 steps 2-5 (``exceedance_probability``, ``arrival_window``). They are a
 local copy until ``model/probability.py`` (#8) lands; then swap these for the shared functions.
 
+``observed`` (SPEC §9, adopted on #38) holds the hourly level of every level gauge over the last 7 days
+up to ``issuedAt``, live-only gauges included, so the River strip can draw sparklines. It is the hourly
+mean from ``live_hourly.parquet`` (hour-start labels, the current hour partial), rounded to 3 dp; hours
+with no reading are left out. Each series is on its own gauge datum: never compare across gauges.
+
 ``web/public/data/live.json`` (committed, for the offline demo) is written only with ``--write-web``.
 All times are UTC; ISO strings end in ``Z``.
 """
@@ -67,6 +72,7 @@ LEADS_H: tuple[int, ...] = (6, 12, 24, 36, 48, 72)
 ALPHAS: tuple[float, ...] = (0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95)
 QUANT_KEYS: tuple[str, ...] = ("05", "10", "25", "50", "75", "90", "95")
 MIN_PERSISTENCE_SAMPLES = 48
+OBSERVED_WINDOW = timedelta(days=7)  # Forecast.observed: last 7 days, hourly
 
 PERSISTENCE_NOTE = (
     "Persistence fallback: trained models are not available, so this forecast assumes the level stays "
@@ -270,6 +276,27 @@ def _level_now(hourly: pd.DataFrame, meta: Mapping[str, Any], gauge: str) -> flo
     return float(rows.sort_values("ts_utc")["level_mean"].iloc[-1]) if not rows.empty else None
 
 
+def observed_series(
+    hourly: pd.DataFrame, now: datetime, window: timedelta = OBSERVED_WINDOW
+) -> dict[str, list[dict[str, Any]]]:
+    """``Forecast.observed``: hourly ``{t, level}`` per level gauge for ``now - window < t <= now``.
+
+    Gauges in alphabetical order, times ascending. No reading after ``now`` (no future data).
+    """
+    now_ts = pd.Timestamp(_utc(now))
+    levels = hourly[hourly["kind"] == "level"] if "kind" in hourly else hourly
+    rows = levels[(levels["ts_utc"] > now_ts - window) & (levels["ts_utc"] <= now_ts)]
+    rows = rows.dropna(subset=["level_mean"])
+    out: dict[str, list[dict[str, Any]]] = {}
+    for gauge, g in sorted(rows.groupby("gauge"), key=lambda kv: kv[0]):
+        g = g.sort_values("ts_utc")
+        out[gauge] = [
+            {"t": iso_utc(t), "level": round(float(v), 3)}
+            for t, v in zip(g["ts_utc"], g["level_mean"], strict=True)
+        ]
+    return out
+
+
 def build_forecast(
     hourly: pd.DataFrame,
     meta: Mapping[str, Any],
@@ -334,6 +361,7 @@ def build_forecast(
         "dataAsOf": data_as_of,
         "stale": stale,
         "spots": out_spots,
+        "observed": observed_series(hourly, now),
         "method": method,
         "note": PERSISTENCE_NOTE if method == "persistence" else "",
     }

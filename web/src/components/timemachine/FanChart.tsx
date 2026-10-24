@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import type { SpotForecast } from "../../contracts";
 import { HOUR, formatAxis, formatDateTime, zoneAt } from "../../time";
+import { yDomain } from "./yDomain";
 
 type Point = { t: string; level: number };
 type Row = {
@@ -35,8 +36,19 @@ function dayTicks([a, b]: [number, number]): number[] {
   return out;
 }
 
-// Stagger marker labels so nearby markers don't overprint each other.
-const MARKER_POS = ["insideTopLeft", "insideBottomLeft", "insideTopRight", "insideBottomRight"] as const;
+// Marker labels sit in their own row at the top of the plot (one row per
+// marker), with a white halo, so nearby markers never overprint each other.
+function markerLabel(text: string, colour: string, row: number) {
+  return (props: { viewBox?: { x?: number; y?: number } }) => {
+    const x = (props.viewBox?.x ?? 0) + 4;
+    const y = (props.viewBox?.y ?? 0) + 12 + row * 14;
+    return (
+      <text x={x} y={y} fill={colour} fontSize={11} fontWeight={600} stroke="#fcfcfb" strokeWidth={3} paintOrder="stroke">
+        {text}
+      </text>
+    );
+  };
+}
 
 export function FanChart({
   observed,
@@ -91,16 +103,14 @@ export function FanChart({
   }
 
   const data = [...rows.values()].sort((a, b) => a.t - b.t);
-  const values: number[] = [amber];
-  if (threshold != null) values.push(threshold);
-  for (const r of data) {
-    if (r.obs != null) values.push(r.obs);
-    if (r.obsFaint != null) values.push(r.obsFaint);
-    if (r.band90) values.push(...r.band90);
-  }
-  for (const p of observed) values.push(p.level); // stable y-axis while playing
-  const yMin = Math.floor((Math.min(...values) - 0.1) * 10) / 10;
-  const yMax = Math.ceil((Math.max(...values) + 0.1) * 10) / 10;
+  // Only what is on screen sets the axis: never observations past the slider (#59).
+  const [yMin, yMax] = yDomain({
+    observedSoFar: data.flatMap((r) => (r.obs != null ? [r.obs] : [])),
+    revealed: data.flatMap((r) => (r.obsFaint != null ? [r.obsFaint] : [])),
+    band: data.flatMap((r) => r.band90 ?? []),
+    threshold,
+    amber,
+  });
 
   return (
     <div style={{ width: "100%" }}>
@@ -151,7 +161,7 @@ export function FanChart({
               x={Date.parse(m.t)}
               stroke={m.colour}
               strokeWidth={1.5}
-              label={{ value: m.label, position: MARKER_POS[i % MARKER_POS.length], fill: m.colour, fontSize: 11 }}
+              label={markerLabel(m.label, m.colour, i)}
             />
           ))}
           <ReferenceLine x={now} stroke="#52514e" strokeWidth={2} />

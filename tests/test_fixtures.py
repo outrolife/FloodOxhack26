@@ -196,6 +196,7 @@ FORECAST = {
     "spots": ListOf(SPOT_FORECAST),
     "method?": Lit("model", "persistence"),
     "note?": STR,
+    "observed?": RecordOf(ListOf({"t": UTC, "level": NUM})),  # live.json only (#38)
 }
 REPLAY = {
     "eventId": STR,
@@ -248,7 +249,11 @@ PROOF = {
             "peakObs": NUM,
             "arrivalErrH": Nullable(NUM),
             "leadVsOfficialH": Nullable(NUM),
+            "officialIssuedAt?": Nullable(UTC),
         }
+    ),
+    "officialOutcome?": RecordOf(
+        {"hits": NUM, "misses": NUM, "falseAlarms": NUM, "meanLeadH": Nullable(NUM)}
     ),
     "testPeriodNote": STR,
 }
@@ -593,6 +598,21 @@ def test_live_forecast(stations: dict, spots: dict) -> None:
     lo, hi = parse_utc("2026-10-25T00:30:00Z"), parse_utc("2026-10-25T02:30:00Z")
     assert any(lo <= parse_utc(t) <= hi for t in fc["dataAsOf"].values()), "no dataAsOf in the DST window"
     assert fc["stale"], "fixture should list one stale gauge"
+    # #38: optional 7-day hourly history per gauge, live_only gauges included.
+    assert "observed" in fc, "live fixture should carry observed history"
+    assert_known(fc["observed"], stations, "live.observed")
+    for g, series in fc["observed"].items():
+        ts = [parse_utc(x["t"]) for x in series]
+        assert ts and all(b - a == timedelta(hours=1) for a, b in pairwise(ts)), (
+            f"live.observed[{g}] not hourly"
+        )
+        assert issued - timedelta(days=7) <= ts[0] and ts[-1] <= issued, (
+            f"live.observed[{g}] not in the last 7 days"
+        )
+        if g in fc["dataAsOf"]:
+            assert ts[-1] <= parse_utc(fc["dataAsOf"][g]), f"live.observed[{g}] goes past dataAsOf"
+    live_only = {k for k, s in stations.items() if s["role"] == "live_only"}
+    assert live_only <= set(fc["observed"]), "live.observed should include the live_only gauges"
     modes = {sf["mode"] for sf in fc["spots"]}
     assert modes == {"probability", "timing_only"}, "fixture should exercise both modes"
     # SPEC §4.2: a spot on a live_only gauge is timing_only with leads: [] and arrival: null.
@@ -684,15 +704,16 @@ def test_proof(spots: dict, events: dict) -> None:
             assert_prob(row["brierPersistence"], p)
 
     assert_known(pr["tradeoff"], spots, "proof.tradeoff")
-    p_stars = [round(0.1 * i, 1) for i in range(1, 10)]
+    p_stars = [0.01, 0.02, 0.05] + [round(0.1 * i, 1) for i in range(1, 10)]  # SPEC §8.2, #38
     for spot, rows in pr["tradeoff"].items():
         p = f"proof.tradeoff[{spot}]"
-        assert [r["pStar"] for r in rows] == p_stars, f"{p}: pStar must be 0.1 ... 0.9"
+        assert [r["pStar"] for r in rows] == p_stars, f"{p}: pStar must be 0.01, 0.02, 0.05, 0.1 ... 0.9"
         assert len({r["hits"] + r["misses"] for r in rows}) == 1, f"{p}: hits + misses must be constant"
         for r in rows:
             assert min(r["hits"], r["misses"], r["falseAlarms"]) >= 0
-            if "ci90" in r:
+            if "ci90" in r:  # 90% bootstrap interval of meanLeadH (#38)
                 assert r["ci90"][0] <= r["ci90"][1], f"{p}: ci90 low > high"
+                assert r["meanLeadH"] is not None, f"{p}: ci90 without a meanLeadH"
 
     for row in pr["perEvent"]:
         p = f"proof.perEvent[{row['eventId']}/{row['spot']}]"
@@ -705,6 +726,32 @@ def test_proof(spots: dict, events: dict) -> None:
             assert_close(row["peakObs"], peak, 1e-6, f"{p}: peakObs vs events.json")
         if not row["crossed"]:
             assert row["arrivalErrH"] is None, f"{p}: arrival error without a crossing"
+        if "officialIssuedAt" in row:  # #38: null means the EA issued no warning
+            if row["officialIssuedAt"] is None:
+                assert row["leadVsOfficialH"] is None, f"{p}: lead vs official without an official warning"
+            else:
+                start, end = (parse_utc(events[row["eventId"]][k]) for k in ("start", "end"))
+                assert start <= parse_utc(row["officialIssuedAt"]) <= end, (
+                    f"{p}: officialIssuedAt outside event"
+                )
+    # Fixture coverage: the e2026 near miss had no Oxford warning at all.
+    assert all(r.get("officialIssuedAt", "x") is None for r in pr["perEvent"] if r["eventId"] == "e2026")
+
+    if "officialOutcome" in pr:  # official warnings scored like a trigger (#38)
+        assert_known(pr["officialOutcome"], spots, "proof.officialOutcome")
+        for spot, o in pr["officialOutcome"].items():
+            p = f"proof.officialOutcome[{spot}]"
+            assert min(o["hits"], o["misses"], o["falseAlarms"]) >= 0, f"{p}: negative count"
+            assert o["hits"] == int(o["hits"]) and o["misses"] == int(o["misses"]), (
+                f"{p}: counts must be whole"
+            )
+            if spot in pr["tradeoff"]:  # same set of crossings as our trigger
+                rows = pr["tradeoff"][spot]
+                assert o["hits"] + o["misses"] == rows[0]["hits"] + rows[0]["misses"], (
+                    f"{p}: hits + misses differs from tradeoff"
+                )
+            if o["hits"] == 0:
+                assert o["meanLeadH"] is None, f"{p}: meanLeadH without hits"
     near_miss = [r for r in pr["perEvent"] if r["eventId"] == "e2026" and r["spot"] == "osney"]
     assert near_miss and near_miss[0]["crossed"] is False and near_miss[0]["peakObs"] == 2.742
 

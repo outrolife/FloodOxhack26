@@ -55,7 +55,7 @@ export function SpotPanel({
         <Sparkline points={history} amber={spot.amber} width={280} height={60} />
       ) : (
         <p className="small muted">
-          No 7-day history in the live data yet.
+          7-day history unavailable.
         </p>
       )}
 

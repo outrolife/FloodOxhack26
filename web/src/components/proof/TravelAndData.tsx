@@ -142,13 +142,32 @@ export function FeatureImportance({ importance, stations }: { importance: Import
   );
 }
 
-export function PerEventTable({ proof, events, spots }: { proof: Proof; events: EventMeta[]; spots: Spot[] }) {
+export function PerEventTable({
+  proof,
+  events,
+  spots,
+  dateOnly,
+}: {
+  proof: Proof;
+  events: EventMeta[];
+  spots: Spot[];
+  /** "eventId:spot" keys whose official time is known to the day only. */
+  dateOnly: Set<string>;
+}) {
   const ev = (id: string) => events.find((e) => e.id === id)?.name ?? id;
   const sp = (k: string) => spots.find((s) => s.key === k)?.name ?? k;
   const h = (v: number | null) => (v == null ? "–" : `${v > 0 ? "+" : ""}${v.toFixed(1)} h`);
+  const isDateOnly = (eventId: string, spot: string) => dateOnly.has(`${eventId}:${spot}`);
+  const anyDateOnly = proof.perEvent.some((r) => isDateOnly(r.eventId, r.spot));
   return (
     <div className="card">
       <h2>Event by event</h2>
+      {anyDateOnly && (
+        <div className="notice warn">
+          Rows marked † have an official issue time known to the day only: their lead vs official is
+          compared in whole days (multiples of 24 h), so it is approximate.
+        </div>
+      )}
       <div className="table-scroll">
         <table className="data">
           <thead>
@@ -169,7 +188,13 @@ export function PerEventTable({ proof, events, spots }: { proof: Proof; events: 
                 <td>{r.crossed ? "Yes" : "No"}</td>
                 <td className="num">{r.peakObs.toFixed(2)} m</td>
                 <td className="num">{h(r.arrivalErrH)}</td>
-                <td className="num">{h(r.leadVsOfficialH)}</td>
+                <td className="num">
+                  {isDateOnly(r.eventId, r.spot) && r.leadVsOfficialH != null ? (
+                    <span title="Official time known to the day only">≈ {h(r.leadVsOfficialH)} †</span>
+                  ) : (
+                    h(r.leadVsOfficialH)
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>

@@ -9,7 +9,10 @@ What it does
    flood-monitoring API. (The per-measure endpoint returns the same readings as
    ``/id/stations/{ref}/readings`` filtered to the one measure we use, e.g. the *downstream* stage at a
    lock gauge.) Every response is cached under ``<data>/raw/live/`` and reused for 15 minutes, so the EA
-   is polled at most every 15 minutes (CLAUDE.md rule 5).
+   is polled at most every 15 minutes (CLAUDE.md rule 5). The requests run in a small thread pool
+   (``MAX_WORKERS = 4`` at once, polite to the EA); results are collected in a fixed gauge order, so
+   the output does not depend on which request finishes first. HTTP goes through
+   ``pipeline.ea_client.http_get`` (retries with backoff on network errors, 429 and 5xx).
 2. Keeps ``observed_at`` (the reading's own time) and ``received_at`` (when we downloaded it).
 3. Resamples to the same long hourly union schema as ``hourly.parquet``:
    ``gauge`` (config key for level gauges, EA ref such as ``256230TP`` for rain gauges, plus derived
@@ -22,9 +25,11 @@ What it does
 
 ``<data>`` is ``$RC_DATA_DIR`` if set, else ``<repo>/data``.
 
-Placeholders (swap when #3 lands)
----------------------------------
-- ``_cached_get_json`` is a small private HTTP cache. Replace with ``pipeline.ea_client`` once #3 merges.
+Placeholders
+------------
+- ``_cached_get_json`` keeps its own small cache file format (it stores ``received_at`` in the file and
+  falls back to the cached copy when the EA is down, which ``ea_client.cached_get`` does not do);
+  the HTTP itself is ``ea_client.http_get``.
 - ``to_hourly`` is a minimal version of the ``pipeline/clean.py`` steps (hourly mean/max, rain sum,
   forward-fill gaps <= 2 h, flag longer gaps). It does NOT remove spikes yet. Replace it with the
   shared cleaning function from ``pipeline/clean.py`` once #3 merges, so live and history match.
@@ -41,15 +46,17 @@ import hashlib
 import json
 import logging
 import os
-import time
+import threading
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pandas as pd
-import requests
+
+from pipeline import ea_client
 
 log = logging.getLogger(__name__)
 
@@ -62,6 +69,8 @@ OUT_META = DATA_DIR / "processed" / "live_meta.json"
 
 LIVE_DAYS = 28
 CACHE_TTL_S = 15 * 60  # poll EA at most every 15 minutes
+MAX_WORKERS = 4  # concurrent EA requests per poll (bounded, polite)
+HTTP_TIMEOUT_S = 30
 MAX_FFILL_H = 2  # SPEC §5.2 step 3
 RAIN_KEY = "rain_catchment"
 
@@ -101,22 +110,13 @@ Fetcher = Callable[[str, dict[str, str]], Any]
 
 
 # ---------------------------------------------------------------------------------------------
-# HTTP with a 15-minute file cache (PLACEHOLDER: replace with pipeline.ea_client from #3)
+# HTTP with a 15-minute file cache
 # ---------------------------------------------------------------------------------------------
 
 
 def _http_get_json(url: str, params: dict[str, str]) -> Any:
-    """GET with 3 tries and exponential backoff."""
-    for attempt in range(3):
-        try:
-            resp = requests.get(url, params=params, timeout=30)
-            resp.raise_for_status()
-            return resp.json()
-        except requests.RequestException:
-            if attempt == 2:
-                raise
-            time.sleep(2**attempt)
-    raise AssertionError("unreachable")
+    """GET JSON via ``ea_client.http_get``: retries with exponential backoff on network errors, 429, 5xx."""
+    return ea_client.http_get(url, params=params, timeout=HTTP_TIMEOUT_S).json()
 
 
 def cache_path(url: str, params: dict[str, str], cache_dir: Path = RAW_DIR) -> Path:
@@ -154,7 +154,10 @@ def _cached_get_json(
         log.warning("fetch failed for %s; using cached copy from %s", url, cached["received_at"])
         return cached["body"], datetime.fromisoformat(cached["received_at"])
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({"url": url, "params": params, "received_at": now.isoformat(), "body": body}))
+    # Write then rename, so a reader (another thread, the API refresher) never sees a half-written file.
+    tmp = path.with_name(f"{path.name}.{os.getpid()}.{threading.get_ident()}.part")
+    tmp.write_text(json.dumps({"url": url, "params": params, "received_at": now.isoformat(), "body": body}))
+    tmp.replace(path)
     return body, now
 
 
@@ -191,21 +194,29 @@ def fetch_live_readings(
     cache_dir: Path = RAW_DIR,
     fetch: Fetcher = _http_get_json,
     ttl_s: int = CACHE_TTL_S,
+    max_workers: int = MAX_WORKERS,
 ) -> dict[str, pd.DataFrame]:
-    """Last ``LIVE_DAYS`` of readings per gauge key (level gauges and ``rain_<ref>`` gauges).
+    """Last ``LIVE_DAYS`` of readings per gauge key (level gauges, then rain gauges by EA ref).
 
-    A gauge whose request fails with no cached copy is logged and left out.
+    Requests run concurrently, at most ``max_workers`` at a time. The result is in the fixed order of
+    ``LEVEL_MEASURES`` then ``RAIN_MEASURES`` whatever order the requests finish in. A gauge whose
+    request fails with no cached copy is logged and left out; the others are unaffected.
     """
     now = (now or datetime.now(UTC)).astimezone(UTC)
     since = (now - timedelta(days=LIVE_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    out: dict[str, pd.DataFrame] = {}
-    for key, measure in {**LEVEL_MEASURES, **RAIN_MEASURES}.items():
+    params = {"since": since, "_sorted": "", "_limit": "10000"}
+
+    def get(measure: str) -> tuple[Any, datetime]:
         url = f"{BASE_URL}/id/measures/{measure}/readings"
-        params = {"since": since, "_sorted": "", "_limit": "10000"}
+        return _cached_get_json(url, params, now=now, cache_dir=cache_dir, ttl_s=ttl_s, fetch=fetch)
+
+    jobs = list({**LEVEL_MEASURES, **RAIN_MEASURES}.items())
+    with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="ea-live") as pool:
+        futures = [(key, pool.submit(get, measure)) for key, measure in jobs]
+    out: dict[str, pd.DataFrame] = {}
+    for key, future in futures:  # job order, not completion order
         try:
-            body, received_at = _cached_get_json(
-                url, params, now=now, cache_dir=cache_dir, ttl_s=ttl_s, fetch=fetch
-            )
+            body, received_at = future.result()
         except Exception as exc:  # one dead gauge must not stop live mode
             log.warning("no live data for %s: %s", key, exc)
             continue
@@ -301,9 +312,10 @@ def ingest_live(
     out_hourly: Path = OUT_HOURLY,
     out_meta: Path = OUT_META,
     fetch: Fetcher = _http_get_json,
+    max_workers: int = MAX_WORKERS,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     """Fetch (cached), resample and write ``live_hourly.parquet`` and ``live_meta.json``."""
-    readings = fetch_live_readings(now, cache_dir=cache_dir, fetch=fetch)
+    readings = fetch_live_readings(now, cache_dir=cache_dir, fetch=fetch, max_workers=max_workers)
     hourly = to_hourly(readings)
     meta = live_meta(readings)
     out_hourly.parent.mkdir(parents=True, exist_ok=True)
