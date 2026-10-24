@@ -26,9 +26,11 @@ Calibration variants (every Q is fitted on **validation rows only**: issue time 
 - ``m3``: Mondrian, 3 regimes (calm / rising / high).
 - ``m2h``, ``m3h`` (hybrid): the calm regime gets its own Q (all validation calm rows); every other
   regime keeps the shipped in-event Q, so high-water and rising rows are unchanged.
+- ``m2e``, ``m3e`` (Mondrian on the SPEC §7.4 rows): a Q per regime, each fitted on the validation rows
+  **inside events** of that regime (the shipped calibration rows, split by regime).
 
-A regime with fewer than ``MIN_REGIME_ROWS`` validation rows falls back to the variant's pooled Q
-(``pooled_all`` for m2/m3, ``current`` for the hybrids); ``--min-rows`` changes it (sensitivity).
+A regime with fewer than ``MIN_REGIME_ROWS`` calibration rows falls back to the variant's pooled Q
+(``pooled_all`` for m2/m3, ``current`` for the others); ``--min-rows`` changes it (sensitivity).
 
 Scoring reuses the #125 B harness (``analysis.feature_experiment.evaluate_arms``, alfredo-feats) with
 one wrapper per variant, so every arm is scored on the same strict test rows (issue times >=
@@ -73,8 +75,8 @@ WET_MM = 10.0  # catchment rain over 72 h that marks a "rising" row
 CALM, RISING, HIGH = 0, 1, 2
 REGIME_NAMES = {CALM: "calm", RISING: "rising", HIGH: "high"}
 
-VARIANTS: tuple[str, ...] = ("current", "pooled_all", "m2", "m3", "m2h", "m3h")
-VARIANT_SCHEME = {"current": 1, "pooled_all": 1, "m2": 2, "m3": 3, "m2h": 2, "m3h": 3}
+VARIANTS: tuple[str, ...] = ("current", "pooled_all", "m2", "m3", "m2h", "m3h", "m2e", "m3e")
+VARIANT_SCHEME = {"current": 1, "pooled_all": 1, "m2": 2, "m3": 3, "m2h": 2, "m3h": 3, "m2e": 2, "m3e": 3}
 
 
 # ---------------------------------------------------------------------------------------------
@@ -272,7 +274,16 @@ def fit_variants(
         out["m3h"][h], _ = fit_regime_q(
             raw[h], y, regs[3], val, m.cqr[h], min_rows, keep_fallback=(RISING, HIGH)
         )
-        out["_n"][h] = {"m2": n2, "m3": n3, "nCalCurrent": int(cal.sum()), "nVal": int(val.sum())}
+        out["m2e"][h], n2e = fit_regime_q(raw[h], y, regs[2], cal, m.cqr[h], min_rows)
+        out["m3e"][h], n3e = fit_regime_q(raw[h], y, regs[3], cal, m.cqr[h], min_rows)
+        out["_n"][h] = {
+            "m2": n2,
+            "m3": n3,
+            "m2e": n2e,
+            "m3e": n3e,
+            "nCalCurrent": int(cal.sum()),
+            "nVal": int(val.sum()),
+        }
     out["_check"] = check
     return out
 
@@ -447,10 +458,94 @@ def evaluate_stage(variants: Sequence[str], min_rows: int, events: bool, out: Pa
     return res
 
 
+def _bri(s: Mapping[str, Any], spot: str, h: int) -> float:
+    d = s["brier"][spot]
+    return float((d[h] if h in d else d[str(h)])["model"])
+
+
+def adoption(res: Mapping[str, Any], base: str = "current") -> dict[str, dict[str, Any]]:
+    """The #125 adoption rule per variant, against ``base`` (all values at their stored precision).
+
+    skill: min change over leads, pooled and per gauge (no worse anywhere, better somewhere);
+    in-event coverage: min over leads/levels of actual - (nominal - 0.02) (absolute reading) and of
+    actual - (base - 0.02) (relative reading); false alarms at p* = 0.5; Brier 48/72 h per spot.
+    """
+    by = {s["arm"]: s for s in res["scores"]}
+    ev = {e["arm"]: e for e in res.get("events", [])}
+    b = by[base]
+
+    def skills(s: Mapping[str, Any]) -> dict[tuple[str, int], float]:
+        out = {("pooled", r["h"]): r["skill"] for r in s["skill"]}
+        for g, d in s["perGauge"].items():
+            out.update({(g, r["h"]): r["skill"] for r in d["skill"]})
+        return out
+
+    def cov(s: Mapping[str, Any]) -> dict[tuple[int, float], float]:
+        return {(r["h"], r["nominal"]): r["actual"] for r in s["floodCoverage"]}
+
+    out = {}
+    for name, s in by.items():
+        if name == base:
+            continue
+        ds = {k: v - skills(b)[k] for k, v in skills(s).items()}
+        worst = min(ds, key=ds.get)
+        c, cb = cov(s), cov(b)
+        abs_margin = min(v - (k[1] - 0.02) for k, v in c.items())
+        rel_margin = min(v - (cb[k] - 0.02) for k, v in c.items())
+        fa = {k: o["falseAlarms"] - b["outcomesP50"][k]["falseAlarms"] for k, o in s["outcomesP50"].items()}
+        if name in ev and base in ev:
+            fa_ev = {
+                k: o["falseAlarms"] - ev[base]["tradeoffP50"][k]["falseAlarms"]
+                for k, o in ev[name]["tradeoffP50"].items()
+            }
+        else:
+            fa_ev = {}
+        brier = {(k, h): _bri(s, k, h) - _bri(b, k, h) for k in s["brier"] for h in (48, 72)}
+        r = {
+            "skillMinDelta": round(ds[worst], 4),
+            "skillWorst": f"{worst[0]} {worst[1]}h",
+            "skillMaxDelta": round(max(ds.values()), 4),
+            "inEventAbsMargin": round(abs_margin, 4),
+            "inEventRelMargin": round(rel_margin, 4),
+            "extraFA": max([0, *fa.values(), *fa_ev.values()]),
+            "brierMaxDelta": max(brier.values()),
+        }
+        r["pass"] = {
+            "skill": r["skillMinDelta"] >= 0 and r["skillMaxDelta"] > 0,
+            "inEventAbs": abs_margin >= -1e-9,
+            "inEventRel": rel_margin >= -1e-9,
+            "noExtraFA": r["extraFA"] == 0,
+            "brier": r["brierMaxDelta"] <= 1e-9,
+        }
+        out[name] = r
+    return out
+
+
+def load_results(path: Path) -> dict[str, Any]:
+    """A results JSON with the Brier lead keys back as ints (as ``evaluate_arms`` returns them)."""
+    res = json.loads(path.read_text(encoding="utf-8"))
+    for s in res["scores"]:
+        s["brier"] = {k: {int(h): v for h, v in d.items()} for k, d in s["brier"].items()}
+    return res
+
+
 def report(res: Mapping[str, Any]) -> str:
     from analysis import feature_experiment as fe
 
-    L = [fe.report(res), "", "### Q per regime at 72 h (90 % interval, m): calm / rising / high"]
+    L = [fe.report(res), "", "### Adoption rule vs current"]
+    L.append(
+        "| variant | skill min Δ (where) / max Δ | in-event cov margin abs / rel | extra FA "
+        "| Brier max Δ | pass |"
+    )
+    L.append("|---|---|---|---|---|---|")
+    for v, r in adoption(res).items():
+        ok = ", ".join(k for k, p in r["pass"].items() if not p) or "all"
+        L.append(
+            f"| {v} | {r['skillMinDelta']:+.4f} ({r['skillWorst']}) / {r['skillMaxDelta']:+.4f} | "
+            f"{r['inEventAbsMargin']:+.3f} / {r['inEventRelMargin']:+.3f} | {r['extraFA']} | "
+            f"{r['brierMaxDelta']:+.6f} | {'yes' if ok == 'all' else 'fails ' + ok} |"
+        )
+    L += ["", "### Q per regime at 72 h (90 % interval, m): calm / rising / high"]
     for g, f in res["qFits"].items():
         n = f["n"]["72"]["m3"]
         cells = []
@@ -484,10 +579,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     e.add_argument("--min-rows", type=int, default=MIN_REGIME_ROWS)
     e.add_argument("--no-events", action="store_true")
     e.add_argument("--out", default=str(OUT_PATH))
+    r = sub.add_parser("report", help="print the tables from a results JSON")
+    r.add_argument("--path", default=str(OUT_PATH))
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     if args.cmd == "cache":
         cache_stage(args.targets)
+    elif args.cmd == "report":
+        print(report(load_results(Path(args.path))))
     else:
         res = evaluate_stage(args.variants, args.min_rows, not args.no_events, Path(args.out))
         print(report(res))
