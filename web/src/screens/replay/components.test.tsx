@@ -7,7 +7,7 @@ import { perEventRow, replayFacts, startIndex } from "./facts";
 import { buildScoreboard, scoreboardAt } from "./scoreboard";
 import { Scoreboard } from "./ScoreboardCard";
 import { EventPicker } from "./EventPicker";
-import { clockAt } from "./clocks";
+import { clockFor } from "../../ui/clockData";
 import { badgeText, headlineText, outcomeOf } from "./story";
 
 const DATA = new URL("../../../public/data/", import.meta.url);
@@ -74,9 +74,9 @@ describe.skipIf(!have)("Replay screen on the committed data", () => {
 
   it("clocks: Wolvercote has no forecast; Botley's clock reads the playhead forecast", () => {
     const f = e2014.forecasts[0];
-    expect(clockAt(f, spots.find((s) => s.key === "wolvercote")!).state).toBe("noforecast");
+    expect(clockFor(f, spots.find((s) => s.key === "wolvercote")!).state).toBe("noforecast");
     const atCall = e2014.forecasts.find((x) => x.issuedAt === f2014.rc50)!;
-    const c = clockAt(atCall, botley);
+    const c = clockFor(atCall, botley);
     expect(c.prob).toBeGreaterThanOrEqual(0.5);
     expect(c.state).toBe("likely");
   });

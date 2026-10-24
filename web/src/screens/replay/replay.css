@@ -10,16 +10,6 @@
 .rp-mapcol { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
 .rp-mapcol .ui-basemap { min-height: 420px; flex: 1; border-radius: 8px; overflow: hidden; }
 .rp-map-caption { color: var(--ink-2); }
-.leaflet-marker-icon.rp-anchor { overflow: visible; background: none; border: 0; }
-.rp-pin { position: absolute; left: 0; top: 0; }
-.rp-pin.selected { z-index: 2; }
-.rp-leader { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
-.rp-leader line { stroke: #52514e; stroke-width: 1.5; }
-.rp-leader circle { fill: #0b0b0b; stroke: #fff; stroke-width: 2; }
-.rp-pin-clock { position: absolute; left: 0; top: 0; }
-.rp-pin-clock .spot-clock { background: rgba(255, 255, 255, 0.92); box-shadow: 0 1px 4px rgba(11, 11, 11, 0.18); }
-.rp-pin-clock .spot-clock-label { max-width: 8rem; white-space: nowrap; }
-
 /* Chart */
 .rp-chartcol { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
 .rp-chart-title { font-size: 1.05rem; }
@@ -46,6 +36,7 @@
 .rp-thumb-name { font-size: 0.8rem; color: var(--ink-2); min-height: 1em; }
 .rp-thumb-trace { width: 100%; height: 44px; }
 .rp-thumb-badge { font-size: 0.8rem; font-weight: 650; line-height: 1.2; }
+.rp-thumb-ea { font-size: 0.75rem; color: var(--ink-2); }
 .rp-thumb-badge.tone-good { color: var(--accent); }
 .rp-thumb-badge.tone-bad { color: #8f3a12; }
 .rp-thumb-badge.tone-neutral { color: var(--ink-2); }

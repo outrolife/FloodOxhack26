@@ -19,6 +19,7 @@ import type { SpotForecast } from "../../contracts";
 import { HOUR, formatDayMonth } from "../../time";
 import { countAtOrBefore, timesOf, type Point } from "../../components/shared/series";
 import { yDomain } from "../../components/timemachine/yDomain";
+import { OBS_LAG_H } from "./facts";
 
 type Row = { t: number; obs?: number; obsFaint?: number; band90?: [number, number]; band50?: [number, number]; median?: number };
 
@@ -97,13 +98,16 @@ export const ReplayChart = memo(function ReplayChart({
     return r;
   };
 
+  // Strict about what was known (#93): readings up to an hour before the issue time.
+  const known = now - OBS_LAG_H * HOUR;
+  const knownSeen = seen - OBS_LAG_H * HOUR;
   const ts = timesOf(observed);
   const from = countAtOrBefore(observed, domain[0] - 1);
-  const to = countAtOrBefore(observed, Math.min(Math.max(now, seen), domain[1]));
+  const to = countAtOrBefore(observed, Math.min(Math.max(known, knownSeen), domain[1]));
   for (let k = from; k < to; k++) {
     const t = ts[k];
-    if (t <= now) row(t).obs = observed[k].level;
-    if (t >= now && t <= seen && seen > now) row(t).obsFaint = observed[k].level;
+    if (t <= known) row(t).obs = observed[k].level;
+    if (t >= known && t <= knownSeen && knownSeen > known) row(t).obsFaint = observed[k].level;
   }
 
   if (forecast && forecast.leads.length > 0) {

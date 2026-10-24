@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { Proof, Replay, Spot } from "../../contracts";
 import { PEAK_LEAD_H, peakBandFor, perEventRow, replayFacts, startIndex } from "./facts";
 import { buildScoreboard, differenceText, latestRevealed, scoreboardAt } from "./scoreboard";
-import { badgeText, headlineText, outcomeOf, shortSpotName } from "./story";
+import { badgeText, eaBadgeText, headlineText, outcomeOf, shortSpotName } from "./story";
 import { indexAt, simAdvance } from "./playback";
 
 const H = 3_600_000;
@@ -140,8 +140,11 @@ describe("scoreboard", () => {
     expect(at(59)).toEqual([false, false, false, false, false]);
     expect(at(60)).toEqual([true, false, false, false, false]);
     expect(at(67)).toEqual([true, true, true, false, false]);
-    expect(at(97)).toEqual([true, true, true, true, false]);
-    expect(at(150)).toEqual([true, true, true, true, true]);
+    // Observed moments show an hour later: a forecast at t uses readings only up to t − 1 h (#93).
+    expect(at(97)).toEqual([true, true, true, false, false]);
+    expect(at(98)).toEqual([true, true, true, true, false]);
+    expect(at(150)).toEqual([true, true, true, true, false]);
+    expect(at(151)).toEqual([true, true, true, true, true]);
     expect(latestRevealed(scoreboardAt(rows, T0 + 100 * H))).toBe(3);
     expect(latestRevealed(scoreboardAt(rows, T0))).toBe(-1);
   });
@@ -151,7 +154,7 @@ describe("scoreboard", () => {
     expect(rows[3].value).toMatch(/GMT$/);
     expect(rows[3].detail).toBe("37 h after River Clock said more likely than not");
     expect(rows[4].value).toBe("Predicted 2.60 m–3.10 m · actual 3.00 m");
-    expect(rows[4].detail).toMatch(/^Inside the likely range given 72 h before/);
+    expect(rows[4].detail).toMatch(/^Inside the wide range \(5–95%\) given 72 h before/);
   });
 
   it("says the difference honestly, in both directions", () => {
@@ -203,6 +206,14 @@ describe("badge and headline", () => {
     expect(badgeText(outcomeOf(miss))).toBe("Flooded before River Clock reached 50%");
     const fa = replayFacts(synthetic({ cross: false, pAt: () => 0.7, peak: 2.7 }), SPOT, row({ crossed: false }));
     expect(badgeText(outcomeOf(fa))).toBe("False alarm: reached 70%, no flood");
+  });
+
+  it("the EA line on a thumbnail keeps the sign", () => {
+    expect(eaBadgeText(replayFacts(synthetic(), SPOT, row({ leadVsOfficialH: 7.06 })))).toBe("7 h before the EA warning");
+    expect(eaBadgeText(replayFacts(synthetic(), SPOT, row({ leadVsOfficialH: -30.14 })))).toBe("30 h after the EA warning");
+    expect(eaBadgeText(replayFacts(synthetic(), SPOT, row({ leadVsOfficialH: null, officialIssuedAt: null })))).toBe(
+      "No EA warning before it",
+    );
   });
 
   it("short spot names", () => {

@@ -2,6 +2,7 @@
 // the headline sentence over the screen. Words only; every number comes from
 // ReplayFacts (read from the replay and proof.json).
 import type { ReplayFacts } from "./facts";
+import { shortSpotName } from "../../ui/clockData";
 
 export type Outcome =
   | { kind: "called"; leadH: number; atLeast: boolean } // flooded; River Clock said > 50% first
@@ -40,6 +41,17 @@ export function badgeText(o: Outcome): string {
   }
 }
 
+/** The thumbnail's second line: River Clock vs the EA in this event, from proof.perEvent (honest sign). */
+export function eaBadgeText(f: ReplayFacts): string | null {
+  const h = f.leadVsOfficialH;
+  if (h != null) {
+    if (Math.abs(h) < 0.5) return "Same time as the EA warning";
+    return `${Math.round(Math.abs(h))} h ${h > 0 ? "before" : "after"} the EA warning`;
+  }
+  if (!f.official && (f.crossing || f.crossed)) return "No EA warning before it";
+  return null;
+}
+
 /** good = River Clock did well, bad = it did not; the badge also says it in words. */
 export function outcomeTone(o: Outcome): "good" | "bad" | "neutral" {
   if (o.kind === "called" || o.kind === "calm") return "good";
@@ -51,8 +63,8 @@ const fmtMonthYear = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London
 /** "January 2014" in UK time. */
 export const monthYear = (t: string): string => fmtMonthYear.format(new Date(t));
 
-/** "Botley Road / New Botley / Hinksey" -> "Botley Road". */
-export const shortSpotName = (name: string): string => name.split(" / ")[0].trim();
+/** "Botley Road / New Botley / Hinksey" -> "Botley Road" (the kit's, so Now and Replay name spots alike). */
+export { shortSpotName };
 
 /**
  * The sentence over the screen, e.g. "January 2014: River Clock said Botley

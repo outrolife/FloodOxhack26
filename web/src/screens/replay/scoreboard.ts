@@ -2,7 +2,7 @@
 // the playhead passes the moment each one becomes known. Before that a row
 // shows only its label, so playing the replay never gives the story away.
 import { formatDate, formatDateTime } from "../../time";
-import type { ReplayFacts } from "./facts";
+import { OBS_LAG_H, type ReplayFacts } from "./facts";
 
 export type RowKey = "rc" | "ea" | "diff" | "cross" | "peak";
 
@@ -23,6 +23,8 @@ export type ScoreRow = {
 export type ScoreRowState = ScoreRow & { revealed: boolean };
 
 const ms = Date.parse;
+/** When an observed reading at t is on screen: one hour later (OBS_LAG_H). */
+const seenObs = (t: string) => ms(t) + OBS_LAG_H * 3_600_000;
 const hrs = (h: number) => `${Math.round(Math.abs(h))} h`;
 const metres = (v: number) => `${v.toFixed(2)} m`;
 const pctText = (p: number) => `${Math.round(p * 100)}%`;
@@ -57,7 +59,7 @@ export function buildScoreboard(f: ReplayFacts, threshold: number, endT: string)
       label: "River Clock: more likely than not",
       value: "Not before the flood",
       detail: "It stayed under 50% in the 3 days before the river crossed",
-      at: ms(f.crossing),
+      at: seenObs(f.crossing),
       tone: "bad",
     });
   } else {
@@ -74,7 +76,7 @@ export function buildScoreboard(f: ReplayFacts, threshold: number, endT: string)
 
   // 2. The EA's Flood Warning.
   const o = f.official;
-  const noEaAt = f.crossing ? ms(f.crossing) : (f.peakObs?.t ? ms(f.peakObs.t) : end);
+  const noEaAt = f.crossing ? seenObs(f.crossing) : f.peakObs?.t ? seenObs(f.peakObs.t) : end;
   rows.push(
     o
       ? { key: "ea", label: "EA Flood Warning", value: eaTime(o), at: ms(o.issuedAt), tone: "neutral" }
@@ -117,7 +119,7 @@ export function buildScoreboard(f: ReplayFacts, threshold: number, endT: string)
         f.leadBeforeFloodH != null
           ? `${hrs(f.leadBeforeFloodH)} after River Clock said more likely than not`
           : undefined,
-      at: ms(f.crossing),
+      at: seenObs(f.crossing),
       tone: "neutral",
     });
   } else {
@@ -127,7 +129,7 @@ export function buildScoreboard(f: ReplayFacts, threshold: number, endT: string)
       label: "River crossed flood level",
       value: "No: it stayed below",
       detail: below != null && below >= 0 ? `Highest ${metres(f.peakObs!.level)}, ${below} cm under the flood level` : undefined,
-      at: f.peakObs?.t ? ms(f.peakObs.t) : end,
+      at: f.peakObs?.t ? seenObs(f.peakObs.t) : end,
       tone: "neutral",
     });
   }
@@ -143,8 +145,8 @@ export function buildScoreboard(f: ReplayFacts, threshold: number, endT: string)
         ? `Predicted ${metres(b.lo)}–${metres(b.hi)} · actual ${metres(p.level)}`
         : `Actual ${metres(p.level)}`
       : "No observations",
-    detail: b && p ? `${b.inside ? "Inside" : "Outside"} the likely range given ${b.leadH} h before` : undefined,
-    at: p?.t ? ms(p.t) : end,
+    detail: b && p ? `${b.inside ? "Inside" : "Outside"} the wide range (5–95%) given ${b.leadH} h before` : undefined,
+    at: p?.t ? seenObs(p.t) : end,
     tone: b ? (b.inside ? "good" : "bad") : "neutral",
   });
 

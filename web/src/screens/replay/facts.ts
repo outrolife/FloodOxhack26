@@ -11,6 +11,12 @@ import { hoursBetween } from "../../time";
 
 export type PerEventRow = Proof["perEvent"][number];
 
+/**
+ * A forecast issued at t uses hourly rows only up to t − 1 h (#93), so the
+ * screen reveals an observed reading only once the playhead is 1 h past it.
+ */
+export const OBS_LAG_H = 1;
+
 /** The lead whose fan we score the peak against: the longest one, 3 days. */
 export const PEAK_LEAD_H = 72;
 

@@ -6,18 +6,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { EventsFile, Proof, Replay as ReplayData, Spot, SpotsFile, StationsFile, TravelTimesFile } from "../contracts";
 import { loadData, useData } from "../data";
-import { HOUR, formatDateTimeYear } from "../time";
-import { Headline, Screen, SpotClock, usePlayerKeys } from "../ui";
+import { HOUR, formatDateTimeYear, formatShort } from "../time";
+import { Headline, Screen, SpotClock, clockFor, usePlayerKeys } from "../ui";
 import { Pending } from "../components/shared/DataNotice";
 import { ProbBars } from "../components/shared/ProbBars";
 import { RiverStrip } from "../components/shared/RiverStrip";
 import { arrivalSentence } from "../components/shared/forecast";
 import { matchTier, tierSentence } from "../components/timemachine/timeline";
-import { perEventRow, replayFacts, startIndex, type ReplayFacts } from "./replay/facts";
+import { OBS_LAG_H, perEventRow, replayFacts, startIndex, type ReplayFacts } from "./replay/facts";
 import { buildScoreboard, scoreboardAt } from "./replay/scoreboard";
 import { headlineText, shortSpotName } from "./replay/story";
 import { SPEEDS, indexAt, simAdvance } from "./replay/playback";
-import { clockAt } from "./replay/clocks";
 import { Scoreboard } from "./replay/ScoreboardCard";
 import { EventPicker } from "./replay/EventPicker";
 import { ReplayChart, ChartKey, type ChartMarker } from "./replay/ReplayChart";
@@ -165,7 +164,7 @@ function SpotPickerClock({ replay, spot, selected, onSelect }: { replay: ReplayD
   const peak = useMemo(() => {
     let best: number | null = null;
     for (const f of replay.forecasts) {
-      const c = clockAt(f, spot);
+      const c = clockFor(f, spot);
       if (c.prob != null) best = Math.max(best ?? 0, c.prob);
     }
     return best;
@@ -276,17 +275,18 @@ function Player({
   const sf = f.spots.find((s) => s.spot === spot.key);
   const board = scoreboardAt(rows, t, endT);
 
-  const revealed = (x: string | null | undefined) => x != null && Date.parse(x) <= seen;
+  const lag = OBS_LAG_H * HOUR;
+  const revealed = (x: string | null | undefined, obs = false) => x != null && Date.parse(x) + (obs ? lag : 0) <= seen;
   const markers: ChartMarker[] = [];
   if (revealed(facts.rc50)) markers.push({ t: facts.rc50!, label: "River Clock: likely", colour: "#184f95" });
   if (facts.official && revealed(facts.official.issuedAt)) markers.push({ t: facts.official.issuedAt, label: "EA warning", colour: "#6250d6" });
-  if (revealed(facts.crossing)) markers.push({ t: facts.crossing!, label: "River crossed", colour: "#b02a2a" });
+  if (revealed(facts.crossing, true)) markers.push({ t: facts.crossing!, label: "River crossed", colour: "#b02a2a" });
 
   const eventRange: [number, number] = [Date.parse(replay.start), Math.max(Date.parse(replay.end), times[last] + 72 * HOUR)];
 
   // Show the working: the Time Machine's details at the playhead.
   const seenT = forecasts[seenIdx].issuedAt;
-  const isRevealed = (x: string) => Date.parse(x) <= Date.parse(seenT);
+  const isRevealed = (x: string) => Date.parse(x) + lag <= Date.parse(seenT);
   const warnSentence = tierSentence(warn, isRevealed, endT);
   const alertSentence = tierSentence(alert, isRevealed, endT);
 
@@ -306,7 +306,9 @@ function Player({
             </div>
             <div className="rp-chartcol">
               <div className="rp-chart-title">
-                <strong>{shortSpotName(spot.name)}</strong> river level · <span className="rp-now">{formatDateTimeYear(f.issuedAt)}</span>
+                <strong>{shortSpotName(spot.name)}</strong> river level · forecast issued{" "}
+                <span className="rp-now">{formatDateTimeYear(f.issuedAt)}</span>{" "}
+                <span className="small muted">(river data to {formatShort(t - lag)})</span>
               </div>
               <ReplayChart
                 observed={replay.observed[spot.gauge] ?? []}
@@ -374,7 +376,7 @@ function Player({
           </div>
           <div>
             <h3>Upstream at this time</h3>
-            <RiverStrip stations={stations} pairs={pairs} series={replay.observed} until={f.issuedAt} />
+            <RiverStrip stations={stations} pairs={pairs} series={replay.observed} until={new Date(t - lag).toISOString()} />
           </div>
         </div>
       }

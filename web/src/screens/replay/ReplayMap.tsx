@@ -1,52 +1,22 @@
 // Replay map (#120): the offline Oxford basemap with each trouble spot's clock
-// filling as the wave arrives. The spots sit a few hundred metres apart, so
-// each clock is drawn a little away from its spot with a leader line to a dot
-// on the true location. Clicking a clock selects that spot.
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { createPortal } from "react-dom";
-import L from "leaflet";
-import { Marker } from "react-leaflet";
+// filling as the wave arrives, read from the forecast at the playhead with the
+// kit's clockFor, and drawn with the kit's MapClock so Now and Replay match.
+// The spots sit a few hundred metres apart, so each clock sits to one side of
+// its spot. Clicking a forecast spot's clock selects it.
+import { useMemo } from "react";
 import type { Forecast, Spot } from "../../contracts";
 import { BaseMap } from "../../ui/BaseMap";
-import { SpotClock } from "../../ui";
-import { clockAt } from "./clocks";
-import { shortSpotName } from "./story";
+import { MapClock } from "../../ui/MapClock";
+import { clocksFor } from "../../ui/clockData";
 
-/** Where each clock sits relative to its spot, in px (dx, dy). */
-const OFFSET: Record<string, [number, number]> = {
-  wolvercote: [-20, -70],
-  botley: [-105, 10],
-  osney: [10, 85],
-  abingdonrd: [90, 60],
-  cherwell: [95, -45],
+/** Which side of its spot each clock sits on, so neighbours don't overlap. */
+const SIDE: Record<string, "top" | "bottom" | "left" | "right"> = {
+  wolvercote: "top",
+  botley: "left",
+  osney: "bottom",
+  abingdonrd: "right",
+  cherwell: "top",
 };
-
-const ANCHOR = L.divIcon({ className: "rp-anchor", html: "", iconSize: [0, 0], iconAnchor: [0, 0] });
-
-/** A Leaflet marker whose content is React, rendered through a portal. */
-function PortalMarker({ position, children }: { position: [number, number]; children: ReactNode }) {
-  const ref = useRef<L.Marker>(null);
-  const [el, setEl] = useState<HTMLElement | null>(null);
-  useEffect(() => {
-    const node = ref.current?.getElement() ?? null;
-    if (node) {
-      L.DomEvent.disableClickPropagation(node);
-      setEl(node);
-    }
-  }, []);
-  return (
-    <>
-      <Marker
-        ref={ref}
-        position={position}
-        icon={ANCHOR}
-        keyboard={false}
-        eventHandlers={{ add: (e) => setEl((e.target as L.Marker).getElement() ?? null) }}
-      />
-      {el && createPortal(children, el)}
-    </>
-  );
-}
 
 export function ReplayMap({
   spots,
@@ -68,34 +38,26 @@ export function ReplayMap({
       [Math.max(...lats) + 0.008, Math.max(...lons) + 0.02],
     ];
   }, [spots]);
+  const mode = new Map(spots.map((s) => [s.key, s.mode]));
 
   return (
     <BaseMap bounds={bounds} className="rp-map">
-      {spots.map((s) => {
-        const c = clockAt(forecast, s);
-        const [dx, dy] = OFFSET[s.key] ?? [0, -70];
-        const isSel = s.key === selected;
-        const pickable = s.mode === "probability";
+      {clocksFor(forecast ?? null, spots).map((c) => {
+        const isSel = c.key === selected;
         return (
-          <PortalMarker key={s.key} position={[s.lat, s.lon]}>
-            <div className={`rp-pin${isSel ? " selected" : ""}`}>
-              <svg className="rp-leader" aria-hidden="true" width="1" height="1" overflow="visible">
-                <line x1={0} y1={0} x2={dx} y2={dy} />
-                <circle cx={0} cy={0} r={5} />
-              </svg>
-              <div className="rp-pin-clock" style={{ transform: `translate(calc(${dx}px - 50%), calc(${dy}px - 50%))` }}>
-                <SpotClock
-                  label={shortSpotName(s.name)}
-                  prob={c.prob}
-                  countdownH={c.countdownH}
-                  state={c.state}
-                  size={isSel ? "md" : "sm"}
-                  selected={isSel}
-                  onClick={pickable ? () => onSelect(s.key) : undefined}
-                />
-              </div>
-            </div>
-          </PortalMarker>
+          <MapClock
+            key={c.key}
+            lat={c.lat}
+            lon={c.lon}
+            label={c.label}
+            prob={c.prob}
+            countdownH={c.countdownH}
+            state={c.state}
+            size={isSel ? "md" : "sm"}
+            selected={isSel}
+            direction={SIDE[c.key] ?? "top"}
+            onClick={mode.get(c.key) === "probability" ? () => onSelect(c.key) : undefined}
+          />
         );
       })}
     </BaseMap>

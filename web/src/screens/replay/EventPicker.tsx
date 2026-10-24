@@ -5,7 +5,7 @@
 import { memo } from "react";
 import type { EventMeta, Replay, Spot } from "../../contracts";
 import type { ReplayFacts } from "./facts";
-import { badgeText, outcomeOf, outcomeTone } from "./story";
+import { badgeText, eaBadgeText, outcomeOf, outcomeTone } from "./story";
 
 const W = 160;
 const HT = 44;
@@ -55,18 +55,20 @@ export function EventPicker({
         const o = f ? outcomeOf(f) : null;
         const isSel = e.id === selected;
         const badge = o ? badgeText(o) : "Loading…";
+        const ea = f ? eaBadgeText(f) : null;
         return (
           <button
             key={e.id}
             className={`rp-thumb${isSel ? " selected" : ""}`}
             aria-pressed={isSel}
             onClick={() => onSelect(e.id)}
-            aria-label={`${e.name}: ${badge}`}
+            aria-label={`${e.name}: ${badge}${ea ? `; ${ea}` : ""}`}
           >
             <span className="rp-thumb-year">{yearOf(e)}</span>
             <span className="rp-thumb-name">{e.name.replace(/\s*\d{4}\s*/, " ").trim()}</span>
             <Trace points={replays[e.id]?.observed[spot.gauge] ?? []} threshold={spot.threshold} />
             <span className={`rp-thumb-badge tone-${o ? outcomeTone(o) : "neutral"}`}>{badge}</span>
+            {ea && <span className="rp-thumb-ea">{ea}</span>}
           </button>
         );
       })}
