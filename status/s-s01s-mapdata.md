@@ -1,14 +1,14 @@
 # s-s01s-mapdata
 
 - **role**: Data
-- **state**: working
+- **state**: reviewing
 - **issue**: #152
-- **task**: Map v3 data: geojson pushed on data/map-v3; release basemap-v1 up
-- **next**: Makefile tiles step + preflight check, then PR
+- **task**: PR #156 map v3 data (paths, rivers, basemap-v1)
+- **next**: Await review; rerun build_river_paths.py if gauges change
 - **needs**: 
 - **notes**: 
 - **branch**: data/map-v3
-- **head**: c2a39be Add river-following gauge paths and catchment rivers for map v
+- **head**: 9d5a0f9 Rebuild river paths with the new catchment gauges from #153
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T22:12:31Z
+- **updated**: 2026-10-24T22:19:02Z
