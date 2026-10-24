@@ -128,7 +128,8 @@ export default function About() {
             <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">
               OpenStreetMap
             </a>{" "}
-            map tiles, and Nominatim and Overpass for placing each spot on the street that floods. ©
+            map tiles, the bundled offline basemap (water, rivers, roads, railways, parks and Osney/Botley
+            buildings, via the Overpass API), and Nominatim and Overpass for placing each spot on the street that floods. ©
             OpenStreetMap contributors. Open Database Licence (ODbL).
           </li>
           <li>
