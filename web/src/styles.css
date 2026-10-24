@@ -142,4 +142,4 @@ table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
 }
 .excluded-list { margin: 0.3rem 0 0; padding-left: 1.1rem; max-height: 14rem; overflow-y: auto; }
 /* Side-by-side cards keep their own height (no tall empty card next to a long table). */
-.grid-cols > .card { align-self: start; }
+.grid-cols > .card, .grid-2 > .card { align-self: start; }

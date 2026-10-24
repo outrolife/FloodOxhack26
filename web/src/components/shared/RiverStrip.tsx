@@ -70,13 +70,13 @@ export function RiverStrip({
       {BRANCHES.filter((b) => b.gauges.some(shown)).map((b) => (
         <div className="strip-branch" key={b.title}>
           <h3>{b.title}</h3>
-          {b.gauges.map((g, i) => {
+          {b.gauges.filter(shown).map((g, i, visible) => {
             const st = stations.find((s) => s.key === g);
-            if (!st || !shown(g)) return null;
+            if (!st) return null;
             const pts = series?.[g];
             const now = lastAtOrBefore(pts, until)?.level ?? levelNow?.[g];
             const label = linkLabel(g, pairs, stations);
-            const isLast = i === b.gauges.length - 1;
+            const isLast = i === visible.length - 1;
             const vsAmber = now != null ? now - st.amber : null;
             return (
               <div key={g}>
