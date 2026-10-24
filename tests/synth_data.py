@@ -1,4 +1,4 @@
-"""Synthetic hourly data for model tests: rain drives upstream gauges, which drive osney with a lag.
+"""Synthetic hourly data for model tests: rain drives upstream gauges, which drive newbotley with a lag.
 
 Long format like data/processed/hourly.parquet (#3): rain as individual rain gauges with ``kind``.
 """
@@ -8,8 +8,9 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-UPSTREAM = {"farmoor": 30, "eynsham": 24, "cassington": 20, "godstow": 8}  # lag to osney (h)
-BASE = {"farmoor": 0.9, "eynsham": 2.5, "cassington": 0.5, "godstow": 2.0, "osney": 2.6}
+UPSTREAM = {"farmoor": 30, "eynsham": 24, "cassington": 20, "godstow": 8}  # lag to the target (h)
+TARGET = "newbotley"
+BASE = {"farmoor": 0.9, "eynsham": 2.5, "cassington": 0.5, "godstow": 2.0, TARGET: 1.45}
 
 
 def _response(rain: np.ndarray, tau: float, gain: float) -> np.ndarray:
@@ -36,15 +37,19 @@ def make_hourly(start: str = "2010-10-01", years: float = 4.0, seed: int = 0) ->
     levels: dict[str, np.ndarray] = {}
     for g in UPSTREAM:
         levels[g] = BASE[g] + _response(rain, tau=60, gain=0.4) + rng.normal(0, 0.01, n)
-    osney = np.full(n, BASE["osney"])
+    tgt = np.full(n, BASE[TARGET])
     for g, lag in UPSTREAM.items():
         up = levels[g] - BASE[g]
-        osney[lag:] += 0.3 * up[:-lag]
-    levels["osney"] = osney + rng.normal(0, 0.01, n)
+        tgt[lag:] += 0.3 * up[:-lag]
+    levels[TARGET] = tgt + rng.normal(0, 0.01, n)
     for g, lv in levels.items():
         lv = lv.copy()
         lv[rng.random(n) < 0.01] = np.nan
-        rows.append(pd.DataFrame({"gauge": g, "ts_utc": ts, "kind": "level", "level_mean": lv, "level_max": lv + 0.01}))
+        rows.append(
+            pd.DataFrame(
+                {"gauge": g, "ts_utc": ts, "kind": "level", "level_mean": lv, "level_max": lv + 0.01}
+            )
+        )
     df = pd.concat(rows, ignore_index=True)
     df["flagged"] = False
     return df

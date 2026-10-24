@@ -28,7 +28,7 @@ from model.train import (
 from tests.synth_data import make_hourly
 
 SPLITS = Splits(pd.Timestamp("2012-10-01", tz="UTC"), pd.Timestamp("2013-10-01", tz="UTC"))
-FAST = {"n_estimators": 60, "early_stopping_rounds": 10}
+FAST = {"n_estimators": 30, "early_stopping_rounds": 10}
 
 
 def test_params_are_exactly_spec_7_3() -> None:
@@ -49,14 +49,17 @@ def test_params_are_exactly_spec_7_3() -> None:
 
 
 def test_sample_weights() -> None:
-    w = sample_weights(np.array([2.0, 2.88, 2.881, 3.5, np.nan]), amber=3.18)
+    w = sample_weights(np.array([1.0, 1.70, 1.72, 2.5, np.nan]), amber=2.01)
     np.testing.assert_array_equal(w, [1, 1, 5, 5, 1])
 
 
 def test_default_and_shifted_splits() -> None:
     assert DEFAULT_SPLITS.val_start == pd.Timestamp("2018-10-01", tz="UTC")
     assert DEFAULT_SPLITS.test_start == pd.Timestamp("2021-10-01", tz="UTC")
-    assert choose_splits(pd.Timestamp("2006-03-01", tz="UTC"), pd.Timestamp("2026-10-01", tz="UTC")) == DEFAULT_SPLITS
+    assert (
+        choose_splits(pd.Timestamp("2006-03-01", tz="UTC"), pd.Timestamp("2026-10-01", tz="UTC"))
+        == DEFAULT_SPLITS
+    )
     # 2011-10 .. 2026-09: 15 seasons -> 9 train, 3 val, 3 test
     s = choose_splits(pd.Timestamp("2011-10-01", tz="UTC"), pd.Timestamp("2026-09-30", tz="UTC"))
     assert s.val_start == pd.Timestamp("2020-10-01", tz="UTC")
@@ -93,19 +96,38 @@ def test_normalise_hourly_adds_catchment_rain() -> None:
 
 def test_load_lags_both_shapes(tmp_path) -> None:
     p = tmp_path / "lags.json"
-    p.write_text(json.dumps({"pairs": [{"up": "farmoor", "down": "osney", "lag_lo": 10, "lag_main": 18,
-                                        "lag_hi": 30, "source": "events"}]}))
-    assert load_lags(p) == {"farmoor->osney": {"lag_lo": 10, "lag_main": 18, "lag_hi": 30}}
-    p.write_text(json.dumps({"farmoor->osney": {"lag_lo": 10.4, "lag_main": 18, "lag_hi": 30}}))
-    assert load_lags(p)["farmoor->osney"]["lag_lo"] == 10
+    p.write_text(
+        json.dumps(
+            {
+                "pairs": [
+                    {
+                        "up": "farmoor",
+                        "down": "newbotley",
+                        "lag_lo": 10,
+                        "lag_main": 18,
+                        "lag_hi": 30,
+                        "source": "events",
+                    }
+                ]
+            }
+        )
+    )
+    assert load_lags(p) == {"farmoor->newbotley": {"lag_lo": 10, "lag_main": 18, "lag_hi": 30}}
+    p.write_text(json.dumps({"farmoor->newbotley": {"lag_lo": 10.4, "lag_main": 18, "lag_hi": 30}}))
+    assert load_lags(p)["farmoor->newbotley"]["lag_lo"] == 10
     assert load_lags(tmp_path / "missing.json") == {}
 
 
 @pytest.fixture(scope="module")
 def trained() -> tuple[GaugeModel, pd.DataFrame]:
     hourly = normalise_hourly(make_hourly())
-    m = train_gauge(hourly, "osney", lags={"farmoor->osney": {"lag_lo": 24, "lag_main": 30, "lag_hi": 36}},
-                    splits=SPLITS, **FAST)
+    m = train_gauge(
+        hourly,
+        "newbotley",
+        lags={"farmoor->newbotley": {"lag_lo": 24, "lag_main": 30, "lag_hi": 36}},
+        splits=SPLITS,
+        **FAST,
+    )
     return m, hourly
 
 
@@ -118,14 +140,16 @@ def test_train_loop_shapes_and_calibration(trained) -> None:
         assert np.all(np.diff(m.persistence_eps[h]) >= 0)
         assert m.info["leads"][str(h)]["nCal"] > 0
     assert "farmoor_anom_lag30h" in m.feature_cols
-    assert set(m.medians) == {"farmoor", "eynsham", "cassington", "godstow"}
+    from model.features import UPSTREAMS
+
+    assert set(m.medians) == set(UPSTREAMS["newbotley"])
 
 
 def test_predictions_sorted_and_beat_persistence(trained) -> None:
     from model.train import build_xy
 
     m, hourly = trained
-    X, Y = build_xy(hourly, "osney", m.medians, m.lags)
+    X, Y = build_xy(hourly, "newbotley", m.medians, m.lags)
     _, _, te = m.splits.masks(X.index, 24)
     q = m.predict(X[te])
     for h in HORIZONS_H:
@@ -140,16 +164,16 @@ def test_save_load_roundtrip(trained, tmp_path) -> None:
     from model.train import build_xy
 
     m, hourly = trained
-    m.save(tmp_path / "osney")
-    m2 = GaugeModel.load(tmp_path / "osney")
-    X, _ = build_xy(hourly, "osney", m.medians, m.lags)
+    m.save(tmp_path / "newbotley")
+    m2 = GaugeModel.load(tmp_path / "newbotley")
+    X, _ = build_xy(hourly, "newbotley", m.medians, m.lags)
     sample = X.iloc[-500:]
     a, b = m.predict(sample), m2.predict(sample)
     for h in HORIZONS_H:
         np.testing.assert_allclose(a[h], b[h])
     assert m2.cqr == m.cqr and m2.splits == m.splits
     path = write_importance([m2], tmp_path / "importance.json")
-    imp = json.loads(path.read_text())["osney"]
+    imp = json.loads(path.read_text())["newbotley"]
     assert [x["h"] for x in imp] == list(HORIZONS_H)
     assert sum(f["gain"] for f in imp[0]["features"]) == pytest.approx(1.0, abs=1e-3)
 
@@ -157,6 +181,8 @@ def test_save_load_roundtrip(trained, tmp_path) -> None:
 def test_exclude_windows_drop_rows(trained) -> None:
     m, hourly = trained
     win = (pd.Timestamp("2011-01-01", tz="UTC"), pd.Timestamp("2011-06-30", tz="UTC"))
-    m2 = train_gauge(hourly, "osney", lags=m.lags, splits=SPLITS, exclude_windows=[win], horizons=(6,), **FAST)
+    m2 = train_gauge(
+        hourly, "newbotley", lags=m.lags, splits=SPLITS, exclude_windows=[win], horizons=(6,), **FAST
+    )
     assert m2.info["leads"]["6"]["nTrain"] < m.info["leads"]["6"]["nTrain"] - 4000
     assert m2.excluded == [("2011-01-01T00:00:00Z", "2011-06-30T00:00:00Z")]

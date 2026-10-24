@@ -5,7 +5,7 @@ Issue #8.
 
 Pipeline
 --------
-``python -m model.train [--targets osney ...]`` reads ``$RC_DATA_DIR/processed/hourly.parquet`` and
+``python -m model.train [--targets newbotley ...]`` reads ``$RC_DATA_DIR/processed/hourly.parquet`` and
 ``lags.json``, trains every lead and alpha, calibrates on validation events, and writes:
 
 - ``$RC_DATA_DIR/models/<gauge>/meta.json`` plus one LightGBM text model per (h, alpha), and
@@ -71,14 +71,16 @@ EARLY_STOPPING_ROUNDS = 100
 HIGH_WEIGHT = 5.0  # sample weight where level_now > amber - WEIGHT_MARGIN_M
 WEIGHT_MARGIN_M = 0.3
 
-# Fallback gauge thresholds (SPEC §4.1/§4.2) until config/stations.yaml exists.
+# Fallback gauge lines for the trained targets (SPEC §4.1, §4.1.1, re-target PR #30) until
+# config/stations.yaml exists. minns and coldharbour thresholds are TBC (Story, #10): NaN until verified,
+# which makes their spots timing_only. osney, godstow and iffley are live only: no history, not trained.
 GAUGE_LINES: dict[str, dict[str, float]] = {
-    "osney": {"amber": 3.18, "threshold": 3.79},
-    "godstow": {"amber": 2.57, "threshold": 3.07},
-    "iffley": {"amber": 2.72, "threshold": 3.25},
-    "kingsmill": {"amber": 2.40, "threshold": 2.60},
     "newbotley": {"amber": 2.01, "threshold": 2.76},
+    "kingsmill": {"amber": 2.40, "threshold": 2.60},
+    "minns": {"amber": 2.13, "threshold": math.nan},
+    "coldharbour": {"amber": 2.30, "threshold": math.nan},
 }
+DEFAULT_TARGETS: tuple[str, ...] = ("newbotley",)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -563,7 +565,7 @@ def write_importance(models: Iterable[GaugeModel], path: Path | None = None) -> 
 
 def main(argv: Sequence[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--targets", nargs="+", default=["osney"])
+    ap.add_argument("--targets", nargs="+", default=list(DEFAULT_TARGETS))
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     hourly = load_hourly()
