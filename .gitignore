@@ -4,7 +4,7 @@
 .idea/
 
 # Data and models (SPEC §2, CLAUDE.md rule 6)
-data/
+/data/
 *.lgb
 *.pkl
 *.joblib

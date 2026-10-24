@@ -1,0 +1,52 @@
+# River Clock. Targets from SPEC §2. Run `make setup` once (needs uv: brew install uv).
+VENV := .venv
+PY   := $(VENV)/bin/python
+
+.PHONY: setup data travel train backtest live api web test lint
+
+setup: $(VENV)/.installed
+
+$(VENV)/.installed: pyproject.toml
+	@command -v uv >/dev/null || { echo "uv not found: brew install uv"; exit 1; }
+	uv venv --python 3.11 --allow-existing $(VENV)
+	uv pip install --python $(PY) -r pyproject.toml --extra dev
+	@$(PY) -c "import lightgbm" 2>/dev/null || echo "WARNING: lightgbm can't load. On macOS run: brew install libomp"
+	@touch $@
+
+# Ingest history + warnings, clean, quality report (SPEC §5)
+data: setup
+	$(PY) -m pipeline.ingest_history
+	$(PY) -m pipeline.ingest_warnings
+	$(PY) -m pipeline.clean
+	$(PY) -m pipeline.quality_report
+
+# Travel-time finding (SPEC §6)
+travel: setup
+	$(PY) -m analysis.travel_times
+
+# Train + calibrate (SPEC §7.3–7.4)
+train: setup
+	$(PY) -m model.train
+	$(PY) -m model.calibrate
+
+# Replays + proof metrics; writes web/public/data/*.json (SPEC §8)
+backtest: setup
+	$(PY) -m model.backtest
+
+# Live readings + forecast for now (SPEC §5.1, §10.1)
+live: setup
+	$(PY) -m pipeline.ingest_live
+	$(PY) -m model.forecast_live
+
+api: setup
+	$(VENV)/bin/uvicorn api.main:app --reload --port 8000
+
+web:
+	@test -f web/package.json || { echo "web app not scaffolded yet (issue #5)"; exit 1; }
+	cd web && npm install && npm run dev
+
+test: setup
+	$(PY) -m pytest
+
+lint: setup
+	$(VENV)/bin/ruff check .
