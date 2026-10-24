@@ -4,8 +4,16 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { SpreadManifest } from "../../contracts";
 import fixture from "../../../../tests/fixtures/stretch/spread/e2014/manifest.json";
-import { NO_SPREAD_NOTE, SPREAD_LIMITATIONS, frameUrl, iouSentence, pickFrame, type SpreadFrame } from "./frames";
-import { SpreadPanel, TOGGLE_LABEL } from "./SpreadPanel";
+import {
+  NO_SPREAD_NOTE,
+  SPREAD_LIMITATIONS,
+  type SpreadFrame,
+  frameUrl,
+  iouSentence,
+  pickFrame,
+  usableManifest,
+} from "./frames";
+import { SpreadPanel, TOGGLE_LABEL, noSpread } from "./SpreadPanel";
 
 const manifest = fixture as SpreadManifest;
 const f = (tau: number, issuedAt: string): SpreadFrame => ({ tau, issuedAt, png: `spread/x/${issuedAt}-${tau}.png` });
@@ -59,11 +67,9 @@ describe("pickFrame", () => {
 });
 
 describe("frameUrl", () => {
-  it("resolves real frames under /data/ and fixture frames from tests/fixtures", () => {
-    expect(frameUrl("spread/live/tau24.png", "live", "data")).toMatch(/data\/spread\/live\/tau24\.png$/);
-    expect(frameUrl("tau24.png", "live", "data")).toMatch(/data\/spread\/live\/tau24\.png$/);
-    expect(frameUrl("spread/e2014/tau24.png", "e2014", "fixture")).toBeTruthy();
-    expect(frameUrl("spread/e2014/missing.png", "e2014", "fixture")).toBeNull();
+  it("resolves frames under /data/, bare names relative to the manifest's folder", () => {
+    expect(frameUrl("spread/live/tau24.png", "live")).toMatch(/data\/spread\/live\/tau24\.png$/);
+    expect(frameUrl("tau24.png", "live")).toMatch(/data\/spread\/live\/tau24\.png$/);
   });
 });
 
@@ -112,6 +118,19 @@ describe("SpreadPanel", () => {
     expect(html).toContain("+24 h");
   });
 
+  it("says no spread is expected when the run's largest extent is 0 ha", () => {
+    const extent = (ha: number) => `Largest extent wet in at least half the runs, over these frames: ${ha} ha of the 250 ha box.`;
+    const live = { ...manifest, validation: null, caveats: [...manifest.caveats, extent(0)] };
+    expect(noSpread(live)).toBe(true);
+    expect(noSpread({ ...live, caveats: [extent(145)] })).toBe(false);
+    expect(noSpread(manifest)).toBe(false);
+    const html = renderToStaticMarkup(
+      <SpreadPanel manifest={live} on onToggle={() => {}} tau={24} onTau={() => {}} pick={pickFrame(live.frames, 24)} />,
+    );
+    expect(html).toContain("No spread expected at today&#x27;s levels");
+    expect(html).toContain("About this run");
+  });
+
   it("formats the IoU sentence", () => {
     expect(iouSentence({ eventId: "e2014", iou: 0.5 })).toBe("Matches the recorded Jan 2014 outline: IoU 0.50");
     expect(iouSentence(null)).toBeNull();
@@ -130,9 +149,12 @@ describe("manifest loading", () => {
     await expect((await freshLoadData())("spread/live/manifest.json")).rejects.toThrow();
   });
 
-  it("falls back to the e2014 fixture manifest", async () => {
+  it("never draws the e2014 fixture placeholder: only a real run is usable", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("not found", { status: 404 })));
     const r = await (await freshLoadData())("spread/e2014/manifest.json");
     expect(r.source).toBe("fixture");
+    expect(usableManifest({ status: "ready", data: r.value, source: r.source })).toBeNull();
+    expect(usableManifest({ status: "ready", data: manifest, source: "data" })).toBe(manifest);
+    expect(usableManifest({ status: "error" })).toBeNull();
   });
 });

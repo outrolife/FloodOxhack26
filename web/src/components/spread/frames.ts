@@ -16,7 +16,7 @@ export const SPREAD_LIMITATIONS =
 
 /** Legend for the PNG colours: share of the runs in which a cell is wet. */
 export const SPREAD_LEGEND: { label: string; colour: string }[] = [
-  { label: "10–25% of runs", colour: "#c6dbef" },
+  { label: "10–25%", colour: "#c6dbef" },
   { label: "25–50%", colour: "#6baed6" },
   { label: "50–75%", colour: "#2171b5" },
   { label: "75–100%", colour: "#08306b" },
@@ -71,27 +71,19 @@ const EVENT_MONTHS: Record<string, string> = { e2014: "Jan 2014" };
 /** Manifest file for a context: "live" or an event id such as "e2014". */
 export const manifestFile = (context: string): string => `spread/${context}/manifest.json`;
 
-// Placeholder PNGs for the fixture manifest live next to it in tests/fixtures/,
-// bundled by Vite like the JSON fixtures (see data.ts).
-const FIXTURE_PNG_PREFIX = "../../../../tests/fixtures/stretch/";
-const fixturePngs: Record<string, string> = {};
-for (const [k, url] of Object.entries(
-  import.meta.glob<string>("../../../../tests/fixtures/stretch/spread/**/*.png", {
-    eager: true,
-    query: "?url",
-    import: "default",
-  }),
-)) {
-  fixturePngs[k.slice(FIXTURE_PNG_PREFIX.length)] = url;
+/**
+ * URL of a frame's PNG. `png` is relative to /data/ (e.g. "spread/e2014/tau24.png");
+ * a bare file name is taken as relative to the manifest's folder.
+ */
+export function frameUrl(png: string, context: string): string {
+  const path = png.includes("/") ? png.replace(/^\/+/, "") : `spread/${context}/${png}`;
+  return `${import.meta.env.BASE_URL}data/${path}`;
 }
 
 /**
- * URL of a frame's PNG. `png` is relative to /data/ (e.g. "spread/e2014/tau24.png");
- * a bare file name is taken as relative to the manifest's folder. For a fixture
- * manifest, the placeholder PNG bundled from tests/fixtures/ is used, or null.
+ * Only a real run counts. The fixture manifest (tests/fixtures/) is for tests:
+ * the app never draws a placeholder overlay, so a missing run means no overlay.
  */
-export function frameUrl(png: string, context: string, source: "data" | "fixture"): string | null {
-  const path = png.includes("/") ? png.replace(/^\/+/, "") : `spread/${context}/${png}`;
-  if (source === "fixture") return fixturePngs[path] ?? null;
-  return `${import.meta.env.BASE_URL}data/${path}`;
+export function usableManifest<T>(state: { status: string; data?: T; source?: string }): T | null {
+  return state.status === "ready" && state.source === "data" ? (state.data ?? null) : null;
 }

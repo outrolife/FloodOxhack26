@@ -14,13 +14,12 @@ import { ImageOverlay, MapContainer, Pane, TileLayer, useMap } from "react-leafl
 import type { SpreadManifest } from "../../contracts";
 import { useData } from "../../data";
 import { SHOW_S3 } from "../../stretch";
-import { DEFAULT_LEAD, type FramePick, frameUrl, manifestFile, pickFrame } from "./frames";
+import { DEFAULT_LEAD, type FramePick, frameUrl, manifestFile, pickFrame, usableManifest } from "./frames";
 import { SpreadPanel } from "./SpreadPanel";
 
 type SpreadState = {
   ready: boolean; // false while the manifest is loading
   manifest: SpreadManifest | null;
-  sample: boolean;
   on: boolean;
   setOn: (on: boolean) => void;
   tau: number;
@@ -39,14 +38,12 @@ function useSpread(context: string, at: string | undefined): SpreadState {
   const [tau, setTau] = useState<number>(DEFAULT_LEAD);
   const [failed, setFailed] = useState<string | null>(null);
 
-  const manifest = spread.status === "ready" ? spread.data : null;
-  const source = spread.status === "ready" ? spread.source : "data";
+  const manifest = usableManifest(spread);
   const pick: FramePick = manifest ? pickFrame(manifest.frames, tau, at) : { kind: "none" };
-  const url = pick.kind === "frame" ? frameUrl(pick.frame.png, context, source) : null;
+  const url = pick.kind === "frame" ? frameUrl(pick.frame.png, context) : null;
   return {
     ready: spread.status !== "loading",
     manifest,
-    sample: source === "fixture",
     on,
     setOn,
     tau,
@@ -61,7 +58,6 @@ function useSpread(context: string, at: string | undefined): SpreadState {
 function panelProps(s: SpreadState, at: string | undefined) {
   return {
     manifest: s.manifest,
-    sample: s.sample,
     on: s.on,
     onToggle: s.setOn,
     tau: s.tau,
@@ -80,7 +76,7 @@ function SpreadImage({ s }: { s: SpreadState }) {
       <ImageOverlay
         url={s.url}
         bounds={s.manifest.bounds}
-        opacity={0.85}
+        opacity={0.7}
         interactive={false}
         attribution="Flood spread: experimental terrain fill on EA LiDAR (OGL v3.0)"
         eventHandlers={{ error: () => s.onImage(false), load: () => s.onImage(true) }}

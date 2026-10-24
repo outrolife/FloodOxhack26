@@ -17,7 +17,6 @@ export const TOGGLE_LABEL = "Flood spread (Experimental)";
 
 export function SpreadPanel({
   manifest,
-  sample,
   on,
   onToggle,
   tau,
@@ -30,8 +29,6 @@ export function SpreadPanel({
 }: {
   /** null: no manifest for this context. */
   manifest: SpreadManifest | null;
-  /** The manifest is the tests/fixtures/ placeholder, not a real run. */
-  sample?: boolean;
   on: boolean;
   onToggle: (on: boolean) => void;
   tau: number;
@@ -46,7 +43,7 @@ export function SpreadPanel({
   /** In a card rather than a map corner: no width cap. */
   wide?: boolean;
 }) {
-  const box = wide ? { ...S.box, maxWidth: "none", padding: 0 } : S.box;
+  const box = wide ? { ...S.box, maxWidth: "none", maxHeight: "none", padding: 0 } : S.box;
   if (!manifest) {
     if (hideWhenMissing) return null;
     return (
@@ -74,7 +71,6 @@ export function SpreadPanel({
       {on && (
         <div style={S.body}>
           <span style={S.badge}>Experimental</span>
-          {sample && <span style={{ ...S.badge, background: "#fdf0d5", color: "#8a4b00" }}>Sample data</span>}
           <div style={S.leads} role="group" aria-label="Flood spread lead time">
             {leads.map((h) => (
               <button
@@ -89,15 +85,23 @@ export function SpreadPanel({
             ))}
           </div>
           <FrameLine pick={pick} at={at} />
+          {noSpread(manifest) && (
+            <p style={S.iou}>
+              <strong>No spread expected at {at ? "these" : "today's"} levels</strong>: no ground outside the
+              river is wet in half the runs at any lead.
+            </p>
+          )}
           {imageMissing && pick.kind === "frame" && <p style={S.warn}>Overlay image not available.</p>}
           <div style={{ marginTop: 6 }}>
             <div style={{ fontWeight: 600 }}>Share of {manifest.runs} runs where the ground is wet</div>
-            {SPREAD_LEGEND.map((l) => (
-              <div key={l.label}>
-                <span style={{ ...S.swatch, background: l.colour }} />
-                {l.label}
-              </div>
-            ))}
+            <div style={S.legendRow}>
+              {SPREAD_LEGEND.map((l) => (
+                <span key={l.label} style={{ whiteSpace: "nowrap" }}>
+                  <span style={{ ...S.swatch, background: l.colour }} />
+                  {l.label}
+                </span>
+              ))}
+            </div>
           </div>
           {iou && (
             <p style={S.iou}>
@@ -105,13 +109,16 @@ export function SpreadPanel({
             </p>
           )}
           <p style={S.note}>{SPREAD_LIMITATIONS}</p>
-          {extraCaveats.map((c) => (
-            <p key={c} style={S.note}>
-              {c}
-            </p>
-          ))}
-          {sample && <p style={S.warn}>Placeholder overlay from tests/fixtures, not a real run.</p>}
-          <p style={S.note}>Terrain: EA LiDAR DTM, Open Government Licence v3.0.</p>
+          {extraCaveats.length > 0 && (
+            <details style={S.note}>
+              <summary style={{ cursor: "pointer" }}>About this run</summary>
+              {extraCaveats.map((c) => (
+                <p key={c} style={S.note}>
+                  {c}
+                </p>
+              ))}
+            </details>
+          )}
         </div>
       )}
     </div>
@@ -140,6 +147,18 @@ function FrameLine({ pick, at }: { pick: FramePick; at?: string }) {
   );
 }
 
+/**
+ * True when the run's own summary caveat says the largest extent wet in at least
+ * half the runs is 0 ha ("Largest extent ... : 0 ha of the 250 ha box").
+ */
+export function noSpread(manifest: SpreadManifest): boolean {
+  for (const c of manifest.caveats) {
+    const m = /^Largest extent[^:]*:\s*([\d.]+)\s*ha/i.exec(c.trim());
+    if (m) return Number(m[1]) === 0;
+  }
+  return false;
+}
+
 /** Leads present in the manifest, in order (normally all of SPREAD_LEADS). */
 export function availableLeads(manifest: SpreadManifest): number[] {
   const have = new Set(manifest.frames.map((f) => f.tau));
@@ -149,7 +168,17 @@ export function availableLeads(manifest: SpreadManifest): number[] {
 }
 
 const S = {
-  box: { background: "#fff", padding: "6px 8px", maxWidth: 250, fontSize: "0.78rem", color: "#0b0b0b" },
+  // In a map corner: capped height so it never covers the zoom buttons (the River map is 480 px).
+  box: {
+    background: "#fff",
+    padding: "6px 8px",
+    maxWidth: 250,
+    maxHeight: 330,
+    overflowY: "auto",
+    fontSize: "0.78rem",
+    color: "#0b0b0b",
+  },
+  legendRow: { display: "flex", flexWrap: "wrap", columnGap: 8 },
   toggle: { display: "flex", gap: 6, alignItems: "center", cursor: "pointer", fontWeight: 600 },
   body: { marginTop: 4 },
   badge: {
