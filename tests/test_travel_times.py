@@ -161,6 +161,18 @@ def test_named_window_names_the_detected_event() -> None:
     assert pair["events"][3]["excluded"]
 
 
+def test_datum_mismatch_falls_back_to_own_percentile() -> None:
+    """Osney upstream lock stage (~0-0.3 m) never reaches the downstream-stage amber (3.18 m)."""
+    hourly = shifted_pair(["2010-11-01", "2010-12-10", "2011-01-20"], lag_h=30, amps=[1, 1, 1])
+    osney = hourly["gauge"] == "osney"
+    hourly.loc[osney, ["level_mean", "level_max"]] -= 2.45  # same shape, other datum: ~0.05-1.05 m
+    out = run(hourly)
+    (pair,) = out.travel_pairs
+    assert pair["n"] == 3
+    assert pair["tHalf"]["median"] == pytest.approx(30, abs=1)
+    assert out.detail["eventThresholds"]["osney"]["source"] == "p99"
+
+
 # ---------------------------------------------------------------------------------------------
 # Contract shape (SPEC §9 TravelPair) and CLI
 # ---------------------------------------------------------------------------------------------

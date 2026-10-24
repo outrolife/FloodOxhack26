@@ -110,6 +110,7 @@ WINTER_MONTHS = (10, 11, 12, 1, 2, 3)
 INTERP_LIMIT_H = 6  # interpolate gaps up to 6 h inside a window before smoothing
 MAX_MISSING_FRAC = 0.2  # exclude an event if > 20 % of a gauge's window is still missing
 MIN_XCORR_SAMPLES = 500
+DATUM_FALLBACK_QUANTILE = 0.99
 MIN_RISE_M = 0.05  # a gauge must rise >= 5 cm above its own baseline to have a timeable peak
 
 
@@ -238,7 +239,9 @@ class Event:
         return self.start - PAD_BEFORE, self.end + PAD_AFTER
 
 
-def detect_events(level_max: pd.Series, amber: float) -> list[tuple[pd.Timestamp, pd.Timestamp, float]]:
+def detect_events(
+    level_max: pd.Series, amber: float, margin: float = MIN_EXCEEDANCE_M
+) -> list[tuple[pd.Timestamp, pd.Timestamp, float]]:
     """Runs of ``level_max > amber``, merged when < 7 days apart, kept if the peak > amber + 0.1 m."""
     above = (level_max > amber).to_numpy()
     if not above.any():
@@ -255,17 +258,42 @@ def detect_events(level_max: pd.Series, amber: float) -> list[tuple[pd.Timestamp
     out = []
     for s, e in runs:
         peak = float(np.nanmax(level_max.to_numpy()[s : e + 1]))
-        if peak > amber + MIN_EXCEEDANCE_M:
+        if peak > amber + margin:
             out.append((idx[s], idx[e], peak))
     return out
 
 
+def event_threshold(target: str, level_max: pd.Series, amber: float) -> tuple[float, float, str]:
+    """(threshold, margin, source) for event detection at ``target``.
+
+    Normally the configured amber and the SPEC 0.1 m margin. FALLBACK (not in SPEC): if the data never
+    reach amber, the series is almost certainly on another datum (e.g. the Hydrology API holds only the
+    *upstream* lock stage at Osney, Iffley and Godstow, issue #2), so events are detected above that
+    series' own 99th percentile instead, with no margin. Logged, and recorded in the detail file.
+    """
+    top = float(level_max.max())
+    if top > amber:
+        return amber, MIN_EXCEEDANCE_M, "amber"
+    p99 = float(level_max.quantile(DATUM_FALLBACK_QUANTILE))
+    log.warning(
+        "%s never reaches amber %.2f m (data max %.2f m): datum mismatch? detecting events above its own "
+        "p%.0f = %.3f m instead",
+        target, amber, top, 100 * DATUM_FALLBACK_QUANTILE, p99,
+    )
+    return p99, 0.0, f"p{100 * DATUM_FALLBACK_QUANTILE:.0f}"
+
+
 def target_events(
-    target: str, level_max: pd.Series, amber: float, named: list[dict[str, Any]]
+    target: str,
+    level_max: pd.Series,
+    amber: float,
+    named: list[dict[str, Any]],
+    margin: float = MIN_EXCEEDANCE_M,
 ) -> list[Event]:
     """Detected events for one target, unioned with the named windows (SPEC §6.1)."""
     events = [
-        Event(f"auto-{s:%Y%m%d}", target, s, e, p, "detected") for s, e, p in detect_events(level_max, amber)
+        Event(f"auto-{s:%Y%m%d}", target, s, e, p, "detected")
+        for s, e, p in detect_events(level_max, amber, margin)
     ]
     for ne in named:
         inside = [ev for ev in events if ev.start <= ne["end"] and ev.end >= ne["start"]]
@@ -583,6 +611,7 @@ def run(
     gauges = set(level_mean.columns)
 
     events_by_target: dict[str, list[Event]] = {}
+    thresholds: dict[str, dict[str, Any]] = {}
     for target in upstreams:
         if target not in gauges:
             log.warning("target %s not in hourly data; its pairs are skipped", target)
@@ -590,7 +619,9 @@ def run(
         if target not in amber:
             log.warning("no amber threshold for %s; its pairs are skipped", target)
             continue
-        events_by_target[target] = target_events(target, level_max[target], amber[target], named)
+        thr, margin, thr_source = event_threshold(target, level_max[target], amber[target])
+        thresholds[target] = {"amber": amber[target], "threshold": round(thr, 3), "source": thr_source}
+        events_by_target[target] = target_events(target, level_max[target], thr, named, margin)
         log.info("%s: %d events", target, len(events_by_target[target]))
 
     pairs, lag_entries, details = [], [], []
@@ -614,7 +645,7 @@ def run(
         )
 
     detail_doc = {
-        "amber": {k: amber[k] for k in sorted(events_by_target)},
+        "eventThresholds": thresholds,
         "events": {
             t: [
                 {"id": e.id, "source": e.source, "start": e.start.isoformat(), "end": e.end.isoformat(),
