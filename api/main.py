@@ -6,6 +6,15 @@ GET /api/live returns the current Forecast from ``model/forecast_live.py``, reco
 
 Set ``RIVER_CLOCK_LIVE_FETCH=0`` to serve only the last processed live data without polling the EA.
 
+Set ``RIVER_CLOCK_STATIC_DIR`` to a built web app (``web/dist``) to serve it from this same process:
+files at ``/`` (so ``/data/*.json`` too), with unknown page paths falling back to ``index.html``.
+This is how the single-container deploy works (``deploy/``, issue #18). Unset, the API serves only
+``/api/*``, as in development.
+
+Set ``RIVER_CLOCK_LIVE_BACKGROUND=1`` (the container does) to refresh the live forecast in a
+background thread every 15 minutes instead of inside a request. A full EA poll can take a minute,
+longer than the web app waits for ``/api/live``; with this on, requests only ever read the cache.
+
 Issue #16.
 """
 
@@ -14,17 +23,21 @@ from __future__ import annotations
 import logging
 import os
 import threading
-from collections.abc import Callable
+import time
+from collections.abc import AsyncIterator, Callable
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.staticfiles import StaticFiles
+from starlette.types import Scope
 
 from model import forecast_live
 
 log = logging.getLogger(__name__)
-
-app = FastAPI(title="River Clock")
 
 LIVE_TTL = timedelta(minutes=15)
 
@@ -37,10 +50,16 @@ class LiveCache:
         self.ttl = ttl
         self.computed_at: datetime | None = None
         self.forecast: dict[str, Any] | None = None
+        self.background = False  # True once start_background() runs: requests never compute
         self._lock = threading.Lock()
 
     def get(self, now: datetime | None = None) -> dict[str, Any]:
         now = now or datetime.now(UTC)
+        if self.background:
+            # The refresher thread keeps the cache current; until its first run there is no data.
+            if self.forecast is None:
+                raise forecast_live.LiveDataUnavailable("live forecast not computed yet")
+            return self.forecast
         with self._lock:
             if (
                 self.forecast is not None
@@ -59,6 +78,31 @@ class LiveCache:
                 self.computed_at = now  # don't hammer the EA: retry after another TTL
             return self.forecast
 
+    def refresh(self, now: datetime | None = None) -> None:
+        """Recompute outside the lock, then swap: readers keep the old forecast meanwhile."""
+        now = now or datetime.now(UTC)
+        forecast = self.compute(now)
+        with self._lock:
+            self.forecast, self.computed_at = forecast, now
+
+    def start_background(self) -> threading.Thread:
+        """Refresh now and then every ``ttl`` in a daemon thread. Failures keep the last forecast."""
+        self.background = True
+
+        def loop() -> None:
+            while True:
+                try:
+                    self.refresh()
+                except Exception as exc:
+                    log.warning(
+                        "background live refresh failed (%s); keeping forecast from %s", exc, self.computed_at
+                    )
+                time.sleep(self.ttl.total_seconds())
+
+        thread = threading.Thread(target=loop, name="live-refresh", daemon=True)
+        thread.start()
+        return thread
+
 
 def _compute_live(now: datetime) -> dict[str, Any]:
     fetch = os.environ.get("RIVER_CLOCK_LIVE_FETCH", "1") != "0"
@@ -66,6 +110,16 @@ def _compute_live(now: datetime) -> dict[str, Any]:
 
 
 live_cache = LiveCache(_compute_live)
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    if os.environ.get("RIVER_CLOCK_LIVE_BACKGROUND", "0") == "1":
+        live_cache.start_background()
+    yield
+
+
+app = FastAPI(title="River Clock", lifespan=lifespan)
 
 
 @app.get("/api/health")
@@ -79,3 +133,32 @@ def live() -> dict[str, Any]:
         return live_cache.get()
     except forecast_live.LiveDataUnavailable as exc:
         raise HTTPException(status_code=503, detail="Live data unavailable") from exc
+
+
+class SPAStaticFiles(StaticFiles):
+    """Static files with a single-page-app fallback.
+
+    A missing page path (no file extension, e.g. ``/proof``) gets ``index.html`` so the React app can
+    route it. Missing files (``/data/x.json``, ``/assets/y.js``) and anything under ``/api/`` stay 404,
+    so the web app's fixture fallback and API clients see a real error.
+    """
+
+    async def get_response(self, path: str, scope: Scope):  # type: ignore[override]
+        try:
+            return await super().get_response(path, scope)
+        except StarletteHTTPException as exc:
+            last = path.rsplit("/", 1)[-1]
+            if exc.status_code != 404 or path == "api" or path.startswith("api/") or "." in last:
+                raise
+            return await super().get_response("index.html", scope)
+
+
+def mount_static(target: FastAPI, directory: Path) -> None:
+    """Serve the built web app at ``/``. Call after the API routes so ``/api/*`` wins."""
+    if not (directory / "index.html").is_file():
+        raise RuntimeError(f"RIVER_CLOCK_STATIC_DIR={directory} has no index.html; run `npm run build`")
+    target.mount("/", SPAStaticFiles(directory=directory, html=True), name="web")
+
+
+if static_dir := os.environ.get("RIVER_CLOCK_STATIC_DIR"):
+    mount_static(app, Path(static_dir))
