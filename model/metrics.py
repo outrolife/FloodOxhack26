@@ -16,10 +16,14 @@ Definitions (used in the UI and by judges):
 - **Brier score** = ``mean((p - o)^2)`` with o = 1 if the level at t + h is at or above the line.
   **Reliability**: 10 equal-width bins of p; per bin the mean forecast (pPred), the observed frequency
   (pObs) and the count (n). Empty bins are left out, because the §9 contract has ``pObs: number``.
-- **Trigger** at p*: an issue time whose forecast flood probability (max over leads) is >= p*.
+- **Trigger** at p*: an issue time whose forecast flood probability (max over leads) is >= p*, while
+  the gauge is still below the line (once it is above, the flood is here: no trigger, no false alarm).
   **Episode**: a run of triggers in which consecutive triggers are less than 24 h apart; a trigger 24 h
   or more after the previous one starts a new episode.
-- **Hit**: a crossing with at least one trigger in the 72 h before it, i.e. issued in [c - 72 h, c).
+- **Flood onset**: the observed up-crossings of the threshold, keeping only those 72 h or more after
+  the previous up-crossing. A level hovering at the line crosses it many times in one flood; those
+  repeats are one flood, scored once.
+- **Hit**: a flood onset c with at least one trigger in the 72 h before it, i.e. issued in [c - 72 h, c).
   **Lead** = c - the first trigger in that window (so at most 72 h).
   **Miss**: a crossing with no trigger in that window.
   **False alarm**: an episode with no crossing from its first trigger to 72 h after its last one.
@@ -197,6 +201,17 @@ def trigger_times(p: pd.Series, p_star: float) -> pd.DatetimeIndex:
     return pd.DatetimeIndex(s.index[(s >= p_star).to_numpy()])
 
 
+def flood_onsets(crossings: Iterable[Any], gap: pd.Timedelta = HIT_WINDOW) -> list[pd.Timestamp]:
+    """Up-crossings that start a new flood: those ``gap`` (72 h) or more after the previous up-crossing."""
+    out: list[pd.Timestamp] = []
+    prev: pd.Timestamp | None = None
+    for c in sorted(_utc(x) for x in crossings):
+        if prev is None or c - prev >= gap:
+            out.append(c)
+        prev = c
+    return out
+
+
 def episodes(
     times: Iterable[Any], gap: pd.Timedelta = EPISODE_GAP
 ) -> list[tuple[pd.Timestamp, pd.Timestamp]]:
@@ -314,10 +329,14 @@ def official_outcome(
 # --------------------------------------------------------------------------- replay helpers
 
 
-def spot_probability(forecasts: Iterable[Mapping[str, Any]], spot: str) -> pd.Series:
+def spot_probability(
+    forecasts: Iterable[Mapping[str, Any]], spot: str, threshold: float | None = None
+) -> pd.Series:
     """Flood probability per issue time for ``spot``: max ``pFlood`` over leads (= the 72 h value).
 
     Same rule as ``model.official.trigger_series``. ``timing_only`` spots give NaN and never trigger.
+    With ``threshold``, issue times when ``levelNow`` is already at or above it give NaN: the flood is
+    already here, so such a "trigger" is neither a warning of a crossing nor a false alarm.
     """
     times: list[pd.Timestamp] = []
     vals: list[float] = []
@@ -325,27 +344,35 @@ def spot_probability(forecasts: Iterable[Mapping[str, Any]], spot: str) -> pd.Se
         for sf in fc["spots"]:
             if sf["spot"] == spot:
                 ps = [ld["pFlood"] for ld in sf["leads"] if ld.get("pFlood") is not None]
+                above = (
+                    threshold is not None and sf.get("levelNow") is not None and sf["levelNow"] >= threshold
+                )
                 times.append(_utc(fc["issuedAt"]))
-                vals.append(max(ps) if ps else np.nan)
+                vals.append(max(ps) if ps and not above else np.nan)
     return pd.Series(vals, index=pd.DatetimeIndex(times), dtype=float).sort_index()
 
 
 def arrival_error_h(
-    forecasts: Iterable[Mapping[str, Any]], spot: str, crossing: Any, offset_h: int
+    forecasts: Iterable[Mapping[str, Any]], spot: str, crossing: Any, offset_h: int, tolerance_h: int = 1
 ) -> float | None:
     """Predicted 50% arrival - actual crossing (hours), for the forecast issued ``offset_h`` before it.
 
-    Uses the forecast issued exactly at crossing - offset (hourly replays); None if that forecast is
-    missing or gives no 50% arrival within 72 h.
+    Uses the latest forecast issued in [crossing - offset - tolerance, crossing - offset] (replays are
+    hourly, or every 2 h for e2014, so a 1 h tolerance always finds one). None if there is none or it
+    gives no 50% arrival within 72 h.
     """
-    target = _utc(crossing) - pd.Timedelta(hours=offset_h)
+    latest = _utc(crossing) - pd.Timedelta(hours=offset_h)
+    earliest = latest - pd.Timedelta(hours=tolerance_h)
+    best = None
     for fc in forecasts:
-        if _utc(fc["issuedAt"]) != target:
-            continue
-        for sf in fc["spots"]:
-            if sf["spot"] == spot and sf.get("arrival") and sf["arrival"].get("p50"):
-                return round(_hours(_utc(sf["arrival"]["p50"]) - _utc(crossing)), 2)
+        t = _utc(fc["issuedAt"])
+        if earliest <= t <= latest and (best is None or t > _utc(best["issuedAt"])):
+            best = fc
+    if best is None:
         return None
+    for sf in best["spots"]:
+        if sf["spot"] == spot and sf.get("arrival") and sf["arrival"].get("p50"):
+            return round(_hours(_utc(sf["arrival"]["p50"]) - _utc(crossing)), 2)
     return None
 
 

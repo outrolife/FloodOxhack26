@@ -249,3 +249,24 @@ def test_bootstrap_undefined_and_constant():
 
 def test_pooled_mean_weights_by_hit_not_event():
     assert m.pooled_mean([[10.0, 20.0, 30.0], [60.0]]) == pytest.approx(30.0)
+
+
+def test_flood_onsets_merge_repeat_crossings():
+    # 0 h starts a flood; 3, 20, 80 h each follow the previous crossing by < 72 h (same flood);
+    # 200 h is 120 h after 80 h, so a new flood
+    assert m.flood_onsets(hrs(20, 0, 3, 80, 200)) == hrs(0, 200)
+    assert m.flood_onsets([]) == []
+
+
+def test_spot_probability_ignores_times_already_above_threshold():
+    fcs = [_fc(0, 0.9, None), _fc(1, 0.9, None)]
+    fcs[1]["spots"][0]["levelNow"] = 2.8
+    p = m.spot_probability(fcs, "botley", threshold=2.76)
+    assert p.iloc[0] == 0.9 and np.isnan(p.iloc[1])
+
+
+def test_arrival_error_uses_latest_forecast_within_tolerance():
+    fcs = [_fc(74, 0.6, 96), _fc(75, 0.6, 99)]
+    # crossing at 100 h; nothing issued at 76 h, so the 75 h forecast (1 h earlier) is used: 99 - 100
+    assert m.arrival_error_h(fcs, "botley", hrs(100)[0], 24) == -1.0
+    assert m.arrival_error_h(fcs, "botley", hrs(101)[0], 24) is None  # 77 h: 75 h is 2 h early
