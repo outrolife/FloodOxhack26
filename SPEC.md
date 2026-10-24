@@ -85,6 +85,12 @@ Values from EA public pages. **At ingest, re-read thresholds from API metadata a
 | cassington | Cassington Weir B | Evenlode | upstream | 1290_w2TH | 0.77 | – | 1.29 (Jul 2007) |
 | enslow | Enslow Weir A | Cherwell | upstream | 1460_w1TH | 1.29 | – (unreliable) | 2.10 (Apr 1998) |
 | islip | Islip | Ray | upstream | 1489TH | 7.80 | 8.85 | 9.33 (Apr 1998) |
+| shifford | Shifford Lock (u/s series, #125) | Thames | upstream | 0904TH | 0.42 (u/s) | – | 0.728 (u/s, Jan 2014) |
+| hannington | Hannington Bridge (#125) | Thames | upstream | 0569TH | 3.81 | 4.47 | 4.49 (Jul 2007) |
+| worsham | Worsham (#125) | Windrush | upstream | 1080TH | 1.62 | 2.16 | 1.70 (Nov 2024) |
+| shipton | Shipton (#125) | Evenlode | upstream | 1238TH | 2.02 | 2.62 | 3.44 (Nov 2024) |
+| banbury | Banbury (#125) | Cherwell | live_only | 1420TH | 1.14 | 1.83 | 2.39 (Jul 2007) |
+| lowerarncott | Lower Arncott (#125) | Ray | live_only | 1483TH | 2.00 | 3.26 | 2.98 (Jan 2003) |
 | godstow | Godstow Lock d/s | Thames | live_only (§4.1.1) | 1302TH | 2.57 | 3.07 | 3.11 (Jul 2007) |
 | osney | Osney Lock d/s | Thames | live_only (§4.1.1) | 1303TH | 3.18 | 3.79 | 3.97 (9 Jan 2014) |
 | iffley | Iffley Lock d/s | Thames | live_only (§4.1.1) | 1501TH | 2.72 | 3.25 | 3.67 (9 Jan 2014) |
@@ -99,6 +105,7 @@ The Hydrology API holds only the **upstream** lock stage for osney, godstow, iff
 - **Live only:** `osney`, `godstow`, `iffley`, shown in the River strip from flood-monitoring live data; not trained or backtested.
 - `eynsham` uses its u/s series as an upstream feature. Anomalies are per-gauge, so the datum doesn't matter.
 - Upstream gauges with matching Hydrology history: farmoor (1992+), cassington (1986+), enslow (1987+), islip (1995+; use the `-mASD` measure), eynsham u/s (2000+).
+- Further-upstream gauges (#125 experiment A, adopted for newbotley and minns only, PM 24 Oct): shifford u/s (2002+), hannington (1995+), worsham (1988+), shipton (1998+). Their live `Stage` measure equals the Hydrology series exactly (20–24 Oct 2026). banbury (1986+) and lowerarncott (1998+) have the same matching history but are `live_only`: A was not adopted for kingsmill. All six are in `hourly.parquet` from release `data-hourly-v2` on.
 - Refs and measures are resolved in `config/stations.yaml` (#2). Hydrology 15-min level measures end in `level-i-900-m-qualified`. At the locks, flood-monitoring puts the d/s thresholds under `downstageScale`; `stageScale` is the u/s trace.
 - Kings Mill telemetry has been out since 2026-10-13 14:45Z: its history is fine, but live mode shows it as stale.
 

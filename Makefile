@@ -12,7 +12,7 @@ PY   := $(BIN)/python$(EXE)
 
 # Data root: RC_DATA_DIR env var, else ./data (same rule as pipeline/stations.py)
 DATA_DIR     := $(if $(RC_DATA_DIR),$(RC_DATA_DIR),data)
-DATA_RELEASE ?= data-hourly-v1
+DATA_RELEASE ?= data-hourly-v2
 
 .PHONY: setup data fetch-data travel train backtest live live-web api web test lint mirror
 
@@ -35,7 +35,7 @@ data: setup
 
 # Skip the long download: fetch the cleaned hourly.parquet, provenance.parquet, clean_log.json and
 # warnings.parquet (+ warnings_provenance.json) from GitHub release assets (not in git). Override
-# the tag with `make fetch-data DATA_RELEASE=data-hourly-v2`. If the release has no warnings.parquet,
+# the tag with `make fetch-data DATA_RELEASE=data-hourly-v1`. If the release has no warnings.parquet,
 # build it with pipeline.ingest_warnings (about 15 s, one ZIP download, cached in data/raw/).
 fetch-data:
 	@command -v gh >/dev/null || { echo "gh not found: brew install gh"; exit 1; }
