@@ -81,20 +81,29 @@ Values from EA public pages. **At ingest, re-read thresholds from API metadata a
 | key | Station | River | Role | Ref | Normal top / amber (m) | Property flooding possible (m) | Record (m) |
 |---|---|---|---|---|---|---|---|
 | farmoor | Farmoor | Thames | upstream | 1100TH | 1.30 | 1.75 | 2.01 (Jul 2007) |
-| eynsham | Eynsham Lock d/s | Thames | upstream | 1201TH | 2.96 | – | 3.65 (Jul 2007) |
+| eynsham | Eynsham Lock (u/s series, §4.1.1) | Thames | upstream | 1201TH | 2.96 | – | 3.65 (Jul 2007) |
 | cassington | Cassington Weir B | Evenlode | upstream | (7054) | 0.77 | – | 1.29 (Jul 2007) |
 | enslow | Enslow Weir A | Cherwell | upstream | (7064) | 1.29 | – (unreliable) | 2.10 (Apr 1998) |
 | islip | Islip | Ray | upstream | (9082) | 7.80 | 8.85 | 9.33 (Apr 1998) |
-| godstow | Godstow Lock d/s | Thames | target | 1302TH | 2.57 | 3.07 | 3.11 (Jul 2007) |
-| osney | Osney Lock d/s | Thames | target (primary) | 1303TH | 3.18 | 3.79 | 3.97 (9 Jan 2014) |
-| iffley | Iffley Lock d/s | Thames | target | (7072) | 2.72 | 3.25 | 3.67 (9 Jan 2014) |
+| godstow | Godstow Lock d/s | Thames | live only (§4.1.1) | 1302TH | 2.57 | 3.07 | 3.11 (Jul 2007) |
+| osney | Osney Lock d/s | Thames | live only (§4.1.1) | 1303TH | 3.18 | 3.79 | 3.97 (9 Jan 2014) |
+| iffley | Iffley Lock d/s | Thames | live only (§4.1.1) | (7072) | 2.72 | 3.25 | 3.67 (9 Jan 2014) |
 | kingsmill | Kings Mill u/s | Cherwell | target | 1491TH | 2.40 | 2.60 | 2.79 (27 Nov 2024) |
-| newbotley | New Botley | Bulstake Stream | target | (7075) | 2.01 | 2.76 | 3.14 (Jul 2007) |
+| newbotley | New Botley | Bulstake Stream | target (primary) | 1645TH | 2.01 | 2.76 | 3.14 (Jul 2007) |
+| minns | Minns Estate | Seacourt Stream | target | 1635TH | 2.13 | TBC (Story, #10) | 3.117 |
+| coldharbour | Cold Harbour | Hinksey Stream | target | 1675TH | 2.30 | TBC (Story, #10) | 2.738 |
+
+#### 4.1.1 Downstream-stage history (verified 24 Oct, #2; re-target decided by PM)
+The Hydrology API holds only the **upstream** lock stage for osney, godstow, iffley and eynsham. The d/s series in the table exist only in flood-monitoring (live, about 4 weeks) and the daily archive (from 2025-10-29, so e2026 only). Osney and Godstow u/s stay flat in floods (Osney u/s 0.19 m at the 2014 peak; −0.001 m on 25 Feb 2026 while d/s read 3.34 m), so they can't be proxies. Therefore:
+- **Trained targets:** `newbotley` (primary, 15-min history from 2002), `kingsmill` (1998+), `minns` (2003+), `coldharbour` (2002+).
+- **Live only:** `osney`, `godstow`, `iffley`, shown in the River strip from flood-monitoring live data; not trained or backtested.
+- `eynsham` uses its u/s series as an upstream feature. Anomalies are per-gauge, so the datum doesn't matter.
+- Upstream gauges with matching Hydrology history: farmoor (1992+), cassington (1986+), enslow (1987+), islip (1995+).
 
 Rain gauges (EA): Osney `256230TP`, Eynsham `254336TP`, Abingdon `261021TP`, Benson `264254TP`, Wheatley `263541TP`. Catchment rain = mean of available gauges per hour (log which are used).
 
 Flow paths (for travel times and features):
-- Thames: farmoor, eynsham, cassington → godstow → osney → iffley; newbotley (Bulstake Stream, west Oxford) is fed by the Thames system: treat farmoor, eynsham, cassington, godstow as its upstream gauges.
+- Thames: farmoor, eynsham, cassington are the upstream gauges for the three west/south Oxford targets: newbotley (Bulstake Stream), minns (Seacourt Stream) and coldharbour (Hinksey Stream). The main-channel locks godstow → osney → iffley are live only (§4.1.1).
 - Cherwell: enslow, islip → kingsmill.
 
 ### 4.2 Trouble spots (`config/spots.yaml`)
@@ -102,11 +111,13 @@ Coordinates approximate; verify on a map.
 
 | key | Name | EA warning area | Gauge | Threshold (m) | lat, lon |
 |---|---|---|---|---|---|
-| osney | Osney Island / Binsey | 061FWF23BnsyOsny | osney | 3.79 | 51.7505, -1.2725 |
+| osney | Osney Island / Binsey | 061FWF23BnsyOsny | minns | TBC | 51.7505, -1.2725 |
 | botley | Botley Road / New Botley / Hinksey | 061FWF23NwBotley | newbotley | 2.76 | 51.7525, -1.2790 |
-| abingdonrd | Abingdon Road / Grandpont | 061FWF23NwBotley | iffley | 3.25 | 51.7425, -1.2560 |
+| abingdonrd | Abingdon Road / Grandpont | 061FWF23NwBotley | coldharbour | TBC | 51.7425, -1.2560 |
 | wolvercote | Wolvercote / Port Meadow | 061FWF23Wlvrcote | godstow | 3.07 | 51.7770, -1.2800 |
 | cherwell | Cherwell (Kings Mill) | Cherwell Oxford area (code TBC) | kingsmill | 2.60 | 51.7600, -1.2390 |
+
+Gauge changes (§4.1.1): osney and abingdonrd use the nearest single-trace gauges with history, minns and coldharbour, as substitutes. Story verifies their GOV.UK property-flooding thresholds. **If either can't be verified by Sat 20:00 UK, that spot becomes `timing_only`.** wolvercote stays on godstow, which is live only: its mode is `timing_only` with `leads: []` and `arrival: null`, and the UI shows the live level against 3.07 m with the note "no forecast: no gauge history".
 
 Each spot has:
 - `amber` = gauge normal-range top (`typicalRangeHigh`).
@@ -119,10 +130,10 @@ Windows are approximate (UTC); refine from data.
 |---|---|---|---|
 | e2007 | July 2007 | 2007-07-18 → 2007-08-02 | Summer event |
 | e2012 | Nov–Dec 2012 | 2012-11-20 → 2013-01-05 | Cherwell record |
-| e2014 | Jan–Feb 2014 | 2013-12-20 → 2014-02-20 | **Headline replay**; Osney 3.97 m, 9 Jan |
+| e2014 | Jan–Feb 2014 | 2013-12-20 → 2014-02-20 | **Headline replay** on newbotley; Osney d/s 3.97 m on 9 Jan (context only, §4.1.1); Minns 3.09 m, 9 Jan |
 | e2024a | Jan 2024 (Storm Henk) | 2023-12-28 → 2024-01-15 | Abingdon Road closed ~21:30 5 Jan |
 | e2024b | Nov 2024 (Storm Bert) | 2024-11-20 → 2024-12-05 | Kings Mill record 27 Nov |
-| e2026 | Feb–Mar 2026 | 2026-02-18 → 2026-03-10 | Osney peaked 3.41 m (below 3.79): false-alarm test |
+| e2026 | Feb–Mar 2026 | 2026-02-18 → 2026-03-10 | Osney d/s peaked 3.41 m (below 3.79): false-alarm test on the trained gauges |
 
 Additional events are auto-detected (§6.1) and added to the backtest set.
 
@@ -159,7 +170,7 @@ Writes `web/public/data/quality.json` (§9): per-gauge coverage %, gaps filled/f
 For each target gauge: an event is a contiguous period where `level_max` > amber, merged if separated by < 7 days; keep if peak > amber + 0.1 m. Analysis window: 7 days before start to 3 days after end. Union with `events.yaml`.
 
 ### 6.2 Matching per gauge pair
-Pairs: every upstream gauge → each target on its flow path (§4.1), plus godstow → osney → iffley.
+Pairs: every upstream gauge → each target on its flow path (§4.1). The main-channel locks have no history (§4.1.1), so they have no pairs.
 For each event and pair:
 1. Smooth hourly `level_mean` with a centred 3 h rolling mean (analysis only, never used as a model input).
 2. **Peak time:** argmax in the window. Require one dominant peak: any second peak (via `scipy.signal.find_peaks`) must have prominence < 50% of the main one; otherwise mark the event `ambiguous` with a reason.
@@ -355,7 +366,7 @@ Tabs: **River · Time Machine · Decide · Proof · About.** Every tab shows a b
 
 ### S3. Experimental flood-spread ensemble (Osney/Botley subarea only)
 - **Purpose:** show *where* water could spread as the forecast level rises, with uncertainty.
-- **Prerequisite (blocking):** the osney (or newbotley) gauge's stage datum in metres above Ordnance Datum (mAOD), taken from EA station metadata. If it can't be verified, **do not build S3**.
+- **Prerequisite (blocking):** the newbotley (or minns) gauge's stage datum in metres above Ordnance Datum (mAOD), taken from EA station metadata. If it can't be verified, **do not build S3**.
 - **Data:** EA 1 m LiDAR DTM tiles covering the subarea (bbox approx. 51.745–51.758 N, −1.290 to −1.265 E); resample to 5 m; British National Grid (EPSG:27700). River cells from OS Open Rivers or EA Main River Map.
 - **Method (offline, per forecast time τ ∈ {6, 12, 24, 36, 48, 72} h):**
   1. N = 200 runs. Sample a gauge level from that forecast's distribution at τ (inverse-CDF from §7.5); convert to water-surface elevation (WSE, mAOD) with the gauge datum.
@@ -385,7 +396,7 @@ Tabs: **River · Time Machine · Decide · Proof · About.** Every tab shows a b
 
 | Role | Owns | First 2 hours |
 |---|---|---|
-| Data | `pipeline/`, `config/stations.yaml` | §14 checklist; resolve station refs; ingest osney + upstream history |
+| Data | `pipeline/`, `config/stations.yaml` | §14 checklist; resolve station refs; ingest newbotley, minns, coldharbour, kingsmill + upstream history |
 | Model | `analysis/`, `model/` | `travel_times.py` and `features.py` against fixtures; leakage test |
 | App | `web/`, `api/` | Scaffold app; `contracts.ts`; all five tabs on fixture data |
 | Story | `config/events.yaml`, `config/spots.yaml`, `README.md` | Verify spot coordinates, event dates, threshold evidence, warning area codes |
@@ -398,9 +409,9 @@ Stretch items are owned by whoever is free first, agreed at a team check-in.
 
 | Pri | Deliverable | Done when | Target (BST/GMT local) |
 |---|---|---|---|
-| P0 | Clean hourly data: osney + upstream gauges + rain | `hourly.parquet` exists; quality.json renders | Sat 21:00 |
-| P0 | Travel-time finding, Thames chain → osney | `travel_times.json` renders on Proof | Sat 23:00 |
-| P0 | Osney model, all leads, calibrated; e2014 replay | Time Machine plays e2014 | Sun 02:00 |
+| P0 | Clean hourly data: newbotley + upstream gauges + rain | `hourly.parquet` exists; quality.json renders | Sat 21:00 |
+| P0 | Travel-time finding, Thames chain → newbotley | `travel_times.json` renders on Proof | Sat 23:00 |
+| P0 | New Botley model, all leads, calibrated; e2014 replay | Time Machine plays e2014 | Sun 02:00 |
 | P0 | River (static) + Time Machine on real data, offline | Demo runs from committed JSON | Sun 03:00 |
 | P1 | All 5 spots, all events, full `proof.json`, Proof tab | Metrics render with intervals | Sun 06:00 |
 | P1 | Official-warning comparison and trade-off curve | Markers in Time Machine | Sun 07:00 |
@@ -419,6 +430,7 @@ Stretch items are owned by whoever is free first, agreed at a team check-in.
 4. Historic Flood Warnings: confirm issue times (not just dates) and the Oxford area codes.
 5. Rain gauges 256230TP and 254336TP: confirm history.
 Record results in the team chat and update `config/stations.yaml`.
+*Result (24 Oct): item 1's downstream stage has no history, so items 1 and 3 led to the re-target in §4.1.1.*
 
 ---
 
