@@ -14,7 +14,7 @@ PY   := $(BIN)/python$(EXE)
 DATA_DIR     := $(if $(RC_DATA_DIR),$(RC_DATA_DIR),data)
 DATA_RELEASE ?= data-hourly-v2
 
-.PHONY: setup data fetch-data travel train backtest live live-web api web test lint mirror
+.PHONY: setup data fetch-data tiles travel train backtest live live-web api web test lint mirror
 
 setup: $(VENV)/.installed
 
@@ -44,6 +44,26 @@ fetch-data:
 	@test -f $(DATA_DIR)/processed/warnings.parquet || { \
 	  echo "$(DATA_RELEASE) has no warnings.parquet: running pipeline.ingest_warnings"; \
 	  $(MAKE) setup && RC_DATA_DIR=$(DATA_DIR) $(PY) -m pipeline.ingest_warnings; }
+	@$(MAKE) --no-print-directory tiles
+
+# Offline basemap for map v3 (#152): oxon.pmtiles (Protomaps, upper Thames catchment, z0-14) plus
+# glyph fonts and sprites, from the $(BASEMAP_RELEASE) release into web/public/tiles/ (gitignored).
+# Skipped when already there; never fails (the Leaflet map works without it). Downloading removes
+# web/dist/index.html so the next `make demo` rebuild copies the tiles into the build.
+BASEMAP_RELEASE ?= basemap-v1
+TILES_DIR := web/public/tiles
+tiles:
+	@if [ -f $(TILES_DIR)/oxon.pmtiles ] && [ -f "$(TILES_DIR)/fonts/Noto Sans Regular/0-255.pbf" ]; then \
+	  echo "basemap: $(TILES_DIR) ok"; \
+	elif ! command -v gh >/dev/null; then \
+	  echo "WARNING: gh not found: offline basemap not downloaded (brew install gh, then make tiles)"; \
+	else \
+	  mkdir -p $(TILES_DIR) && \
+	  gh release download $(BASEMAP_RELEASE) -D $(TILES_DIR) --clobber -p oxon.pmtiles -p basemap-assets.tar.gz && \
+	  tar -xzf $(TILES_DIR)/basemap-assets.tar.gz -C $(TILES_DIR) && rm -f $(TILES_DIR)/basemap-assets.tar.gz && \
+	  rm -f web/dist/index.html && echo "basemap: downloaded $(BASEMAP_RELEASE) to $(TILES_DIR)" || \
+	  echo "WARNING: could not download the offline basemap ($(BASEMAP_RELEASE)): map v3 needs it, the Leaflet map does not"; \
+	fi
 
 # Travel-time finding (SPEC §6)
 travel: setup
@@ -110,8 +130,10 @@ DEMO_OPEN ?= 1
 # The preflight runs on the system Python (stdlib only, 3.9+), so it works before `make setup`.
 SYS_PY := $(if $(filter Windows_NT,$(OS)),python,python3)
 # Everything the web build reads: dist is rebuilt only when one of these is newer than it.
-WEB_SOURCES := $(shell find web/src web/public tests/fixtures -type f 2>/dev/null) \
-  web/index.html web/package.json web/package-lock.json web/vite.config.ts web/tsconfig.json
+# web/public/tiles (the offline basemap, #152) is left out of the find: its font folders have spaces
+# ("Noto Sans Regular"), which make can't handle; `make tiles` forces a rebuild when it downloads.
+WEB_SOURCES := $(shell find web/src web/public tests/fixtures -path web/public/tiles -prune -o -type f -print 2>/dev/null) \
+  $(wildcard web/public/tiles/oxon.pmtiles) web/index.html web/package.json web/package-lock.json web/vite.config.ts web/tsconfig.json
 
 # npm ci only when the lockfile changed (needs network the first time, never after).
 web/node_modules/.package-lock.json: web/package-lock.json
@@ -124,7 +146,7 @@ web/dist/index.html: $(WEB_SOURCES) web/node_modules/.package-lock.json
 
 # The presenter's command: built SPA + /data + /api from one process on 127.0.0.1:$(DEMO_PORT), and
 # the browser opens. Offline by default; DEMO_LIVE=1 polls the EA; DEMO_OPEN=0 skips the browser.
-demo: setup web/dist/index.html
+demo: setup tiles web/dist/index.html
 	@DEMO_PORT=$(DEMO_PORT) DEMO_LIVE=$(DEMO_LIVE) DEMO_OPEN=$(DEMO_OPEN) $(PY) scripts/demo_serve.py
 
 # Pre-judging checklist; run it while `make demo` is up (docs/demo-backup.md).

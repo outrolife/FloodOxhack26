@@ -152,3 +152,16 @@ def test_parse_pmset() -> None:
 def test_disk_check(tmp_path: Path) -> None:
     assert pf.check_disk(tmp_path, min_free_gb=0).status == pf.OK
     assert pf.check_disk(tmp_path, min_free_gb=10**9).status == pf.WARN
+
+
+def test_check_basemap(tmp_path: Path) -> None:
+    tiles, dist = tmp_path / "tiles", tmp_path / "dist"
+    assert pf.check_basemap(tiles, dist).status == pf.WARN  # not downloaded: warn, Leaflet map still works
+    write(tiles / pf.PMTILES, "PMTiles")
+    write(tiles / pf.GLYPHS, "x")
+    assert pf.check_basemap(tiles, dist).status == pf.OK  # no build yet
+    write(dist / "index.html", '<div id="root"></div>')
+    c = pf.check_basemap(tiles, dist)
+    assert c.status == pf.WARN and "rebuild" in c.detail  # built before the download
+    write(dist / "tiles" / pf.PMTILES, "PMTiles")
+    assert pf.check_basemap(tiles, dist).status == pf.OK
