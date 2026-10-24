@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: working
 - **issue**: #134
-- **task**: Earlier-warning experiments: soil moisture/API, noise-aware rain, peak coincidence
-- **next**: Fetch ERA5-Land soil moisture, build features + tests
+- **task**: Earlier warnings: training coincidence arm; soil moisture fetched next
+- **next**: Train sm_lag7d / sm_now / rain_noise; replay all events vs EA
 - **needs**: 
 - **notes**: 
 - **branch**: model/earlier-warnings
-- **head**: e37a40d Merge pull request #131 from outrolife/app/v2-replay
+- **head**: b26ea32 Add earlier-warnings experiment harness: soil moisture, coinci
 - **unpushed**: 0
-- **dirty**: 0
-- **updated**: 2026-10-24T20:22:05Z
+- **dirty**: 1
+- **updated**: 2026-10-24T20:27:39Z
