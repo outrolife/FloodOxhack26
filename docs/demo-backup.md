@@ -11,7 +11,7 @@ Judging: **Sun 25 Oct 2026, after code freeze (11:00)**. The clocks went back at
 
 ## Plan A: the laptop, offline (the normal case)
 
-1. **Saturday night, online:** `git pull`, `make setup`, then `make demo` once. That installs everything; after it, nothing needs the network.
+1. **Saturday night, online:** `git pull`, `make setup`, then `make demo` once. That installs everything; after it, nothing needs the network. **Sunday before the freeze, online:** the live owner runs `.venv/bin/python -m model.forecast_live --write-web` and commits `web/public/data/live.json`, so the offline River tab shows a real saved forecast instead of the sample (`make preflight` warns while it's missing).
 2. **At the table:** laptop on mains, Wi-Fi off, `make demo`. It builds the app only if the sources changed, serves everything from one process at **http://127.0.0.1:8080/** and opens the browser.
 3. In a second terminal: `make preflight`. Every line should be ✅ or ℹ️. Fix any ❌ before the first judge. It also prints the UK time and zone (should say GMT on Sunday).
 4. Live mode is **off** by default: the River tab says "Live data unavailable" and shows the saved forecast. To show today's EA readings (only with good Wi-Fi): `DEMO_LIVE=1 make demo`.
