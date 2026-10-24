@@ -222,7 +222,19 @@ def data_dir(tmp_path, monkeypatch):
     (tmp_path / "processed").mkdir()
     monkeypatch.setenv("RC_DATA_DIR", str(tmp_path))
     monkeypatch.delenv(mt.ENV_URL, raising=False)
+    # Never pick up a real connection string from <repo>/.env during tests.
+    monkeypatch.setattr(mt, "database_url", lambda: None)
     return tmp_path
+
+
+def test_database_url_prefers_env_then_dotenv(tmp_path, monkeypatch):
+    env_file = tmp_path / ".env"
+    monkeypatch.delenv(mt.ENV_URL, raising=False)
+    assert mt.database_url(env_file) is None
+    env_file.write_text("# comment\nOTHER=1\nexport TIGER_DATABASE_URL='postgres://u:p@h:5432/db?sslmode=require'\n")
+    assert mt.database_url(env_file) == "postgres://u:p@h:5432/db?sslmode=require"
+    monkeypatch.setenv(mt.ENV_URL, "postgres://from-env")
+    assert mt.database_url(env_file) == "postgres://from-env"
 
 
 def test_dry_run_prints_counts_and_plan_without_connecting(data_dir, monkeypatch, capsys):

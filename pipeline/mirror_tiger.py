@@ -23,8 +23,9 @@ What it does
 Live rows accumulate: each ``make live`` covers the last 28 days, and older live hours stay in the table.
 
 Connection: ``TIGER_DATABASE_URL`` (a Postgres URL, e.g. the Tiger Cloud service URL with
-``?sslmode=require``). Never commit it. ``--dry-run`` prints row counts and the SQL plan without connecting
-and without needing ``psycopg`` (an optional extra: ``uv pip install -e '.[mirror]'``).
+``?sslmode=require``), else the same key in the gitignored ``<repo>/.env``. Never commit or log it.
+``--dry-run`` prints row counts and the SQL plan without connecting and without needing ``psycopg`` (the
+optional extra ``mirror``: ``uv pip install --python .venv/bin/python -r pyproject.toml --extra mirror``).
 
 ``<data>`` is ``$RC_DATA_DIR`` if set, else ``<repo>/data``. All times are UTC.
 """
@@ -43,6 +44,8 @@ from typing import Any
 
 import pandas as pd
 import yaml
+
+from pipeline.stations import data_root
 
 log = logging.getLogger(__name__)
 
@@ -72,8 +75,16 @@ GAUGE_VALUES = [
 GAUGE_COLUMNS = GAUGE_KEY + GAUGE_VALUES
 
 
-def data_root() -> Path:
-    return Path(os.environ.get("RC_DATA_DIR") or REPO_ROOT / "data")
+def database_url(env_file: Path = REPO_ROOT / ".env") -> str | None:
+    """``$TIGER_DATABASE_URL``, else the same key from the gitignored ``<repo>/.env``. Never log it."""
+    url = os.environ.get(ENV_URL)
+    if url or not env_file.exists():
+        return url or None
+    for line in env_file.read_text().splitlines():
+        name, sep, value = line.strip().removeprefix("export ").partition("=")
+        if sep and name.strip() == ENV_URL:
+            return value.strip().strip("'\"") or None
+    return None
 
 
 def source_paths() -> dict[str, Path]:
@@ -393,7 +404,13 @@ def sql_plan(n_gauges: int, sources: Sequence[str]) -> list[str]:
 
 
 def _connect(url: str) -> Any:
-    import psycopg  # optional extra "mirror": keep the import here so nothing else needs it
+    try:
+        import psycopg  # optional extra "mirror": keep the import here so nothing else needs it
+    except ImportError as exc:
+        raise SystemExit(
+            "psycopg is not installed: "
+            "uv pip install --python .venv/bin/python -r pyproject.toml --extra mirror"
+        ) from exc
 
     return psycopg.connect(url, autocommit=True, application_name="river-clock-mirror")
 
@@ -513,9 +530,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         log.error("nothing to mirror: none of %s exist (run make data / make live first)",
                   [str(paths[s]) for s in sources])
         return 1
-    url = os.environ.get(ENV_URL)
+    url = database_url()
     if not url:
-        log.error("%s is not set (see docs/tiger-data.md); try --dry-run", ENV_URL)
+        log.error("%s is not set, nor in .env (see docs/tiger-data.md); try --dry-run", ENV_URL)
         return 2
     summary = mirror(url, preps, gauges, args.batch_rows)
     log.info("done: %s", summary)

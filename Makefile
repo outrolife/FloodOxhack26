@@ -6,7 +6,7 @@ PY   := $(VENV)/bin/python
 DATA_DIR     := $(if $(RC_DATA_DIR),$(RC_DATA_DIR),data)
 DATA_RELEASE ?= data-hourly-v1
 
-.PHONY: setup data fetch-data travel train backtest live api web test lint
+.PHONY: setup data fetch-data travel train backtest live api web test lint mirror
 
 setup: $(VENV)/.installed
 
@@ -73,3 +73,8 @@ serve: setup
 
 docker:
 	docker build -f deploy/Dockerfile -t river-clock .
+
+# Optional Tiger Data mirror of hourly + live readings (SPEC §2, P2; docs/tiger-data.md). Needs
+# TIGER_DATABASE_URL and the extra: uv pip install --python .venv/bin/python -r pyproject.toml --extra mirror
+mirror: setup
+	$(PY) -m pipeline.mirror_tiger --hourly --live
