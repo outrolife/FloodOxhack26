@@ -1,6 +1,7 @@
 // Small helpers for reading a Forecast, shared by River and Time Machine.
 import type { Forecast, Spot, SpotForecast } from "../../contracts";
-import { formatShort } from "../../time";
+import { formatDate, formatShort } from "../../time";
+import { pctPlain } from "../../lib/plain";
 
 export type Level = "low" | "elevated" | "high" | "unknown";
 
@@ -8,10 +9,11 @@ export type Level = "low" | "elevated" | "high" | "unknown";
  *  per-tier shape (LevelGlyph). Green is a bluish green so that, for red-green
  *  colour blindness, it stays distinct from red (which reads as olive-brown). */
 export const LEVEL_STYLE: Record<Level, { colour: string; label: string }> = {
-  low: { colour: "#009e73", label: "Low (< 10%)" },
-  elevated: { colour: "#fab219", label: "Elevated (10–50%)" },
-  high: { colour: "#d03b3b", label: "High (≥ 50%)" },
-  unknown: { colour: "#898781", label: "No probability (timing only or stale)" },
+  // Plain words plus the numbers (#103). Never the EA's "Flood Alert/Warning" names for our outputs.
+  low: { colour: "#009e73", label: "Unlikely (under 1 in 10)" },
+  elevated: { colour: "#fab219", label: "Possible (1 in 10 to 1 in 2)" },
+  high: { colour: "#d03b3b", label: "Likely (1 in 2 or more)" },
+  unknown: { colour: "#898781", label: "No forecast right now" },
 };
 
 export function levelForP(p: number | null | undefined): Level {
@@ -46,30 +48,44 @@ export function spotLevel(f: Forecast | null, spot: Spot): Level {
   return levelForP(pFloodAt(sf, 24));
 }
 
-/** One-sentence arrival window, e.g. "50% chance by Tue 18:00 GMT". */
-export function arrivalSentence(sf: SpotForecast | undefined, stale = false, threshold?: number): string {
+/**
+ * Why a spot has no forecast, in plain words (jargon audit R4, R18), or null
+ * if it has one. `lastReading` is the gauge's dataAsOf, when known.
+ */
+export function noForecastReason(
+  sf: SpotForecast | undefined,
+  stale: boolean,
+  lastReading?: string,
+): string | null {
   if (!sf) return "No forecast for this spot.";
-  if (sf.leads.length === 0) {
-    if (stale) return "No forecast: gauge data is stale.";
-    return sf.mode === "timing_only"
-      ? "No forecast for this timing-only spot."
-      : "No forecast at this time: not enough recent gauge data.";
-  }
+  if (stale) return `No forecast: this gauge has sent no readings since ${lastReading ? formatDate(lastReading) : "a while"}.`;
+  if (sf.mode === "timing_only")
+    return "No flood forecast here: this gauge has no long history to learn from, so we show its live level only.";
+  if (sf.leads.length === 0) return "No forecast at this time: not enough recent gauge readings.";
+  return null;
+}
+
+/** One-sentence arrival window, e.g. "As likely as not to flood by Tue 18:00 GMT (1 in 2)." */
+export function arrivalSentence(sf: SpotForecast | undefined, stale = false, threshold?: number, lastReading?: string): string {
+  if (!sf) return "No forecast for this spot.";
+  if (sf.leads.length === 0) return noForecastReason(sf, stale, lastReading) ?? "No forecast for this spot.";
   // Already flooding: arrival is the issue time (SPEC §7.5), so "by <now>" would read oddly.
   if (threshold != null && sf.mode === "probability" && sf.levelNow >= threshold) {
-    return `Already above the flood threshold (${sf.levelNow.toFixed(2)} m vs ${threshold.toFixed(2)} m).`;
+    return `Already above flood level (${sf.levelNow.toFixed(2)} m; floods at ${threshold.toFixed(2)} m).`;
   }
   const a = sf.arrival;
   if (sf.mode === "timing_only") {
-    if (!a?.p50) return "Median forecast stays below the normal range for the next 72 h.";
+    if (!a?.p50) return "Our middle estimate stays below the usual high for the next 3 days.";
     const window =
-      a.p10 && a.p90 ? ` (travel-time window ${formatShort(a.p10)} to ${formatShort(a.p90)})` : "";
-    return `Median forecast reaches the top of the normal range by ${formatShort(a.p50)}${window}.`;
+      a.p10 && a.p90 ? ` (water from upstream due between ${formatShort(a.p10)} and ${formatShort(a.p90)})` : "";
+    return `Our middle estimate: the river goes above its usual high by ${formatShort(a.p50)}${window}.`;
   }
-  if (a?.p90) return `90% chance of flooding by ${formatShort(a.p90)}.`;
-  if (a?.p50) return `50% chance of flooding by ${formatShort(a.p50)}.`;
-  if (a?.p10) return `10% chance of flooding by ${formatShort(a.p10)}.`;
-  return "Under 10% chance of flooding in the next 72 h.";
+  if (a?.p90) return `Flooding very likely by ${formatShort(a.p90)} (9 in 10).`;
+  if (a?.p50) return `As likely as not to flood by ${formatShort(a.p50)} (1 in 2).`;
+  if (a?.p10) return `About 1 in 10 chance of flooding by ${formatShort(a.p10)}.`;
+  const max = pFloodMax(sf);
+  if (max != null && max < 0.01) return "Very unlikely to flood in the next 3 days (under 1%).";
+  return "Under 1 in 10 chance of flooding in the next 3 days.";
 }
 
 /** Official EA page for a warning area. */
@@ -79,5 +95,6 @@ export function eaAreaUrl(code: string): string {
     : "https://check-for-flooding.service.gov.uk/";
 }
 
+/** Whole-percent chance; below 0.5% says "under 1%" (a rounded 0% reads as "impossible"). */
 export const pct = (p: number | null | undefined, digits = 0): string =>
-  p == null ? "–" : `${(p * 100).toFixed(digits)}%`;
+  p == null ? "–" : digits === 0 ? pctPlain(p) : `${(p * 100).toFixed(digits)}%`;

@@ -46,8 +46,12 @@ describe("coverage direction (#99 item 2)", () => {
   it("renders the direction in the Proof notice", () => {
     const wide: Proof = { ...proof, coverage: [cell(24, 0.5, 0.72), cell(24, 0.9, 0.95)] };
     const html = renderToStaticMarkup(<Coverage proof={wide} />);
-    expect(html).toContain("Our forecast ranges are cautious (wider than needed)");
-    expect(html).toContain("More than 10 points away from the target");
+    // #103: the plain headline comes first; the per-cell list sits behind a "details" disclosure.
+    expect(html).toContain("<strong>Our ranges are cautious: wider than they need to be");
+    expect(html).toContain("Over every test hour (most of them calm days), our 50% range held the real level 72% of the time");
+    expect(html.indexOf("<details")).toBeLessThan(html.indexOf("More than 10 points away from the target"));
+    expect(html).toContain('class="notice"');
+    expect(html).not.toContain("notice warn");
     expect(html).toContain('title="coverage above nominal (conservative intervals)"');
   });
 });

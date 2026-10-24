@@ -86,19 +86,23 @@ export function Coverage({ proof }: { proof: Proof }) {
         targets.
       </p>
       {summary && (
-        <div className={flagged.length > 0 ? "notice warn" : "notice"} title={DIRECTION_TERM[summary.direction]}>
-          <strong>{summary.text}</strong>
-          {summary.direction === "wide" && " So the ranges overstate the uncertainty rather than hide it."}
-          {summary.direction === "narrow" && " So the real level falls outside the range more often than the range says."}
+        // Lead with the plain message (#103). Over-cover (cautious) is not a failure, so it
+        // gets the neutral box; only too-narrow ranges get the warning colour.
+        <div
+          className={summary.direction === "narrow" || summary.direction === "mixed" ? "notice warn" : "notice"}
+          title={DIRECTION_TERM[summary.direction]}
+        >
+          <strong>{summary.headline}</strong>
+          <div>Over every test hour (most of them calm days), {summary.detail}</div>
           {flagged.length > 0 && (
-            <>
-              {" "}
+            <details className="small">
+              <summary>Details: {flagged.length} of {proof.coverage.length} checks more than 10 points from their target</summary>
               More than 10 points away from the target:{" "}
               {flagged
                 .map((c) => `${Math.round(c.nominal * 100)}% range at +${c.h} h (${Math.round(c.actual * 100)}%)`)
                 .join("; ")}
               .
-            </>
+            </details>
           )}
         </div>
       )}

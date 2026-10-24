@@ -22,7 +22,7 @@ describe("travelEventLabel", () => {
 
 describe("featureLabel", () => {
   it("names upstream gauges and describes the feature", () => {
-    expect(featureLabel("eynsham_change_3h", STATIONS)).toBe("Eynsham Lock u/s: change over 3 h");
+    expect(featureLabel("eynsham_change_3h", STATIONS)).toBe("Eynsham Lock (upstream side): change over 3 h");
     expect(featureLabel("farmoor_anom_lag12h", STATIONS)).toBe("Farmoor: anomaly 12 h ago");
     expect(featureLabel("farmoor_anom_lag0h", STATIONS)).toBe("Farmoor: anomaly now");
   });

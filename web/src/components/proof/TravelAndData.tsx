@@ -18,6 +18,8 @@ import { formatDate } from "../../time";
 import { formatPct } from "../../lib/costLoss";
 import { LOW_CONFIDENCE_N } from "../shared/RiverStrip";
 import type { PeakProbabilities } from "./peakProbability";
+import { travelTrend } from "./travelTrend";
+import { TERM_TIPS, gaugeName } from "../../lib/plain";
 
 /** Why an arrival error is blank on a flooded row (model/proof.py, ARRIVAL_OFFSET_H = 24). */
 export const ARRIVAL_BLANK = "River Clock had not reached 50% 24 h before the river crossed the flood line";
@@ -36,8 +38,17 @@ export function travelEventLabel(id: string, events: Pick<EventMeta, "id" | "nam
   return id.startsWith("auto-") ? "auto-detected rise" : id;
 }
 
-/** Default row: the best-measured pair (most events), so the scatter isn't empty. */
-function bestPairIndex(pairs: TravelPair[]): number {
+/**
+ * The pair the demo leads with (#103): Enslow → Kings Mill has the tightest,
+ * cleanest travel time. Thames → Bulstake pairs mix a fast local jump with
+ * the routed wave, so they make a confusing first impression.
+ */
+export const DEFAULT_PAIR = { up: "enslow", down: "kingsmill" };
+
+/** Default row: DEFAULT_PAIR if present, else the best-measured pair (most events), so the scatter isn't empty. */
+export function defaultPairIndex(pairs: TravelPair[]): number {
+  const lead = pairs.findIndex((p) => p.up === DEFAULT_PAIR.up && p.down === DEFAULT_PAIR.down && p.n > 0);
+  if (lead >= 0) return lead;
   let best = 0;
   pairs.forEach((p, k) => {
     if (p.n > pairs[best].n) best = k;
@@ -54,14 +65,18 @@ export function TravelFinding({
   stations: Station[];
   events?: Pick<EventMeta, "id" | "name">[];
 }) {
-  const name = (k: string) => stations.find((s) => s.key === k)?.name ?? k;
-  const [i, setI] = useState(() => bestPairIndex(pairs));
+  const name = (k: string) => gaugeName(stations.find((s) => s.key === k)?.name ?? k);
+  const [i, setI] = useState(() => defaultPairIndex(pairs));
   const pair = pairs[Math.min(i, pairs.length - 1)];
   if (!pair) return null;
   const used = pair.events
     .filter((e) => !e.excluded && e.tHalf != null)
     .map((e) => ({ ...e, label: travelEventLabel(e.eventId, events) }));
   const excluded = pair.events.filter((e) => e.excluded);
+  const trend = travelTrend(
+    used.map((e) => ({ rise: e.rise, tHalf: e.tHalf as number })),
+    pair.slopeHoursPerMetre,
+  );
   return (
     <div className="card">
       <h2>The finding: flood travel times</h2>
@@ -126,8 +141,10 @@ export function TravelFinding({
               </ScatterChart>
             </ResponsiveContainer>
           </div>
-          {pair.slopeHoursPerMetre != null && (
-            <p className="small">Bigger rises travel {pair.slopeHoursPerMetre < 0 ? "faster" : "slower"}: {Math.abs(pair.slopeHoursPerMetre).toFixed(1)} h per metre of rise.</p>
+          {used.length > 0 && (
+            <p className="small" title={trend.detail}>
+              {trend.text}
+            </p>
           )}
           {used.length === 0 && (
             <p className="small muted">No rise passed the matching checks for this pair, so its travel time comes from cross-correlation.</p>
@@ -192,7 +209,7 @@ export function featureLabel(raw: string, stations: Pick<Station, "key" | "name"
   const st = stations.find((s) => raw.startsWith(`${s.key}_`));
   if (st) {
     const d = describe(raw.slice(st.key.length + 1));
-    if (d) return `${st.name}: ${d}`;
+    if (d) return `${gaugeName(st.name)}: ${d}`;
   }
   return raw;
 }
@@ -204,7 +221,7 @@ export function FeatureImportance({ importance, stations }: { importance: Import
   const entries = importance[g] ?? [];
   const [h, setH] = useState(entries.find((e) => e.h === 24)?.h ?? entries[0]?.h ?? 24);
   const entry = entries.find((e) => e.h === h) ?? entries[0];
-  const name = (k: string) => stations.find((s) => s.key === k)?.name ?? k;
+  const name = (k: string) => gaugeName(stations.find((s) => s.key === k)?.name ?? k);
   const top = entry
     ? [...entry.features]
         .sort((a, b) => b.gain - a.gain)
@@ -348,7 +365,7 @@ export function PerEventTable({
 }
 
 export function QualityTables({ quality, stations }: { quality: Quality; stations: Station[] }) {
-  const name = (k: string) => stations.find((s) => s.key === k)?.name ?? k;
+  const name = (k: string) => gaugeName(stations.find((s) => s.key === k)?.name ?? k);
   return (
     <div className="card">
       <h2>Data quality and sources</h2>
@@ -357,11 +374,13 @@ export function QualityTables({ quality, stations }: { quality: Quality; station
           <thead>
             <tr>
               <th>Gauge</th>
-              <th>Coverage</th>
-              <th>Gaps filled</th>
-              <th>Gaps flagged</th>
-              <th>Spikes removed</th>
-              <th>Threshold (API / config)</th>
+              {/* "Data complete", not "Coverage": that word means the forecast-range check higher up (#103). */}
+              <th title="Share of hours since 2006 with a valid reading">Data complete</th>
+              <th>Short gaps filled in</th>
+              <th>Gaps marked</th>
+              <th>Bad readings removed</th>
+              {/* These are the usual-high (typicalRangeHigh) levels, not flood levels (#103, audit P26). */}
+              <th title={TERM_TIPS.usualHigh}>Usual high (EA / ours)</th>
               <th>Notes</th>
             </tr>
           </thead>
