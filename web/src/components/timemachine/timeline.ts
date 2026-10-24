@@ -2,7 +2,7 @@
 // reached 50% for a spot vs when the EA issued its first Flood Alert and its
 // first Flood Warning for that spot's area.
 import type { Replay } from "../../contracts";
-import { formatDate, formatDateTime, hoursBetween } from "../../time";
+import { formatDate, formatDateTime, hoursBetween, londonDaysBetween } from "../../time";
 
 export type Official = Replay["official"][number];
 
@@ -40,8 +40,10 @@ export function compareSentence(
   const noun = official ? officialLabel(official) : kind === "alert" ? "Flood Alert" : "Flood Warning";
   if (rc50 && official) {
     if (!revealed(rc50) || !revealed(official.issuedAt)) return null;
-    const d = hoursBetween(rc50, official.issuedAt);
-    const approx = official.precision === "date" ? " (official issue known to the day only, so this is approximate)" : "";
+    // Date-only official times are compared as UK calendar days x 24, like model/official.py.
+    const dateOnly = official.precision === "date";
+    const d = dateOnly ? londonDaysBetween(rc50, official.issuedAt) * 24 : hoursBetween(rc50, official.issuedAt);
+    const approx = dateOnly ? " (official issue known to the day only, so compared in whole days)" : "";
     const h = Math.abs(d).toFixed(0);
     if (Math.abs(d) < 0.5) return `River Clock reached 50% at about the same time as the official ${noun}${approx}.`;
     return d > 0
