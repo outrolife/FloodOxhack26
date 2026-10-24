@@ -3,12 +3,12 @@
 - **role**: App
 - **state**: working
 - **issue**: #118
-- **task**: UI v2 polish: PRs #132 keys, #133 clock placement
-- **next**: Replay lazy loading + perf, then vocabulary pass
+- **task**: One-screen River Clock shell (web/src/clock/)
+- **next**: Flow map + event switch; compose Timeline/Scoreboard/ProofFooter
 - **needs**: 
 - **notes**: 
-- **branch**: app/ux-clock-placement
-- **head**: aca4759 UX: one shared clock-placement rule for the Now and Replay map
+- **branch**: app/ux-map-fix
+- **head**: a3392f7 UX: fix the map not rendering (GeoJSON MIME type, explicit map
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T20:19:33Z
+- **updated**: 2026-10-24T20:23:05Z
