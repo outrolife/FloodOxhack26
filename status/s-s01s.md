@@ -3,12 +3,12 @@
 - **role**: PM
 - **state**: working
 - **issue**: 
-- **task**: PM: PRs #34 #32 #29 ready to merge (tested together: 80 pass)
-- **next**: Track #3 pipeline (critical path, Sat 21:00) and #10 story
+- **task**: PM: merged 12 PRs; 4 new agents (#17 #18 #19 CI); #38 decided
+- **next**: Unblock #3 pipeline (critical path); merge as PRs land; progress every 30m
 - **needs**: 
-- **notes**: Target = newbotley (+kingsmill, minns 2.90, coldharbour 2.44); osney/godstow/iffley live_only (PR #34 adds role). See SPEC 4.1.1
+- **notes**: Target newbotley (+kingsmill, minns, coldharbour). Run: python3 scripts/status.py progress
 - **branch**: main
-- **head**: 3130f0f Merge pull request #28 from outrolife/data/historic-warnings
+- **head**: eb8eb87 Merge pull request #33 from outrolife/app/decide
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:19:11Z
+- **updated**: 2026-10-24T16:30:14Z
