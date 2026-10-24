@@ -81,6 +81,11 @@ describe("App smoke test (jsdom)", () => {
       expect(document.querySelector(".rc-hero .leaflet-tooltip.rc-link-label")).toBeNull();
       expect(document.querySelector(".rc-hero .rc-hero-score .ck-score")).not.toBeNull();
     }
+    if (existsSync(DATA + "stations.json")) {
+      // Every gauge in stations.json is a small gauge icon (upstream, live_only and Oxford targets alike).
+      const stations = JSON.parse(readFileSync(DATA + "stations.json", "utf8")) as unknown[];
+      await waitFor(() => expect(document.querySelectorAll(".rc-hero .rc-gauge-icon")).toHaveLength(stations.length));
+    }
     expect(errors).toEqual([]);
   });
 });

@@ -96,6 +96,26 @@ span.rc-dot-btn { cursor: help; }
   .rc-flowkey { display: none; }
 }
 
+/* Gauge icons (GaugeLayer): discreet 14 x 18 px level gauges; names only when zoomed in (.rc-near). */
+.leaflet-marker-icon.rc-gauge-icon { background: none; border: 0; overflow: visible; cursor: pointer; }
+.leaflet-marker-icon.rc-gauge-icon svg { display: block; filter: drop-shadow(0 0 1px #fff); }
+.leaflet-marker-icon.rc-gauge-icon:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.rc-gauge-name {
+  display: none; position: absolute; left: 17px; top: 50%; transform: translateY(-50%); white-space: nowrap;
+  font-size: 0.7rem; color: var(--ink-2); text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 2px #fff; pointer-events: none;
+}
+.rc-near .rc-gauge-name { display: block; }
+.rc-gauge-popup .leaflet-popup-content { margin: 0.5rem 0.7rem; font-size: 0.82rem; line-height: 1.35; color: var(--ink); }
+.rc-gauge-popup .leaflet-popup-content-wrapper { border-radius: 8px; }
+.rc-gauge-card { display: grid; gap: 0.1rem; }
+.rc-gauge-card-title { margin-bottom: 0.15rem; }
+.rc-gauge-card-river { color: var(--ink-2); font-size: 0.78rem; }
+.rc-gauge-card-small { color: var(--ink-2); font-size: 0.75rem; }
+.rc-gauge-card-flow { font-weight: 650; color: var(--accent); }
+.rc-gauge-spark { display: block; margin-top: 0.2rem; }
+.rc-flowkey-gauge { display: inline-block; vertical-align: middle; line-height: 0; }
+.rc-flowkey-gauge svg { width: 11px; height: 14px; }
+
 /* Under the map: the Timeline at full width. */
 .rc-below { min-width: 0; }
 

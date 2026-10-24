@@ -167,15 +167,19 @@ export function linkWords(l: Pick<ChainLink, "tHalfH" | "n" | "lowConfidence">, 
   return `Water passing ${upName} reaches ${downName} about ${h} h later (${l.lowConfidence ? `only ${from}, so a rough guide` : from})`;
 }
 
-/** One schematic link per upstream gauge, to its best-measured Oxford gauge. */
+/**
+ * One schematic link per gauge upstream of Oxford (role upstream, or a
+ * live_only catchment gauge with a measured travel time), to its
+ * best-measured Oxford gauge.
+ */
 export function chainLinks(stations: Pick<Station, "key" | "role">[], pairs: TravelPair[]): ChainLink[] {
   const targets = new Set(stations.filter((s) => s.role !== "upstream").map((s) => s.key));
   const out: ChainLink[] = [];
   for (const s of stations) {
-    if (s.role !== "upstream") continue;
+    if (s.role === "target") continue;
     const p = bestPair(
       s.key,
-      pairs.filter((x) => targets.has(x.down)),
+      (pairs ?? []).filter((x) => targets.has(x.down) && x.down !== s.key),
     );
     if (!p) continue;
     const tHalfH = p.tHalf.median;
