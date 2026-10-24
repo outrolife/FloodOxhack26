@@ -8,6 +8,7 @@ import { SpotPanel } from "../components/river/SpotPanel";
 import { RiskLayers } from "../components/river/RiskLayers"; // S1 (SPEC §11); remove this and <RiskLayers /> to hide
 import { EnsembleRainPanel } from "../components/river/EnsembleRain"; // S2 (SPEC §11); remove this and <EnsembleRainPanel /> to hide
 import { SpreadOverlay } from "../components/spread/SpreadOverlay"; // S3 (SPEC §11); hide with SHOW_S3 in stretch.ts
+import { SandbagCard } from "../components/spread/SandbagList"; // S4 (SPEC §11); hide with SHOW_S4 in stretch.ts
 import { FixtureNotice, Pending } from "../components/shared/DataNotice";
 import { LOW_CONFIDENCE_N, RiverStrip } from "../components/shared/RiverStrip";
 import { useLive } from "../components/shared/useLive";
@@ -26,6 +27,7 @@ export default function River() {
   const live = useLive();
   // Default to Botley (newbotley is the primary target, SPEC §4.1.1).
   const [selected, setSelected] = useState<string | null>("botley");
+  const [spreadOn, setSpreadOn] = useState(false); // S4 list shows while the S3 overlay is on
 
   // Travel times are optional here: the map and spot panel work without them.
   if (stations.status !== "ready" || spots.status !== "ready") {
@@ -75,7 +77,7 @@ export default function River() {
             onSelect={setSelected}
           >
             <RiskLayers />
-            <SpreadOverlay context="live" />
+            <SpreadOverlay context="live" onShown={setSpreadOn} />
           </SpotMap>
         </section>
         <aside>
@@ -89,6 +91,8 @@ export default function River() {
           )}
         </aside>
       </div>
+
+      {spreadOn && <SandbagCard context="live" />}
 
       <section className="card">
         <h2>The water is already on its way</h2>

@@ -85,9 +85,22 @@ function SpreadImage({ s }: { s: SpreadState }) {
   );
 }
 
-/** River map layer. Renders nothing unless a manifest exists for `context`. */
-export function SpreadOverlay({ context, at }: { context: string; at?: string }) {
+/**
+ * River map layer. Renders nothing unless a manifest exists for `context`.
+ * `onShown` hears whether the overlay is on screen (the S4 list follows it).
+ */
+export function SpreadOverlay({
+  context,
+  at,
+  onShown,
+}: {
+  context: string;
+  at?: string;
+  onShown?: (shown: boolean) => void;
+}) {
   const s = useSpread(context, at);
+  const shown = SHOW_S3 && s.ready && !!s.manifest && s.on;
+  useEffect(() => onShown?.(shown), [onShown, shown]);
   if (!SHOW_S3 || !s.ready || !s.manifest) return null;
   return (
     <>
