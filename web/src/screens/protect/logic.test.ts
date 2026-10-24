@@ -4,8 +4,10 @@ import type { Sandbags, SpreadManifest } from "../../contracts";
 import e2014Bags from "../../../public/data/spread/e2014/sandbags.json";
 import e2014Manifest from "../../../public/data/spread/e2014/manifest.json";
 import liveBags from "../../../public/data/spread/live/sandbags.json";
+import outlines from "../../../public/data/geo/recorded_outlines.json";
 import {
   type Candidate,
+  type OutlineCollection,
   DEFAULT_BUDGET,
   buildingKind,
   firstDeadline,
@@ -14,6 +16,7 @@ import {
   headline,
   monthYear,
   nothingToProtect,
+  outlineCovering,
   selectWithinBudget,
   timing,
   totalBags,
@@ -169,6 +172,13 @@ describe("plain words", () => {
   it("states the IoU as an overlap", () => {
     expect(validationSentence({ eventId: "e2014", iou: 0.681 })).toContain("overlap by 68%");
     expect(validationSentence(null)).toBeNull();
+  });
+
+  it("finds the recorded 2013/14 outline for the e2014 forecast only", () => {
+    const fc = outlines as OutlineCollection;
+    expect(outlineCovering(fc, "2014-01-05T00:00:00Z")?.properties.label).toBe("November 2013 to February 2014");
+    expect(outlineCovering(fc, "2026-10-24T18:07:00Z")).toBeNull();
+    expect(outlineCovering(null, "2014-01-05T00:00:00Z")).toBeNull();
   });
 
   it("names the building type from its first reason", () => {

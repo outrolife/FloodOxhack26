@@ -207,6 +207,28 @@ export function hourCaption(tau: number): string {
   return `Shaded: where water could reach within ≈ ${tau} h`;
 }
 
+export type OutlineFeature = {
+  type: "Feature";
+  properties: { label?: string; start_date?: string; end_date?: string };
+  geometry: unknown;
+};
+export type OutlineCollection = { type: "FeatureCollection"; features: OutlineFeature[] };
+
+/**
+ * The EA Recorded Flood Outline whose dates cover `t` (the S3 validation
+ * outline for e2014 is "Winter 2013/2014"), or null. Never used for live.
+ */
+export function outlineCovering(fc: OutlineCollection | null, t: string): OutlineFeature | null {
+  if (!fc) return null;
+  const day = t.slice(0, 10);
+  return (
+    fc.features.find((f) => {
+      const { start_date: a, end_date: b } = f.properties ?? {};
+      return !!a && !!b && a <= day && day <= b;
+    }) ?? null
+  );
+}
+
 /** Short name for a building from its first reason ("OSM retail" → "Retail"), else "Building". */
 export function buildingKind(c: Candidate): string {
   const m = /\(OSM ([^,)]+)/.exec(c.reasons[0] ?? "");
