@@ -119,13 +119,17 @@ def _at(issued_at: pd.Timestamp, h: float | None) -> str | None:
 def arrival_window(
     issued_at: pd.Timestamp, leads: Sequence[int], p: Sequence[float], level_now: float, line: float
 ) -> dict[str, str | None]:
-    """Times at which P(level > line) first reaches 0.1, 0.5 and 0.9 (SPEC §7.5 step 5)."""
+    """Times at which P(level > line) first reaches 0.1, 0.5 and 0.9 (SPEC §7.5 step 5).
+
+    A level is only reported if some forecast lead reaches it; the observation at lead 0 just anchors
+    the interpolation (so a level already above the line, and forecast to stay there, gives ``issued_at``).
+    """
     p0 = 1.0 if level_now >= line else 0.0
-    keys = ("p10", "p50", "p90")
-    return {
-        k: _at(issued_at, first_crossing_h(leads, p, lv, p0))
-        for k, lv in zip(keys, ARRIVAL_LEVELS, strict=True)
-    }
+    p_max = np.nanmax(np.asarray(p, dtype=float)) if len(p) and not np.all(np.isnan(p)) else -np.inf
+    out: dict[str, str | None] = {}
+    for k, lv in zip(("p10", "p50", "p90"), ARRIVAL_LEVELS, strict=True):
+        out[k] = _at(issued_at, first_crossing_h(leads, p, lv, p0)) if p_max >= lv else None
+    return out
 
 
 def timing_only_arrival(
