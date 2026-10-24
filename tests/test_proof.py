@@ -125,6 +125,40 @@ def test_per_event_and_official_outcome(scored: dict) -> None:
     }
 
 
+def _warnings(*rows: tuple[float, str]) -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            "area_code": ["AREA1"] * len(rows),
+            "type": ["warning"] * len(rows),
+            "precision": ["time"] * len(rows),
+            "issued_at": [T0 + pd.Timedelta(hours=h) for h, _ in rows],
+            "message": [m for _, m in rows],
+        }
+    )
+
+
+def test_official_outcome_holds_warning_until_updates() -> None:
+    """#92: a Flood Warning 85 h before the crossing, updated 1 h before it, is a hit (it was in force)."""
+    r = replay("e1", 0, lambda h: 0.0, [90], [5])
+    events = {"e1": {"start": iso(0), "end": iso(99)}}
+    hourly = pd.DataFrame({"gauge": "g", "ts_utc": [T0 + pd.Timedelta(hours=90)], "level_mean": [2.3]})
+    w = _warnings((5, "Flood Warning"), (89, "Update Flood Warning"))
+    out = proof.event_scores({"e1": r}, events, [SPOT], hourly, w)
+    assert out["officialOutcome"]["botley"] == {"hits": 1, "misses": 0, "falseAlarms": 0, "meanLeadH": 72.0}
+
+
+def test_lead_vs_official_paired_within_first_flood() -> None:
+    """#90/#92: floods at 10 h and 90 h; the EA warned for the first, we only triggered for the second.
+    Without onsets the lead was 5 - 80 = -75 h (our second-flood trigger vs their first-flood warning)."""
+    r = replay("e1", 0, lambda h: 0.6 if h >= 80 else 0.0, [10, 90], [5])
+    events = {"e1": {"start": iso(0), "end": iso(99)}}
+    hourly = pd.DataFrame({"gauge": "g", "ts_utc": [T0 + pd.Timedelta(hours=10)], "level_mean": [2.3]})
+    out = proof.event_scores({"e1": r}, events, [SPOT], hourly, _warnings((5, "Flood Warning")))
+    row = next(x for x in out["tradeoff"]["botley"] if x["pStar"] == 0.5)
+    assert row["meanLeadVsOfficialH"] is None
+    assert out["perEvent"][0]["leadVsOfficialH"] is None
+
+
 def test_assemble_matches_contract(scored: dict) -> None:
     skill = [
         {"h": h, "pinballModel": 0.01, "pinballPersistence": 0.02, "skill": 0.5} for h in proof.HORIZONS_H

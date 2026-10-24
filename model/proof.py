@@ -71,9 +71,11 @@ TEST_PERIOD_NOTE = (
     " misses, false alarms, lead times and arrival errors come from the event replays: each event is "
     "forecast by models retrained without that event (+- 7 days), so those models may have learned from"
     " floods that happened after the replayed one. Events in the test period ({test_events}) use the "
-    "time-split models directly. Repeat crossings within 72 h count as one flood. Arrival error uses "
-    "the forecast issued 24 h before the first crossing and is blank when that forecast did not reach "
-    "50%. Few events, so intervals are wide."
+    "time-split models directly. Repeat crossings within 72 h count as one flood. An EA Flood Warning "
+    "counts as in force from its issue time until 24 h after its last Update, and is scored on the same"
+    " hours and rules as our trigger. Lead versus the EA compares first messages within the same flood."
+    " Arrival error uses the forecast issued 24 h before the first crossing and is blank when that "
+    "forecast did not reach 50%. Few events, so intervals are wide."
 )
 
 
@@ -243,12 +245,44 @@ def _crossing_times(replay: Mapping[str, Any], spot: str) -> list[pd.Timestamp]:
     return metrics.flood_onsets(pd.Timestamp(c["t"]) for c in replay["crossings"] if c["spot"] == spot)
 
 
-def _official_times(
-    replay: Mapping[str, Any], spot: str, levels: Sequence[str] = ("warning", "severe")
-) -> list[pd.Timestamp]:
-    return [
-        pd.Timestamp(o["issuedAt"]) for o in replay["official"] if o["spot"] == spot and o["type"] in levels
+OFFICIAL_LEVELS: tuple[str, ...] = ("warning", "severe")
+
+
+def official_messages(
+    warnings: pd.DataFrame | None,
+    replay: Mapping[str, Any],
+    spot: str,
+    codes: Sequence[str],
+    window: tuple[pd.Timestamp, pd.Timestamp],
+) -> list[tuple[pd.Timestamp, bool]]:
+    """``(issued_at, is_update)`` of the EA Flood Warnings (and Severe) for ``spot`` in the event window.
+
+    Updates come from ``warnings.parquet`` (the replay's ``official`` list leaves them out); without it,
+    the replay's messages are used, with no updates.
+    """
+    if warnings is None:
+        return [
+            (pd.Timestamp(o["issuedAt"]), False)
+            for o in replay["official"]
+            if o["spot"] == spot and o["type"] in OFFICIAL_LEVELS
+        ]
+    start, end = window
+    w = warnings[
+        warnings["area_code"].isin(list(codes))
+        & warnings["type"].isin(OFFICIAL_LEVELS)
+        & (warnings["issued_at"] >= start)
+        & (warnings["issued_at"] <= end)
     ]
+    is_update = w["message"].fillna("").str.lower().str.startswith("update")
+    return sorted({(pd.Timestamp(t), bool(u)) for t, u in zip(w["issued_at"], is_update, strict=True)})
+
+
+def official_triggers(
+    messages: Sequence[tuple[pd.Timestamp, bool]], p: pd.Series, end: pd.Timestamp
+) -> pd.DatetimeIndex:
+    """Issue times at which the official warning is in force, on the hours our own trigger could fire
+    (``p`` not NaN: a probability spot below the line), so both are scored on the same grid (#92)."""
+    return metrics.in_force_times(messages, p.index[p.notna()], end=end)
 
 
 def peak_observed(hourly: pd.DataFrame, gauge: str, event: Mapping[str, Any]) -> float | None:
@@ -281,10 +315,14 @@ def event_scores(
         for s in prob_spots
     }
     windows = {eid: backtest.event_window(events[eid]) for eid in replays}
+    areas = official.spot_areas_from_spots([s for s in spots if s.get("warningArea")])
+    # Flood onsets per event and spot: lead vs official is paired within the first flood (#90, #92).
+    onsets = {(eid, s["key"]): _crossing_times(r, s["key"]) for eid, r in replays.items() for s in prob_spots}
     comparison = None
     if warnings is not None:
-        areas = official.spot_areas_from_spots([s for s in spots if s.get("warningArea")])
-        comparison = official.compare_events(p_series, warnings, windows, metrics.P_STARS, areas)
+        comparison = official.compare_events(
+            p_series, warnings, windows, metrics.P_STARS, areas, onsets=onsets
+        )
 
     tradeoff: dict[str, list[dict[str, Any]]] = {}
     official_outcome: dict[str, dict[str, Any]] = {}
@@ -302,7 +340,15 @@ def event_scores(
 
         tradeoff[key] = metrics.tradeoff_rows(p_by_event, cross_by_event, lead_vs_official=vs_official)
         official_outcome[key] = metrics.official_outcome(
-            {eid: _official_times(r, key) for eid, r in replays.items()}, cross_by_event
+            {
+                eid: official_triggers(
+                    official_messages(warnings, r, key, areas.get(key, ()), windows[eid]),
+                    p_by_event[eid],
+                    windows[eid][1],
+                )
+                for eid, r in replays.items()
+            },
+            cross_by_event,
         )
         for eid, r in replays.items():
             peak = peak_observed(hourly, s["gauge"], events[eid])

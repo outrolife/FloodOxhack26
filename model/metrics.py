@@ -32,6 +32,10 @@ Definitions (used in the UI and by judges):
   **False alarm**: an episode with no crossing from its first trigger to 72 h after its last one.
   An episode that overlaps a crossing (e.g. one that only starts once the river is already over the
   line) is never a false alarm; if it started too late, the crossing is already counted as a miss.
+- **Official warnings as a trigger**: an EA Flood Warning is one message, not an hourly forecast, so
+  it counts as in force from its issue time until 24 h after the last Update to it (before the next
+  fresh warning), capped at the event end (#92). Its in-force hours on our issue-time grid (hours
+  below the line only, as for our trigger) are then scored with the same hit/miss/false-alarm rules.
 - **Arrival error**: the forecast issued 24 h (or 48 h) before a crossing gives a 50% arrival time;
   error = that time - the actual crossing, in hours (negative = predicted too early).
 - **Bootstrap**: resample events with replacement (1,000 times, seed 42) and recompute the statistic;
@@ -340,14 +344,45 @@ def tradeoff_rows(
     return rows
 
 
+OFFICIAL_HOLD = pd.Timedelta(hours=24)
+
+
+def in_force_times(
+    messages: Iterable[tuple[Any, bool]],
+    grid: Iterable[Any],
+    end: Any = None,
+    hold: pd.Timedelta = OFFICIAL_HOLD,
+) -> pd.DatetimeIndex:
+    """Times on ``grid`` when an official warning is in force (#92).
+
+    ``messages`` are ``(issued_at, is_update)``. A fresh warning is in force from its issue time to
+    ``hold`` after the last Update issued before the next fresh warning (or after itself if none),
+    capped at ``end``. Without this, a warning issued more than 72 h before a crossing and still in
+    force at it scored as a miss plus a false alarm.
+    """
+    msgs = sorted((_utc(t), bool(u)) for t, u in messages)
+    fresh = [t for t, u in msgs if not u]
+    updates = [t for t, u in msgs if u]
+    spans = []
+    for i, f in enumerate(fresh):
+        nxt = fresh[i + 1] if i + 1 < len(fresh) else None
+        last = max([u for u in updates if u >= f and (nxt is None or u < nxt)], default=f)
+        until = last + hold
+        if end is not None:
+            until = min(until, _utc(end))
+        spans.append((f, until))
+    g = sorted(_utc(t) for t in grid)
+    return pd.DatetimeIndex([t for t in g if any(a <= t <= b for a, b in spans)])
+
+
 def official_outcome(
     official_by_event: Mapping[str, Sequence[Any]],
     crossings_by_event: Mapping[str, Sequence[Any]],
 ) -> dict[str, Any]:
     """``Proof.officialOutcome[spot]``: the EA warnings scored with the same hit/miss/false-alarm rules.
 
-    ``official_by_event`` maps event id -> issue times of official messages (callers choose the level,
-    e.g. Flood Warning and above).
+    ``official_by_event`` maps event id -> the times the official warning counts as a trigger
+    (``in_force_times``; callers choose the level, e.g. Flood Warning and above).
     """
     hits = misses = fas = 0
     leads: list[float] = []

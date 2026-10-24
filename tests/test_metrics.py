@@ -201,6 +201,27 @@ def test_official_outcome_uses_same_rules():
     assert out == {"hits": 1, "misses": 1, "falseAlarms": 1, "meanLeadH": 20.0}
 
 
+def test_in_force_times_hold_until_24h_after_last_update():
+    grid = hrs(*range(0, 200))
+    # Fresh warning at 0 h, Update at 89 h, fresh warning at 150 h (no update), event ends at 160 h.
+    t = m.in_force_times([(T0, False), (hrs(89)[0], True), (hrs(150)[0], False)], grid, end=hrs(160)[0])
+    assert t[0] == T0 and hrs(113)[0] in t and hrs(114)[0] not in t  # 89 + 24
+    assert hrs(149)[0] not in t and t[-1] == hrs(160)[0]  # second warning capped at the event end
+    # Only grid times count (hours over the line are not on the grid).
+    assert m.in_force_times([(T0, False)], hrs(5, 30)).tolist() == hrs(5)
+
+
+def test_early_official_warning_in_force_is_a_hit_not_miss_plus_false_alarm():
+    """#92, the e2024b Botley case: Flood Warning 85 h before the crossing, Update just before it."""
+    grid = hrs(*range(0, 120))
+    msgs = [(T0, False), (hrs(84)[0], True)]
+    crossing = {"e": hrs(85)}
+    old = m.official_outcome({"e": [T0]}, crossing)  # the warning as a single issue time
+    assert (old["hits"], old["misses"], old["falseAlarms"]) == (0, 1, 1)
+    new = m.official_outcome({"e": m.in_force_times(msgs, grid)}, crossing)
+    assert new == {"hits": 1, "misses": 0, "falseAlarms": 0, "meanLeadH": 72.0}  # lead capped at 72 h
+
+
 def test_default_p_stars_include_decide_presets():
     assert m.P_STARS[:3] == (0.01, 0.02, 0.05)
     assert m.P_STARS[3:] == tuple(round(0.1 * i, 1) for i in range(1, 10))
