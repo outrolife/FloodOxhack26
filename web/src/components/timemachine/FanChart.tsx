@@ -59,7 +59,7 @@ function makeMarkerLabel(text: string, colour: string, row: number): LabelRender
     const x = (props.viewBox?.x ?? 0) + 4;
     const y = (props.viewBox?.y ?? 0) + 12 + row * 14;
     return (
-      <text x={x} y={y} fill={colour} fontSize={11} fontWeight={600} stroke="#fcfcfb" strokeWidth={3} paintOrder="stroke">
+      <text x={x} y={y} fill={colour} fontSize={12} fontWeight={600} stroke="#fcfcfb" strokeWidth={3} paintOrder="stroke">
         {text}
       </text>
     );
@@ -149,16 +149,16 @@ export function FanChart({
             allowDataOverflow
             tickFormatter={(t: number) => formatDayMonth(t)}
             stroke="#c3c2b7"
-            tick={{ fill: "#52514e", fontSize: 11 }}
+            tick={{ fill: "#52514e", fontSize: 12 }}
             minTickGap={40}
           />
           <YAxis
             domain={[yMin, yMax]}
             stroke="#c3c2b7"
-            tick={{ fill: "#52514e", fontSize: 11 }}
+            tick={{ fill: "#52514e", fontSize: 12 }}
             tickFormatter={(v: number) => v.toFixed(1)}
             width={44}
-            label={{ value: "m (gauge datum)", angle: -90, position: "insideLeft", fill: "#898781", fontSize: 11 }}
+            label={{ value: "m (gauge datum)", angle: -90, position: "insideLeft", fill: "#52514e", fontSize: 12 }}
           />
           <Tooltip
             labelFormatter={(t) => formatDateTimeYear(Number(t))}
@@ -174,9 +174,9 @@ export function FanChart({
           <Line dataKey="obsFaint" name="Observed (later)" stroke="#898781" strokeOpacity={0.45} strokeWidth={2} dot={false} isAnimationActive={false} connectNulls />
           <Line dataKey="obs" name="Observed" stroke="#0b0b0b" strokeWidth={2} dot={false} isAnimationActive={false} connectNulls />
           {threshold != null && (
-            <ReferenceLine y={threshold} stroke="#d03b3b" strokeDasharray="6 3" label={{ value: `Flood threshold ${threshold.toFixed(2)} m`, position: "insideTopLeft", fill: "#d03b3b", fontSize: 11 }} />
+            <ReferenceLine y={threshold} stroke="#d03b3b" strokeDasharray="6 3" label={{ value: `Flood threshold ${threshold.toFixed(2)} m`, position: "insideTopLeft", fill: "#d03b3b", fontSize: 12 }} />
           )}
-          <ReferenceLine y={amber} stroke="#eda100" strokeDasharray="3 3" label={{ value: `Normal top ${amber.toFixed(2)} m`, position: "insideBottomLeft", fill: "#8a5d00", fontSize: 11 }} />
+          <ReferenceLine y={amber} stroke="#eda100" strokeDasharray="3 3" label={{ value: `Normal top ${amber.toFixed(2)} m`, position: "insideBottomLeft", fill: "#8a5d00", fontSize: 12 }} />
           {markers.map((m, i) => (
             <ReferenceLine
               key={m.label}

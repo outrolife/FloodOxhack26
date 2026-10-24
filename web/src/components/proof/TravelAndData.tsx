@@ -16,7 +16,7 @@ import {
 import type { EventMeta, Importance, Proof, Quality, Spot, Station, TravelPair } from "../../contracts";
 import { formatDate } from "../../time";
 
-const AXIS = { stroke: "#c3c2b7", tick: { fill: "#52514e", fontSize: 11 } };
+const AXIS = { stroke: "#c3c2b7", tick: { fill: "#52514e", fontSize: 12 } };
 
 /**
  * Human label for a travel-time event id: the named flood from events.json,
@@ -95,7 +95,7 @@ export function TravelFinding({
               <ScatterChart margin={{ top: 8, right: 16, left: 0, bottom: 16 }}>
                 <CartesianGrid stroke="#e1e0d9" />
                 <XAxis type="number" dataKey="rise" name="Rise" {...AXIS} tickFormatter={(v: number) => `${v.toFixed(1)} m`}
-                  label={{ value: "Upstream rise (m, own datum)", position: "insideBottom", offset: -8, fill: "#898781", fontSize: 11 }} />
+                  label={{ value: "Upstream rise (m, own datum)", position: "insideBottom", offset: -8, fill: "#52514e", fontSize: 12 }} />
                 <YAxis type="number" dataKey="tHalf" name="T½" {...AXIS} width={44} tickFormatter={(v: number) => `${v} h`} />
                 <Tooltip
                   content={({ active, payload }) => {
@@ -141,7 +141,7 @@ export function TravelFinding({
               <LineChart data={pair.xcorr} margin={{ top: 8, right: 16, left: 0, bottom: 16 }}>
                 <CartesianGrid stroke="#e1e0d9" vertical={false} />
                 <XAxis dataKey="lagH" type="number" {...AXIS} tickFormatter={(v: number) => `${v} h`}
-                  label={{ value: "Lag", position: "insideBottom", offset: -8, fill: "#898781", fontSize: 11 }} />
+                  label={{ value: "Lag", position: "insideBottom", offset: -8, fill: "#52514e", fontSize: 12 }} />
                 <YAxis domain={[-1, 1]} {...AXIS} width={36} />
                 <Tooltip formatter={(v) => [Number(v).toFixed(2), "r"]} labelFormatter={(l) => `Lag ${l} h`} />
                 <Line dataKey="r" stroke="#2a78d6" strokeWidth={2} dot={false} isAnimationActive={false} />

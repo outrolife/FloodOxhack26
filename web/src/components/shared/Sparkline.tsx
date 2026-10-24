@@ -23,7 +23,7 @@ export function Sparkline({
   if (pts.length < 2) {
     return (
       <svg width={width} height={height} role="img" aria-label="No level history">
-        <text x={2} y={height / 2 + 4} fontSize={10} fill="#898781">
+        <text x={2} y={height / 2 + 4} fontSize={12} fill="#52514e">
           no history
         </text>
       </svg>
