@@ -2,11 +2,11 @@
  {
   "key": "osney",
   "name": "Osney Island / Binsey",
-  "gauge": "osney",
-  "threshold": 3.79,
-  "amber": 3.18,
-  "lat": 51.7505,
-  "lon": -1.2725,
+  "gauge": "minns",
+  "threshold": 2.9,
+  "amber": 2.13,
+  "lat": 51.7503,
+  "lon": -1.2735,
   "warningArea": "061FWF23BnsyOsny",
   "mode": "probability"
  },
@@ -24,11 +24,11 @@
  {
   "key": "abingdonrd",
   "name": "Abingdon Road / Grandpont",
-  "gauge": "iffley",
-  "threshold": 3.25,
-  "amber": 2.72,
-  "lat": 51.7425,
-  "lon": -1.256,
+  "gauge": "coldharbour",
+  "threshold": 2.44,
+  "amber": 2.3,
+  "lat": 51.733,
+  "lon": -1.2493,
   "warningArea": "061FWF23NwBotley",
   "mode": "probability"
  },
@@ -38,10 +38,10 @@
   "gauge": "godstow",
   "threshold": 3.07,
   "amber": 2.57,
-  "lat": 51.777,
-  "lon": -1.28,
+  "lat": 51.779,
+  "lon": -1.295,
   "warningArea": "061FWF23Wlvrcote",
-  "mode": "probability"
+  "mode": "timing_only"
  },
  {
   "key": "cherwell",
@@ -49,9 +49,9 @@
   "gauge": "kingsmill",
   "threshold": 2.6,
   "amber": 2.4,
-  "lat": 51.76,
-  "lon": -1.239,
-  "warningArea": "Cherwell Oxford area (code TBC)",
-  "mode": "timing_only"
+  "lat": 51.7575,
+  "lon": -1.2395,
+  "warningArea": "061FWF14CherOxfd",
+  "mode": "probability"
  }
 ]

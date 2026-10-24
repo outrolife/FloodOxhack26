@@ -1,796 +1,1032 @@
 [
  {
   "up": "farmoor",
-  "down": "osney",
-  "n": 5,
+  "down": "newbotley",
+  "n": 7,
   "tHalf": {
    "p10": 29.2,
    "median": 31.0,
-   "p90": 32.2
+   "p90": 33.4
   },
   "tPeak": {
-   "p10": 33.4,
-   "median": 34.0,
-   "p90": 36.2
+   "p10": 33.2,
+   "median": 35.0,
+   "p90": 38.4
   },
   "events": [
    {
     "eventId": "e2007",
     "tHalf": 31,
-    "tPeak": 34,
-    "rise": 0.62
+    "tPeak": 35,
+    "rise": 0.45
    },
    {
     "eventId": "e2012",
     "tHalf": 33,
-    "tPeak": 37,
-    "rise": 0.41
+    "tPeak": 38,
+    "rise": 0.59
    },
    {
     "eventId": "e2014",
     "tHalf": 28,
-    "tPeak": 33,
-    "rise": 0.48
+    "tPeak": 32,
+    "rise": 0.25
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": 32,
+    "tPeak": 37,
+    "rise": 0.52
    },
    {
     "eventId": "e2024a",
-    "tHalf": 31,
+    "tHalf": 30,
     "tPeak": 34,
-    "rise": 0.39
+    "rise": 0.38
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 34,
+    "tPeak": 39,
+    "rise": 0.65
    },
    {
     "eventId": "e2026",
     "tHalf": 31,
     "tPeak": 35,
-    "rise": 0.27
+    "rise": 0.45
    }
   ],
   "xcorr": [
    {
     "lagH": 0,
-    "r": 0.42
+    "r": 0.309
    },
    {
     "lagH": 6,
-    "r": 0.53
+    "r": 0.449
    },
    {
     "lagH": 12,
-    "r": 0.639
+    "r": 0.603
    },
    {
     "lagH": 18,
-    "r": 0.734
+    "r": 0.746
    },
    {
     "lagH": 24,
-    "r": 0.801
+    "r": 0.852
    },
    {
     "lagH": 30,
-    "r": 0.829
+    "r": 0.899
    },
    {
     "lagH": 36,
-    "r": 0.815
+    "r": 0.875
    },
    {
     "lagH": 42,
-    "r": 0.76
+    "r": 0.787
    },
    {
     "lagH": 48,
-    "r": 0.673
+    "r": 0.653
    },
    {
     "lagH": 54,
-    "r": 0.567
+    "r": 0.5
    },
    {
     "lagH": 60,
-    "r": 0.456
+    "r": 0.354
    },
    {
     "lagH": 66,
-    "r": 0.352
+    "r": 0.231
    },
    {
     "lagH": 72,
-    "r": 0.262
+    "r": 0.139
    },
    {
     "lagH": 78,
-    "r": 0.191
+    "r": 0.077
    },
    {
     "lagH": 84,
-    "r": 0.138
+    "r": 0.04
    },
    {
     "lagH": 90,
-    "r": 0.102
+    "r": 0.019
    },
    {
     "lagH": 96,
-    "r": 0.079
+    "r": 0.008
    },
    {
     "lagH": 102,
-    "r": 0.066
+    "r": 0.003
    },
    {
     "lagH": 108,
-    "r": 0.058
+    "r": 0.001
    },
    {
     "lagH": 114,
-    "r": 0.054
+    "r": 0.0
    },
    {
     "lagH": 120,
-    "r": 0.052
+    "r": 0.0
    }
   ],
   "slopeHoursPerMetre": -6.5
  },
  {
   "up": "eynsham",
-  "down": "osney",
-  "n": 4,
+  "down": "newbotley",
+  "n": 6,
   "tHalf": {
-   "p10": 20.0,
-   "median": 20.5,
-   "p90": 21.7
+   "p10": 19.0,
+   "median": 21.0,
+   "p90": 23.0
   },
   "tPeak": {
-   "p10": 23.3,
-   "median": 24.5,
-   "p90": 25.7
+   "p10": 23.0,
+   "median": 25.0,
+   "p90": 28.0
   },
   "events": [
    {
     "eventId": "e2007",
     "tHalf": 21,
-    "tPeak": 24,
-    "rise": 0.66
+    "tPeak": 25,
+    "rise": 0.4
    },
    {
     "eventId": "e2012",
     "tHalf": null,
     "tPeak": null,
-    "rise": 0.35,
+    "rise": 0.52,
     "excluded": "ambiguous: second peak prominence 64% of main"
    },
    {
     "eventId": "e2014",
-    "tHalf": 20,
-    "tPeak": 25,
-    "rise": 0.38
+    "tHalf": 18,
+    "tPeak": 22,
+    "rise": 0.22
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": 22,
+    "tPeak": 27,
+    "rise": 0.46
    },
    {
     "eventId": "e2024a",
     "tHalf": 20,
-    "tPeak": 23,
-    "rise": 0.33
+    "tPeak": 24,
+    "rise": 0.34
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 24,
+    "tPeak": 29,
+    "rise": 0.58
    },
    {
     "eventId": "e2026",
-    "tHalf": 22,
-    "tPeak": 26,
-    "rise": 0.22
+    "tHalf": 21,
+    "tPeak": 25,
+    "rise": 0.4
    }
   ],
   "xcorr": [
    {
     "lagH": 0,
-    "r": 0.482
+    "r": 0.551
    },
    {
     "lagH": 6,
-    "r": 0.634
+    "r": 0.701
    },
    {
     "lagH": 12,
-    "r": 0.76
+    "r": 0.823
    },
    {
     "lagH": 18,
-    "r": 0.825
+    "r": 0.891
    },
    {
     "lagH": 24,
-    "r": 0.812
+    "r": 0.891
    },
    {
     "lagH": 30,
-    "r": 0.723
+    "r": 0.823
    },
    {
     "lagH": 36,
-    "r": 0.584
+    "r": 0.701
    },
    {
     "lagH": 42,
-    "r": 0.431
+    "r": 0.551
    },
    {
     "lagH": 48,
-    "r": 0.295
+    "r": 0.4
    },
    {
     "lagH": 54,
-    "r": 0.191
+    "r": 0.268
    },
    {
     "lagH": 60,
-    "r": 0.123
+    "r": 0.166
    },
    {
     "lagH": 66,
-    "r": 0.084
+    "r": 0.095
    },
    {
     "lagH": 72,
-    "r": 0.064
+    "r": 0.05
    },
    {
     "lagH": 78,
-    "r": 0.055
+    "r": 0.024
    },
    {
     "lagH": 84,
-    "r": 0.052
+    "r": 0.011
    },
    {
     "lagH": 90,
-    "r": 0.051
+    "r": 0.005
    },
    {
     "lagH": 96,
-    "r": 0.05
+    "r": 0.002
    },
    {
     "lagH": 102,
-    "r": 0.05
+    "r": 0.001
    },
    {
     "lagH": 108,
-    "r": 0.05
+    "r": 0.0
    },
    {
     "lagH": 114,
-    "r": 0.05
+    "r": 0.0
    },
    {
     "lagH": 120,
-    "r": 0.05
+    "r": 0.0
    }
   ],
   "slopeHoursPerMetre": -4.0
  },
  {
   "up": "cassington",
-  "down": "osney",
-  "n": 5,
+  "down": "newbotley",
+  "n": 7,
   "tHalf": {
-   "p10": 15.4,
-   "median": 17.0,
-   "p90": 18.2
+   "p10": 14.2,
+   "median": 16.0,
+   "p90": 18.4
   },
   "tPeak": {
-   "p10": 18.8,
+   "p10": 18.2,
    "median": 20.0,
-   "p90": 22.8
+   "p90": 23.4
   },
   "events": [
    {
     "eventId": "e2007",
-    "tHalf": 15,
-    "tPeak": 18,
-    "rise": 0.48
-   },
-   {
-    "eventId": "e2012",
-    "tHalf": 17,
-    "tPeak": 21,
-    "rise": 0.31
-   },
-   {
-    "eventId": "e2014",
-    "tHalf": 19,
-    "tPeak": 24,
+    "tHalf": 16,
+    "tPeak": 20,
     "rise": 0.3
    },
    {
-    "eventId": "e2024a",
+    "eventId": "e2012",
+    "tHalf": 18,
+    "tPeak": 23,
+    "rise": 0.39
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": 13,
+    "tPeak": 17,
+    "rise": 0.17
+   },
+   {
+    "eventId": "e2021",
     "tHalf": 17,
-    "tPeak": 20,
-    "rise": 0.29
+    "tPeak": 22,
+    "rise": 0.34
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": 15,
+    "tPeak": 19,
+    "rise": 0.26
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 19,
+    "tPeak": 24,
+    "rise": 0.43
    },
    {
     "eventId": "e2026",
     "tHalf": 16,
     "tPeak": 20,
-    "rise": 0.18
+    "rise": 0.3
    }
   ],
   "xcorr": [
    {
     "lagH": 0,
-    "r": 0.508
+    "r": 0.677
    },
    {
     "lagH": 6,
-    "r": 0.674
+    "r": 0.805
    },
    {
     "lagH": 12,
-    "r": 0.795
+    "r": 0.884
    },
    {
     "lagH": 18,
-    "r": 0.829
+    "r": 0.896
    },
    {
     "lagH": 24,
-    "r": 0.763
+    "r": 0.838
    },
    {
     "lagH": 30,
-    "r": 0.621
+    "r": 0.724
    },
    {
     "lagH": 36,
-    "r": 0.451
+    "r": 0.577
    },
    {
     "lagH": 42,
-    "r": 0.297
+    "r": 0.425
    },
    {
     "lagH": 48,
-    "r": 0.183
+    "r": 0.288
    },
    {
     "lagH": 54,
-    "r": 0.113
+    "r": 0.181
    },
    {
     "lagH": 60,
-    "r": 0.076
+    "r": 0.105
    },
    {
     "lagH": 66,
-    "r": 0.059
+    "r": 0.056
    },
    {
     "lagH": 72,
-    "r": 0.053
+    "r": 0.028
    },
    {
     "lagH": 78,
-    "r": 0.051
+    "r": 0.013
    },
    {
     "lagH": 84,
-    "r": 0.05
+    "r": 0.005
    },
    {
     "lagH": 90,
-    "r": 0.05
+    "r": 0.002
    },
    {
     "lagH": 96,
-    "r": 0.05
+    "r": 0.001
    },
    {
     "lagH": 102,
-    "r": 0.05
+    "r": 0.0
    },
    {
     "lagH": 108,
-    "r": 0.05
+    "r": 0.0
    },
    {
     "lagH": 114,
-    "r": 0.05
+    "r": 0.0
    },
    {
     "lagH": 120,
-    "r": 0.05
+    "r": 0.0
    }
   ],
   "slopeHoursPerMetre": -3.2
  },
  {
-  "up": "godstow",
-  "down": "osney",
-  "n": 5,
+  "up": "farmoor",
+  "down": "minns",
+  "n": 7,
   "tHalf": {
-   "p10": 5.0,
-   "median": 6.0,
-   "p90": 6.0
+   "p10": 28.2,
+   "median": 30.0,
+   "p90": 32.4
   },
   "tPeak": {
-   "p10": 8.4,
-   "median": 9.0,
-   "p90": 10.6
+   "p10": 32.2,
+   "median": 34.0,
+   "p90": 37.4
   },
   "events": [
    {
     "eventId": "e2007",
-    "tHalf": 6,
-    "tPeak": 9,
+    "tHalf": 30,
+    "tPeak": 34,
+    "rise": 0.45
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": 32,
+    "tPeak": 37,
+    "rise": 0.59
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": 27,
+    "tPeak": 31,
+    "rise": 0.25
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": 31,
+    "tPeak": 36,
     "rise": 0.52
    },
    {
-    "eventId": "e2012",
-    "tHalf": 5,
-    "tPeak": 9,
-    "rise": 0.3
-   },
-   {
-    "eventId": "e2014",
-    "tHalf": 6,
-    "tPeak": 11,
-    "rise": 0.36
-   },
-   {
     "eventId": "e2024a",
-    "tHalf": 5,
-    "tPeak": 8,
-    "rise": 0.33
+    "tHalf": 29,
+    "tPeak": 33,
+    "rise": 0.38
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 33,
+    "tPeak": 38,
+    "rise": 0.65
    },
    {
     "eventId": "e2026",
-    "tHalf": 6,
-    "tPeak": 10,
-    "rise": 0.21
+    "tHalf": 30,
+    "tPeak": 34,
+    "rise": 0.45
    }
   ],
   "xcorr": [
    {
     "lagH": 0,
-    "r": 0.688
+    "r": 0.331
    },
    {
     "lagH": 6,
-    "r": 0.83
+    "r": 0.475
    },
    {
     "lagH": 12,
-    "r": 0.688
+    "r": 0.628
    },
    {
     "lagH": 18,
-    "r": 0.4
+    "r": 0.767
    },
    {
     "lagH": 24,
-    "r": 0.178
+    "r": 0.865
    },
    {
     "lagH": 30,
-    "r": 0.082
+    "r": 0.9
    },
    {
     "lagH": 36,
-    "r": 0.055
+    "r": 0.865
    },
    {
     "lagH": 42,
-    "r": 0.051
+    "r": 0.767
    },
    {
     "lagH": 48,
-    "r": 0.05
+    "r": 0.628
    },
    {
     "lagH": 54,
-    "r": 0.05
+    "r": 0.475
    },
    {
     "lagH": 60,
-    "r": 0.05
+    "r": 0.331
    },
    {
     "lagH": 66,
-    "r": 0.05
+    "r": 0.213
    },
    {
     "lagH": 72,
-    "r": 0.05
+    "r": 0.127
    },
    {
     "lagH": 78,
-    "r": 0.05
+    "r": 0.07
    },
    {
     "lagH": 84,
-    "r": 0.05
+    "r": 0.035
    },
    {
     "lagH": 90,
-    "r": 0.05
+    "r": 0.016
    },
    {
     "lagH": 96,
-    "r": 0.05
+    "r": 0.007
    },
    {
     "lagH": 102,
-    "r": 0.05
+    "r": 0.003
    },
    {
     "lagH": 108,
-    "r": 0.05
+    "r": 0.001
    },
    {
     "lagH": 114,
-    "r": 0.05
+    "r": 0.0
    },
    {
     "lagH": 120,
-    "r": 0.05
+    "r": 0.0
    }
   ],
-  "slopeHoursPerMetre": null
+  "slopeHoursPerMetre": -6.0
  },
  {
-  "up": "osney",
-  "down": "iffley",
-  "n": 5,
+  "up": "cassington",
+  "down": "coldharbour",
+  "n": 6,
   "tHalf": {
-   "p10": 3.0,
-   "median": 4.0,
-   "p90": 4.0
+   "p10": 16.0,
+   "median": 18.5,
+   "p90": 20.5
   },
   "tPeak": {
-   "p10": 6.4,
-   "median": 7.0,
-   "p90": 8.6
+   "p10": 20.0,
+   "median": 23.0,
+   "p90": 25.5
   },
   "events": [
    {
     "eventId": "e2007",
-    "tHalf": 4,
-    "tPeak": 7,
-    "rise": 0.71
+    "tHalf": 18,
+    "tPeak": 22,
+    "rise": 0.3
    },
    {
     "eventId": "e2012",
-    "tHalf": 3,
-    "tPeak": 7,
-    "rise": 0.55
+    "tHalf": 20,
+    "tPeak": 25,
+    "rise": 0.39
    },
    {
     "eventId": "e2014",
-    "tHalf": 4,
-    "tPeak": 9,
-    "rise": 0.62
+    "tHalf": 15,
+    "tPeak": 19,
+    "rise": 0.17
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": 19,
+    "tPeak": 24,
+    "rise": 0.34
    },
    {
     "eventId": "e2024a",
-    "tHalf": 3,
-    "tPeak": 6,
-    "rise": 0.58
-   },
-   {
-    "eventId": "e2026",
-    "tHalf": 4,
-    "tPeak": 8,
-    "rise": 0.3
-   }
-  ],
-  "xcorr": [
-   {
-    "lagH": 0,
-    "r": 0.743
-   },
-   {
-    "lagH": 6,
-    "r": 0.807
-   },
-   {
-    "lagH": 12,
-    "r": 0.535
-   },
-   {
-    "lagH": 18,
-    "r": 0.232
-   },
-   {
-    "lagH": 24,
-    "r": 0.09
-   },
-   {
-    "lagH": 30,
-    "r": 0.055
-   },
-   {
-    "lagH": 36,
-    "r": 0.05
-   },
-   {
-    "lagH": 42,
-    "r": 0.05
-   },
-   {
-    "lagH": 48,
-    "r": 0.05
-   },
-   {
-    "lagH": 54,
-    "r": 0.05
-   },
-   {
-    "lagH": 60,
-    "r": 0.05
-   },
-   {
-    "lagH": 66,
-    "r": 0.05
-   },
-   {
-    "lagH": 72,
-    "r": 0.05
-   },
-   {
-    "lagH": 78,
-    "r": 0.05
-   },
-   {
-    "lagH": 84,
-    "r": 0.05
-   },
-   {
-    "lagH": 90,
-    "r": 0.05
-   },
-   {
-    "lagH": 96,
-    "r": 0.05
-   },
-   {
-    "lagH": 102,
-    "r": 0.05
-   },
-   {
-    "lagH": 108,
-    "r": 0.05
-   },
-   {
-    "lagH": 114,
-    "r": 0.05
-   },
-   {
-    "lagH": 120,
-    "r": 0.05
-   }
-  ],
-  "slopeHoursPerMetre": -1.1
- },
- {
-  "up": "enslow",
-  "down": "kingsmill",
-  "n": 2,
-  "tHalf": {
-   "p10": 15,
-   "median": 21,
-   "p90": 27
-  },
-  "tPeak": {
-   "p10": 15,
-   "median": 21,
-   "p90": 27
-  },
-  "events": [
-   {
-    "eventId": "e2012",
-    "tHalf": 14,
-    "tPeak": 17,
-    "rise": 0.74
+    "tHalf": 17,
+    "tPeak": 21,
+    "rise": 0.26
    },
    {
     "eventId": "e2024b",
-    "tHalf": 16,
-    "tPeak": 20,
-    "rise": 0.81
+    "tHalf": 21,
+    "tPeak": 26,
+    "rise": 0.43
    },
    {
     "eventId": "e2026",
     "tHalf": null,
     "tPeak": null,
-    "rise": 0.35,
+    "rise": 0.3,
+    "excluded": "downstream rise below amber + 0.1 m"
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.628
+   },
+   {
+    "lagH": 6,
+    "r": 0.767
+   },
+   {
+    "lagH": 12,
+    "r": 0.865
+   },
+   {
+    "lagH": 18,
+    "r": 0.9
+   },
+   {
+    "lagH": 24,
+    "r": 0.865
+   },
+   {
+    "lagH": 30,
+    "r": 0.767
+   },
+   {
+    "lagH": 36,
+    "r": 0.628
+   },
+   {
+    "lagH": 42,
+    "r": 0.475
+   },
+   {
+    "lagH": 48,
+    "r": 0.331
+   },
+   {
+    "lagH": 54,
+    "r": 0.213
+   },
+   {
+    "lagH": 60,
+    "r": 0.127
+   },
+   {
+    "lagH": 66,
+    "r": 0.07
+   },
+   {
+    "lagH": 72,
+    "r": 0.035
+   },
+   {
+    "lagH": 78,
+    "r": 0.016
+   },
+   {
+    "lagH": 84,
+    "r": 0.007
+   },
+   {
+    "lagH": 90,
+    "r": 0.003
+   },
+   {
+    "lagH": 96,
+    "r": 0.001
+   },
+   {
+    "lagH": 102,
+    "r": 0.0
+   },
+   {
+    "lagH": 108,
+    "r": 0.0
+   },
+   {
+    "lagH": 114,
+    "r": 0.0
+   },
+   {
+    "lagH": 120,
+    "r": 0.0
+   }
+  ],
+  "slopeHoursPerMetre": -3.5
+ },
+ {
+  "up": "enslow",
+  "down": "kingsmill",
+  "n": 6,
+  "tHalf": {
+   "p10": 13.0,
+   "median": 15.5,
+   "p90": 17.5
+  },
+  "tPeak": {
+   "p10": 17.0,
+   "median": 20.0,
+   "p90": 22.5
+  },
+  "events": [
+   {
+    "eventId": "e2007",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.7,
+    "excluded": "downstream did not reach amber + 0.1 m"
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": 17,
+    "tPeak": 22,
+    "rise": 0.91
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": 12,
+    "tPeak": 16,
+    "rise": 0.39
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": 16,
+    "tPeak": 21,
+    "rise": 0.8
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": 14,
+    "tPeak": 18,
+    "rise": 0.59
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 18,
+    "tPeak": 23,
+    "rise": 1.01
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": 15,
+    "tPeak": 19,
+    "rise": 0.7
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.701
+   },
+   {
+    "lagH": 6,
+    "r": 0.823
+   },
+   {
+    "lagH": 12,
+    "r": 0.891
+   },
+   {
+    "lagH": 18,
+    "r": 0.891
+   },
+   {
+    "lagH": 24,
+    "r": 0.823
+   },
+   {
+    "lagH": 30,
+    "r": 0.701
+   },
+   {
+    "lagH": 36,
+    "r": 0.551
+   },
+   {
+    "lagH": 42,
+    "r": 0.4
+   },
+   {
+    "lagH": 48,
+    "r": 0.268
+   },
+   {
+    "lagH": 54,
+    "r": 0.166
+   },
+   {
+    "lagH": 60,
+    "r": 0.095
+   },
+   {
+    "lagH": 66,
+    "r": 0.05
+   },
+   {
+    "lagH": 72,
+    "r": 0.024
+   },
+   {
+    "lagH": 78,
+    "r": 0.011
+   },
+   {
+    "lagH": 84,
+    "r": 0.005
+   },
+   {
+    "lagH": 90,
+    "r": 0.002
+   },
+   {
+    "lagH": 96,
+    "r": 0.001
+   },
+   {
+    "lagH": 102,
+    "r": 0.0
+   },
+   {
+    "lagH": 108,
+    "r": 0.0
+   },
+   {
+    "lagH": 114,
+    "r": 0.0
+   },
+   {
+    "lagH": 120,
+    "r": 0.0
+   }
+  ],
+  "slopeHoursPerMetre": -5.0
+ },
+ {
+  "up": "islip",
+  "down": "kingsmill",
+  "n": 2,
+  "tHalf": {
+   "p10": 3,
+   "median": 9,
+   "p90": 15
+  },
+  "tPeak": {
+   "p10": 3,
+   "median": 9,
+   "p90": 15
+  },
+  "events": [
+   {
+    "eventId": "e2007",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.5,
+    "excluded": "downstream did not reach amber + 0.1 m"
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": 11,
+    "tPeak": 15,
+    "rise": 0.65
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.28,
+    "excluded": "upstream data gap > 6 h around the peak"
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.57,
+    "excluded": "upstream data gap > 6 h around the peak"
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.42,
+    "excluded": "ambiguous: two upstream peaks within 24 h"
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 12,
+    "tPeak": 16,
+    "rise": 0.72
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.5,
     "excluded": "upstream rise below amber + 0.1 m"
    }
   ],
   "xcorr": [
    {
     "lagH": 0,
-    "r": 0.474
+    "r": 0.823
    },
    {
     "lagH": 6,
-    "r": 0.622
+    "r": 0.891
    },
    {
     "lagH": 12,
-    "r": 0.747
+    "r": 0.891
    },
    {
     "lagH": 18,
-    "r": 0.82
+    "r": 0.823
    },
    {
     "lagH": 24,
-    "r": 0.82
+    "r": 0.701
    },
    {
     "lagH": 30,
-    "r": 0.747
+    "r": 0.551
    },
    {
     "lagH": 36,
-    "r": 0.622
+    "r": 0.4
    },
    {
     "lagH": 42,
-    "r": 0.474
+    "r": 0.268
    },
    {
     "lagH": 48,
-    "r": 0.335
+    "r": 0.166
    },
    {
     "lagH": 54,
-    "r": 0.223
+    "r": 0.095
    },
    {
     "lagH": 60,
-    "r": 0.145
+    "r": 0.05
    },
    {
     "lagH": 66,
-    "r": 0.098
+    "r": 0.024
    },
    {
     "lagH": 72,
-    "r": 0.071
+    "r": 0.011
    },
    {
     "lagH": 78,
-    "r": 0.059
+    "r": 0.005
    },
    {
     "lagH": 84,
-    "r": 0.053
+    "r": 0.002
    },
    {
     "lagH": 90,
-    "r": 0.051
+    "r": 0.001
    },
    {
     "lagH": 96,
-    "r": 0.05
+    "r": 0.0
    },
    {
     "lagH": 102,
-    "r": 0.05
+    "r": 0.0
    },
    {
     "lagH": 108,
-    "r": 0.05
+    "r": 0.0
    },
    {
     "lagH": 114,
-    "r": 0.05
+    "r": 0.0
    },
    {
     "lagH": 120,
-    "r": 0.05
+    "r": 0.0
    }
   ],
-  "slopeHoursPerMetre": -5.0
+  "slopeHoursPerMetre": null
  }
 ]

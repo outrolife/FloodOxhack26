@@ -532,6 +532,8 @@ def test_spots(spots: dict, stations: dict) -> None:
         assert s["amber"] == st["amber"], f"{p}.amber differs from its station"
         assert s["threshold"] == st["threshold"], f"{p}.threshold differs from its station"
         assert s["threshold"] > s["amber"], f"{p}: threshold must be above amber"
+        if st["role"] == "live_only":  # SPEC §4.2: no history, so no probability forecast
+            assert s["mode"] == "timing_only", f"{p}: on live_only gauge {s['gauge']} but not timing_only"
     assert any(s["mode"] == "timing_only" for s in data), "fixture should include a timing_only spot"
 
 
@@ -543,8 +545,12 @@ def test_events(events: dict, stations: dict) -> None:
         assert parse_utc(e["start"]) < parse_utc(e["end"]), f"events[{e['id']}]: start must be before end"
         assert_known(e["peak"], stations, f"events[{e['id']}].peak")
     assert [e["id"] for e in data if e["headline"]] == ["e2014"], "exactly one headline event (e2014)"
-    assert events["e2014"]["peak"]["osney"] == 3.97
-    assert events["e2026"]["peak"]["osney"] == 3.41
+    # Peaks are on the trained gauges only (SPEC §4.1.1); live_only gauges have no history.
+    for e in data:
+        for g in e["peak"]:
+            assert stations[g]["role"] != "live_only", f"events[{e['id']}].peak: {g} is live_only"
+    assert events["e2014"]["peak"]["newbotley"] == 3.032
+    assert events["e2026"]["peak"]["minns"] == 2.742  # near miss: below the osney spot threshold 2.90
 
 
 def test_travel_times(stations: dict, events: dict) -> None:
@@ -555,6 +561,8 @@ def test_travel_times(stations: dict, events: dict) -> None:
         p = f"travel_times[{t['up']}->{t['down']}]"
         assert t["up"] in stations and t["down"] in stations, f"{p}: unknown gauge"
         assert t["up"] != t["down"], f"{p}: up == down"
+        for g in (t["up"], t["down"]):  # SPEC §4.1.1: travel times need history at both ends
+            assert stations[g]["role"] != "live_only", f"{p}: {g} is live_only"
         for k in ("tHalf", "tPeak"):
             assert_non_decreasing([t[k]["p10"], t[k]["median"], t[k]["p90"]], f"{p}.{k}")
         used = [e for e in t["events"] if "excluded" not in e]
@@ -585,8 +593,14 @@ def test_live_forecast(stations: dict, spots: dict) -> None:
     lo, hi = parse_utc("2026-10-25T00:30:00Z"), parse_utc("2026-10-25T02:30:00Z")
     assert any(lo <= parse_utc(t) <= hi for t in fc["dataAsOf"].values()), "no dataAsOf in the DST window"
     assert fc["stale"], "fixture should list one stale gauge"
-    modes = {sf["mode"] for sf in fc["spots"] if sf["leads"]}
+    modes = {sf["mode"] for sf in fc["spots"]}
     assert modes == {"probability", "timing_only"}, "fixture should exercise both modes"
+    # SPEC §4.2: a spot on a live_only gauge is timing_only with leads: [] and arrival: null.
+    for sf in fc["spots"]:
+        if stations[spots[sf["spot"]]["gauge"]]["role"] == "live_only":
+            assert sf["mode"] == "timing_only" and sf["leads"] == [] and sf["arrival"] is None, (
+                f"live.{sf['spot']}: spot on a live_only gauge must have no forecast"
+            )
 
 
 def test_replay_e2014(stations: dict, spots: dict, events: dict) -> None:
@@ -692,7 +706,7 @@ def test_proof(spots: dict, events: dict) -> None:
         if not row["crossed"]:
             assert row["arrivalErrH"] is None, f"{p}: arrival error without a crossing"
     near_miss = [r for r in pr["perEvent"] if r["eventId"] == "e2026" and r["spot"] == "osney"]
-    assert near_miss and near_miss[0]["crossed"] is False and near_miss[0]["peakObs"] == 3.41
+    assert near_miss and near_miss[0]["crossed"] is False and near_miss[0]["peakObs"] == 2.742
 
 
 def test_quality(stations: dict) -> None:

@@ -1,39 +1,39 @@
 {
- "osney": [
+ "newbotley": [
   {
    "h": 6,
    "features": [
     {
-     "name": "osney_chg_3h",
-     "gain": 4120.5
+     "name": "level_change_3h",
+     "gain": 412.0
     },
     {
      "name": "level_now",
-     "gain": 3310.2
+     "gain": 288.5
     },
     {
-     "name": "godstow_anom_lag0h",
-     "gain": 2290.8
+     "name": "cassington_anom_lag0h",
+     "gain": 141.2
     },
     {
-     "name": "osney_chg_1h",
-     "gain": 1585.0
+     "name": "level_change_1h",
+     "gain": 120.7
     },
     {
      "name": "eynsham_anom_lag6h",
-     "gain": 920.4
+     "gain": 66.3
     },
     {
-     "name": "rain_6h",
-     "gain": 610.3
+     "name": "rain_sum_6h",
+     "gain": 41.8
     },
     {
-     "name": "mean_21d",
-     "gain": 402.7
+     "name": "level_mean_21d",
+     "gain": 22.4
     },
     {
      "name": "doy_sin",
-     "gain": 120.9
+     "gain": 8.1
     }
    ]
   },
@@ -42,35 +42,35 @@
    "features": [
     {
      "name": "eynsham_anom_lag0h",
-     "gain": 3890.1
+     "gain": 356.9
     },
     {
      "name": "cassington_anom_lag0h",
-     "gain": 2975.6
+     "gain": 301.4
     },
     {
      "name": "level_now",
-     "gain": 2410.3
+     "gain": 214.0
     },
     {
      "name": "farmoor_anom_lag6h",
-     "gain": 1820.0
+     "gain": 150.3
     },
     {
-     "name": "rain_24h",
-     "gain": 1490.2
+     "name": "rain_sum_24h",
+     "gain": 97.6
     },
     {
-     "name": "osney_chg_24h",
-     "gain": 1102.8
+     "name": "level_change_24h",
+     "gain": 63.2
     },
     {
-     "name": "godstow_chg_24h",
-     "gain": 760.5
+     "name": "farmoor_change_24h",
+     "gain": 30.5
     },
     {
      "name": "doy_cos",
-     "gain": 210.4
+     "gain": 11.9
     }
    ]
   },
@@ -78,36 +78,36 @@
    "h": 72,
    "features": [
     {
-     "name": "rain_72h",
-     "gain": 3550.0
+     "name": "rain_sum_72h",
+     "gain": 298.4
     },
     {
      "name": "farmoor_anom_lag0h",
-     "gain": 2840.7
+     "gain": 266.0
     },
     {
-     "name": "rain_21d",
-     "gain": 2215.3
+     "name": "rain_sum_21d",
+     "gain": 188.7
     },
     {
-     "name": "eynsham_chg_24h",
-     "gain": 1640.9
+     "name": "eynsham_change_24h",
+     "gain": 120.1
     },
     {
-     "name": "mean_21d",
-     "gain": 1388.1
+     "name": "level_mean_21d",
+     "gain": 98.2
     },
     {
      "name": "level_now",
-     "gain": 1012.6
+     "gain": 77.5
     },
     {
-     "name": "rain_168h",
-     "gain": 815.2
+     "name": "rain_sum_168h",
+     "gain": 52.3
     },
     {
      "name": "doy_sin",
-     "gain": 330.0
+     "gain": 19.0
     }
    ]
   }
@@ -118,23 +118,23 @@
    "features": [
     {
      "name": "enslow_anom_lag0h",
-     "gain": 2650.4
+     "gain": 344.1
     },
     {
      "name": "islip_anom_lag6h",
-     "gain": 1930.7
+     "gain": 251.7
     },
     {
      "name": "level_now",
-     "gain": 1450.0
+     "gain": 190.2
     },
     {
-     "name": "rain_24h",
-     "gain": 1110.6
+     "name": "rain_sum_24h",
+     "gain": 88.4
     },
     {
-     "name": "kingsmill_chg_6h",
-     "gain": 640.2
+     "name": "level_change_6h",
+     "gain": 40.9
     }
    ]
   }

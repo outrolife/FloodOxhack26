@@ -596,7 +596,7 @@
    {
     "pStar": 0.1,
     "hits": 4,
-    "misses": 0,
+    "misses": 1,
     "falseAlarms": 3,
     "meanLeadH": 58.5,
     "meanLeadVsOfficialH": 31.0,
@@ -608,7 +608,7 @@
    {
     "pStar": 0.2,
     "hits": 4,
-    "misses": 0,
+    "misses": 1,
     "falseAlarms": 2,
     "meanLeadH": 52.0,
     "meanLeadVsOfficialH": 26.5
@@ -616,7 +616,7 @@
    {
     "pStar": 0.3,
     "hits": 4,
-    "misses": 0,
+    "misses": 1,
     "falseAlarms": 2,
     "meanLeadH": 47.5,
     "meanLeadVsOfficialH": 22.0
@@ -624,7 +624,7 @@
    {
     "pStar": 0.4,
     "hits": 4,
-    "misses": 0,
+    "misses": 1,
     "falseAlarms": 1,
     "meanLeadH": 43.0,
     "meanLeadVsOfficialH": 17.5,
@@ -636,7 +636,7 @@
    {
     "pStar": 0.5,
     "hits": 4,
-    "misses": 0,
+    "misses": 1,
     "falseAlarms": 1,
     "meanLeadH": 38.5,
     "meanLeadVsOfficialH": 12.0
@@ -644,7 +644,7 @@
    {
     "pStar": 0.6,
     "hits": 3,
-    "misses": 1,
+    "misses": 2,
     "falseAlarms": 1,
     "meanLeadH": 31.0,
     "meanLeadVsOfficialH": 6.5
@@ -652,7 +652,7 @@
    {
     "pStar": 0.7,
     "hits": 3,
-    "misses": 1,
+    "misses": 2,
     "falseAlarms": 0,
     "meanLeadH": 26.5,
     "meanLeadVsOfficialH": 2.0,
@@ -664,7 +664,7 @@
    {
     "pStar": 0.8,
     "hits": 2,
-    "misses": 2,
+    "misses": 3,
     "falseAlarms": 0,
     "meanLeadH": 19.0,
     "meanLeadVsOfficialH": -3.5
@@ -672,7 +672,7 @@
    {
     "pStar": 0.9,
     "hits": 2,
-    "misses": 2,
+    "misses": 3,
     "falseAlarms": 0,
     "meanLeadH": 13.5,
     "meanLeadVsOfficialH": -8.0
@@ -681,8 +681,8 @@
   "abingdonrd": [
    {
     "pStar": 0.1,
-    "hits": 3,
-    "misses": 0,
+    "hits": 5,
+    "misses": 1,
     "falseAlarms": 4,
     "meanLeadH": 49.0,
     "meanLeadVsOfficialH": 22.0,
@@ -693,24 +693,24 @@
    },
    {
     "pStar": 0.2,
-    "hits": 3,
-    "misses": 0,
+    "hits": 5,
+    "misses": 1,
     "falseAlarms": 3,
     "meanLeadH": 44.5,
     "meanLeadVsOfficialH": 18.5
    },
    {
     "pStar": 0.3,
-    "hits": 3,
-    "misses": 0,
+    "hits": 5,
+    "misses": 1,
     "falseAlarms": 2,
     "meanLeadH": 39.0,
     "meanLeadVsOfficialH": 14.0
    },
    {
     "pStar": 0.4,
-    "hits": 2,
-    "misses": 1,
+    "hits": 4,
+    "misses": 2,
     "falseAlarms": 2,
     "meanLeadH": 33.0,
     "meanLeadVsOfficialH": 9.0,
@@ -721,24 +721,24 @@
    },
    {
     "pStar": 0.5,
-    "hits": 2,
-    "misses": 1,
+    "hits": 4,
+    "misses": 2,
     "falseAlarms": 1,
     "meanLeadH": 28.5,
     "meanLeadVsOfficialH": 5.5
    },
    {
     "pStar": 0.6,
-    "hits": 2,
-    "misses": 1,
+    "hits": 4,
+    "misses": 2,
     "falseAlarms": 1,
     "meanLeadH": 24.0,
     "meanLeadVsOfficialH": 1.0
    },
    {
     "pStar": 0.7,
-    "hits": 1,
-    "misses": 2,
+    "hits": 3,
+    "misses": 3,
     "falseAlarms": 1,
     "meanLeadH": 18.0,
     "meanLeadVsOfficialH": -4.0,
@@ -749,16 +749,16 @@
    },
    {
     "pStar": 0.8,
-    "hits": 1,
-    "misses": 2,
+    "hits": 3,
+    "misses": 3,
     "falseAlarms": 0,
     "meanLeadH": 12.5,
     "meanLeadVsOfficialH": -9.5
    },
    {
     "pStar": 0.9,
-    "hits": 0,
-    "misses": 3,
+    "hits": 2,
+    "misses": 4,
     "falseAlarms": 0,
     "meanLeadH": null,
     "meanLeadVsOfficialH": null
@@ -770,7 +770,7 @@
    "eventId": "e2007",
    "spot": "osney",
    "crossed": true,
-   "peakObs": 3.86,
+   "peakObs": 3.117,
    "arrivalErrH": -3.5,
    "leadVsOfficialH": 18.0
   },
@@ -778,7 +778,7 @@
    "eventId": "e2012",
    "spot": "osney",
    "crossed": true,
-   "peakObs": 3.82,
+   "peakObs": 2.927,
    "arrivalErrH": 2.0,
    "leadVsOfficialH": 9.5
   },
@@ -786,15 +786,23 @@
    "eventId": "e2014",
    "spot": "osney",
    "crossed": true,
-   "peakObs": 3.97,
+   "peakObs": 3.09,
    "arrivalErrH": -2.5,
-   "leadVsOfficialH": 34.1
+   "leadVsOfficialH": 27.4
+  },
+  {
+   "eventId": "e2021",
+   "spot": "osney",
+   "crossed": true,
+   "peakObs": 2.903,
+   "arrivalErrH": 5.5,
+   "leadVsOfficialH": null
   },
   {
    "eventId": "e2024a",
    "spot": "osney",
    "crossed": true,
-   "peakObs": 3.84,
+   "peakObs": 2.968,
    "arrivalErrH": 4.5,
    "leadVsOfficialH": 6.0
   },
@@ -802,7 +810,7 @@
    "eventId": "e2024b",
    "spot": "osney",
    "crossed": false,
-   "peakObs": 3.52,
+   "peakObs": 2.819,
    "arrivalErrH": null,
    "leadVsOfficialH": null
   },
@@ -810,7 +818,7 @@
    "eventId": "e2026",
    "spot": "osney",
    "crossed": false,
-   "peakObs": 3.41,
+   "peakObs": 2.742,
    "arrivalErrH": null,
    "leadVsOfficialH": null
   },
@@ -818,31 +826,55 @@
    "eventId": "e2007",
    "spot": "abingdonrd",
    "crossed": true,
-   "peakObs": 3.41,
+   "peakObs": 2.69,
    "arrivalErrH": -5.0,
    "leadVsOfficialH": 12.0
+  },
+  {
+   "eventId": "e2012",
+   "spot": "abingdonrd",
+   "crossed": true,
+   "peakObs": 2.558,
+   "arrivalErrH": 3.0,
+   "leadVsOfficialH": 7.5
   },
   {
    "eventId": "e2014",
    "spot": "abingdonrd",
    "crossed": true,
-   "peakObs": 3.67,
+   "peakObs": 2.699,
    "arrivalErrH": 1.5,
    "leadVsOfficialH": 15.5
+  },
+  {
+   "eventId": "e2021",
+   "spot": "abingdonrd",
+   "crossed": true,
+   "peakObs": 2.503,
+   "arrivalErrH": -2.0,
+   "leadVsOfficialH": 10.0
   },
   {
    "eventId": "e2024a",
    "spot": "abingdonrd",
    "crossed": true,
-   "peakObs": 3.3,
+   "peakObs": 2.659,
    "arrivalErrH": 3.0,
    "leadVsOfficialH": 4.0
+  },
+  {
+   "eventId": "e2024b",
+   "spot": "abingdonrd",
+   "crossed": true,
+   "peakObs": 2.455,
+   "arrivalErrH": 6.5,
+   "leadVsOfficialH": -3.0
   },
   {
    "eventId": "e2026",
    "spot": "abingdonrd",
    "crossed": false,
-   "peakObs": 3.02,
+   "peakObs": 2.12,
    "arrivalErrH": null,
    "leadVsOfficialH": null
   }
