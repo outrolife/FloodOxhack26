@@ -14,9 +14,15 @@ Method
   for the Time Machine: ``model.features.build_features`` on the live hourly rows up to the anchor hour,
   with the medians and travel-time lags saved in the model, then ``GaugeModel.predict`` (sorted and
   CQR-calibrated, SPEC §7.4), then ``model.probability.spot_forecast`` (SPEC §7.5).
-  The anchor hour is the hour of the target gauge's latest reading (at most ``floor(now)``). As in the
-  backtest, the level quantiles are the model's ``level_now`` (that hour's mean, the quantity it was
-  trained on) plus the predicted changes; ``levelNow`` shows the latest 15-min reading.
+  The anchor hour is the last complete hourly row, ``floor(now) - 1 h``, exactly as a replay forecast
+  issued at ``floor(now)`` (#93); if the target gauge has no level there, its latest earlier row (the
+  stale rule below still applies). As in the backtest, the level quantiles are the model's
+  ``level_now`` (that hour's mean, the quantity it was trained on) plus the predicted changes;
+  ``levelNow`` shows the latest 15-min reading. Lead h is labelled ``issuedAt + h`` as before.
+- **Data gaps**: a model forecast made with NaN features (an upstream gauge with a gap inside its lag
+  windows, or no catchment rain) is kept, but the ``note`` says which spot and inputs, because
+  LightGBM does not widen its range for missing inputs. A model that raises falls back to
+  persistence for that spot.
 - **Persistence (fallback, labelled)**: probabilistic persistence (SPEC §7.6) with the level-change
   quantiles estimated from the last 28 days of live readings at that gauge. Used when no model loads
   (``method: "persistence"`` and a ``note`` saying so; the UI must show it), and per spot when its gauge
@@ -90,6 +96,9 @@ PARTIAL_PERSISTENCE_NOTE = (
     "Persistence fallback for {spots}: no trained model or no current reading for that gauge, so the "
     "forecast there assumes the level stays roughly where it is. The other spots use the River Clock model."
 )
+GAP_NOTE = (
+    "Data gap: the {spot} forecast is missing recent readings from {inputs}, so its range may be too narrow."
+)
 
 
 LIVE_ONLY_GAUGES = ingest_live.LIVE_ONLY_GAUGES  # godstow, osney, iffley: live level only, no forecast
@@ -150,6 +159,15 @@ class QuantileForecaster(Protocol):
 
 def iso_utc(ts: datetime | pd.Timestamp) -> str:
     return pd.Timestamp(ts).tz_convert("UTC").strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def last_complete_hour(now: datetime | pd.Timestamp) -> pd.Timestamp:
+    """Label of the last hourly row that has ended by ``now`` (UTC): ``floor(now) - 1 h``.
+
+    Pure UTC arithmetic, so the repeated local hour when UK clocks go back (01:00-02:00 GMT/BST on
+    the last Sunday of October) is two distinct rows, never one doubled or skipped hour.
+    """
+    return pd.Timestamp(now).tz_convert("UTC").floor("h") - pd.Timedelta(hours=1)
 
 
 def _utc(now: datetime | None) -> datetime:
@@ -239,7 +257,7 @@ class TrainedForecaster:
 
     ``model/backtest.forecasts_at`` builds ``features.build_features(hourly, g, m.medians, m.lags)``,
     reads row t and calls ``m.predict`` (CQR-calibrated). This does the same on the live rows up to the
-    anchor hour: the hour of the gauge's latest reading, never after ``floor(now)`` (no future data).
+    anchor hour: the gauge's latest row at or before ``floor(now) - 1 h`` (complete hours only, #93).
     """
 
     def __init__(self, models: Mapping[str, Any]) -> None:
@@ -256,7 +274,11 @@ class TrainedForecaster:
         if m is None:
             return None
         h = train.normalise_hourly(hourly)
-        h = h[h["ts_utc"] <= pd.Timestamp(issued_at).floor("h")]  # nothing after now
+        # Only complete hourly rows, as the backtest (#93): the row labelled floor(now) - 1 h is the
+        # last hour that has ended. The current hour is partial (1-3 of its 4 readings): its mean is
+        # not what the model was trained on, and its rain total is NaN with < 3 readings, which made
+        # rain_sum_6h NaN about half the time.
+        h = h[h["ts_utc"] <= last_complete_hour(issued_at)]
         seen = h.loc[(h["gauge"] == gauge) & h["level_mean"].notna(), "ts_utc"]
         if seen.empty:
             return None
@@ -283,6 +305,24 @@ class TrainedForecaster:
     def base_level(self, hourly: pd.DataFrame, gauge: str, issued_at: datetime) -> float | None:
         X = self.features_at(hourly, gauge, issued_at)
         return None if X is None else float(X["level_now"].iloc[0])
+
+    def missing_inputs(self, hourly: pd.DataFrame, gauge: str, issued_at: datetime) -> list[str]:
+        """Inputs with NaN features at the anchor row: gauge keys, plus ``"rain"`` for catchment rain.
+
+        LightGBM runs with NaN features but does not widen its quantiles for them (checked on the real
+        models: dropping an upstream's last 30 h narrowed newbotley's 6 h 5-95% range), so the
+        forecast says so in its ``note``.
+        """
+        X = self.features_at(hourly, gauge, issued_at)
+        if X is None:
+            return []
+        out: list[str] = []
+        for col in X.columns[X.isna().iloc[0].to_numpy()]:
+            ups = [u for u in self.upstreams.get(gauge, []) if col.startswith(f"{u}_")]
+            src = ups[0] if ups else "rain" if col.startswith("rain_") else gauge
+            if src not in out:
+                out.append(src)
+        return out
 
 
 def load_model_forecaster(models_dir: Path = MODELS_DIR) -> TrainedForecaster | None:
@@ -367,6 +407,7 @@ def build_forecast(
     stale = stale_gauges(data_as_of, all_gauges, now)
 
     out_spots, fallback_spots = [], []
+    gaps: list[str] = []  # data-gap sentences for the note
     for spot in spots:
         level_now = _level_now(hourly, meta, spot.gauge)
         if level_now is None:
@@ -380,13 +421,26 @@ def build_forecast(
             "mode": spot.effective_mode,
         }
         if forecastable[spot.key] and not any(g in stale for g in depends[spot.key]):
-            used: QuantileForecaster = forecaster
-            deltas = forecaster.predict(hourly, spot.gauge, now)
-            if deltas is None:  # no model for this gauge, or no level in the anchor hour
-                used, deltas = persistence, persistence.predict(hourly, spot.gauge, now)
+            try:
+                deltas = forecaster.predict(hourly, spot.gauge, now)
+                base = forecaster.base_level(hourly, spot.gauge, now)
+                missing = (
+                    forecaster.missing_inputs(hourly, spot.gauge, now)
+                    if deltas is not None and isinstance(forecaster, TrainedForecaster)
+                    else []
+                )
+            except Exception:  # one broken model or input must not take live mode down
+                log.exception("spot %s: model forecast failed; using persistence", spot.key)
+                deltas, missing = None, []
+            if deltas is None:  # no model for this gauge, no level in the anchor hour, or an error
+                deltas = persistence.predict(hourly, spot.gauge, now)
+                base = persistence.base_level(hourly, spot.gauge, now)
                 if forecaster is not persistence:
                     fallback_spots.append(spot.key)
-            base = used.base_level(hourly, spot.gauge, now)
+            if missing:
+                names = ", ".join("catchment rain" if m == "rain" else m.capitalize() for m in missing)
+                gaps.append(GAP_NOTE.format(spot=spot.name, inputs=names))
+                log.warning("spot %s: forecast with missing inputs from %s", spot.key, names)
             q = np.array([[deltas[h][k] for k in QUANT_KEYS] for h in LEADS_H])
             # SPEC §7.5 via the shared functions, exactly as the backtest (monotone p, arrival rules).
             sf = probability.spot_forecast(
@@ -410,6 +464,7 @@ def build_forecast(
         note = PARTIAL_PERSISTENCE_NOTE.format(spots=", ".join(fallback_spots))
     else:
         note = ""
+    note = " ".join(part for part in [note, *gaps] if part)
     return {
         "issuedAt": iso_utc(now),
         "dataAsOf": data_as_of,
@@ -448,11 +503,20 @@ def main() -> None:
     )
     parser.add_argument("--no-fetch", action="store_true", help="use the last processed live data only")
     args = parser.parse_args()
-    forecast = refresh(fetch=not args.no_fetch)
+    try:
+        forecast = refresh(fetch=not args.no_fetch)
+    except LiveDataUnavailable as exc:
+        # No live data at all (EA down and nothing cached): keep the existing files, the app shows
+        # "Live data unavailable" or the committed snapshot. Exit non-zero, without a traceback.
+        log.error("live data unavailable (%s); nothing written", exc)
+        raise SystemExit(1) from None
     targets = [OUT_FORECAST, *([WEB_LIVE] if args.write_web else [])]
+    text = json.dumps(forecast, indent=2, allow_nan=False) + "\n"  # strict JSON: NaN fails here
     for path in targets:
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(forecast, indent=2) + "\n")
+        tmp = path.with_name(path.name + ".part")
+        tmp.write_text(text)
+        tmp.replace(path)  # never a half-written live.json for the dev server or the API
         log.info("wrote %s (%s, stale: %s)", path, forecast["method"], forecast["stale"] or "none")
 
 
