@@ -1,14 +1,14 @@
 # alfredo-data
 
 - **role**: Data
-- **state**: working
+- **state**: idle
 - **issue**: 
-- **task**: Reviewing PRs #26, #29
-- **next**: Post reviews on #26 (contracts/fixtures) and #29 (live mode)
+- **task**: Reviewed #29 (approve), #32 (approve), #34 (comment: fixtures/DEFAULT_SPOTS lag the re-target)
+- **next**: Waiting for next task from alfredo
 - **needs**: 
 - **notes**: 
 - **branch**: data/historic-warnings
 - **head**: 38b091f Add official-warning comparison and warnings ingest tests
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:15:43Z
+- **updated**: 2026-10-24T16:23:45Z
