@@ -22,6 +22,11 @@ A gauge whose latest reading is more than 3 h old (or that returned no data) is 
 and every spot that depends on it gets ``leads: []`` and ``arrival: null``. A spot depends on its own
 gauge; with the model it also depends on that gauge's upstream inputs.
 
+Live-only gauges (SPEC §4.1.1: godstow, osney, iffley have no downstream-stage history) are shown with
+their live level but never forecast: a spot on one (wolvercote -> godstow) is ``timing_only`` with
+``leads: []`` and ``arrival: null``. A spot whose threshold is still TBC is ``timing_only``: leads with
+quantiles and ``pAmber``, but ``pFlood: null`` and no arrival window.
+
 Probabilities follow SPEC §7.5 steps 2-5 (``exceedance_probability``, ``arrival_window``). They are a
 local copy until ``model/probability.py`` (#8) lands; then swap these for the shared functions.
 
@@ -70,22 +75,33 @@ PERSISTENCE_NOTE = (
 )
 
 
+LIVE_ONLY_GAUGES = ingest_live.LIVE_ONLY_GAUGES  # godstow, osney, iffley: live level only, no forecast
+
+
 @dataclass(frozen=True)
 class Spot:
     key: str
     name: str
     gauge: str
-    threshold: float
+    threshold: float | None  # None = not verified yet (TBC) -> timing_only
     amber: float
     mode: str = "probability"
 
+    @property
+    def effective_mode(self) -> str:
+        """timing_only if the threshold is unverified or the gauge is live only (SPEC §4.1.1, §4.2)."""
+        if self.threshold is None or self.gauge in LIVE_ONLY_GAUGES:
+            return "timing_only"
+        return self.mode
 
-# SPEC §4.2 (threshold) and §4.1 (amber = gauge normal-range top). Used until config/spots.yaml exists.
+
+# SPEC §4.2 after the re-target (PR #30). Used until config/spots.yaml (Story, #10) exists.
+# osney/abingdonrd thresholds are TBC (Story verifies on GOV.UK), so they are timing_only for now.
 DEFAULT_SPOTS: tuple[Spot, ...] = (
-    Spot("osney", "Osney Island / Binsey", "osney", 3.79, 3.18),
+    Spot("osney", "Osney Island / Binsey", "minns", None, 2.13, "timing_only"),
     Spot("botley", "Botley Road / New Botley / Hinksey", "newbotley", 2.76, 2.01),
-    Spot("abingdonrd", "Abingdon Road / Grandpont", "iffley", 3.25, 2.72),
-    Spot("wolvercote", "Wolvercote / Port Meadow", "godstow", 3.07, 2.57),
+    Spot("abingdonrd", "Abingdon Road / Grandpont", "coldharbour", None, 2.30, "timing_only"),
+    Spot("wolvercote", "Wolvercote / Port Meadow", "godstow", 3.07, 2.57, "timing_only"),
     Spot("cherwell", "Cherwell (Kings Mill)", "kingsmill", 2.60, 2.40),
 )
 
@@ -120,6 +136,13 @@ def _utc(now: datetime | None) -> datetime:
     return now.astimezone(UTC)
 
 
+def _threshold(value: Any) -> float | None:
+    try:
+        return float(value)
+    except (TypeError, ValueError):  # missing, null or "TBC"
+        return None
+
+
 def load_spots(path: Path = SPOTS_YAML) -> list[Spot]:
     """Spots from ``config/spots.yaml`` (list under ``spots:``) if present, else ``DEFAULT_SPOTS``."""
     if not path.exists():
@@ -135,7 +158,7 @@ def load_spots(path: Path = SPOTS_YAML) -> list[Spot]:
             key=s["key"],
             name=s.get("name", s["key"]),
             gauge=s["gauge"],
-            threshold=float(s["threshold"]),
+            threshold=_threshold(s.get("threshold")),
             amber=float(s["amber"]),
             mode=s.get("mode", "probability"),
         )
@@ -265,6 +288,7 @@ def build_forecast(
     if not data_as_of:
         raise LiveDataUnavailable("no live readings for any gauge")
     depends = {s.key: [s.gauge, *forecaster.upstreams.get(s.gauge, [])] for s in spots}
+    forecastable = {s.key: s.gauge not in LIVE_ONLY_GAUGES for s in spots}
     all_gauges = sorted({g for gs in depends.values() for g in gs} | set(data_as_of))
     stale = stale_gauges(data_as_of, all_gauges, now)
 
@@ -279,9 +303,9 @@ def build_forecast(
             "levelNow": round(level_now, 3),
             "leads": [],
             "arrival": None,
-            "mode": spot.mode,
+            "mode": spot.effective_mode,
         }
-        if not any(g in stale for g in depends[spot.key]):
+        if forecastable[spot.key] and not any(g in stale for g in depends[spot.key]):
             deltas = forecaster.predict(hourly, spot.gauge, now)
             p_flood_run, p_amber_run, p_flood = 0.0, 0.0, {}
             for h in LEADS_H:
@@ -289,18 +313,19 @@ def build_forecast(
                     zip(QUANT_KEYS, sorted(level_now + deltas[h][k] for k in QUANT_KEYS), strict=True)
                 )
                 # SPEC §7.5 step 4: probabilities never decrease with lead time.
-                p_flood_run = max(p_flood_run, exceedance_probability(levels, spot.threshold))
+                if spot.threshold is not None:
+                    p_flood_run = max(p_flood_run, exceedance_probability(levels, spot.threshold))
                 p_amber_run = max(p_amber_run, exceedance_probability(levels, spot.amber))
                 p_flood[h] = p_flood_run
                 entry["leads"].append(
                     {
                         "h": h,
                         "q": {k: round(v, 3) for k, v in levels.items()},
-                        "pFlood": round(p_flood_run, 3) if spot.mode == "probability" else None,
+                        "pFlood": round(p_flood_run, 3) if spot.effective_mode == "probability" else None,
                         "pAmber": round(p_amber_run, 3),
                     }
                 )
-            if spot.mode == "probability":
+            if spot.effective_mode == "probability" and spot.threshold is not None:
                 entry["arrival"] = arrival_window(level_now, spot.threshold, p_flood, now)
         out_spots.append(entry)
 

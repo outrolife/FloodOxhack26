@@ -65,15 +65,17 @@ CACHE_TTL_S = 15 * 60  # poll EA at most every 15 minutes
 MAX_FFILL_H = 2  # SPEC §5.2 step 3
 RAIN_KEY = "rain_catchment"
 
-# Gauge key -> flood-monitoring measure id (SPEC §4.1 qualifiers: the "d/s" gauges eynsham, godstow,
-# osney and iffley use the downstream stage; kingsmill "u/s" uses the (upstream) stage). Note: the
-# Hydrology API history may only carry the upstream lock stage for godstow/osney/iffley; the measure
-# used here is recorded in live_meta.json so the Data lead can check live and history match.
+# Gauge key -> flood-monitoring measure id, following SPEC §4.1 / §4.1.1 (PM decision, PR #30):
+# - live-only main-channel locks godstow, osney, iffley: the downstream stage (d/s), shown in the River
+#   strip only; there is no d/s history, so they are not forecast;
+# - eynsham: the upstream stage, to match the Hydrology history its features are trained on;
+# - trained targets newbotley, minns, coldharbour (single trace) and kingsmill (u/s = "stage").
+# The measure used is recorded in live_meta.json so live and history can be checked against each other.
 # Bracketed RLOI ids resolved via /id/stations?RLOIid=: 7054 -> 1290_w2TH, 7064 -> 1460_w1TH,
 # 9082 -> 1489TH, 7072 -> 1501TH, 7075 -> 1645TH.
 LEVEL_MEASURES: dict[str, str] = {
     "farmoor": "1100TH-level-stage-i-15_min-mASD",
-    "eynsham": "1201TH-level-downstage-i-15_min-mASD",
+    "eynsham": "1201TH-level-stage-i-15_min-mASD",
     "cassington": "1290_w2TH-level-stage-i-15_min-mASD",
     "enslow": "1460_w1TH-level-stage-i-15_min-mASD",
     "islip": "1489TH-level-stage-i-15_min-mASD",
@@ -82,7 +84,11 @@ LEVEL_MEASURES: dict[str, str] = {
     "iffley": "1501TH-level-downstage-i-15_min-mASD",
     "kingsmill": "1491TH-level-stage-i-15_min-mASD",
     "newbotley": "1645TH-level-stage-i-15_min-mASD",
+    "minns": "1635TH-level-stage-i-15_min-mASD",
+    "coldharbour": "1675TH-level-stage-i-15_min-mASD",
 }
+# Main-channel locks with live data only (SPEC §4.1.1): shown, never forecast.
+LIVE_ONLY_GAUGES: frozenset[str] = frozenset({"godstow", "osney", "iffley"})
 # Rain gauges are keyed by their EA station ref, as in hourly.parquet.
 RAIN_MEASURES: dict[str, str] = {
     ref: f"{ref}-rainfall-tipping_bucket_raingauge-t-15_min-mm"

@@ -185,31 +185,78 @@ def test_forecast_contract_and_persistence_label(tmp_path: Path) -> None:
     assert fc["method"] == "persistence" and "Persistence" in fc["note"]
     assert fc["stale"] == []
     assert all(v.endswith("Z") for v in fc["dataAsOf"].values())
-    assert meta["gauges"]["osney"]["measure"] == "1303TH-level-downstage-i-15_min-mASD"  # §4.1 d/s
+    assert meta["gauges"]["osney"]["measure"] == "1303TH-level-downstage-i-15_min-mASD"  # live-only d/s
+    assert meta["gauges"]["eynsham"]["measure"] == "1201TH-level-stage-i-15_min-mASD"  # u/s, as history
     assert set(meta["gauges"]) == set(il.LEVEL_MEASURES)  # rain gauges are not in dataAsOf
     assert [s["spot"] for s in fc["spots"]] == [s.key for s in fl.DEFAULT_SPOTS]
     for s in fc["spots"]:
         assert set(s) == {"spot", "levelNow", "leads", "arrival", "mode"}
-        assert [lead["h"] for lead in s["leads"]] == list(fl.LEADS_H)
-        p = [lead["pFlood"] for lead in s["leads"]]
-        assert p == sorted(p) and all(0 <= x <= 1 for x in p)
         for lead in s["leads"]:
             assert list(lead["q"]) == list(fl.QUANT_KEYS)
             assert list(lead["q"].values()) == sorted(lead["q"].values())
-        assert set(s["arrival"]) == {"p10", "p50", "p90"}
     json.dumps(fc, allow_nan=False)  # valid JSON, no NaN
+
+    spots = {s["spot"]: s for s in fc["spots"]}
+    for key in ("botley", "cherwell"):  # verified thresholds -> full probability forecast
+        s = spots[key]
+        assert s["mode"] == "probability"
+        assert [lead["h"] for lead in s["leads"]] == list(fl.LEADS_H)
+        p = [lead["pFlood"] for lead in s["leads"]]
+        assert p == sorted(p) and all(0 <= x <= 1 for x in p)
+        assert set(s["arrival"]) == {"p10", "p50", "p90"}
+    for key in ("osney", "abingdonrd"):  # minns / coldharbour, threshold TBC -> timing_only
+        s = spots[key]
+        assert s["mode"] == "timing_only" and s["arrival"] is None
+        assert s["leads"] and all(lead["pFlood"] is None for lead in s["leads"])
+    # wolvercote -> godstow is live only: level shown, no forecast.
+    assert spots["wolvercote"]["mode"] == "timing_only"
+    assert spots["wolvercote"]["leads"] == [] and spots["wolvercote"]["arrival"] is None
+    assert spots["wolvercote"]["levelNow"] == round(meta["gauges"]["godstow"]["level"], 3)
+
+
+def test_spot_gauge_mapping() -> None:
+    mapping = {s.key: s.gauge for s in fl.DEFAULT_SPOTS}
+    assert mapping == {
+        "osney": "minns",
+        "botley": "newbotley",
+        "abingdonrd": "coldharbour",
+        "wolvercote": "godstow",
+        "cherwell": "kingsmill",
+    }
+    assert fl.LIVE_ONLY_GAUGES == {"godstow", "osney", "iffley"}
+    assert fl.LIVE_ONLY_GAUGES <= set(il.LEVEL_MEASURES)  # still ingested for the River strip
+
+
+def test_load_spots_tbc_threshold(tmp_path: Path) -> None:
+    path = tmp_path / "spots.yaml"
+    path.write_text(
+        "spots:\n  - {key: osney, gauge: minns, threshold: TBC, amber: 2.13}\n"
+        "  - {key: botley, gauge: newbotley, threshold: 2.76, amber: 2.01}\n"
+    )
+    spots = fl.load_spots(path)
+    assert spots[0].threshold is None and spots[0].effective_mode == "timing_only"
+    assert spots[1].threshold == 2.76 and spots[1].effective_mode == "probability"
 
 
 def test_stale_gauge_blanks_dependent_spot(tmp_path: Path) -> None:
     hourly, meta = _live(tmp_path, FakeEA(T0 - timedelta(minutes=15)), T0)
-    meta["gauges"]["osney"]["observed_at"] = "2026-10-24T22:00:00Z"
+    meta["gauges"]["newbotley"]["observed_at"] = "2026-10-24T22:00:00Z"
+    meta["gauges"]["kingsmill"]["observed_at"] = "2026-10-13T14:45:00Z"  # real outage since 13 Oct
+    fc = fl.build_forecast(hourly, meta, T0)
+    assert fc["stale"] == ["kingsmill", "newbotley"]
+    spots = {s["spot"]: s for s in fc["spots"]}
+    for key in ("botley", "cherwell"):
+        assert spots[key]["leads"] == [] and spots[key]["arrival"] is None
+    assert spots["osney"]["leads"]  # minns is fresh
+
+
+def test_missing_gauge_is_stale(tmp_path: Path) -> None:
+    hourly, meta = _live(tmp_path, FakeEA(T0 - timedelta(minutes=15)), T0)
     del meta["gauges"]["kingsmill"]
     fc = fl.build_forecast(hourly, meta, T0)
-    assert fc["stale"] == ["kingsmill", "osney"]
-    spots = {s["spot"]: s for s in fc["spots"]}
-    assert spots["osney"]["leads"] == [] and spots["osney"]["arrival"] is None
-    assert spots["wolvercote"]["leads"]  # godstow is fresh
-    assert spots["cherwell"]["leads"] == []  # still listed via the hourly fallback for levelNow
+    assert "kingsmill" in fc["stale"]
+    cherwell = next(s for s in fc["spots"] if s["spot"] == "cherwell")
+    assert cherwell["leads"] == []  # still listed: levelNow from the hourly fallback
 
 
 def test_model_upstreams_count_as_dependencies(tmp_path: Path) -> None:
@@ -217,12 +264,12 @@ def test_model_upstreams_count_as_dependencies(tmp_path: Path) -> None:
     meta["gauges"]["farmoor"]["observed_at"] = "2026-10-24T20:00:00Z"
 
     class Model(fl.PersistenceForecaster):
-        upstreams = {"osney": ["farmoor", "godstow"]}
+        upstreams = {"newbotley": ["farmoor", "eynsham", "cassington"], "kingsmill": ["enslow", "islip"]}
 
     fc = fl.build_forecast(hourly, meta, T0, forecaster=Model())
     spots = {s["spot"]: s for s in fc["spots"]}
     assert fc["method"] == "model" and fc["note"] == ""
-    assert spots["osney"]["leads"] == [] and spots["wolvercote"]["leads"]
+    assert spots["botley"]["leads"] == [] and spots["cherwell"]["leads"]
 
 
 def test_no_live_data_raises() -> None:
