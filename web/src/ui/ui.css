@@ -130,3 +130,11 @@ main.ui-main { flex: 1; max-width: none; margin: 0; padding: var(--ui-gap) 1.2re
 .ui-start-name { font-size: 1.6rem; font-weight: 750; color: var(--accent); }
 .ui-start-text { color: var(--ink-2); }
 .ui-start-skip { font: inherit; background: none; border: 0; color: var(--ink-2); text-decoration: underline; cursor: pointer; }
+
+/* MapClock: a SpotClock in a permanent Leaflet tooltip, without the tooltip chrome. */
+.leaflet-tooltip.ui-map-clock {
+  background: rgba(252, 252, 251, 0.92); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(11, 11, 11, 0.15); padding: 2px 4px; white-space: normal;
+}
+.leaflet-tooltip.ui-map-clock::before { display: none; }
+.leaflet-tooltip.ui-map-clock.selected { border-color: var(--ink); z-index: 1000; }
