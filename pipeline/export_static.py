@@ -2,7 +2,8 @@
 
 Writes ``web/public/data/{stations,spots,events}.json`` from ``config/*.yaml`` (issue #46):
 
-* ``stations.json``: one ``Station`` per gauge in ``config/stations.yaml`` (``gauges:``), with exactly
+* ``stations.json``: one ``Station`` per gauge in ``config/stations.yaml`` (``gauges:``, then the
+  display-only ``catchment_gauges:`` of #146), with exactly
   the §9 fields ``key, name, river, role, ref, lat, lon, amber, threshold, record``.
   ``role`` is ``upstream | target | live_only`` (SPEC §4.1.1).
 * ``spots.json``: one ``Spot`` per entry in ``config/spots.yaml`` (§9 fields only).
@@ -71,8 +72,9 @@ def _utc(v: Any, what: str) -> str:
 
 
 def build_stations(doc: dict[str, Any]) -> list[dict[str, Any]]:
+    """``gauges:`` then the display-only ``catchment_gauges:`` (#146, role live_only)."""
     out = []
-    for g in doc["gauges"]:
+    for g in [*doc["gauges"], *(doc.get("catchment_gauges") or [])]:
         key = str(g["key"])
         role = str(g["role"])
         if role not in STATION_ROLES:

@@ -334,6 +334,316 @@ gauges:
     other_trace: {trace: u/s, fm_measure: 1501TH-level-stage-i-15_min-mASD, datum_maod: 54.617, amber: 0.25, record: 0.937}
     verified: "Thresholds match §4.1. D/s only in flood-monitoring live and the archive (from 2025-10-29)."
 
+# Catchment gauges (issue #146): a ring of upstream EA level gauges within ~35 km of Oxford on the
+# Thames, Windrush (+ Glyme on the Evenlode), Evenlode, Cherwell and Ray, shown live on the map so the
+# app has real readings further out. Display only: role live_only (the SPEC §9 role), never forecast,
+# not trained, no travel-time pairs. This is a separate section so pipeline.ingest_history, the quality
+# report and the model (which read `gauges:` via pipeline.stations.load_gauges) are unchanged; only
+# pipeline.ingest_live (live readings) and pipeline.export_static (stations.json) read it.
+#
+# Found with /flood-monitoring/id/stations?lat=51.75&long=-1.26&dist=35&parameter=level on 2026-10-24;
+# every entry had ~95 readings in the 24 h before 21:30Z. Fields as for `gauges:`, from the
+# flood-monitoring scale of the trace used: amber = typicalRangeHigh, record = maxOnRecord, threshold =
+# GOV.UK "Property flooding is possible above this level" for that trace's page (null when GOV.UK has
+# none, or when it is not above amber). distance_km is the straight line from Carfax. Each level is on
+# its own gauge datum: never compare it with another gauge.
+#
+# Traces: lock gauges use the d/s stage (the river level the GOV.UK flood thresholds refer to), except
+# shifford, which uses the u/s stage like eynsham, because that is the trace #125 A verified against its
+# Hydrology history. The #125 A gauges (shifford, hannington, worsham, shipton, banbury, lowerarncott)
+# keep #125's keys and fm measures, so adopting them as model inputs is a move to `gauges:` with
+# role: upstream plus a hydrology block.
+catchment_gauges:
+  - key: kingslock
+    name: Kings Lock d/s
+    river: Thames
+    role: live_only
+    ref: 1301TH
+    rloi_id: "7055"
+    lat: 51.789307
+    lon: -1.306931
+    amber: 2.34
+    threshold: 2.76
+    record: 2.83            # 2007-07-24T23:45:00
+    trace: d/s
+    fm_measure: 1301TH-level-downstage-i-15_min-mASD
+    distance_km: 5.4          # from Carfax
+    api: {typicalRangeLow: 1.724, typicalRangeHigh: 2.34, maxOnRecord: 2.83, datum: 56.394}
+    verified: "2026-10-24: 94 live readings in 24 h (last 2026-10-24T21:15:00Z). Above Wolvercote and Godstow."
+
+  - key: northmoor
+    name: Northmoor Lock d/s
+    river: Thames
+    role: live_only
+    ref: 1099TH
+    rloi_id: "7046"
+    lat: 51.716858
+    lon: -1.374624
+    amber: 3.056
+    threshold: 3.84
+    record: 3.876            # 2012-11-29T07:45:00
+    trace: d/s
+    fm_measure: 1099TH-level-downstage-i-15_min-mASD
+    distance_km: 8.9          # from Carfax
+    api: {typicalRangeLow: 1.2, typicalRangeHigh: 3.056, maxOnRecord: 3.876, datum: 59.256}
+    verified: "2026-10-24: 94 live readings in 24 h (last 2026-10-24T21:15:00Z)."
+
+  - key: shifford
+    name: Shifford Lock u/s
+    river: Thames
+    role: live_only
+    ref: 0904TH
+    rloi_id: "7038"
+    lat: 51.70718
+    lon: -1.465193
+    amber: 0.42
+    threshold: null
+    record: 0.728            # 2014-01-07T05:00:00
+    trace: u/s
+    fm_measure: 0904TH-level-stage-i-15_min-mASD
+    distance_km: 15.1          # from Carfax
+    api: {typicalRangeLow: 0.005, typicalRangeHigh: 0.42, maxOnRecord: 0.728, datum: 64.355}
+    verified: "2026-10-24: 94 live readings in 24 h (last 2026-10-24T21:15:00Z). #125 A trace (u/s matches its Hydrology history)."
+
+  - key: rushey
+    name: Rushey Lock d/s
+    river: Thames
+    role: live_only
+    ref: 0903TH
+    rloi_id: "7037"
+    lat: 51.698716
+    lon: -1.534037
+    amber: 3.25
+    threshold: 3.84
+    record: 3.917            # 2007-07-22T21:30:00
+    trace: d/s
+    fm_measure: 0903TH-level-downstage-i-15_min-mASD
+    distance_km: 19.9          # from Carfax
+    api: {typicalRangeLow: 1.658, typicalRangeHigh: 3.25, maxOnRecord: 3.917, datum: 62.68}
+    verified: "2026-10-24: 94 live readings in 24 h (last 2026-10-24T21:15:00Z)."
+
+  - key: radcot
+    name: Radcot Lock d/s
+    river: Thames
+    role: live_only
+    ref: 0902TH
+    rloi_id: "7036"
+    lat: 51.699764
+    lon: -1.573094
+    amber: 3.19
+    threshold: 3.52
+    record: 3.547            # 2024-11-26T19:00:00
+    trace: d/s
+    fm_measure: 0902TH-level-downstage-i-15_min-mASD
+    distance_km: 22.5          # from Carfax
+    api: {typicalRangeLow: 1.648, typicalRangeHigh: 3.19, maxOnRecord: 3.547, datum: 64.477}
+    verified: "2026-10-24: 94 live readings in 24 h (last 2026-10-24T21:15:00Z)."
+
+  - key: hannington
+    name: Hannington Bridge
+    river: Thames
+    role: live_only
+    ref: 0569TH
+    rloi_id: "7024"
+    lat: 51.663588
+    lon: -1.749677
+    amber: 3.81
+    threshold: 4.47
+    record: 4.49            # 2007-07-28T01:00:00
+    trace: single
+    fm_measure: 0569TH-level-stage-i-15_min-mASD
+    distance_km: 35.3          # from Carfax
+    api: {typicalRangeLow: 2.07, typicalRangeHigh: 3.81, maxOnRecord: 4.49, datum: 70}
+    verified: "2026-10-24: 95 live readings in 24 h (last 2026-10-24T21:30:00Z). #125 A."
+
+  - key: newbridge
+    name: Newbridge
+    river: Windrush
+    role: live_only
+    ref: 1090TH
+    rloi_id: "9569"
+    lat: 51.715253
+    lon: -1.41933
+    amber: 3.771
+    threshold: 4.26
+    record: 4.35            # 2007-07-23T16:45:00
+    trace: single
+    fm_measure: 1090TH-level-stage-i-15_min-mASD
+    distance_km: 11.9          # from Carfax
+    api: {typicalRangeLow: 3.495, typicalRangeHigh: 3.771, maxOnRecord: 4.35, datum: 60}
+    verified: "2026-10-24: 95 live readings in 24 h (last 2026-10-24T21:30:00Z). Windrush just above the Thames confluence."
+
+  - key: witney
+    name: Witney
+    river: Windrush
+    role: live_only
+    ref: 1082TH
+    rloi_id: "7043"
+    lat: 51.789786
+    lon: -1.484269
+    amber: 1.4
+    threshold: 1.96
+    record: 2.45            # 2020-12-25T00:00:00
+    trace: single
+    fm_measure: 1082TH-level-stage-i-15_min-mASD
+    distance_km: 16.2          # from Carfax
+    api: {typicalRangeLow: 0.464, typicalRangeHigh: 1.4, maxOnRecord: 2.45, datum: 79}
+    verified: "2026-10-24: 95 live readings in 24 h (last 2026-10-24T21:30:00Z)."
+
+  - key: worsham
+    name: Worsham
+    river: Windrush
+    role: live_only
+    ref: 1080TH
+    rloi_id: "7042"
+    lat: 51.793689
+    lon: -1.564378
+    amber: 1.62
+    threshold: 2.16
+    record: 1.698            # 2024-11-25T07:45:00
+    trace: single
+    fm_measure: 1080TH-level-stage-i-15_min-mASD
+    distance_km: 21.6          # from Carfax
+    api: {typicalRangeLow: 0.303, typicalRangeHigh: 1.62, maxOnRecord: 1.698, datum: 89.27}
+    verified: "2026-10-24: 95 live readings in 24 h (last 2026-10-24T21:30:00Z). #125 A."
+
+  - key: woodstock
+    name: Woodstock
+    river: Glyme
+    role: live_only
+    ref: 1289TH
+    rloi_id: "7052"
+    lat: 51.864215
+    lon: -1.356609
+    amber: 0.75
+    threshold: 1.8
+    record: 1.284            # 2024-11-25T06:30:00
+    trace: u/s
+    fm_measure: 1289TH-level-stage-i-15_min-mASD
+    distance_km: 14.2          # from Carfax
+    api: {typicalRangeLow: 0.05, typicalRangeHigh: 0.75, maxOnRecord: 1.284, datum: 79.19}
+    verified: "2026-10-24: 94 live readings in 24 h (last 2026-10-24T21:15:00Z). Glyme joins the Evenlode above Cassington."
+
+  - key: shipton
+    name: Shipton-under-Wychwood
+    river: Evenlode
+    role: live_only
+    ref: 1238TH
+    rloi_id: "7051"
+    lat: 51.861678
+    lon: -1.594363
+    amber: 2.02
+    threshold: 2.62
+    record: 3.437            # 2024-11-24T20:45:00
+    trace: single
+    fm_measure: 1238TH-level-stage-i-15_min-mASD
+    distance_km: 26.2          # from Carfax
+    api: {typicalRangeLow: 0.563, typicalRangeHigh: 2.02, maxOnRecord: 3.437, datum: 94}
+    verified: "2026-10-24: 95 live readings in 24 h (last 2026-10-24T21:30:00Z). #125 A."
+
+  - key: botanic
+    name: Oxford Botanical Gardens
+    river: Cherwell
+    role: live_only
+    ref: 1490TH
+    rloi_id: "9119"
+    lat: 51.750579
+    lon: -1.24661
+    amber: 6.19
+    threshold: null
+    record: 6.18            # 2012-11-28T09:00:00
+    trace: single
+    fm_measure: 1490TH-level-stage-i-15_min-mASD
+    distance_km: 0.8          # from Carfax
+    api: {typicalRangeLow: 4.8, typicalRangeHigh: 6.19, maxOnRecord: 6.18, datum: 50}
+    history_note: "Hydrology station 839866a2-80ca-42a8-a695-8e6d6b165fa6 (level-i-900-m-qualified), from 1996-04-27; live measure identical to it (mean |diff| 0.000 m, 28 Sep-24 Oct 2026). Valid hours >= 87% in 2011-2014 and 2019-2026. Proposal on #146: substitute for the offline Kings Mill."
+    verified: "2026-10-24: 95 live readings in 24 h (last 2026-10-24T21:30:00Z). 0.9 km below Kings Mill. GOV.UK property threshold 5.98 is not above the normal top 6.19 (inconsistent EA metadata, as at Enslow): not used here."
+
+  - key: thrupp
+    name: Thrupp
+    river: Cherwell
+    role: live_only
+    ref: 1465TH
+    rloi_id: "7066"
+    lat: 51.840425
+    lon: -1.30005
+    amber: 2.12
+    threshold: 3.02
+    record: 3.399            # 2024-11-25T19:30:00
+    trace: single
+    fm_measure: 1465TH-level-stage-i-15_min-mASD
+    distance_km: 10.3          # from Carfax
+    api: {typicalRangeLow: 0.654, typicalRangeHigh: 2.12, maxOnRecord: 3.399, datum: 60}
+    verified: "2026-10-24: 95 live readings in 24 h (last 2026-10-24T21:30:00Z)."
+
+  - key: heyford
+    name: Heyford Bridge
+    river: Cherwell
+    role: live_only
+    ref: 1453TH
+    rloi_id: "7063"
+    lat: 51.920573
+    lon: -1.306366
+    amber: 1.3
+    threshold: 2.05
+    record: 2.569            # 2007-07-21T20:15:00
+    trace: single
+    fm_measure: 1453TH-level-stage-i-15_min-mASD
+    distance_km: 19.0          # from Carfax
+    api: {typicalRangeLow: 0.361, typicalRangeHigh: 1.3, maxOnRecord: 2.569, datum: 70}
+    verified: "2026-10-24: 95 live readings in 24 h (last 2026-10-24T21:30:00Z)."
+
+  - key: banbury
+    name: Banbury
+    river: Cherwell
+    role: live_only
+    ref: 1420TH
+    rloi_id: "7060"
+    lat: 52.066379
+    lon: -1.333286
+    amber: 1.14
+    threshold: 1.83
+    record: 2.392            # 2007-07-21T04:45:00
+    trace: u/s
+    fm_measure: 1420TH-level-stage-i-15_min-mASD
+    distance_km: 35.3          # from Carfax
+    api: {typicalRangeLow: 0.02, typicalRangeHigh: 1.14, maxOnRecord: 2.392, datum: 88.73}
+    verified: "2026-10-24: 95 live readings in 24 h (last 2026-10-24T21:30:00Z). #125 A."
+
+  - key: lowerarncott
+    name: Lower Arncott
+    river: Ray
+    role: live_only
+    ref: 1483TH
+    rloi_id: "7068"
+    lat: 51.861059
+    lon: -1.119228
+    amber: 2.0
+    threshold: 3.26
+    record: 2.984            # 2003-01-03T16:45:00
+    trace: single
+    fm_measure: 1483TH-level-stage-i-15_min-mASD
+    distance_km: 15.4          # from Carfax
+    api: {typicalRangeLow: 0.297, typicalRangeHigh: 2.0, maxOnRecord: 2.984, datum: 58}
+    verified: "2026-10-24: 95 live readings in 24 h (last 2026-10-24T21:30:00Z). #125 A."
+
+  - key: grendon
+    name: Grendon Underwood
+    river: Ray
+    role: live_only
+    ref: 1471TH
+    rloi_id: "7067"
+    lat: 51.884491
+    lon: -1.012852
+    amber: 0.939
+    threshold: 1.6
+    record: 1.86            # 2008-06-03T10:00:00
+    trace: u/s
+    fm_measure: 1471TH-level-stage-i-15_min-mASD
+    distance_km: 22.4          # from Carfax
+    api: {typicalRangeLow: 0.008, typicalRangeHigh: 0.939, maxOnRecord: 1.86, datum: 65.85}
+    verified: "2026-10-24: 95 live readings in 24 h (last 2026-10-24T21:30:00Z)."
+
 # EA tipping-bucket rain gauges (SPEC §4.1). Catchment rain = mean of the available gauges per hour.
 # All have dense 15-min Hydrology history from 2000 or earlier and are live on flood-monitoring. ~10% of
 # daily values are flagged Suspect in Hydrology: drop them.

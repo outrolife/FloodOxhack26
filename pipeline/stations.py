@@ -204,6 +204,21 @@ def load_gauges(path: Path | None = None) -> tuple[list[Gauge], list[Gauge]]:
     return levels, rains
 
 
+def load_catchment_gauges(path: Path | None = None) -> list[Gauge]:
+    """The display-only ``catchment_gauges:`` of config/stations.yaml (issue #146), in file order.
+
+    Live readings only (role ``live_only``): never in ``load_gauges``, so history ingest, the quality
+    report and the model never see them. Entries whose key is already in ``gauges:`` are skipped.
+    """
+    path = path or STATIONS_YAML
+    doc: Any = yaml.safe_load(path.read_text()) if path.exists() else {}
+    core = {str(e.get("key")) for e in _yaml_entries(doc, "gauges")} | {e["key"] for e in _FALLBACK_GAUGES}
+    entries = [e for e in _yaml_entries(doc, "catchment_gauges") if str(e.get("key")) not in core]
+    for e in entries:
+        e.setdefault("role", "live_only")
+    return _merge([], entries, "level")
+
+
 def hydrology_series_key(g: Gauge) -> str:
     """Key of a gauge's Hydrology series in hourly.parquet: ``<key>``, or ``<key>_us`` for a lock whose
     Hydrology series is the u/s trace while the key stands for d/s."""
