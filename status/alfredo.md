@@ -8,7 +8,7 @@
 - **needs**: s-s01s: please review/merge our PRs #36 (web), #31 (features), #37 (travel), #33 (decide, stacked on #36); outrolife can't self-approve. Contract gaps: #38
 - **notes**: Resumed all agents after a restart; re-target commits are in on #6/#7/#8
 - **branch**: main
-- **head**: 3130f0f Merge pull request #28 from outrolife/data/historic-warnings
+- **head**: 1215ebd Merge pull request #31 from outrolife/model/features
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:23:14Z
+- **updated**: 2026-10-24T16:23:50Z
