@@ -1,0 +1,35 @@
+{
+ "issuedAt": "2026-10-24T18:07:00Z",
+ "budget": 500,
+ "candidates": [
+  {
+   "id": "osm-way-31410641",
+   "lat": 51.74862,
+   "lon": -1.27278,
+   "score": 0.21,
+   "pWet48": 0.21,
+   "medianDepthM": 0.12,
+   "firstWet": null,
+   "bags": 49,
+   "reasons": [
+    "Frequency ≥ 0.2 along 5 m of its 215 m walls by 48 h (OSM building)",
+    "P(wet by 48 h) 0.21",
+    "Median depth 0.12 m (≤ 0.3 m)",
+    "Frequency stays below 0.5 in every frame",
+    "Bags assume 10 per metre of exposed wall (assumption)"
+   ],
+   "checks": [
+    "Door and sill height",
+    "Access for delivery",
+    "Owner permission",
+    "Risk of diverting water to neighbours"
+   ]
+  }
+ ],
+ "excluded": [
+  {
+   "id": "osm-way-961889997",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  }
+ ]
+}
