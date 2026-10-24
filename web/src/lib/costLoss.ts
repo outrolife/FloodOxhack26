@@ -25,8 +25,9 @@
 //     because false alarms at very low triggers are unknown.
 //   - Official warnings: act whenever an EA Flood Warning (or Severe Flood
 //     Warning; Flood Alerts don't count) is issued for the spot's area. Counts
-//     come from replays (officialFromReplays) when available, otherwise are
-//     inferred from proof.perEvent (officialFromPerEvent, see its caveat).
+//     come from proof.officialOutcome (officialFromProof) when present, else
+//     from replays (officialFromReplays), else are inferred from
+//     proof.perEvent (officialFromPerEvent, see its caveat).
 //   - Never act: every crossing is a miss. cost = N * L, where N is the number
 //     of crossings (hits + misses, from the same interpolated tradeoff row).
 //   - Always act: act on every candidate episode, so no misses. Candidate
@@ -142,10 +143,16 @@ function weightedLead(
 }
 
 // ---- Official warnings ----
-// TODO(#38): when proof.json carries an `officialOutcome` field (official
-// hits / misses / false alarms per spot), use it directly in preference to
-// officialFromReplays / officialFromPerEvent. #38 also adds pStar rows
-// 0.01–0.05, which interpolateTradeoff picks up with no code change.
+// Preferred source: proof.officialOutcome (scored by the backtest with the
+// same rules as River Clock, SPEC §8.2), read by officialFromProof. Older
+// proof files lack it; then officialFromReplays, then officialFromPerEvent.
+
+export type OfficialOutcome = NonNullable<Proof["officialOutcome"]>[string];
+
+/** Official-warning outcomes for one spot straight from proof.officialOutcome, or null if absent. */
+export function officialFromProof(proof: Pick<Proof, "officialOutcome">, spot: string): OfficialOutcome | null {
+  return proof.officialOutcome?.[spot] ?? null;
+}
 
 /**
  * Official-warning outcomes for one spot from replays (preferred).

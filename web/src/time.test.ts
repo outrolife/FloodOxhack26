@@ -1,7 +1,15 @@
 // UK time labels across the clock change (#59). The zone comes from the UTC
 // offset, so it reads "BST"/"GMT" in every browser (Chrome's Intl says "GMT+0").
 import { describe, expect, it } from "vitest";
-import { formatDateTime, formatShort, londonOffsetMinutes, zoneAt, zoneFromOffset } from "./time";
+import {
+  formatDateTime,
+  formatDateTimeYear,
+  formatDayMonth,
+  formatShort,
+  londonOffsetMinutes,
+  zoneAt,
+  zoneFromOffset,
+} from "./time";
 
 describe("Europe/London zone across Sun 25 Oct 2026, 00:30–02:30 UTC", () => {
   const cases: [string, string, string][] = [
@@ -35,5 +43,13 @@ describe("offset to zone name", () => {
     expect(zoneFromOffset(0)).toBe("GMT");
     expect(zoneAt("2026-01-01T12:00:00Z")).toBe("GMT");
     expect(formatDateTime("2014-01-09T18:00:00Z")).toBe("Thu 9 Jan, 18:00 GMT");
+  });
+});
+
+describe("past-event labels", () => {
+  it("include the year, in UK time", () => {
+    expect(formatDateTimeYear("2014-01-09T18:00:00Z")).toBe("Thu 9 Jan 2014, 18:00 GMT");
+    expect(formatDateTimeYear("2007-07-20T18:31:25Z")).toBe("Fri 20 Jul 2007, 19:31 BST");
+    expect(formatDayMonth("2026-10-25T00:30:00Z")).toBe("25 Oct");
   });
 });

@@ -2,7 +2,7 @@
 // reached 50% for a spot vs when the EA issued its first Flood Alert and its
 // first Flood Warning for that spot's area.
 import type { Replay } from "../../contracts";
-import { formatDate, formatDateTime, hoursBetween, londonDaysBetween } from "../../time";
+import { formatDate, formatDateTimeYear, hoursBetween, londonDaysBetween } from "../../time";
 
 export type Official = Replay["official"][number];
 
@@ -14,9 +14,23 @@ const TYPE_LABEL: Record<Official["type"], string> = {
 
 export const officialLabel = (o: Official): string => TYPE_LABEL[o.type];
 
+// Focus view of the chart: 7 days of history before the forecast time and the
+// 72 h fan plus a little room after it, slid back inside the event at either end.
+const HOUR_MS = 3_600_000;
+export const FOCUS_BEFORE_H = 7 * 24;
+export const FOCUS_AFTER_H = 84;
+
+/** Visible x-range [start, end] (epoch ms) for forecast time t inside an event's range. */
+export function focusWindow(t: number, [a, b]: [number, number]): [number, number] {
+  const width = (FOCUS_BEFORE_H + FOCUS_AFTER_H) * HOUR_MS;
+  if (b - a <= width) return [a, b];
+  const start = Math.min(Math.max(t - FOCUS_BEFORE_H * HOUR_MS, a), b - width);
+  return [start, start + width];
+}
+
 /** Issue time in UK time, or just the date when only the date is known. */
 export const formatOfficial = (o: Official): string =>
-  o.precision === "date" ? `on ${formatDate(o.issuedAt)} (time not recorded)` : formatDateTime(o.issuedAt);
+  o.precision === "date" ? `on ${formatDate(o.issuedAt)} (time not recorded)` : formatDateTimeYear(o.issuedAt);
 
 /** First alert and first warning (warning or severe) for one spot. */
 export function firstOfficials(replay: Replay, spot: string): { alert?: Official; warning?: Official } {

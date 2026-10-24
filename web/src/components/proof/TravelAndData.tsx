@@ -18,12 +18,43 @@ import { formatDate } from "../../time";
 
 const AXIS = { stroke: "#c3c2b7", tick: { fill: "#52514e", fontSize: 11 } };
 
-export function TravelFinding({ pairs, stations }: { pairs: TravelPair[]; stations: Station[] }) {
+/**
+ * Human label for a travel-time event id: the named flood from events.json,
+ * or "auto-detected rise, 26 Nov 2006" for the pipeline's auto-YYYYMMDD ids.
+ */
+export function travelEventLabel(id: string, events: Pick<EventMeta, "id" | "name">[] = []): string {
+  const named = events.find((e) => e.id === id);
+  if (named) return named.name;
+  const m = /^auto-(\d{4})(\d{2})(\d{2})/.exec(id);
+  if (m) return `auto-detected rise, ${formatDate(`${m[1]}-${m[2]}-${m[3]}T12:00:00Z`)}`;
+  return id.startsWith("auto-") ? "auto-detected rise" : id;
+}
+
+/** Default row: the best-measured pair (most events), so the scatter isn't empty. */
+function bestPairIndex(pairs: TravelPair[]): number {
+  let best = 0;
+  pairs.forEach((p, k) => {
+    if (p.n > pairs[best].n) best = k;
+  });
+  return best;
+}
+
+export function TravelFinding({
+  pairs,
+  stations,
+  events = [],
+}: {
+  pairs: TravelPair[];
+  stations: Station[];
+  events?: Pick<EventMeta, "id" | "name">[];
+}) {
   const name = (k: string) => stations.find((s) => s.key === k)?.name ?? k;
-  const [i, setI] = useState(0);
+  const [i, setI] = useState(() => bestPairIndex(pairs));
   const pair = pairs[Math.min(i, pairs.length - 1)];
   if (!pair) return null;
-  const used = pair.events.filter((e) => !e.excluded && e.tHalf != null);
+  const used = pair.events
+    .filter((e) => !e.excluded && e.tHalf != null)
+    .map((e) => ({ ...e, label: travelEventLabel(e.eventId, events) }));
   const excluded = pair.events.filter((e) => e.excluded);
   return (
     <div className="card">
@@ -66,7 +97,18 @@ export function TravelFinding({ pairs, stations }: { pairs: TravelPair[]; statio
                 <XAxis type="number" dataKey="rise" name="Rise" {...AXIS} tickFormatter={(v: number) => `${v.toFixed(1)} m`}
                   label={{ value: "Upstream rise (m, own datum)", position: "insideBottom", offset: -8, fill: "#898781", fontSize: 11 }} />
                 <YAxis type="number" dataKey="tHalf" name="T½" {...AXIS} width={44} tickFormatter={(v: number) => `${v} h`} />
-                <Tooltip formatter={(v, n) => [n === "Rise" ? `${Number(v).toFixed(2)} m` : `${Number(v).toFixed(1)} h`, String(n)]} />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    const e = active ? (payload?.[0]?.payload as (typeof used)[number] | undefined) : undefined;
+                    if (!e) return null;
+                    return (
+                      <div className="chart-tip">
+                        <strong>{e.label}</strong>
+                        <div>Rise {e.rise.toFixed(2)} m · T½ {e.tHalf?.toFixed(1)} h</div>
+                      </div>
+                    );
+                  }}
+                />
                 <Scatter data={used} fill="#2a78d6" stroke="#fcfcfb" strokeWidth={2} isAnimationActive={false} />
               </ScatterChart>
             </ResponsiveContainer>
@@ -74,8 +116,22 @@ export function TravelFinding({ pairs, stations }: { pairs: TravelPair[]; statio
           {pair.slopeHoursPerMetre != null && (
             <p className="small">Bigger rises travel {pair.slopeHoursPerMetre < 0 ? "faster" : "slower"}: {Math.abs(pair.slopeHoursPerMetre).toFixed(1)} h per metre of rise.</p>
           )}
+          {used.length === 0 && (
+            <p className="small muted">No rise passed the matching checks for this pair, so its travel time comes from cross-correlation.</p>
+          )}
           {excluded.length > 0 && (
-            <p className="small muted">Excluded: {excluded.map((e) => `${e.eventId} (${e.excluded})`).join("; ")}</p>
+            <details className="small muted">
+              <summary>
+                {excluded.length} {excluded.length === 1 ? "rise" : "rises"} excluded from this pair (show why)
+              </summary>
+              <ul className="excluded-list">
+                {excluded.map((e) => (
+                  <li key={e.eventId}>
+                    {travelEventLabel(e.eventId, events)}: {e.excluded}
+                  </li>
+                ))}
+              </ul>
+            </details>
           )}
         </div>
         <div>
@@ -98,14 +154,50 @@ export function TravelFinding({ pairs, stations }: { pairs: TravelPair[]; statio
   );
 }
 
+/**
+ * Readable label for a model feature name (model/features.py naming), e.g.
+ * "eynsham_change_3h" → "Eynsham Lock u/s: change over 3 h",
+ * "rain_sum_24h" → "Rainfall, last 24 h". Unknown names pass through.
+ */
+export function featureLabel(raw: string, stations: Pick<Station, "key" | "name">[] = []): string {
+  const describe = (rest: string): string | null => {
+    let m: RegExpExecArray | null;
+    if (rest === "now") return "level now";
+    if ((m = /^change_(\d+)h$/.exec(rest))) return `change over ${m[1]} h`;
+    if ((m = /^mean_(\d+)d$/.exec(rest))) return `${m[1]}-day mean level`;
+    if ((m = /^anom_lag(\d+)h$/.exec(rest))) return m[1] === "0" ? "anomaly now" : `anomaly ${m[1]} h ago`;
+    return null;
+  };
+  let m: RegExpExecArray | null;
+  if ((m = /^rain_sum_(\d+)([hd])$/.exec(raw))) return `Rainfall, last ${m[1]} ${m[2] === "d" ? "days" : "h"}`;
+  if (raw === "doy_sin") return "Season (day-of-year sine)";
+  if (raw === "doy_cos") return "Season (day-of-year cosine)";
+  if (raw.startsWith("level_")) {
+    const d = describe(raw.slice(6));
+    if (d) return `This gauge: ${d}`;
+  }
+  const st = stations.find((s) => raw.startsWith(`${s.key}_`));
+  if (st) {
+    const d = describe(raw.slice(st.key.length + 1));
+    if (d) return `${st.name}: ${d}`;
+  }
+  return raw;
+}
+
 export function FeatureImportance({ importance, stations }: { importance: Importance; stations: Station[] }) {
   const gauges = Object.keys(importance);
-  const [g, setG] = useState(gauges.includes("osney") ? "osney" : (gauges[0] ?? ""));
+  // Importance is keyed by gauge: default to newbotley, the primary target (SPEC §4.1.1).
+  const [g, setG] = useState(gauges.includes("newbotley") ? "newbotley" : (gauges[0] ?? ""));
   const entries = importance[g] ?? [];
   const [h, setH] = useState(entries.find((e) => e.h === 24)?.h ?? entries[0]?.h ?? 24);
   const entry = entries.find((e) => e.h === h) ?? entries[0];
-  const top = entry ? [...entry.features].sort((a, b) => b.gain - a.gain).slice(0, 10) : [];
   const name = (k: string) => stations.find((s) => s.key === k)?.name ?? k;
+  const top = entry
+    ? [...entry.features]
+        .sort((a, b) => b.gain - a.gain)
+        .slice(0, 10)
+        .map((f) => ({ ...f, label: featureLabel(f.name, stations) }))
+    : [];
   return (
     <div className="card">
       <h2>What the model looks at</h2>
@@ -132,8 +224,11 @@ export function FeatureImportance({ importance, stations }: { importance: Import
         <ResponsiveContainer>
           <BarChart data={top} layout="vertical" margin={{ top: 0, right: 16, left: 8, bottom: 0 }}>
             <XAxis type="number" {...AXIS} hide />
-            <YAxis type="category" dataKey="name" width={170} {...AXIS} />
-            <Tooltip formatter={(v) => [Number(v).toFixed(3), "Gain"]} />
+            <YAxis type="category" dataKey="label" width={290} {...AXIS} />
+            <Tooltip
+              formatter={(v) => [Number(v).toFixed(3), "Gain"]}
+              labelFormatter={(l, p) => `${String(l)} (${String((p?.[0]?.payload as { name?: string } | undefined)?.name ?? "")})`}
+            />
             <Bar dataKey="gain" fill="#2a78d6" radius={[0, 4, 4, 0]} isAnimationActive={false} />
           </BarChart>
         </ResponsiveContainer>

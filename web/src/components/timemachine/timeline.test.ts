@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { formatShort, londonDaysBetween, zoneAt } from "../../time";
 import { liveObserved } from "../shared/observed";
-import { compareSentence, type Official } from "./timeline";
+import { compareSentence, focusWindow, type Official } from "./timeline";
+import { countAtOrBefore } from "../shared/series";
+import { arrivalSentence } from "../shared/forecast";
 import type { Forecast } from "../../contracts";
 
 const all = () => true;
@@ -74,5 +76,48 @@ describe("liveObserved", () => {
         { t: "2026-10-25T00:00:00Z", level: 3 },
       ],
     });
+  });
+});
+
+describe("focusWindow", () => {
+  const H = 3_600_000;
+  const event: [number, number] = [0, 60 * 24 * H]; // a 60-day event
+
+  it("shows 7 days before the forecast time and 84 h after", () => {
+    expect(focusWindow(20 * 24 * H, event)).toEqual([13 * 24 * H, 20 * 24 * H + 84 * H]);
+  });
+  it("stays inside the event at both ends", () => {
+    expect(focusWindow(H, event)).toEqual([0, (7 * 24 + 84) * H]);
+    expect(focusWindow(60 * 24 * H, event)).toEqual([60 * 24 * H - (7 * 24 + 84) * H, 60 * 24 * H]);
+  });
+  it("shows a short event whole", () => {
+    expect(focusWindow(5 * H, [0, 100 * H])).toEqual([0, 100 * H]);
+  });
+});
+
+describe("countAtOrBefore", () => {
+  const pts = ["2014-01-01T00:00:00Z", "2014-01-01T01:00:00Z", "2014-01-01T02:00:00Z"].map((t, i) => ({ t, level: i }));
+  it("counts points at or before a time", () => {
+    expect(countAtOrBefore(pts, Date.parse("2013-12-31T00:00:00Z"))).toBe(0);
+    expect(countAtOrBefore(pts, Date.parse("2014-01-01T01:00:00Z"))).toBe(2);
+    expect(countAtOrBefore(pts, Infinity)).toBe(3);
+  });
+});
+
+describe("arrivalSentence", () => {
+  const q = { "05": 3, "10": 3, "25": 3, "50": 3, "75": 3, "90": 3, "95": 3 };
+  const t = "2014-01-06T12:00:00Z";
+  const sf = {
+    spot: "botley",
+    levelNow: 2.86,
+    mode: "probability" as const,
+    leads: [{ h: 6, q, pFlood: 1, pAmber: 1 }],
+    arrival: { p10: t, p50: t, p90: t },
+  };
+  it("says the spot is already flooding instead of 'by <now>'", () => {
+    expect(arrivalSentence(sf, false, 2.76)).toBe("Already above the flood threshold (2.86 m vs 2.76 m).");
+  });
+  it("keeps the arrival window below the threshold", () => {
+    expect(arrivalSentence({ ...sf, levelNow: 2.5 }, false, 2.76)).toMatch(/^90% chance of flooding by /);
   });
 });

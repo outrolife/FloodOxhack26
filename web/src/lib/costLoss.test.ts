@@ -7,6 +7,7 @@ import {
   interpolateTradeoff,
   liveProbability,
   officialFromPerEvent,
+  officialFromProof,
   officialFromReplays,
   officialMeanLeadH,
   optimalTrigger,
@@ -144,6 +145,15 @@ describe("official warnings", () => {
     const c = officialFromPerEvent([ev("osney", true, 6), ev("osney", true, null), ev("osney", false, -2), ev("osney", false, null), ev("botley", true, 3)], "osney");
     expect(c).toEqual({ hits: 1, misses: 1, falseAlarms: 1 });
     expect(officialFromPerEvent([], "osney")).toBeNull();
+  });
+  it("reads proof.officialOutcome directly when present", () => {
+    const outcome = { hits: 4, misses: 3, falseAlarms: 2, meanLeadH: 12.41 };
+    expect(officialFromProof({ officialOutcome: { osney: outcome } }, "osney")).toEqual(outcome);
+    expect(officialFromProof({ officialOutcome: { osney: outcome } }, "botley")).toBeNull();
+    expect(officialFromProof({}, "osney")).toBeNull();
+    // The counts plug straight into the cost model: (4 + 2) × C + 3 × L.
+    const r = expectedCosts({ rows: ROWS, costs: { C: 10, L: 100 }, official: officialFromProof({ officialOutcome: { osney: outcome } }, "osney") });
+    expect(r.strategies.find((s) => s.key === "official")?.cost).toBe(360);
   });
   it("estimates official mean lead from ours minus our gain", () => {
     expect(officialMeanLeadH(interpolateTradeoff(ROWS, 0.3)!)).toBe(22);

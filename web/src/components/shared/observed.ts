@@ -1,7 +1,7 @@
-// Optional observed history on a live Forecast (proposed in issue #38:
-// `observed?: Record<gauge, { t; level }[]>`, hourly, last 7 days, same shape
-// as Replay.observed). It isn't in contracts.ts yet, so read it defensively:
-// anything malformed is ignored and the UI shows "7-day history unavailable".
+// Optional observed history on a live Forecast (`Forecast.observed`, SPEC §9:
+// hourly levels over the last 7 days, same shape as Replay.observed). The
+// field is optional and comes from the live API, so points are still checked:
+// anything malformed is dropped and the UI shows "7-day history unavailable".
 import type { Forecast } from "../../contracts";
 
 export type Point = { t: string; level: number };
@@ -16,12 +16,12 @@ function isPoint(p: unknown): p is Point {
 
 /** Last 7 days of observed levels per gauge, or null if the forecast has none. */
 export function liveObserved(f: Forecast | null): Record<string, Point[]> | null {
-  const raw = (f as (Forecast & { observed?: unknown }) | null)?.observed;
-  if (typeof raw !== "object" || raw === null) return null;
-  const end = f ? Date.parse(f.issuedAt) : Date.now();
+  const raw = f?.observed;
+  if (!f || typeof raw !== "object" || raw === null) return null;
+  const end = Date.parse(f.issuedAt);
   const start = end - 7 * DAY_MS;
   const out: Record<string, Point[]> = {};
-  for (const [gauge, series] of Object.entries(raw as Record<string, unknown>)) {
+  for (const [gauge, series] of Object.entries(raw)) {
     if (!Array.isArray(series)) continue;
     const pts = series
       .filter(isPoint)

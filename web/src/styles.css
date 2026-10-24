@@ -135,3 +135,11 @@ table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
 
 .speed { display: inline-flex; gap: 0.2rem; }
 .speed .btn { padding: 0.2rem 0.5rem; font-size: 0.85rem; }
+
+.chart-tip {
+  background: #fff; border: 1px solid var(--axis); border-radius: 6px; padding: 0.3rem 0.5rem;
+  font-size: 0.8rem; color: var(--ink-2);
+}
+.excluded-list { margin: 0.3rem 0 0; padding-left: 1.1rem; max-height: 14rem; overflow-y: auto; }
+/* Side-by-side cards keep their own height (no tall empty card next to a long table). */
+.grid-cols > .card, .grid-2 > .card { align-self: start; }
