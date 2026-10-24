@@ -3,12 +3,12 @@
 - **role**: Floater
 - **state**: working
 - **issue**: 
-- **task**: Agents: #68 real-data UI (qa), #73 correctness review (review), #74 live e2e (live), #20 S1 research (s1), S3 datum check
-- **next**: Core gate check after #66; then S1 build if gate met
-- **needs**: s-s01s: merge #66; confirm core gate + #75 (S1) on the PR; decide S2-next vs S3 on #22
-- **notes**: S3 prerequisite met: newbotley datum 54 mAOD (#22)
+- **task**: Core QA: #68 (qa), #73 review, #74 live.json; stretch: S1 #75 un-drafting, S3 #22 compute+UI
+- **next**: Merge reviews for #68/#74/#75; S3 end-to-end by Sun 09:00 GMT or hidden
+- **needs**: 
+- **notes**: PM decisions 17:44Z: gate met; alfredo=S3, s-s01s=S2; #13 closed
 - **branch**: main
-- **head**: bb40327 Merge pull request #66 from outrolife/model/proof-json
+- **head**: c1db381 Merge pull request #78 from outrolife/story/team-names
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:39:43Z
+- **updated**: 2026-10-24T17:48:20Z
