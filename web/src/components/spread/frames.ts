@@ -14,13 +14,36 @@ export const DEFAULT_LEAD = 24;
 export const SPREAD_LIMITATIONS =
   "Experimental. A simple terrain fill: ignores channel flow, walls, drains, pumps and defences. Ensemble frequency, not a verified flood probability.";
 
-/** Legend for the PNG colours: share of the runs in which a cell is wet. */
-export const SPREAD_LEGEND: { label: string; colour: string }[] = [
-  { label: "10–25%", colour: "#c6dbef" },
-  { label: "25–50%", colour: "#6baed6" },
-  { label: "50–75%", colour: "#2171b5" },
-  { label: "75–100%", colour: "#08306b" },
+/**
+ * Colour ramp of the PNG frames: share of the runs (0-1) in which a 25 m square
+ * is wet, green to red. Squares below the first stop are transparent. Must match
+ * the ramp in stretch/s3 (alfredo-s3).
+ */
+export const SPREAD_RAMP: { at: number; colour: string }[] = [
+  { at: 0.05, colour: "#1a9850" },
+  { at: 0.3, colour: "#91cf60" },
+  { at: 0.5, colour: "#fee08b" },
+  { at: 0.75, colour: "#fc8d59" },
+  { at: 1, colour: "#d73027" },
 ];
+
+/** Ticks under the legend bar. */
+export const SPREAD_TICKS = [0.05, 0.25, 0.5, 0.75, 1];
+
+/** Position (0-100%) of a share along the legend bar, which runs from the first ramp stop to 100%. */
+export function legendPos(share: number): number {
+  const lo = SPREAD_RAMP[0].at;
+  return ((share - lo) / (1 - lo)) * 100;
+}
+
+/** CSS gradient for the legend bar, with the ramp's stops at their true positions. */
+export function legendGradient(): string {
+  const stops = SPREAD_RAMP.map((s) => `${s.colour} ${legendPos(s.at).toFixed(1)}%`);
+  return `linear-gradient(to right, ${stops.join(", ")})`;
+}
+
+/** Legend title. */
+export const legendTitle = (runs: number): string => `Share of ${runs} simulated floods that wet this square`;
 
 /** Shown when there's no manifest for this context (the toggle is disabled). */
 export const NO_SPREAD_NOTE = "No flood-spread run for this event yet.";

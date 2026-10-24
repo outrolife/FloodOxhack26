@@ -16,6 +16,7 @@ import { useData } from "../../data";
 import { SHOW_S3 } from "../../stretch";
 import { DEFAULT_LEAD, type FramePick, frameUrl, manifestFile, pickFrame, usableManifest } from "./frames";
 import { SpreadPanel } from "./SpreadPanel";
+import "./spread.css";
 
 type SpreadState = {
   ready: boolean; // false while the manifest is loading
@@ -68,15 +69,27 @@ function panelProps(s: SpreadState, at: string | undefined) {
   };
 }
 
-/** The PNG frame, in its own pane under the spot markers. */
+/**
+ * The PNG frame, in its own pane under the spot markers, drawn as crisp squares.
+ * While it's on, the map gets the "spread-on" class, which darkens the base tiles
+ * only (spread.css) so the heatmap stands out.
+ */
 function SpreadImage({ s }: { s: SpreadState }) {
+  const map = useMap();
+  const dark = s.on && !!s.manifest;
+  useEffect(() => {
+    const el = map.getContainer();
+    el.classList.toggle("spread-on", dark);
+    return () => el.classList.remove("spread-on");
+  }, [map, dark]);
   if (!s.on || !s.manifest || !s.url) return null;
   return (
     <Pane name="rc-spread" style={{ zIndex: 380 }}>
       <ImageOverlay
         url={s.url}
         bounds={s.manifest.bounds}
-        opacity={0.7}
+        opacity={1}
+        className="spread-frame"
         interactive={false}
         attribution="Flood spread: experimental terrain fill on EA LiDAR (OGL v3.0)"
         eventHandlers={{ error: () => s.onImage(false), load: () => s.onImage(true) }}

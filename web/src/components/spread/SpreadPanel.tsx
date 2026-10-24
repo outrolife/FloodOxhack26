@@ -8,9 +8,12 @@ import {
   type FramePick,
   NO_SPREAD_NOTE,
   SPREAD_LEADS,
-  SPREAD_LEGEND,
+  SPREAD_TICKS,
   SPREAD_LIMITATIONS,
   iouSentence,
+  legendGradient,
+  legendPos,
+  legendTitle,
 } from "./frames";
 
 export const TOGGLE_LABEL = "Flood spread (Experimental)";
@@ -92,17 +95,7 @@ export function SpreadPanel({
             </p>
           )}
           {imageMissing && pick.kind === "frame" && <p style={S.warn}>Overlay image not available.</p>}
-          <div style={{ marginTop: 6 }}>
-            <div style={{ fontWeight: 600 }}>Share of {manifest.runs} runs where the ground is wet</div>
-            <div style={S.legendRow}>
-              {SPREAD_LEGEND.map((l) => (
-                <span key={l.label} style={{ whiteSpace: "nowrap" }}>
-                  <span style={{ ...S.swatch, background: l.colour }} />
-                  {l.label}
-                </span>
-              ))}
-            </div>
-          </div>
+          <GradientLegend runs={manifest.runs} />
           {iou && (
             <p style={S.iou}>
               <strong>{iou}</strong>
@@ -159,6 +152,25 @@ export function noSpread(manifest: SpreadManifest): boolean {
   return false;
 }
 
+/** Horizontal green-to-red bar matching the PNG ramp, ticked at 5, 25, 50, 75 and 100%. */
+export function GradientLegend({ runs }: { runs: number }) {
+  return (
+    <div style={{ marginTop: 6 }} aria-label="Flood spread legend">
+      <div style={{ fontWeight: 600 }}>{legendTitle(runs)}</div>
+      <div style={{ margin: "0 10px 0 8px" }}>
+        <div style={{ ...S.bar, background: legendGradient() }} />
+      </div>
+      <div style={S.ticks}>
+        {SPREAD_TICKS.map((t) => (
+          <span key={t} style={{ ...S.tick, left: `${legendPos(t)}%` }}>
+            {Math.round(t * 100)}%
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** Leads present in the manifest, in order (normally all of SPREAD_LEADS). */
 export function availableLeads(manifest: SpreadManifest): number[] {
   const have = new Set(manifest.frames.map((f) => f.tau));
@@ -178,7 +190,6 @@ const S = {
     fontSize: "0.78rem",
     color: "#0b0b0b",
   },
-  legendRow: { display: "flex", flexWrap: "wrap", columnGap: 8 },
   toggle: { display: "flex", gap: 6, alignItems: "center", cursor: "pointer", fontWeight: 600 },
   body: { marginTop: 4 },
   badge: {
@@ -203,14 +214,9 @@ const S = {
     cursor: "pointer",
   },
   leadOn: { background: "#184f95", borderColor: "#184f95", color: "#fff" },
-  swatch: {
-    display: "inline-block",
-    width: 10,
-    height: 10,
-    marginRight: 5,
-    verticalAlign: -1,
-    border: "1px solid rgba(11,11,11,0.2)",
-  },
+  bar: { height: 10, marginTop: 4, borderRadius: 2, border: "1px solid rgba(11,11,11,0.25)" },
+  ticks: { position: "relative", height: 14, margin: "2px 10px 0 8px", color: "#52514e" },
+  tick: { position: "absolute", top: 0, transform: "translateX(-50%)", whiteSpace: "nowrap" },
   iou: { margin: "6px 0 0" },
   note: { margin: "6px 0 0", color: "#52514e" },
   warn: { margin: "6px 0 0", color: "#8a4b00" },
