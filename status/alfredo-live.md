@@ -1,14 +1,14 @@
 # alfredo-live
 
 - **role**: App
-- **state**: working
+- **state**: reviewing
 - **issue**: #74
-- **task**: live.json committed (persistence until #79); make live-web added
-- **next**: EA-down test, then PR
+- **task**: PR #88 open: live.json + make live-web + River note/stale fixes
+- **next**: Finish EA-down timing, comment on #74
 - **needs**: 
 - **notes**: 
 - **branch**: app/live-e2e
 - **head**: 1652e31 Commit saved live.json for the offline demo; add make live-web
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:52:14Z
+- **updated**: 2026-10-24T17:55:04Z
