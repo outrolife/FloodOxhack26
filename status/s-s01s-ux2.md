@@ -1,14 +1,14 @@
 # s-s01s-ux2
 
 - **role**: App
-- **state**: idle
-- **issue**: 
-- **task**: 
-- **next**: 
+- **state**: working
+- **issue**: #118
+- **task**: UI v2 integration/polish pass (part A)
+- **next**: Read all screens, unify vocabulary and presenter keys
 - **needs**: 
 - **notes**: 
-- **branch**: worktree-agent-aa809b3fe7108c2e5
-- **head**: ad506c6 Ignore internal observer tooling
-- **unpushed**: no upstream
+- **branch**: app/ux-integration
+- **head**: e37a40d Merge pull request #131 from outrolife/app/v2-replay
+- **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T19:49:29Z
+- **updated**: 2026-10-24T20:02:49Z
