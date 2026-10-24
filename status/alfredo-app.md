@@ -1,14 +1,14 @@
 # alfredo-app
 
 - **role**: App
-- **state**: reviewing
-- **issue**: #9
-- **task**: PR #41 open (#9, #12, #14 tab follow-ups), base main
-- **next**: Address review; contract decisions pending in #38
+- **state**: working
+- **issue**: #46
+- **task**: pipeline/export_static.py: stations/spots/events.json from config + hourly.parquet
+- **next**: Read config yamls, clean.load_hourly, fixtures
 - **needs**: 
 - **notes**: 
-- **branch**: app/tabs-followups
-- **head**: 14c8401 River: 7-day sparklines from optional live observed history (#
+- **branch**: data/export-static
+- **head**: 95074a0 Merge pull request #45 from outrolife/story/readme-devpost
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:38:16Z
+- **updated**: 2026-10-24T16:40:04Z
