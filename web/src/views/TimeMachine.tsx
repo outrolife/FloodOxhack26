@@ -121,7 +121,6 @@ function ReplayPlayer({
   const sf = f.spots.find((s) => s.spot === spot.key);
   const sliderT = f.issuedAt;
   const seenT = forecasts[Math.min(seenIdx, forecasts.length - 1)].issuedAt;
-  const station = stations.find((s) => s.key === spot.gauge);
   const observed = replay.observed[spot.gauge] ?? [];
 
   // Timeline markers.
