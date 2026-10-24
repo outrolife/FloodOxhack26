@@ -39,7 +39,7 @@ describe("SandbagList", () => {
     expect(osmUrl("x", 51.75, -1.27)).toContain("mlat=51.75");
   });
 
-  it("is hidden by default", () => {
-    expect(SHOW_S4).toBe(false);
+  it("is switched on (S4 signed off)", () => {
+    expect(SHOW_S4).toBe(true);
   });
 });

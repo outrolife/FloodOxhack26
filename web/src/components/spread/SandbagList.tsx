@@ -1,8 +1,10 @@
-// S4 (SPEC §11): "Inspection candidates" from the sandbag screening (sandbags.json).
-// Self-contained and presentational; hidden behind SHOW_S4 in stretch.ts until S4
-// is signed off. Suggestions of where to *inspect* first, never instructions.
+// S4 (SPEC §11): "Inspection candidates" from the sandbag screening
+// (spread/{context}/sandbags.json, written by stretch/s4/screen.py).
+// Suggestions of where to *inspect* first, never instructions. Hide with SHOW_S4 in stretch.ts.
 import type { CSSProperties } from "react";
 import type { Sandbags } from "../../contracts";
+import { useData } from "../../data";
+import { SHOW_S4 } from "../../stretch";
 import { formatDateTime } from "../../time";
 
 export const SANDBAG_TITLE = "Inspection candidates";
@@ -13,6 +15,17 @@ export const SANDBAG_NOTE =
 export const SANDBAG_SOURCES =
   "Buildings © OpenStreetMap contributors (ODbL). Defences: EA Spatial Flood Defences (OGL v3). " +
   "Bags per metre of wall is an assumption.";
+
+/** River card: loads the screening for `context` ("live" or an event id); nothing if absent. */
+export function SandbagCard({ context }: { context: string }) {
+  const s = useData<Sandbags>(SHOW_S4 ? `spread/${context}/sandbags.json` : null);
+  if (!SHOW_S4 || s.status !== "ready" || s.source !== "data") return null;
+  return (
+    <div className="card">
+      <SandbagList data={s.data} />
+    </div>
+  );
+}
 
 export function SandbagList({ data }: { data: Sandbags | null }) {
   if (!data) return null;
@@ -63,7 +76,7 @@ export function SandbagList({ data }: { data: Sandbags | null }) {
       )}
       {data.excluded.length > 0 && (
         <details style={S.note}>
-          <summary style={{ cursor: "pointer" }}>{data.excluded.length} buildings screened out</summary>
+          <summary style={{ cursor: "pointer" }}>{data.excluded.length} {data.excluded.length === 1 ? "building" : "buildings"} screened out</summary>
           <ul style={S.sub}>
             {data.excluded.map((e) => (
               <li key={e.id}>
