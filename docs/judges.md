@@ -38,11 +38,13 @@ Oxford floods from the river, slowly: the water that floods Botley Road is alrea
 - **Leave-one-flood-out.** Each past flood is replayed with a model trained without it (±7 days), issuing a forecast every hour.
 - **A baseline that is hard to beat.** Persistence ("the level stays where it is") scores every forecast. If we lose to it, the Proof tab says so.
 - **Calibration is measured.** We report interval coverage against nominal and reliability diagrams, and the app flags gaps over 10 points.
-- **Leakage tests.** A test changes future data and checks that no input changes (`tests/test_features.py`). ⏳ The replay version is in PR #39.
+- **Leakage tests.** Tests change future data and check that no input and no replay forecast changes (`tests/test_features.py`, `tests/test_backtest.py`).
 - **Honest counts.** Nine of eleven travel-time pairs rest on at least 3 floods. The other two are labelled "cross-correlation only". Event-level numbers carry 90% bootstrap intervals.
 - **Checked thresholds.** Each spot's threshold is checked against dated news, council and residents' reports (`config/spots.yaml`).
 
-⏳ *Headline model numbers (skill vs persistence, coverage, e2014 lead vs the EA warning, e2026 near miss) arrive with `proof.json` (PR #66) and `replays/e2014.json` (PR #39).* <!-- RESULTS (PENDING #39 / #66): add the 2-3 headline numbers here, from the files -->
+**The 2014 replay (Botley Road, times GMT):** River Clock first reached 50% at 12:00 on 4 Jan, **about 7 h before the EA's Flood Warning** (19:03) and 37 h before New Botley crossed 2.76 m (01:00, 6 Jan). The peak was inside the 5–95% band at every lead from 6 to 72 h. The EA's lower-level Flood Alert (23 Dec) came before our first 10%. <!-- src: web/public/data/replays/e2014.json -->
+
+⏳ *Scores over all events (skill vs persistence, coverage, e2026 near miss) arrive with `proof.json` (PR #66).* <!-- RESULTS (PENDING #66): add 2 headline numbers here, from the file -->
 
 ## What it can't do
 
