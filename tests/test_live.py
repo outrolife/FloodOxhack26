@@ -6,6 +6,8 @@ No network: every EA call goes through a fake fetcher.
 from __future__ import annotations
 
 import json
+import threading
+import time
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -34,9 +36,11 @@ class FakeEA:
 
     def __init__(self, last: datetime, hours: int = 72, missing: set[str] | None = None) -> None:
         self.last, self.hours, self.missing, self.calls = last, hours, missing or set(), 0
+        self._lock = threading.Lock()  # the poll calls this from several threads
 
     def __call__(self, url: str, params: dict[str, str]) -> dict:
-        self.calls += 1
+        with self._lock:
+            self.calls += 1
         measure = url.rsplit("/", 2)[-2]
         if any(m in measure for m in self.missing):
             raise ConnectionError("gauge offline")
@@ -77,6 +81,63 @@ def test_cache_used_when_fetch_fails(tmp_path: Path) -> None:
     assert received == T0 and body["items"]
     with pytest.raises(ConnectionError):
         il._cached_get_json(url, {}, now=T0, cache_dir=tmp_path / "empty", fetch=down)
+
+
+# ---------------------------------------------------------------------------------------------
+# Concurrent polling
+# ---------------------------------------------------------------------------------------------
+
+ALL_KEYS = [*il.LEVEL_MEASURES, *il.RAIN_MEASURES]
+
+
+def test_poll_concurrency_is_bounded(tmp_path: Path) -> None:
+    fake = FakeEA(T0, hours=2)
+    lock, state = threading.Lock(), {"active": 0, "peak": 0}
+
+    def slow(url: str, params: dict[str, str]) -> dict:
+        with lock:
+            state["active"] += 1
+            state["peak"] = max(state["peak"], state["active"])
+        time.sleep(0.05)
+        with lock:
+            state["active"] -= 1
+        return fake(url, params)
+
+    out = il.fetch_live_readings(T0, cache_dir=tmp_path, fetch=slow)
+    assert len(out) == len(ALL_KEYS) and fake.calls == len(ALL_KEYS)
+    assert 1 < state["peak"] <= il.MAX_WORKERS == 4  # concurrent, but never more than 4 at once
+    # Every response is cached: a second poll within 15 minutes makes no request.
+    il.fetch_live_readings(T0 + timedelta(minutes=10), cache_dir=tmp_path, fetch=slow)
+    assert fake.calls == len(ALL_KEYS)
+
+
+def test_poll_order_is_deterministic(tmp_path: Path) -> None:
+    fake = FakeEA(T0, hours=2)
+    order = {
+        il.BASE_URL + f"/id/measures/{m}/readings": i
+        for i, m in enumerate([*il.LEVEL_MEASURES.values(), *il.RAIN_MEASURES.values()])
+    }
+
+    def reversed_finish(url: str, params: dict[str, str]) -> dict:
+        time.sleep(0.002 * (len(order) - order[url]))  # later gauges finish first
+        return fake(url, params)
+
+    out = il.fetch_live_readings(T0, cache_dir=tmp_path, fetch=reversed_finish)
+    assert list(out) == ALL_KEYS
+    meta = il.live_meta(out)
+    assert list(meta["gauges"]) == list(il.LEVEL_MEASURES)
+    assert all(meta["gauges"][g]["received_at"] == iso(T0) for g in meta["gauges"])
+
+
+def test_one_failing_gauge_does_not_fail_poll(tmp_path: Path) -> None:
+    fake = FakeEA(T0 - timedelta(minutes=15), missing={"1489TH", "264254TP"})  # islip + one rain gauge
+    hourly, meta = _live(tmp_path, fake, T0)
+    assert set(meta["gauges"]) == set(il.LEVEL_MEASURES) - {"islip"}
+    assert meta["rainGaugesUsed"] == sorted(set(il.RAIN_MEASURES) - {"264254TP"})
+    assert "islip" not in set(hourly["gauge"])
+    fc = fl.build_forecast(hourly, meta, T0)
+    assert "islip" not in fc["dataAsOf"] and "islip" not in fc["observed"]
+    assert [s["spot"] for s in fc["spots"]] == [s.key for s in fl.DEFAULT_SPOTS]
 
 
 # ---------------------------------------------------------------------------------------------
@@ -180,7 +241,7 @@ def _live(tmp_path: Path, fake: FakeEA, now: datetime) -> tuple[pd.DataFrame, di
 def test_forecast_contract_and_persistence_label(tmp_path: Path) -> None:
     hourly, meta = _live(tmp_path, FakeEA(T0 - timedelta(minutes=15)), T0)
     fc = fl.build_forecast(hourly, meta, T0)
-    assert set(fc) == {"issuedAt", "dataAsOf", "stale", "spots", "method", "note"}
+    assert set(fc) == {"issuedAt", "dataAsOf", "stale", "spots", "observed", "method", "note"}
     assert fc["issuedAt"] == "2026-10-25T02:30:00Z"
     assert fc["method"] == "persistence" and "Persistence" in fc["note"]
     assert fc["stale"] == []
@@ -359,5 +420,44 @@ def test_forecast_matches_contract_schema(tmp_path: Path) -> None:
     """build_forecast output passes the same SPEC §9 schema check as tests/fixtures/live.json."""
     from tests.test_fixtures import FORECAST, check
 
+    assert "observed?" in FORECAST  # #38 contract (PR #54)
     hourly, meta = _live(tmp_path, FakeEA(T0 - timedelta(minutes=15)), T0)
     check(json.loads(json.dumps(fl.build_forecast(hourly, meta, T0))), FORECAST)
+
+
+# ---------------------------------------------------------------------------------------------
+# Forecast.observed (#38)
+# ---------------------------------------------------------------------------------------------
+
+
+def test_observed_last_7_days_hourly_every_level_gauge(tmp_path: Path) -> None:
+    hourly, meta = _live(tmp_path, FakeEA(T0 - timedelta(minutes=15), hours=24 * 28), T0)
+    fc = fl.build_forecast(hourly, meta, T0)
+    obs = fc["observed"]
+    assert list(obs) == sorted(il.LEVEL_MEASURES)  # every level gauge, rain gauges excluded
+    assert fl.LIVE_ONLY_GAUGES <= set(obs)  # osney, godstow, iffley have sparklines too
+    issued = pd.Timestamp(T0)
+    for g, series in obs.items():
+        ts = [pd.Timestamp(p["t"]) for p in series]
+        assert len(ts) == 7 * 24, g  # 02:00 today back to 03:00 seven days ago
+        assert all(b - a == pd.Timedelta(hours=1) for a, b in zip(ts, ts[1:], strict=False))
+        assert ts[-1] <= issued and ts[0] > issued - pd.Timedelta(days=7)
+        assert ts[-1] <= pd.Timestamp(fc["dataAsOf"][g])  # never past the gauge's latest reading
+        assert all(p["t"].endswith("Z") and round(p["level"], 3) == p["level"] for p in series)
+    # Matches the hourly mean it came from.
+    row = hourly[(hourly["gauge"] == "osney") & (hourly["ts_utc"] == pd.Timestamp(obs["osney"][-1]["t"]))]
+    assert obs["osney"][-1]["level"] == round(float(row["level_mean"].iloc[0]), 3)
+
+
+def test_observed_has_no_future_data(tmp_path: Path) -> None:
+    later = T0 + timedelta(hours=5)
+    hourly, meta = _live(tmp_path, FakeEA(later), later)  # readings run 5 h past T0
+    obs = fl.observed_series(hourly, T0)
+    assert all(pd.Timestamp(p["t"]) <= pd.Timestamp(T0) for series in obs.values() for p in series)
+    assert obs["osney"][-1]["t"] == "2026-10-25T02:00:00Z"
+
+
+def test_live_json_stays_small(tmp_path: Path) -> None:
+    hourly, meta = _live(tmp_path, FakeEA(T0 - timedelta(minutes=15), hours=24 * 28), T0)
+    text = json.dumps(fl.build_forecast(hourly, meta, T0), indent=2) + "\n"
+    assert len(text.encode()) < 500_000
