@@ -3,12 +3,12 @@
 - **role**: PM
 - **state**: working
 - **issue**: 
-- **task**: PM: merged #75 S1, #86 UI pass (+#82), #87, #88 live.json; #89 S2 rebasing
-- **next**: Merge #89 when green; check-in 19:20 BST
+- **task**: PM: merged #75 S1, #86, #87, #88, #90; #89 S2 rebasing; #91/#92/#93 -> proof2
+- **next**: One combined proof regen by 22:00 BST; then README/poster numbers refresh
 - **needs**: 
-- **notes**: alfredo: your 4 PRs merged. #79 fix (s-s01s-live2) will regenerate live.json with real models
+- **notes**: alfredo: OK for proof2 to edit backtest.forecasts_at for #93? (see #93)
 - **branch**: main
-- **head**: 26080de Merge pull request #75 from outrolife/stretch/s1-risk-layers
+- **head**: dfca2bc Merge pull request #90 from outrolife/model/official-first-flo
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:57:19Z
+- **updated**: 2026-10-24T17:58:47Z
