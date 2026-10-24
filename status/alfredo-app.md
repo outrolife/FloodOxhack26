@@ -1,14 +1,14 @@
 # alfredo-app
 
 - **role**: App
-- **state**: working
+- **state**: reviewing
 - **issue**: #9
-- **task**: PR (draft) for #9/#12/#14 on app/tabs-followups; #14 + #12 done
-- **next**: #9 River sparklines from optional live observed; real-data offline check
+- **task**: PR #41 open (#9, #12, #14 tab follow-ups), base main
+- **next**: Address review; contract decisions pending in #38
 - **needs**: 
 - **notes**: 
 - **branch**: app/tabs-followups
-- **head**: caa6c15 Proof: date-only official caveat and 90% interval whiskers (#1
+- **head**: 14c8401 River: 7-day sparklines from optional live observed history (#
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:30:18Z
+- **updated**: 2026-10-24T16:38:16Z
