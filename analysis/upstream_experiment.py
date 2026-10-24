@@ -74,30 +74,70 @@ START_YEAR = 2006
 # the 15-min measure is ``<hydro>-level-i-900-m-qualified``. ``fm`` is the live flood-monitoring
 # measure whose values equal the Hydrology series (mean |diff| 0.000 m over 20-24 Oct 2026).
 NEW_GAUGES: dict[str, dict[str, str]] = {
-    "shifford": {"ref": "0904TH", "name": "Shifford Lock u/s", "river": "Thames",
-                 "hydro": "b94cc43a-f693-4efa-8749-c4718c7eb2b8", "fm": "0904TH-level-stage-i-15_min-mASD",
-                 "first": "2002-11-02"},
-    "buscot": {"ref": "0898TH", "name": "Buscot Lock u/s", "river": "Thames",
-               "hydro": "4e2f942e-663e-4efc-990e-5bf0c24f7b03", "fm": "0898TH-level-stage-i-15_min-mASD",
-               "first": "1995-11-12"},
-    "hannington": {"ref": "0569TH", "name": "Hannington Bridge", "river": "Thames",
-                   "hydro": "62a5f097-03e7-4dca-91cc-cb3cf6f1c1c7", "fm": "0569TH-level-stage-i-15_min-mASD",
-                   "first": "1995-09-17"},
-    "worsham": {"ref": "1080TH", "name": "Worsham", "river": "Windrush",
-                "hydro": "bed0ef93-6faa-4f98-af56-bfb3fed3ed61", "fm": "1080TH-level-stage-i-15_min-mASD",
-                "first": "1988-02-03"},
-    "shipton": {"ref": "1238TH", "name": "Shipton", "river": "Evenlode",
-                "hydro": "22eb53c1-ea9b-4094-a813-6d8f9328b8aa", "fm": "1238TH-level-stage-i-15_min-mASD",
-                "first": "1998-01-01"},
-    "banbury": {"ref": "1420TH", "name": "Banbury", "river": "Cherwell",
-                "hydro": "08a56e86-d214-4288-8726-8de31eb55766", "fm": "1420TH-level-stage-i-15_min-mASD",
-                "first": "1986-10-01"},
-    "heyford": {"ref": "1453TH", "name": "Heyford Bridge", "river": "Cherwell",
-                "hydro": "e60c6eae-7b77-4d67-986d-66065bae341c", "fm": "1453TH-level-stage-i-15_min-mASD",
-                "first": "1998-01-01"},
-    "lowerarncott": {"ref": "1483TH", "name": "Lower Arncott", "river": "Ray",
-                     "hydro": "2253c9fa-d697-46d6-a9b2-e4368862af85", "fm": "1483TH-level-stage-i-15_min-mASD",
-                     "first": "1998-01-01"},
+    "shifford": {
+        "ref": "0904TH",
+        "name": "Shifford Lock u/s",
+        "river": "Thames",
+        "hydro": "b94cc43a-f693-4efa-8749-c4718c7eb2b8",
+        "fm": "0904TH-level-stage-i-15_min-mASD",
+        "first": "2002-11-02",
+    },
+    "buscot": {
+        "ref": "0898TH",
+        "name": "Buscot Lock u/s",
+        "river": "Thames",
+        "hydro": "4e2f942e-663e-4efc-990e-5bf0c24f7b03",
+        "fm": "0898TH-level-stage-i-15_min-mASD",
+        "first": "1995-11-12",
+    },
+    "hannington": {
+        "ref": "0569TH",
+        "name": "Hannington Bridge",
+        "river": "Thames",
+        "hydro": "62a5f097-03e7-4dca-91cc-cb3cf6f1c1c7",
+        "fm": "0569TH-level-stage-i-15_min-mASD",
+        "first": "1995-09-17",
+    },
+    "worsham": {
+        "ref": "1080TH",
+        "name": "Worsham",
+        "river": "Windrush",
+        "hydro": "bed0ef93-6faa-4f98-af56-bfb3fed3ed61",
+        "fm": "1080TH-level-stage-i-15_min-mASD",
+        "first": "1988-02-03",
+    },
+    "shipton": {
+        "ref": "1238TH",
+        "name": "Shipton",
+        "river": "Evenlode",
+        "hydro": "22eb53c1-ea9b-4094-a813-6d8f9328b8aa",
+        "fm": "1238TH-level-stage-i-15_min-mASD",
+        "first": "1998-01-01",
+    },
+    "banbury": {
+        "ref": "1420TH",
+        "name": "Banbury",
+        "river": "Cherwell",
+        "hydro": "08a56e86-d214-4288-8726-8de31eb55766",
+        "fm": "1420TH-level-stage-i-15_min-mASD",
+        "first": "1986-10-01",
+    },
+    "heyford": {
+        "ref": "1453TH",
+        "name": "Heyford Bridge",
+        "river": "Cherwell",
+        "hydro": "e60c6eae-7b77-4d67-986d-66065bae341c",
+        "fm": "1453TH-level-stage-i-15_min-mASD",
+        "first": "1998-01-01",
+    },
+    "lowerarncott": {
+        "ref": "1483TH",
+        "name": "Lower Arncott",
+        "river": "Ray",
+        "hydro": "2253c9fa-d697-46d6-a9b2-e4368862af85",
+        "fm": "1483TH-level-stage-i-15_min-mASD",
+        "first": "1998-01-01",
+    },
 }
 THAMES_TARGETS: tuple[str, ...] = ("newbotley", "minns", "coldharbour")
 THAMES_NEW: tuple[str, ...] = ("shifford", "buscot", "hannington", "worsham", "shipton")
@@ -182,14 +222,33 @@ def ingest(keys: Sequence[str] = tuple(NEW_GAUGES), start_year: int = START_YEAR
         df = pd.concat(raw, ignore_index=True)
         hourly, st = clean_series(df, "level")
         frames.append(hourly)
-        stats[key] = {k: st.get(k) for k in ("readings_in", "quality_dropped", "hours", "hours_valid",
-                                             "spikes_removed", "first_valid_ts", "last_ts")}
+        stats[key] = {
+            k: st.get(k)
+            for k in (
+                "readings_in",
+                "quality_dropped",
+                "hours",
+                "hours_valid",
+                "spikes_removed",
+                "first_valid_ts",
+                "last_ts",
+            )
+        }
         stats[key]["level_shifts"] = len(st.get("level_shifts", []))
         log.info("%s: %s", key, stats[key])
     out = pd.concat(frames, ignore_index=True)
     out["ts_utc"] = pd.to_datetime(out["ts_utc"], utc=True).astype("datetime64[ns, UTC]")
-    out = out.astype({"gauge": str, "kind": str, "level_mean": float, "level_max": float,
-                      "rain_mm": float, "filled": bool, "flagged": bool})
+    out = out.astype(
+        {
+            "gauge": str,
+            "kind": str,
+            "level_mean": float,
+            "level_max": float,
+            "rain_mm": float,
+            "filled": bool,
+            "flagged": bool,
+        }
+    )
     out = out.sort_values(["gauge", "ts_utc"]).reset_index(drop=True)
     HOURLY_EXT_PATH.parent.mkdir(parents=True, exist_ok=True)
     out.to_parquet(HOURLY_EXT_PATH, index=False)
@@ -223,8 +282,15 @@ def travel(hourly: pd.DataFrame | None = None) -> dict[str, Any]:
     tt.write_json(LAGS_EXT_PATH, out.lags)
     tt.write_json(DETAIL_EXT_PATH, {"pairs": out.travel_pairs, "detail": out.detail})
     for p in out.lags["pairs"]:
-        log.info("%s->%s: lo %s main %s hi %s (%s)", p["up"], p["down"], p["lag_lo"], p["lag_main"],
-                 p["lag_hi"], p["source"])
+        log.info(
+            "%s->%s: lo %s main %s hi %s (%s)",
+            p["up"],
+            p["down"],
+            p["lag_lo"],
+            p["lag_main"],
+            p["lag_hi"],
+            p["source"],
+        )
     return out.lags
 
 
@@ -257,12 +323,45 @@ def train_upstream_gauge(
     return m
 
 
+def train_checkpointed(
+    hourly: pd.DataFrame, target: str, lags: Mapping[str, Mapping[str, int]], out_dir: Path
+) -> GaugeModel:
+    """Train one lead at a time, saving each to ``out_dir/<target>/parts/h<h>/`` and skipping leads
+    already saved, then merge into ``out_dir/<target>/``. A restart loses at most one lead."""
+    from model.probability import HORIZONS_H
+
+    parts = out_dir / target / "parts"
+    models = {}
+    for h in HORIZONS_H:
+        d = parts / f"h{h}"
+        if (d / "meta.json").exists():
+            models[h] = GaugeModel.load(d)
+            log.info("%s h=%d: loaded checkpoint", target, h)
+            continue
+        t0 = time.time()
+        models[h] = train_upstream_gauge(hourly, target, lags, horizons=[h])
+        models[h].save(d)
+        log.info("%s h=%d: trained in %.0f s, cqr=%s", target, h, time.time() - t0, models[h].cqr[h])
+    m = models[HORIZONS_H[0]]
+    for h, mh in models.items():
+        if mh.feature_cols != m.feature_cols:
+            raise RuntimeError(f"{target} h={h}: feature columns differ between checkpoints")
+        m.boosters[h] = mh.boosters[h]
+        m.cqr[h] = mh.cqr[h]
+        m.persistence_eps[h] = mh.persistence_eps[h]
+        m.info.setdefault("leads", {}).update(mh.info.get("leads", {}))
+    m.save(out_dir / target)
+    return m
+
+
 # ---------------------------------------------------------------------------------------------
 # Evaluation
 # ---------------------------------------------------------------------------------------------
 
 
-def _p_flood(level_now: np.ndarray, q: Mapping[int, np.ndarray], thr: float, leads: Sequence[int]) -> np.ndarray:
+def _p_flood(
+    level_now: np.ndarray, q: Mapping[int, np.ndarray], thr: float, leads: Sequence[int]
+) -> np.ndarray:
     """Max over leads of P(level > thr): the trigger value (as metrics.spot_probability)."""
     from model.probability import exceedance
 
@@ -347,8 +446,14 @@ def score_variant(
         cov[h] = {f"all{int(k * 100)}": round(v, 4) for k, v in a.items()}
         cov[h].update({f"event{int(k * 100)}": round(v, 4) for k, v in e.items()})
         cov[h]["nEvent"] = int(np.isfinite(cat["y"][h][evm]).sum())
-    return {"variant": name, "skill": skill, "skillByGauge": per_gauge_skill, "coverage": cov,
-            "brier": brier, "outcomesP50": outcomes}
+    return {
+        "variant": name,
+        "skill": skill,
+        "skillByGauge": per_gauge_skill,
+        "coverage": cov,
+        "brier": brier,
+        "outcomesP50": outcomes,
+    }
 
 
 def event_variant(
@@ -366,7 +471,9 @@ def event_variant(
     events = backtest.load_events()
     with extended_upstreams(upstreams):
         replays = {
-            eid: proof.consistent_arrivals(backtest.build_replay(hourly, models, eid, events[eid], spots), spots)
+            eid: proof.consistent_arrivals(
+                backtest.build_replay(hourly, models, eid, events[eid], spots), spots
+            )
             for eid in event_ids
         }
     warnings = proof.load_warnings()
@@ -387,18 +494,26 @@ def event_variant(
             trig = row["trigger_at"]
             has_trig = trig is not None and not pd.isna(trig)
             lead_cross = (
-                round((cross[0] - trig).total_seconds() / 3600, 1) if cross and has_trig and trig < cross[0] else None
+                round((cross[0] - trig).total_seconds() / 3600, 1)
+                if cross and has_trig and trig < cross[0]
+                else None
             )
-            first.append({
-                "eventId": eid,
-                "spot": s["key"],
-                "pStar": P_STAR,
-                "firstTrigger": str(trig) if has_trig else None,
-                "firstCrossing": str(cross[0]) if cross else None,
-                "leadVsCrossingH": lead_cross,
-                "warningAt": None if row["warning_at"] is None or pd.isna(row["warning_at"]) else str(row["warning_at"]),
-                "leadVsWarningH": None if pd.isna(row["lead_vs_warning_h"]) else float(row["lead_vs_warning_h"]),
-            })
+            first.append(
+                {
+                    "eventId": eid,
+                    "spot": s["key"],
+                    "pStar": P_STAR,
+                    "firstTrigger": str(trig) if has_trig else None,
+                    "firstCrossing": str(cross[0]) if cross else None,
+                    "leadVsCrossingH": lead_cross,
+                    "warningAt": None
+                    if row["warning_at"] is None or pd.isna(row["warning_at"])
+                    else str(row["warning_at"]),
+                    "leadVsWarningH": None
+                    if pd.isna(row["lead_vs_warning_h"])
+                    else float(row["lead_vs_warning_h"]),
+                }
+            )
     p50 = {k: next(x for x in v if x["pStar"] == P_STAR) for k, v in ev["tradeoff"].items()}
     return {"variant": name, "events": list(event_ids), "tradeoffP50": p50, "firstTrigger": first}
 
@@ -418,8 +533,14 @@ def importance_new(models: Mapping[str, GaugeModel]) -> dict[str, Any]:
                         by[up] += f["gain"]
                         if len(top) < 3:
                             top.append(f)
-            rows.append({"h": entry["h"], "share": {k: round(v, 4) for k, v in by.items()},
-                         "totalNew": round(sum(by.values()), 4), "topNew": top})
+            rows.append(
+                {
+                    "h": entry["h"],
+                    "share": {k: round(v, 4) for k, v in by.items()},
+                    "totalNew": round(sum(by.values()), 4),
+                    "topNew": top,
+                }
+            )
         out[g] = rows
     return out
 
@@ -482,7 +603,9 @@ def adoption(res: Mapping[str, Any]) -> dict[str, Any]:
     skill_ok = all(su[h] > sk[h] for h in (36, 48, 72))
     fa_b = sum(o["falseAlarms"] for o in b["outcomesP50"].values())
     fa_u = sum(o["falseAlarms"] for o in u["outcomesP50"].values())
-    fa_ok = all(u["outcomesP50"][s]["falseAlarms"] <= b["outcomesP50"][s]["falseAlarms"] for s in b["outcomesP50"])
+    fa_ok = all(
+        u["outcomesP50"][s]["falseAlarms"] <= b["outcomesP50"][s]["falseAlarms"] for s in b["outcomesP50"]
+    )
     brier_ok = all(
         u["brier"][s][h] <= b["brier"][s][h] + 5e-5 for s in b["brier"] for h in (48, 72)
     )  # 5e-5: the rounding unit of the table
@@ -527,8 +650,8 @@ def report(res: Mapping[str, Any]) -> str:
         lines.append(f"{v['variant']} replays {','.join(v['events'])}:")
         for f in v["firstTrigger"]:
             lines.append(
-                f"   {f['eventId']} {f['spot']}: trigger {f['firstTrigger']} vs crossing {f['leadVsCrossingH']} "
-                f"vs EA {f['leadVsWarningH']}"
+                f"   {f['eventId']} {f['spot']}: trigger {f['firstTrigger']} "
+                f"vs crossing {f['leadVsCrossingH']} vs EA {f['leadVsWarningH']}"
             )
     lines.append(f"verdict: {res['verdict']}")
     return "\n".join(lines)
@@ -553,9 +676,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif args.cmd == "train":
         hourly, lags = load_hourly_ext(), combined_lags()
         for g in args.targets:
+            if (UPSTREAM_MODELS_DIR / g / "meta.json").exists():
+                log.info("%s already trained; skipping (delete the folder to retrain)", g)
+                continue
             t0 = time.time()
-            m = train_upstream_gauge(hourly, g, lags)
-            m.save(UPSTREAM_MODELS_DIR / g)
+            m = train_checkpointed(hourly, g, lags, UPSTREAM_MODELS_DIR)
             log.info("saved upstream model %s in %.0f s; cqr=%s", g, time.time() - t0, m.cqr)
     else:
         res = evaluate()
