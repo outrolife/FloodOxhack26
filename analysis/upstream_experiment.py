@@ -30,9 +30,20 @@ Data (nothing in data/processed/ or data/models/<gauge>/ is overwritten)
 - models: ``data/models/exp125/upstream/<gauge>/``; baseline read from ``data/models/exp125/baseline/``;
 - results: ``data/processed/exp125_upstream.json``.
 
+Result (24 Oct 2026, strict test >= 2021-10-01; full table on issue #125): NOT ADOPTED
+-------------------------------------------------------------------------------------
+Added shifford, hannington, worsham, shipton (Thames targets) and banbury, lowerarncott (kingsmill).
+Pooled pinball skill vs persistence 36/48/72 h: baseline +0.214/+0.166/+0.102, upstream
++0.265/+0.216/+0.099. Botley (newbotley) alone +0.344/+0.315/+0.279 -> +0.382/+0.349/+0.293. Brier
+at 48/72 h is the same or better at all four spots, and in-event 90% coverage holds (0.87-0.89).
+e2024a Botley's first trigger moves from 16 h to 52 h before the crossing (+7.5 h -> +43.5 h vs
+the EA warning). It fails the rule on two counts: pooled 72 h skill does not improve (coldharbour
+and kingsmill get worse at 72 h), and Botley gains one false alarm at p* = 0.5 (22-23 Feb 2024,
+river peaked at 2.687 m against the 2.76 m line).
+
 Usage
 -----
-``python -m analysis.upstream_experiment ingest``
+``python -m analysis.upstream_experiment ingest [--only ...]`` then ``combine``
 ``python -m analysis.upstream_experiment travel``
 ``python -m analysis.upstream_experiment train [--targets ...]`` (one gauge at a time, RC_LGB_THREADS<=3)
 ``python -m analysis.upstream_experiment evaluate``
