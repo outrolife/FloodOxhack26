@@ -136,16 +136,18 @@ def _replay_job(args: tuple[str, dict[str, Any], list[str], dict[str, Any], bool
     event_id, event, targets, fit_kwargs, use_main = args
     logging.basicConfig(level=logging.INFO, format=f"%(levelname)s [{event_id}] %(name)s: %(message)s")
     t0 = time.time()
-    # Levels to the mm, as the replay shows them: otherwise a level of 2.4398 m is shown as 2.440 (at the
-    # 2.44 m threshold) while its arrival was computed as "below the line" (SPEC §7.5 step 5). Gauges
-    # read to the mm, so this changes forecasts by < 0.5 mm.
     hourly = load_hourly()
-    hourly["level_mean"] = hourly["level_mean"].round(3)
     lags = load_lags()
+    # Models train on the same (unrounded) levels as ``make train`` and ``model.backtest --train-only``,
+    # so the leave-one-out cache doesn't depend on which command filled it (#81).
     if use_main:
         models = main_models(hourly, targets, lags, **fit_kwargs)
     else:
         models = backtest.lofo_models(hourly, event_id, event, targets, lags, **fit_kwargs)
+    # Forecast from levels to the mm, as the replay shows them: otherwise a level of 2.4398 m is shown
+    # as 2.440 (at the 2.44 m threshold) while its arrival was computed as "below the line" (SPEC §7.5
+    # step 5). Gauges read to the mm, so this changes forecasts by < 0.5 mm.
+    hourly["level_mean"] = hourly["level_mean"].round(3)
     spots = backtest.load_spots()
     every_h = REPLAY_EVERY_H.get(event_id, 1)
     replay = consistent_arrivals(
