@@ -4,11 +4,11 @@
 - **state**: working
 - **issue**: #19
 - **task**: Fill real results into README/Devpost/demo; add docs/judges.md
-- **next**: Write README travel-time + coverage + Tiger sections
+- **next**: Update docs/demo.md, then write docs/judges.md
 - **needs**: 
 - **notes**: 
 - **branch**: story/results-pass-1
-- **head**: 0a61018 Merge pull request #67 from outrolife/integration/arrival-at-i
+- **head**: 569a013 Fill real travel times and Tiger Data into the Devpost draft; 
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:29:49Z
+- **updated**: 2026-10-24T17:31:32Z
