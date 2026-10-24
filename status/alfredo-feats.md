@@ -1,14 +1,14 @@
 # alfredo-feats
 
 - **role**: Model
-- **state**: working
+- **state**: idle
 - **issue**: #125
-- **task**: Exp B: both arms trained; full evaluation running
-- **next**: results + verdict on #125 by ~22:30Z
+- **task**: Exp B done: NOT ADOPTED (results on #125); baseline DONE for exp A
+- **next**: 
 - **needs**: 
 - **notes**: 
 - **branch**: model/exp-features
-- **head**: 44e0a7f List only the failing items in the #125 adoption check
+- **head**: b6a66c1 Record the #125 B result (not adopted) in the experiment docst
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T21:29:40Z
+- **updated**: 2026-10-24T21:42:04Z
