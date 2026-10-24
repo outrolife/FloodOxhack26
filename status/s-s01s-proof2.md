@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: working
 - **issue**: #81 #91 #92 #93
-- **task**: Code for #81/#91/#92/#93 on PR #94; training models for the one combined regen
-- **next**: Regenerate replays+proof.json, before/after table
+- **task**: PR #94: all four fixes coded+tested; combined regen running (train 4 gauges, then LOFO replays)
+- **next**: before/after table in PR #94, ETA 21:30 BST
 - **needs**: 
 - **notes**: 
 - **branch**: model/proof-reproducible
 - **head**: f654e44 Issue replay forecasts only from complete hourly rows
-- **unpushed**: 19
+- **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:05:42Z
+- **updated**: 2026-10-24T18:08:52Z
