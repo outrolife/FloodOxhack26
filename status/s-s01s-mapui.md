@@ -1,14 +1,14 @@
 # s-s01s-mapui
 
 - **role**: App
-- **state**: working
+- **state**: reviewing
 - **issue**: #152
-- **task**: Map v3 UI: MapLibre + PMTiles + deck.gl flow (FlowMapGL behind ?map=gl)
-- **next**: Install pinned deps, build FlowMapGL
+- **task**: Map v3 UI PR #159 (behind ?map=gl)
+- **next**: PM to check with user, then flip DEFAULT_MAP
 - **needs**: 
 - **notes**: 
 - **branch**: app/map-v3
-- **head**: 728aa2d Merge pull request #150 from outrolife/app/ux-river-walk
+- **head**: 6f2ac4d Map v3: use real river paths and catchment rivers, context pat
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T22:03:49Z
+- **updated**: 2026-10-24T22:31:44Z
