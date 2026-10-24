@@ -1,14 +1,14 @@
 # alfredo-data
 
 - **role**: Data
-- **state**: idle
-- **issue**: 
-- **task**: Reviewed #29 (approve), #32 (approve), #34 (comment: fixtures/DEFAULT_SPOTS lag the re-target)
-- **next**: Waiting for next task from alfredo
+- **state**: working
+- **issue**: #38
+- **task**: Refresh fixtures post-#30
+- **next**: Regenerate stations/spots/events from config, then live/replay/proof/travel
 - **needs**: 
 - **notes**: 
-- **branch**: data/historic-warnings
-- **head**: 38b091f Add official-warning comparison and warnings ingest tests
-- **unpushed**: 0
+- **branch**: app/fixtures-retarget
+- **head**: 1215ebd Merge pull request #31 from outrolife/model/features
+- **unpushed**: no upstream
 - **dirty**: 0
-- **updated**: 2026-10-24T16:23:45Z
+- **updated**: 2026-10-24T16:24:46Z
