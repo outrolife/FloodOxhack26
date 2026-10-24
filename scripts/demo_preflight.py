@@ -79,6 +79,8 @@ LINK_HOSTS = {
     "bit.ly",  # Immer's minified-error link
     "www.w3.org",  # SVG/XML namespaces
     "archive-api.open-meteo.com",  # data credit in quality.json
+    "open-meteo.com",  # S2 rain panel + About credit (data is pre-fetched into ensemble_rain.json)
+    "creativecommons.org",  # CC BY 4.0 licence link for Open-Meteo
 }
 TILE_HOST_RE = re.compile(r"tile\.openstreetmap\.org$")
 

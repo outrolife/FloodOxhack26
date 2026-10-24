@@ -336,8 +336,9 @@ We store and compute everything in UTC. The app shows UK time (Europe/London) wi
 | [EA Historic Flood Warnings](https://www.data.gov.uk/dataset/d4fb2591-f4dd-4e7f-9aaf-49af94437b36/historic-flood-warnings2) (data.gov.uk) | Issue times of official alerts and warnings for Oxford, 2006 – June 2026 | Open Government Licence v3.0. © Environment Agency. |
 | [GOV.UK Check for flooding](https://check-for-flooding.service.gov.uk/) station and warning-area pages | "Property flooding is possible" thresholds, normal ranges and records (stations 7056, 7057, 7071, 7072, 7074, 7075, 7076) | Open Government Licence v3.0. Crown copyright. |
 | [OpenStreetMap](https://www.openstreetmap.org/copyright) map tiles; Nominatim and Overpass | Base map in the app; placing each spot on the street that floods | © OpenStreetMap contributors. Open Database Licence (ODbL). |
+| [Open-Meteo](https://open-meteo.com/) ensemble API (ECMWF IFS, 51 members) | Experimental "Rain in the next 72 h" panel on the River tab (stretch S2). Context only, **not a model input** | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Weather data by Open-Meteo.com. |
 
-**Open-Meteo is not used.** The spec lists it as a fallback for rainfall, but all five EA rain gauges have dense 15-minute history from 2000 or earlier (#2), so we didn't need it. <!-- Checked Sat 24 Oct on main @ 0a61018: no Open-Meteo calls in pipeline/, model/, analysis/, api/ or web/src (only an About test asserting it isn't listed). Re-check at code freeze; if it is used, add a row: Open-Meteo, CC BY 4.0, "Weather data by Open-Meteo.com". -->
+**The model uses no weather forecast or Open-Meteo data.** The spec lists Open-Meteo as a fallback for rainfall *history*, but all five EA rain gauges have dense 15-minute history from 2000 or earlier (#2), so we didn't need it. Open-Meteo appears only in the S2 rain-context panel above, which the model does not read.
 
 ### Evidence sources (for checking thresholds and event dates; not redistributed)
 

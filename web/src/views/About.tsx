@@ -127,9 +127,20 @@ export default function About() {
             map tiles, and Nominatim and Overpass for placing each spot on the street that floods. ©
             OpenStreetMap contributors. Open Database Licence (ODbL).
           </li>
+          <li>
+            <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">
+              Open-Meteo.com
+            </a>{" "}
+            ensemble API (ECMWF IFS, 51 runs): the experimental "Rain in the next 72 h" panel on the
+            River tab. Context only, not a model input.{" "}
+            <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">
+              CC BY 4.0
+            </a>
+            .
+          </li>
         </ul>
         <p className="small muted">
-          No other weather data is used: rainfall comes from five EA rain gauges. We checked
+          The model uses no weather forecast: its rainfall comes from five EA rain gauges. We checked
           thresholds and event dates against dated local news and residents' pages (listed in the
           README); they are not model inputs. The exact files used, with download dates and row
           counts, are in the data quality table on the Proof tab.
