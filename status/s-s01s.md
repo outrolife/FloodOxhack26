@@ -3,12 +3,12 @@
 - **role**: PM
 - **state**: working
 - **issue**: 
-- **task**: PM: re-targeted to newbotley (SPEC PR #30); PRs #26 #27 #30 await merge
-- **next**: Merge PRs; track #2 #3 #10 #16
+- **task**: PM: PRs #34 #32 #29 ready to merge (tested together: 80 pass)
+- **next**: Track #3 pipeline (critical path, Sat 21:00) and #10 story
 - **needs**: 
-- **notes**: DECISION: target = newbotley (+kingsmill, minns, coldharbour); osney/godstow/iffley live only. See SPEC PR #30
+- **notes**: Target = newbotley (+kingsmill, minns 2.90, coldharbour 2.44); osney/godstow/iffley live_only (PR #34 adds role). See SPEC 4.1.1
 - **branch**: main
-- **head**: 6e8694d Merge pull request #25 from outrolife/integration/scaffold
+- **head**: 3130f0f Merge pull request #28 from outrolife/data/historic-warnings
 - **unpushed**: 0
-- **dirty**: 1
-- **updated**: 2026-10-24T16:14:45Z
+- **dirty**: 0
+- **updated**: 2026-10-24T16:18:59Z
