@@ -1,0 +1,213 @@
+{
+ "gauges": [
+  {
+   "key": "newbotley",
+   "coveragePct": 99.8,
+   "gapsFilled": 3,
+   "gapsFlagged": 8,
+   "spikesRemoved": 0,
+   "thresholdApi": 2.01,
+   "thresholdConfig": 2.01,
+   "notes": [
+    "Qualifier single (one-trace station), Hydrology API",
+    "First data 2006-01-01",
+    "Hydrology history from 2002-05-01; ingested from 2006",
+    "1573 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "farmoor",
+   "coveragePct": 99.5,
+   "gapsFilled": 3,
+   "gapsFlagged": 8,
+   "spikesRemoved": 0,
+   "thresholdApi": 1.3,
+   "thresholdConfig": 1.3,
+   "notes": [
+    "Qualifier single (one-trace station), Hydrology API",
+    "First data 2006-01-01",
+    "Hydrology history from 1992-09-07; ingested from 2006",
+    "3574 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "eynsham",
+   "coveragePct": 96.7,
+   "gapsFilled": 47,
+   "gapsFlagged": 46,
+   "spikesRemoved": 1,
+   "thresholdApi": 0.37,
+   "thresholdConfig": 0.37,
+   "notes": [
+    "Qualifier u/s (upstream stage of a lock or mill), Hydrology API",
+    "SPEC \u00a74.1 table amber 2.96 m is for another trace; config uses 0.37 m",
+    "First data 2006-01-01",
+    "Hydrology history from 2000-01-30; ingested from 2006",
+    "24563 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "cassington",
+   "coveragePct": 93.2,
+   "gapsFilled": 3,
+   "gapsFlagged": 7,
+   "spikesRemoved": 0,
+   "thresholdApi": 0.77,
+   "thresholdConfig": 0.77,
+   "notes": [
+    "Qualifier single (one-trace station), Hydrology API",
+    "First data 2006-01-01",
+    "Hydrology history from 1986-11-01; ingested from 2006",
+    "49710 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "minns",
+   "coveragePct": 97.4,
+   "gapsFilled": 7,
+   "gapsFlagged": 20,
+   "spikesRemoved": 0,
+   "thresholdApi": 2.13,
+   "thresholdConfig": 2.13,
+   "notes": [
+    "Qualifier single (one-trace station), Hydrology API",
+    "First data 2006-01-01",
+    "Hydrology history from 2003-07-15; ingested from 2006",
+    "19432 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "coldharbour",
+   "coveragePct": 98.5,
+   "gapsFilled": 56,
+   "gapsFlagged": 36,
+   "spikesRemoved": 1,
+   "thresholdApi": 2.3,
+   "thresholdConfig": 2.3,
+   "notes": [
+    "Qualifier single (one-trace station), Hydrology API",
+    "First data 2006-01-01",
+    "Hydrology history from 2002-05-01; ingested from 2006",
+    "11725 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "kingsmill",
+   "coveragePct": 99.1,
+   "gapsFilled": 4,
+   "gapsFlagged": 10,
+   "spikesRemoved": 0,
+   "thresholdApi": 2.4,
+   "thresholdConfig": 2.4,
+   "notes": [
+    "Qualifier u/s (upstream stage of a lock or mill), Hydrology API",
+    "First data 2006-01-01",
+    "Hydrology history from 1998-01-12; ingested from 2006",
+    "5349 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "enslow",
+   "coveragePct": 99.8,
+   "gapsFilled": 2,
+   "gapsFlagged": 2,
+   "spikesRemoved": 1,
+   "thresholdApi": 1.29,
+   "thresholdConfig": 1.29,
+   "notes": [
+    "Qualifier single (one-trace station), Hydrology API",
+    "First data 2006-01-01",
+    "Hydrology history from 1987-07-01; ingested from 2006",
+    "1249 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "islip",
+   "coveragePct": 91.2,
+   "gapsFilled": 13,
+   "gapsFlagged": 34,
+   "spikesRemoved": 0,
+   "thresholdApi": 7.8,
+   "thresholdConfig": 7.8,
+   "notes": [
+    "Qualifier single (one-trace station), Hydrology API",
+    "First data 2006-01-01",
+    "Hydrology history from 1995-02-16; ingested from 2006",
+    "64632 readings dropped (EA quality suspect/rejected/missing)",
+    "2 possible persistent level shift(s), review: 2013-09-20T10Z -0.44 m; 2020-01-10T14Z +0.44 m"
+   ]
+  },
+  {
+   "key": "osney",
+   "coveragePct": 0.7,
+   "gapsFilled": 0,
+   "gapsFlagged": 0,
+   "spikesRemoved": 1,
+   "thresholdApi": 3.175,
+   "thresholdConfig": 3.175,
+   "notes": [
+    "Qualifier d/s, from the flood-monitoring daily archive only: 55 days (2026-01-15 to 2026-03-10). The Hydrology API has no d/s series for this lock; role live_only",
+    "First data 2026-01-15",
+    "Also in hourly.parquet as 'osney_us': the u/s head-water stage (Hydrology, from 2006-01-01), context only, different trace and datum. Coverage 99.0%, 98 gaps filled, 38 flagged, 2 spikes removed, API typicalRangeHigh 0.12 m"
+   ]
+  },
+  {
+   "key": "godstow",
+   "coveragePct": 0.7,
+   "gapsFilled": 0,
+   "gapsFlagged": 0,
+   "spikesRemoved": 0,
+   "thresholdApi": 2.57,
+   "thresholdConfig": 2.57,
+   "notes": [
+    "Qualifier d/s, from the flood-monitoring daily archive only: 55 days (2026-01-15 to 2026-03-10). The Hydrology API has no d/s series for this lock; role live_only",
+    "First data 2026-01-15",
+    "Also in hourly.parquet as 'godstow_us': the u/s head-water stage (Hydrology, from 2006-01-01), context only, different trace and datum. Coverage 98.3%, 36 gaps filled, 39 flagged, 0 spikes removed, API typicalRangeHigh 0.225 m"
+   ]
+  },
+  {
+   "key": "iffley",
+   "coveragePct": 0.7,
+   "gapsFilled": 0,
+   "gapsFlagged": 0,
+   "spikesRemoved": 0,
+   "thresholdApi": 2.72,
+   "thresholdConfig": 2.72,
+   "notes": [
+    "Qualifier d/s, from the flood-monitoring daily archive only: 55 days (2026-01-15 to 2026-03-10). The Hydrology API has no d/s series for this lock; role live_only",
+    "First data 2026-01-15",
+    "Also in hourly.parquet as 'iffley_us': the u/s head-water stage (Hydrology, from 2006-01-01), context only, different trace and datum. Coverage 96.2%, 6 gaps filled, 23 flagged, 3 spikes removed, API typicalRangeHigh 0.25 m"
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "name": "EA flood-monitoring daily archive (downstream lock stage)",
+   "url": "https://environment.data.gov.uk/flood-monitoring/archive",
+   "licence": "Open Government Licence v3.0",
+   "downloadedAt": "2026-10-24T16:29:05Z",
+   "rows": 15840
+  },
+  {
+   "name": "EA Hydrology API (15-min river level)",
+   "url": "https://environment.data.gov.uk/hydrology/",
+   "licence": "Open Government Licence v3.0",
+   "downloadedAt": "2026-10-24T16:20:52Z",
+   "rows": 8757380
+  },
+  {
+   "name": "EA Hydrology API rainfall, 5 gauges; catchment rain = hourly mean of the available gauges (hours with data: 254336TP 79.4%, 256230TP 77.8%, 261021TP 89.7%, 263541TP 78.7%, 264254TP 79.1%; any gauge 180909 of 182440 h)",
+   "url": "https://environment.data.gov.uk/hydrology/",
+   "licence": "Open Government Licence v3.0",
+   "downloadedAt": "2026-10-24T16:15:03Z",
+   "rows": 3648795
+  },
+  {
+   "name": "EA flood-monitoring API (station metadata and thresholds)",
+   "url": "https://environment.data.gov.uk/flood-monitoring/",
+   "licence": "Open Government Licence v3.0",
+   "downloadedAt": "2026-10-24T16:23:29Z",
+   "rows": 12
+  }
+ ]
+}

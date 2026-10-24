@@ -2,7 +2,11 @@
 VENV := .venv
 PY   := $(VENV)/bin/python
 
-.PHONY: setup data travel train backtest live api web test lint
+# Data root: RC_DATA_DIR env var, else ./data (same rule as pipeline/stations.py)
+DATA_DIR     := $(if $(RC_DATA_DIR),$(RC_DATA_DIR),data)
+DATA_RELEASE ?= data-hourly-v1
+
+.PHONY: setup data fetch-data travel train backtest live api web test lint
 
 setup: $(VENV)/.installed
 
@@ -19,6 +23,13 @@ data: setup
 	$(PY) -m pipeline.ingest_warnings
 	$(PY) -m pipeline.clean
 	$(PY) -m pipeline.quality_report
+
+# Skip the long download: fetch the cleaned hourly.parquet + provenance.parquet from a GitHub
+# release asset (not in git). Override the tag with `make fetch-data DATA_RELEASE=data-hourly-v2`.
+fetch-data:
+	@command -v gh >/dev/null || { echo "gh not found: brew install gh"; exit 1; }
+	mkdir -p $(DATA_DIR)/processed
+	gh release download $(DATA_RELEASE) -D $(DATA_DIR)/processed --clobber
 
 # Travel-time finding (SPEC §6)
 travel: setup
