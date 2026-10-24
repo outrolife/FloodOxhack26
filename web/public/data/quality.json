@@ -1,0 +1,349 @@
+{
+ "gauges": [
+  {
+   "key": "newbotley",
+   "coveragePct": 99.8,
+   "gapsFilled": 3,
+   "gapsFlagged": 8,
+   "spikesRemoved": 0,
+   "thresholdApi": 2.01,
+   "thresholdConfig": 2.01,
+   "notes": [
+    "Stage (the station's only level series, as in \u00a74.1), Hydrology API",
+    "First data 2006-01-01",
+    "Hydrology history from 2002-05-01; ingested from 2006",
+    "1573 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "farmoor",
+   "coveragePct": 99.5,
+   "gapsFilled": 3,
+   "gapsFlagged": 8,
+   "spikesRemoved": 0,
+   "thresholdApi": 1.3,
+   "thresholdConfig": 1.3,
+   "notes": [
+    "Stage (the station's only level series, as in \u00a74.1), Hydrology API",
+    "First data 2006-01-01",
+    "Hydrology history from 1992-09-07; ingested from 2006",
+    "3574 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "eynsham",
+   "coveragePct": 0.3,
+   "gapsFilled": 0,
+   "gapsFlagged": 0,
+   "spikesRemoved": 0,
+   "thresholdApi": 2.67,
+   "thresholdConfig": 2.96,
+   "notes": [
+    "DOWNSTREAM stage (\u00a74.1 measure) from the flood-monitoring daily archive only: 21 days (2026-02-18 to 2026-03-10). Hydrology API has no downstream series for this lock",
+    "Threshold mismatch: API typicalRangeHigh 2.67 m vs config 2.96 m",
+    "First data 2026-02-18"
+   ]
+  },
+  {
+   "key": "eynsham_us",
+   "coveragePct": 96.7,
+   "gapsFilled": 47,
+   "gapsFlagged": 46,
+   "spikesRemoved": 1,
+   "thresholdApi": 0.37,
+   "thresholdConfig": null,
+   "notes": [
+    "UPSTREAM head-water stage of the lock (Hydrology API's only level series here). Different datum from the downstream stage: not comparable with \u00a74.1 thresholds",
+    "First data 2006-01-01",
+    "Hydrology history from 2000-01-30; ingested from 2006",
+    "24563 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "cassington",
+   "coveragePct": 93.2,
+   "gapsFilled": 3,
+   "gapsFlagged": 7,
+   "spikesRemoved": 0,
+   "thresholdApi": 0.77,
+   "thresholdConfig": 0.77,
+   "notes": [
+    "Stage (the station's only level series, as in \u00a74.1), Hydrology API",
+    "First data 2006-01-01",
+    "Hydrology history from 1986-11-01; ingested from 2006",
+    "49710 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "minns",
+   "coveragePct": 97.4,
+   "gapsFilled": 7,
+   "gapsFlagged": 20,
+   "spikesRemoved": 0,
+   "thresholdApi": 2.13,
+   "thresholdConfig": null,
+   "notes": [
+    "Stage (the station's only level series, as in \u00a74.1), Hydrology API",
+    "First data 2006-01-01",
+    "Hydrology history from 2003-07-15; ingested from 2006",
+    "19432 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "coldharbour",
+   "coveragePct": 98.5,
+   "gapsFilled": 56,
+   "gapsFlagged": 36,
+   "spikesRemoved": 1,
+   "thresholdApi": 2.3,
+   "thresholdConfig": null,
+   "notes": [
+    "Stage (the station's only level series, as in \u00a74.1), Hydrology API",
+    "First data 2006-01-01",
+    "Hydrology history from 2002-05-01; ingested from 2006",
+    "11725 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "kingsmill",
+   "coveragePct": 99.1,
+   "gapsFilled": 4,
+   "gapsFlagged": 10,
+   "spikesRemoved": 0,
+   "thresholdApi": 2.4,
+   "thresholdConfig": 2.4,
+   "notes": [
+    "Stage (the station's only level series, as in \u00a74.1), Hydrology API",
+    "First data 2006-01-01",
+    "Hydrology history from 1998-01-12; ingested from 2006",
+    "5349 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "enslow",
+   "coveragePct": 99.8,
+   "gapsFilled": 2,
+   "gapsFlagged": 2,
+   "spikesRemoved": 1,
+   "thresholdApi": 1.29,
+   "thresholdConfig": 1.29,
+   "notes": [
+    "Stage (the station's only level series, as in \u00a74.1), Hydrology API",
+    "First data 2006-01-01",
+    "Hydrology history from 1987-07-01; ingested from 2006",
+    "1249 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "islip",
+   "coveragePct": 91.2,
+   "gapsFilled": 13,
+   "gapsFlagged": 34,
+   "spikesRemoved": 0,
+   "thresholdApi": 7.8,
+   "thresholdConfig": 7.8,
+   "notes": [
+    "Stage (the station's only level series, as in \u00a74.1), Hydrology API",
+    "First data 2006-01-01",
+    "Hydrology history from 1995-02-16; ingested from 2006",
+    "64632 readings dropped (EA quality suspect/rejected/missing)",
+    "2 possible persistent level shift(s), review: 2013-09-20T10Z -0.44 m; 2020-01-10T14Z +0.44 m"
+   ]
+  },
+  {
+   "key": "osney",
+   "coveragePct": 0.3,
+   "gapsFilled": 0,
+   "gapsFlagged": 0,
+   "spikesRemoved": 1,
+   "thresholdApi": 3.175,
+   "thresholdConfig": 3.18,
+   "notes": [
+    "DOWNSTREAM stage (\u00a74.1 measure) from the flood-monitoring daily archive only: 21 days (2026-02-18 to 2026-03-10). Hydrology API has no downstream series for this lock",
+    "First data 2026-02-18"
+   ]
+  },
+  {
+   "key": "osney_us",
+   "coveragePct": 99.0,
+   "gapsFilled": 98,
+   "gapsFlagged": 38,
+   "spikesRemoved": 2,
+   "thresholdApi": 0.12,
+   "thresholdConfig": null,
+   "notes": [
+    "UPSTREAM head-water stage of the lock (Hydrology API's only level series here). Different datum from the downstream stage: not comparable with \u00a74.1 thresholds",
+    "First data 2006-01-01",
+    "Hydrology history from 1995-11-13; ingested from 2006",
+    "8302 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "godstow",
+   "coveragePct": 0.3,
+   "gapsFilled": 0,
+   "gapsFlagged": 0,
+   "spikesRemoved": 0,
+   "thresholdApi": 2.57,
+   "thresholdConfig": 2.57,
+   "notes": [
+    "DOWNSTREAM stage (\u00a74.1 measure) from the flood-monitoring daily archive only: 21 days (2026-02-18 to 2026-03-10). Hydrology API has no downstream series for this lock",
+    "First data 2026-02-18"
+   ]
+  },
+  {
+   "key": "godstow_us",
+   "coveragePct": 98.3,
+   "gapsFilled": 36,
+   "gapsFlagged": 39,
+   "spikesRemoved": 0,
+   "thresholdApi": 0.225,
+   "thresholdConfig": null,
+   "notes": [
+    "UPSTREAM head-water stage of the lock (Hydrology API's only level series here). Different datum from the downstream stage: not comparable with \u00a74.1 thresholds",
+    "First data 2006-01-01",
+    "Hydrology history from 1998-03-10; ingested from 2006",
+    "13178 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "iffley",
+   "coveragePct": 0.3,
+   "gapsFilled": 0,
+   "gapsFlagged": 0,
+   "spikesRemoved": 0,
+   "thresholdApi": 2.72,
+   "thresholdConfig": 2.72,
+   "notes": [
+    "DOWNSTREAM stage (\u00a74.1 measure) from the flood-monitoring daily archive only: 21 days (2026-02-18 to 2026-03-10). Hydrology API has no downstream series for this lock",
+    "First data 2026-02-18"
+   ]
+  },
+  {
+   "key": "iffley_us",
+   "coveragePct": 96.2,
+   "gapsFilled": 6,
+   "gapsFlagged": 23,
+   "spikesRemoved": 3,
+   "thresholdApi": 0.25,
+   "thresholdConfig": null,
+   "notes": [
+    "UPSTREAM head-water stage of the lock (Hydrology API's only level series here). Different datum from the downstream stage: not comparable with \u00a74.1 thresholds",
+    "First data 2006-01-01",
+    "Hydrology history from 1995-11-13; ingested from 2006",
+    "27950 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "rain_catchment",
+   "coveragePct": 99.2,
+   "gapsFilled": 0,
+   "gapsFlagged": 9,
+   "spikesRemoved": 0,
+   "thresholdApi": null,
+   "thresholdConfig": null,
+   "notes": [
+    "Mean of available rain gauges per hour: 254336TP 79.4% of hours, 256230TP 77.8% of hours, 261021TP 89.7% of hours, 263541TP 78.7% of hours, 264254TP 79.1% of hours",
+    "All gauges present in 36.3% of hours"
+   ]
+  },
+  {
+   "key": "254336TP",
+   "coveragePct": 79.4,
+   "gapsFilled": 0,
+   "gapsFlagged": 34,
+   "spikesRemoved": 0,
+   "thresholdApi": null,
+   "thresholdConfig": null,
+   "notes": [
+    "Rain gauge (Hydrology 15-min totals); hourly sum needs >= 3 of 4 readings",
+    "First data 2006-01-01",
+    "Hydrology history from 1982-07-30; ingested from 2006",
+    "150198 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "256230TP",
+   "coveragePct": 77.8,
+   "gapsFilled": 0,
+   "gapsFlagged": 83,
+   "spikesRemoved": 0,
+   "thresholdApi": null,
+   "thresholdConfig": null,
+   "notes": [
+    "Rain gauge (Hydrology 15-min totals); hourly sum needs >= 3 of 4 readings",
+    "First data 2006-01-01",
+    "Hydrology history from 1986-01-01; ingested from 2006",
+    "161820 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "261021TP",
+   "coveragePct": 89.7,
+   "gapsFilled": 0,
+   "gapsFlagged": 32,
+   "spikesRemoved": 0,
+   "thresholdApi": null,
+   "thresholdConfig": null,
+   "notes": [
+    "Rain gauge (Hydrology 15-min totals); hourly sum needs >= 3 of 4 readings",
+    "First data 2006-01-01",
+    "Hydrology history from 1985-11-23; ingested from 2006",
+    "75362 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "263541TP",
+   "coveragePct": 78.7,
+   "gapsFilled": 0,
+   "gapsFlagged": 29,
+   "spikesRemoved": 0,
+   "thresholdApi": null,
+   "thresholdConfig": null,
+   "notes": [
+    "Rain gauge (Hydrology 15-min totals); hourly sum needs >= 3 of 4 readings",
+    "First data 2006-01-01",
+    "Hydrology history from 1991-03-18; ingested from 2006",
+    "155762 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  },
+  {
+   "key": "264254TP",
+   "coveragePct": 79.1,
+   "gapsFilled": 0,
+   "gapsFlagged": 37,
+   "spikesRemoved": 0,
+   "thresholdApi": null,
+   "thresholdConfig": null,
+   "notes": [
+    "Rain gauge (Hydrology 15-min totals); hourly sum needs >= 3 of 4 readings",
+    "First data 2006-01-01",
+    "Hydrology history from 1990-11-01; ingested from 2006",
+    "152165 readings dropped (EA quality suspect/rejected/missing)"
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "name": "EA flood-monitoring daily archive (downstream lock stage)",
+   "url": "https://environment.data.gov.uk/flood-monitoring/archive",
+   "licence": "Open Government Licence v3.0",
+   "downloadedAt": "2026-10-24T16:23:04+00:00",
+   "rows": 8064
+  },
+  {
+   "name": "EA Hydrology API (15-min level and rainfall)",
+   "url": "https://environment.data.gov.uk/hydrology/",
+   "licence": "Open Government Licence v3.0",
+   "downloadedAt": "2026-10-24T16:20:52+00:00",
+   "rows": 12406175
+  },
+  {
+   "name": "EA flood-monitoring API (station metadata and thresholds)",
+   "url": "https://environment.data.gov.uk/flood-monitoring/",
+   "licence": "Open Government Licence v3.0",
+   "downloadedAt": "2026-10-24T16:23:29+00:00",
+   "rows": 12
+  }
+ ]
+}

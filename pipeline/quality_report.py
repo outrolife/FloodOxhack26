@@ -82,7 +82,7 @@ def gauge_entry(series: str, st: dict[str, Any], g: Gauge | None, end: pd.Timest
                          f"{len(days)} days ({days[0] if days else '-'} to {days[-1] if days else '-'}). "
                          f"Hydrology API has no downstream series for this lock")
         else:
-            notes.append(f"{g.qualifier} stage, Hydrology API")
+            notes.append("Stage (the station's only level series, as in §4.1), Hydrology API")
         t_api, err = api_threshold(g, upstream_stage)
         t_cfg = None if upstream_stage else g.amber
         if err:

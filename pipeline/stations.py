@@ -102,6 +102,12 @@ _FALLBACK_GAUGES: list[dict[str, Any]] = [
     dict(key="newbotley", name="New Botley", river="Bulstake Stream", role="target", ref="1645TH",
          hydrology_measure="d3ed05d0-98fe-4dfb-9281-8e049743f92d-level-i-900-m-qualified",
          amber=2.01, threshold=2.76, record=3.14),
+    # Added by the PM's target decision (SPEC PR #30). Thresholds come from config/stations.yaml (#2);
+    # until then quality.json shows the API value only.
+    dict(key="minns", name="Minns Estate", river="Seacourt Stream", role="target", ref="1635TH",
+         hydrology_measure="745d25c4-7e29-48a9-bfe7-cc14eea17751-level-i-900-m-qualified"),
+    dict(key="coldharbour", name="Cold Harbour", river="Hinksey Stream", role="target", ref="1675TH",
+         hydrology_measure="a65c175a-bae8-427a-822d-896ed2d53c58-level-i-900-m-qualified"),
 ]
 
 _FALLBACK_RAIN: list[dict[str, Any]] = [
@@ -117,9 +123,10 @@ _FALLBACK_RAIN: list[dict[str, Any]] = [
          hydrology_measure="7eb546a1-8663-4d07-a9cc-e7b5f6e13006-rainfall-t-900-mm-qualified"),
 ]
 
-# Order matters for "Thames chain + osney first": ingest walks this list in order.
-PRIORITY = ["osney", "farmoor", "eynsham", "cassington", "godstow", "iffley", "newbotley",
-            "enslow", "islip", "kingsmill"]
+# Ingest order (PM, SPEC PR #30): primary target newbotley + Thames upstreams first, then the other
+# targets and the Cherwell; the lock gauges (upstream-stage history only) last.
+PRIORITY = ["newbotley", "farmoor", "eynsham", "cassington", "minns", "coldharbour", "kingsmill",
+            "enslow", "islip", "osney", "godstow", "iffley"]
 
 _GAUGE_FIELDS = {"key", "name", "river", "role", "ref", "kind", "qualifier", "hydrology_measure",
                  "amber", "threshold", "record"}

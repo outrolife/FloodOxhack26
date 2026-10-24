@@ -44,7 +44,8 @@ def test_archive_days_event_windows_clipped_to_archive() -> None:
 def test_fallback_gauges_and_lock_series_keys() -> None:
     levels, rains = stations.load_gauges(path=stations.REPO_ROOT / "does-not-exist.yaml")
     keys = [g.key for g in levels]
-    assert keys[0] == "osney" and len(keys) == 10
+    assert keys[0] == "newbotley" and len(keys) == 12
+    assert {"minns", "coldharbour"} <= set(keys)
     osney = next(g for g in levels if g.key == "osney")
     assert osney.is_lock_downstream
     assert osney.fm_measure == "1303TH-level-downstage-i-15_min-mASD"
