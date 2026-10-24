@@ -86,10 +86,15 @@ def read_cached(path: Path) -> bytes:
 
 
 def http_get(url: str, params: dict[str, Any] | None = None, stream: bool = False,
-             timeout: float = 120) -> requests.Response:
-    """GET with retries and exponential backoff on network errors, 429 and 5xx."""
+             timeout: float | tuple[float, float] = 120,
+             retries: int = MAX_RETRIES) -> requests.Response:
+    """GET with up to ``retries`` attempts and exponential backoff on network errors, 429 and 5xx.
+
+    4xx other than 429 is raised at once. Live mode passes a small ``retries`` so a slow or dead EA
+    cannot hold a poll for minutes (pipeline/ingest_live.py).
+    """
     delay = 2.0
-    for attempt in range(1, MAX_RETRIES + 1):
+    for attempt in range(1, retries + 1):
         try:
             time.sleep(POLITE_DELAY_S)
             r = _http().get(url, params=params, stream=stream, timeout=timeout)
@@ -101,7 +106,7 @@ def http_get(url: str, params: dict[str, Any] | None = None, stream: bool = Fals
             status = getattr(getattr(e, "response", None), "status_code", None)
             if status is not None and 400 <= status < 500 and status != 429:
                 raise
-            if attempt == MAX_RETRIES:
+            if attempt == retries:
                 raise
             log.warning("GET %s failed (%s); retry %d in %.0fs", url, e, attempt, delay)
             time.sleep(delay)

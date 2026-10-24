@@ -46,8 +46,14 @@ LIVE_TTL = timedelta(minutes=15)
 class LiveCache:
     """The last Forecast and when it was computed. Recomputes only when older than ``ttl``."""
 
-    def __init__(self, compute: Callable[[datetime], dict[str, Any]], ttl: timedelta = LIVE_TTL) -> None:
+    def __init__(
+        self,
+        compute: Callable[[datetime], dict[str, Any]],
+        ttl: timedelta = LIVE_TTL,
+        warm: Callable[[datetime], dict[str, Any]] | None = None,
+    ) -> None:
         self.compute = compute
+        self.warm = warm  # fast, no-network compute served while the first full refresh runs
         self.ttl = ttl
         self.computed_at: datetime | None = None
         self.forecast: dict[str, Any] | None = None
@@ -87,10 +93,24 @@ class LiveCache:
             self.forecast, self.computed_at = forecast, now
 
     def start_background(self) -> threading.Thread:
-        """Refresh now and then every ``ttl`` in a daemon thread. Failures keep the last forecast."""
+        """Refresh now and then every ``ttl`` in a daemon thread. Failures keep the last forecast.
+
+        With ``warm`` set, the thread first serves a forecast from the last processed live data (no EA
+        call, about a second), so a restart is not "Live data unavailable" for the length of a full EA
+        poll; its ``stale`` list is computed for the current time, so old data is flagged.
+        """
         self.background = True
 
         def loop() -> None:
+            if self.warm is not None:
+                try:
+                    now = datetime.now(UTC)
+                    forecast = self.warm(now)
+                    with self._lock:
+                        if self.forecast is None:
+                            self.forecast, self.computed_at = forecast, now
+                except Exception as exc:
+                    log.info("no processed live data to start from (%s)", exc)
             while True:
                 try:
                     self.refresh()
@@ -110,7 +130,11 @@ def _compute_live(now: datetime) -> dict[str, Any]:
     return forecast_live.refresh(now, fetch=fetch)
 
 
-live_cache = LiveCache(_compute_live)
+def _compute_cached(now: datetime) -> dict[str, Any]:
+    return forecast_live.refresh(now, fetch=False)
+
+
+live_cache = LiveCache(_compute_live, warm=_compute_cached)
 
 
 @asynccontextmanager

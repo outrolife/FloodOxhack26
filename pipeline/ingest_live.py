@@ -12,7 +12,10 @@ What it does
    is polled at most every 15 minutes (CLAUDE.md rule 5). The requests run in a small thread pool
    (``MAX_WORKERS = 4`` at once, polite to the EA); results are collected in a fixed gauge order, so
    the output does not depend on which request finishes first. HTTP goes through
-   ``pipeline.ea_client.http_get`` (retries with backoff on network errors, 429 and 5xx).
+   ``pipeline.ea_client.http_get`` (2 attempts, 10 s connect / 30 s read timeout, backoff on network
+   errors, 429 and 5xx). When the EA is slow or down, a per-poll circuit breaker stops calling it after
+   3 failures and the cached copies are used, so a poll does not hang for minutes; the cached readings
+   keep their own times, so the stale rule (> 3 h) flags them once they are old.
 2. Keeps ``observed_at`` (the reading's own time) and ``received_at`` (when we downloaded it).
 3. Cleans the readings (``clean_readings``): drops values the EA flags as suspect/rejected/missing and
    values outside the gauge's plausible band (below), so one junk reading such as the -52.477 m at
@@ -84,7 +87,14 @@ OUT_META = DATA_DIR / "processed" / "live_meta.json"
 LIVE_DAYS = 28
 CACHE_TTL_S = 15 * 60  # poll EA at most every 15 minutes
 MAX_WORKERS = 4  # concurrent EA requests per poll (bounded, polite)
-HTTP_TIMEOUT_S = 30
+HTTP_TIMEOUT_S = (10, 30)  # (connect, read) seconds: an unreachable host fails fast
+# A slow or dead EA must not hold a poll for minutes (#125 hardening): each request gets 2 attempts
+# (2 s backoff), and after BREAKER_FAILURES network failures in one poll the remaining gauges skip
+# the network and use their cached copies. Measured on a real unreachable host: ~45 s per poll
+# (it was ~15 min: 5 attempts x 30 s per request, every request tried). DNS failure: ~5 s.
+LIVE_RETRIES = 2
+BREAKER_FAILURES = 3
+FUTURE_TOLERANCE = timedelta(minutes=15)  # readings stamped later than received_at + this are dropped
 RAIN_KEY = clean.RAIN_CATCHMENT  # "rain_catchment"
 PLAUSIBLE_BELOW_AMBER_M = 4.0  # plausible band: amber - 4 m ...
 PLAUSIBLE_ABOVE_RECORD_M = 2.0  # ... to record + 2 m (module docstring)
@@ -131,7 +141,47 @@ Fetcher = Callable[[str, dict[str, str]], Any]
 
 def _http_get_json(url: str, params: dict[str, str]) -> Any:
     """GET JSON via ``ea_client.http_get``: retries with exponential backoff on network errors, 429, 5xx."""
-    return ea_client.http_get(url, params=params, timeout=HTTP_TIMEOUT_S).json()
+    return ea_client.http_get(url, params=params, timeout=HTTP_TIMEOUT_S, retries=LIVE_RETRIES).json()
+
+
+class EAUnavailable(ConnectionError):
+    """The circuit breaker is open for this poll: the EA is treated as down, so no request is made."""
+
+
+def _counts_as_outage(exc: Exception) -> bool:
+    """Network errors, timeouts, 429/5xx and broken bodies count; a 4xx for one measure does not."""
+    status = getattr(getattr(exc, "response", None), "status_code", None)
+    return not (status is not None and 400 <= status < 500 and status != 429)
+
+
+class _Breaker:
+    """Counts EA outages within one poll; once ``limit`` is reached, ``guard`` stops calling the EA."""
+
+    def __init__(self, fetch: Fetcher, limit: int = BREAKER_FAILURES) -> None:
+        self.fetch, self.limit, self.failures = fetch, limit, 0
+        self._lock = threading.Lock()
+
+    @property
+    def open(self) -> bool:
+        return self.failures >= self.limit
+
+    def guard(self, url: str, params: dict[str, str]) -> Any:
+        if self.open:
+            raise EAUnavailable(f"EA treated as down after {self.failures} failures this poll")
+        try:
+            return self.fetch(url, params)
+        except Exception as exc:
+            if _counts_as_outage(exc):
+                with self._lock:
+                    self.failures += 1
+            raise
+
+
+def _check_body(body: Any) -> Any:
+    """A readings body must be a JSON object with an ``items`` list; anything else is a failed fetch."""
+    if not isinstance(body, dict) or not isinstance(body.get("items"), list):
+        raise ValueError(f"unexpected EA response shape: {type(body).__name__}")
+    return body
 
 
 def cache_path(url: str, params: dict[str, str], cache_dir: Path = RAW_DIR) -> Path:
@@ -153,21 +203,34 @@ def _cached_get_json(
     """Return ``(json, received_at)``: from cache if it is younger than ``ttl_s``, else fetched.
 
     The cache file stores ``received_at`` itself (not the file mtime), so the TTL is testable and
-    survives copies. If the fetch fails and a cached copy exists, the old copy is used and logged.
+    survives copies. If the fetch fails (network error, timeout, 5xx, a body that is not
+    ``{"items": [...]}``) and a cached copy exists, the old copy is used and logged; its old
+    ``received_at`` and old readings then make the gauge stale downstream, never silently fresh. An
+    empty ``items`` when the cached copy has readings also keeps the cached copy (and the cache file),
+    so the gauge stays listed with its last known level and is marked stale instead of vanishing.
     """
     path = cache_path(url, params, cache_dir)
-    cached = json.loads(path.read_text()) if path.exists() else None
+    cached = None
+    if path.exists():
+        try:
+            cached = json.loads(path.read_text())
+            received_at = datetime.fromisoformat(cached["received_at"])
+        except (ValueError, KeyError, TypeError) as exc:  # truncated or foreign file: ignore it
+            log.warning("ignoring unreadable cache file %s (%s)", path.name, exc)
+            cached = None
     if cached is not None:
-        received_at = datetime.fromisoformat(cached["received_at"])
         if (now - received_at).total_seconds() < ttl_s:
             return cached["body"], received_at
     try:
-        body = fetch(url, params)
+        body = _check_body(fetch(url, params))
     except Exception:
         if cached is None:
             raise
         log.warning("fetch failed for %s; using cached copy from %s", url, cached["received_at"])
-        return cached["body"], datetime.fromisoformat(cached["received_at"])
+        return cached["body"], received_at
+    if not body["items"] and cached is not None and (cached.get("body") or {}).get("items"):
+        log.warning("EA returned no readings for %s; keeping cached copy from %s", url, cached["received_at"])
+        return cached["body"], received_at
     path.parent.mkdir(parents=True, exist_ok=True)
     # Write then rename, so a reader (another thread, the API refresher) never sees a half-written file.
     tmp = path.with_name(f"{path.name}.{os.getpid()}.{threading.get_ident()}.part")
@@ -181,31 +244,59 @@ def _cached_get_json(
 # ---------------------------------------------------------------------------------------------
 
 
+def _num(value: Any) -> float:
+    if isinstance(value, bool):
+        return np.nan
+    if isinstance(value, int | float):
+        return float(value)
+    if isinstance(value, str):
+        try:
+            return float(value)
+        except ValueError:
+            return np.nan
+    return np.nan
+
+
 def _to_float(value: Any) -> float:
-    """EA values are usually numbers, occasionally a list (duplicate readings) or junk."""
+    """EA values are usually numbers, occasionally a list (duplicate readings), a numeric string or junk."""
     if isinstance(value, list):
-        nums = [v for v in value if isinstance(v, int | float)]
+        nums = [x for x in map(_num, value) if np.isfinite(x)]
         return float(np.mean(nums)) if nums else np.nan
-    return float(value) if isinstance(value, int | float) else np.nan
+    x = _num(value)
+    return x if np.isfinite(x) else np.nan
 
 
 def parse_readings(body: Any, received_at: datetime) -> pd.DataFrame:
     """API body -> ``observed_at`` (UTC), ``value``, ``quality``, ``received_at``; sorted, deduplicated.
 
-    Rows without a value are dropped. ``quality`` is the EA quality flag if the reading has one (the
-    flood-monitoring readings usually don't), else "".
+    Rows without a value or with an unparseable ``dateTime`` are dropped, as are readings stamped more
+    than ``FUTURE_TOLERANCE`` after ``received_at`` (a gauge clock error would otherwise look fresh for
+    ever). Out-of-order items are sorted; a repeated timestamp keeps its first item. ``quality`` is the
+    EA quality flag if the reading has one (the flood-monitoring readings usually don't), else "".
     """
-    items = (body or {}).get("items", [])
+    items = body.get("items", []) if isinstance(body, dict) else []
+    items = [i for i in items if isinstance(i, dict)] if isinstance(items, list) else []
+    received = pd.Timestamp(received_at).tz_convert("UTC")
     df = pd.DataFrame(
         {
-            "observed_at": pd.to_datetime([i.get("dateTime") for i in items], utc=True),
+            "observed_at": pd.to_datetime(
+                [i.get("dateTime") if isinstance(i.get("dateTime"), str) else None for i in items],
+                utc=True,
+                errors="coerce",
+                format="ISO8601",
+            ),
             "value": [_to_float(i.get("value")) for i in items],
             "quality": [str(i.get("quality") or "") for i in items],
         }
     )
     df = df.dropna(subset=["observed_at", "value"])
+    future = df["observed_at"] > received + FUTURE_TOLERANCE
+    if future.any():
+        log.warning("dropped %d reading(s) stamped after they were received", int(future.sum()))
+        df = df[~future]
     df = df.drop_duplicates("observed_at").sort_values("observed_at").reset_index(drop=True)
-    df["received_at"] = pd.Timestamp(received_at).tz_convert("UTC")
+    df["observed_at"] = df["observed_at"].astype("datetime64[ns, UTC]")
+    df["received_at"] = received
     return df
 
 
@@ -221,15 +312,18 @@ def fetch_live_readings(
 
     Requests run concurrently, at most ``max_workers`` at a time. The result is in the fixed order of
     ``LEVEL_MEASURES`` then ``RAIN_MEASURES`` whatever order the requests finish in. A gauge whose
-    request fails with no cached copy is logged and left out; the others are unaffected.
+    request fails with no cached copy is logged and left out; the others are unaffected. After
+    ``BREAKER_FAILURES`` outages (timeouts, network errors, 5xx) in this poll, the gauges not yet
+    requested use their cached copies without calling the EA (``_Breaker``).
     """
     now = (now or datetime.now(UTC)).astimezone(UTC)
     since = (now - timedelta(days=LIVE_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
     params = {"since": since, "_sorted": "", "_limit": "10000"}
+    breaker = _Breaker(fetch)
 
     def get(measure: str) -> tuple[Any, datetime]:
         url = f"{BASE_URL}/id/measures/{measure}/readings"
-        return _cached_get_json(url, params, now=now, cache_dir=cache_dir, ttl_s=ttl_s, fetch=fetch)
+        return _cached_get_json(url, params, now=now, cache_dir=cache_dir, ttl_s=ttl_s, fetch=breaker.guard)
 
     jobs = list({**LEVEL_MEASURES, **RAIN_MEASURES}.items())
     with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="ea-live") as pool:
@@ -238,10 +332,11 @@ def fetch_live_readings(
     for key, future in futures:  # job order, not completion order
         try:
             body, received_at = future.result()
-        except Exception as exc:  # one dead gauge must not stop live mode
+            out[key] = parse_readings(body, received_at)
+        except Exception as exc:  # one dead gauge or one broken body must not stop live mode
             log.warning("no live data for %s: %s", key, exc)
-            continue
-        out[key] = parse_readings(body, received_at)
+    if breaker.open:
+        log.warning("EA unreachable this poll (%d failures): cached readings used", breaker.failures)
     return out
 
 
@@ -361,9 +456,17 @@ def ingest_live(
     readings = clean_readings(readings)  # before live_meta too: a junk latest reading is not levelNow
     hourly = to_hourly(readings)
     meta = live_meta(readings)
+    if not meta["gauges"]:
+        # Nothing at all (EA down and no cache): keep the last processed files rather than blank them.
+        raise RuntimeError("no live readings for any level gauge; processed live files left as they were")
     out_hourly.parent.mkdir(parents=True, exist_ok=True)
-    hourly.to_parquet(out_hourly, index=False)
-    out_meta.write_text(json.dumps(meta, indent=2))
+    # Write then rename: the API's refresher may read these while `make live` writes them.
+    tmp_hourly = out_hourly.with_name(f"{out_hourly.name}.{os.getpid()}.part")
+    hourly.to_parquet(tmp_hourly, index=False)
+    tmp_meta = out_meta.with_name(f"{out_meta.name}.{os.getpid()}.part")
+    tmp_meta.write_text(json.dumps(meta, indent=2))
+    tmp_hourly.replace(out_hourly)
+    tmp_meta.replace(out_meta)
     log.info(
         "live: %d gauges, %d hourly rows, rain gauges %s",
         len(meta["gauges"]),

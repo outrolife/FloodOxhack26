@@ -428,9 +428,11 @@ def test_model_forecast_is_the_backtest_forecast(models_dir: Path, tmp_path: Pat
     assert botley["levelNow"] == round(meta["gauges"]["newbotley"]["level"], 3)  # latest 15-min reading
     assert [lead["h"] for lead in botley["leads"]] == list(fl.LEADS_H)
 
-    anchor = pd.Timestamp("2026-10-25T02:00:00Z")  # hour of the latest reading (02:15)
+    # Live at 02:30 uses the last complete hour, 01:00 (01:00-01:45), not the partial 02:00 hour (#93).
+    anchor = pd.Timestamp("2026-10-25T01:00:00Z")
+    assert fl.last_complete_hour(T0) == anchor
     spot = {"key": "botley", "gauge": "newbotley", "threshold": 2.76, "amber": 2.01, "mode": "probability"}
-    # A replay forecast issued at t uses the row labelled t - 1 h (#93), so issue it an hour after the anchor.
+    # A replay forecast issued at t uses the row labelled t - 1 h (#93): the replay issued at floor(now).
     issued = anchor + pd.Timedelta(hours=1)
     replay = backtest.forecasts_at(train.normalise_hourly(hourly), forecaster.models, [spot], [issued])
     assert replay[0]["spots"][0]["leads"] == botley["leads"]
