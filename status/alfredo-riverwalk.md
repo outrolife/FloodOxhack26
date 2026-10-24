@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: reviewing
 - **issue**: #125
-- **task**: PR #155 river walk: verified, reproduces A exactly (0.0 m diff)
+- **task**: PR #155 river walk: review guards pushed (42151b3), rebased on main
 - **next**: Await merge
-- **needs**: s-s01s: merge after data/upstream-gauges, then make train backtest (02:00)
+- **needs**: s-s01s: merge #155, then make train backtest (02:00); train now runs travel first
 - **notes**: 
 - **branch**: model/river-walk
-- **head**: 1c9babe Regenerate travel_times.json with the river-walk pairs; SPEC 4
+- **head**: 42151b3 Guard the river walk: retrain stale LOFO caches, refuse stale 
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T22:17:10Z
+- **updated**: 2026-10-24T22:34:54Z
