@@ -83,3 +83,14 @@ export function spotDots(clocks: ClockProps[], f: Pick<Forecast, "dataAsOf" | "o
     return { ...c, note: quietNote(c.state, lastReading(f, gauge)) };
   });
 }
+
+/**
+ * Spots with something to show (browser feedback, #152): a spot whose gauge is offline or that has
+ * no forecast is left off the map rather than drawn as an empty grey marker. Wolvercote (timing-only)
+ * never shows; Cherwell shows in replays and is hidden in Now while Kings Mill is offline. Before a
+ * forecast has loaded every spot shows, so the map is not empty while it loads.
+ */
+export function withData<T extends Pick<ClockProps, "state">>(dots: T[], f: Forecast | null): T[] {
+  if (!f) return dots;
+  return dots.filter((d) => d.state !== "stale" && d.state !== "noforecast");
+}

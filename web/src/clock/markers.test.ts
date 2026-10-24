@@ -1,6 +1,6 @@
 // Spot markers and link words on the flow map (#118 browser feedback).
 import { describe, expect, it } from "vitest";
-import { DOT_BOX, DOT_PX, PULSE_H, chanceLabel, eaBadge, justWarned, labelSide, lastReading, quietNote, ringText, spotDots } from "./markers";
+import { DOT_BOX, DOT_PX, PULSE_H, chanceLabel, eaBadge, justWarned, labelSide, lastReading, quietNote, ringText, spotDots, withData } from "./markers";
 import { linkWords } from "./flow";
 import { CLOCK_BOX, spreadApart } from "../ui/placement";
 
@@ -75,5 +75,20 @@ describe("replay badges and the warning pulse", () => {
     expect(justWarned(f, T("2014-01-04T05:00:00Z"))).toBe(true);
     expect(justWarned(f, T("2014-01-04T05:00:00Z") + PULSE_H * 3_600_000)).toBe(false);
     expect(justWarned({ rc50: null }, Infinity)).toBe(false);
+  });
+});
+
+describe("withData", () => {
+  const f = { stale: [] } as unknown as Parameters<typeof withData>[1];
+  const dots = [
+    { key: "osney", state: "watch" as const },
+    { key: "wolvercote", state: "noforecast" as const },
+    { key: "cherwell", state: "stale" as const },
+  ];
+  it("leaves spots with no forecast or an offline gauge off the map", () => {
+    expect(withData(dots, f).map((d) => d.key)).toEqual(["osney"]);
+  });
+  it("shows every spot until a forecast has loaded", () => {
+    expect(withData(dots, null)).toHaveLength(3);
   });
 });

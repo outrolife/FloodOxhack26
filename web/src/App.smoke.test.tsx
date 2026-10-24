@@ -78,9 +78,14 @@ describe("App smoke test (jsdom)", () => {
     expect(screen.getByRole("navigation", { name: "What to show" })).toBeTruthy();
     expect(document.querySelector(".ui-basemap .leaflet-container")).not.toBeNull();
     if (existsSync(DATA + "spots.json")) {
-      // Small identical spot markers, one per spot; no big clock cards and no permanent link labels on the map.
+      // Small identical spot markers, one per spot with data (no-forecast / offline spots are left off,
+      // markers.withData); no big clock cards and no permanent link labels on the map.
       const spots = JSON.parse(readFileSync(DATA + "spots.json", "utf8")) as unknown[];
-      await waitFor(() => expect(document.querySelectorAll(".rc-hero .rc-dot")).toHaveLength(spots.length), { timeout: WAIT_MS });
+      await waitFor(() => {
+        const n = document.querySelectorAll(".rc-hero .rc-dot").length;
+        expect(n).toBeGreaterThan(0);
+        expect(n).toBeLessThan(spots.length); // Wolvercote (timing-only) never shows
+      }, { timeout: WAIT_MS });
       expect(document.querySelector(".rc-hero .spot-clock")).toBeNull();
       expect(document.querySelector(".rc-hero .leaflet-tooltip.rc-link-label")).toBeNull();
       expect(document.querySelector(".rc-hero .rc-hero-score .ck-score")).not.toBeNull();

@@ -12,7 +12,7 @@ import { BaseMap, useBaseMap, type FitPadding } from "../ui/BaseMap";
 import { clocksFor } from "../ui/clockData";
 import { gaugeName } from "../lib/plain";
 import { FLOW_LOOK, PULSE_DASH, PULSE_PATH_LENGTH, bucketFor, chainLinks, flowBounds, levelFraction, linesByGauge, linkWords, riverWalk, type Bucket, type ChainLink } from "./flow";
-import { spotDots, type DotBadge } from "./markers";
+import { spotDots, withData, type DotBadge } from "./markers";
 import { SpotDots } from "./SpotDots";
 import { GaugeLayer } from "./GaugeLayer";
 import { gaugeIconSvg, lookFor, type GaugeLook } from "./gauges";
@@ -139,7 +139,7 @@ export function FlowMap({
     return { bucket: bucketFor(levelFraction(v, s.amber, s.threshold)), known: true };
   };
 
-  const dots = spotDots(clocksFor(forecast, spots), forecast, spots).map((d) => ({ ...d, ...marks?.[d.key] }));
+  const dots = withData(spotDots(clocksFor(forecast, spots), forecast, spots), forecast).map((d) => ({ ...d, ...marks?.[d.key] }));
 
   // Gauge icons: each gauge's own level vs its usual high, and where its water goes next.
   const looks: Record<string, GaugeLook> = {};
