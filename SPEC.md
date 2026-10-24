@@ -338,29 +338,25 @@ Stretch contracts are in §11.
 - All other data is static JSON. **The app must run fully offline** from `web/public/data/`; live mode degrades to "Live data unavailable".
 
 ### 10.2 Web app (React + Vite + TS)
-Tabs: **River · Time Machine · Decide · Proof · About.** Every tab shows a banner: "Decision-support prototype, not an official warning. Check gov.uk/check-flooding." Times displayed in Europe/London with the zone shown.
+**Visual-first rebuild (PM decision 24 Oct, #118).** Four screens replace the five tabs. Each screen answers one question with a **headline sentence, one hero visual and at most 3 stats**; expert detail sits behind a collapsed **"Show the working"**. Hash routes: `#/now`, `#/replay`, `#/protect`, `#/trust`, `#/working` (old `#river`, `#time-machine`, `#proof`… hashes still resolve). Every screen shows the small banner "Decision-support prototype, not an official warning. Check gov.uk/check-flooding." Times displayed in Europe/London with the zone shown. Every number on screen comes from `web/public/data/*.json` at runtime.
 
-**River (live)**
-- Map (Leaflet, OSM tiles with attribution): 5 spot markers coloured by `pFlood` at 24 h (green < 0.1, amber 0.1–0.5, red ≥ 0.5; grey if `timing_only` or stale).
-- Spot panel on click: 7-day level sparkline; probability bars for 6–72 h; arrival window sentence ("50% chance by Tue 18:00"); last observation time; link to the official EA page for its warning area.
-- River strip: vertical chain of gauges (Thames and Cherwell branches) with 7-day sparklines; each link labelled with median `T_half` ("≈ 18 h").
+**Shared kit (`web/src/ui/`, owner: App/UX lead):** `Screen`, `Headline`, `StatTile`, `ShowTheWorking`, `SpotClock` (a clock face whose ring fills with the flood chance, a countdown "≈ 31 h" underneath, and state shown by colour + shape + text: calm ● / watch ▲ / likely ■ / no forecast ○ / gauge offline ⊘, thresholds 10% and 50%), `BaseMap` (Leaflet over a **bundled offline vector basemap**, `web/public/data/geo/oxford-base.geojson`, from OpenStreetMap, ODbL, attributed; OSM tiles optional when online), and presenter mode.
 
-**Time Machine**
-- Event picker (default e2014); slider over hourly forecast times; play/pause (one simulated 12 h per 2 s). All replay data preloaded; no loading between steps.
-- Main chart for the selected spot's gauge: observed level up to the slider (solid); observed future shown faintly only once the slider has passed it; forecast fan (5–95%, 25–75%, median) from the slider time; threshold and amber lines.
-- Side panel: probability bars, arrival window, and the river strip showing upstream gauge levels at the slider time.
-- Timeline markers: first time River Clock reached ≥ 50% for this spot, and the official warning issue time, with the difference in hours.
+**Shell and presenter mode:** keys **1–4** switch screens, **Space** plays/pauses (custom event `rc:playpause`), **←/→** step (`rc:step`, Shift = 6 steps), **P** toggles presenter mode (bigger type, hidden navigation). A first-visit **"Start here"** landing (one sentence and three big buttons: Now · Replay · Protect), dismissible.
 
-**Decide**
-- Presets: Resident (move car: C = £20, L = £2,000), Commuter (reroute: C = £5, L = £100), Council (close road / barriers: C = £5,000, L = £100,000); sliders for C and L.
-- Optimal trigger p* = C / L. From `proof.tradeoff` (interpolated): hits, misses, false alarms, mean lead time; **expected cost over the backtest** for River Clock at p*, official warnings, never act, always act (bar chart). Cost per event: hit or false alarm costs C; miss costs L.
-- Advice for the selected live spot: "At your costs, act when P ≥ X%. Now: Y% → act / don't act yet."
+**1. Now** ("Where is the water, and when does it get here?"): full-screen Oxford map with the 5 spot clocks; the river strip as an animated vertical chain of gauges with the measured travel time on each link (`travel_times.json`; n ≥ 5 bold, fewer greyed); a spot card with the 72 h probability fan, the arrival window as clock times and one plain advice line per audience (resident / commuter / council) from the cost–loss presets and the live probability; up to 3 live stats from `live.json`. Wolvercote (no forecast) and stale gauges are shown as such, not hidden.
 
-**Proof**
-- Skill vs persistence by lead time; interval coverage; reliability diagram (spot selector); lead-time vs false-alarm trade-off curve (with official-warning reference); per-event table; travel-time finding (T_half vs rise magnitude per pair, cross-correlation curve); top-10 feature importance; data-quality and sources table.
+**2. Replay** ("Watch River Clock call the January 2014 flood"): opens on e2014 just before the flood (72 h before River Clock's first ≥ 50%) and auto-plays on first visit; map with the clocks filling as the wave arrives, and the forecast fan sweeping forward with the real level revealed behind it (no future data shown before the slider reaches it, §8). A scoreboard that fills in live: our ≥ 50% time · the EA warning time · the difference · the river-crossing time · peak predicted range vs actual. Event picker as thumbnails with a one-line outcome badge from the data. Against the EA the comparison is shown per event and is mixed; never "we always beat the EA".
 
-**About**
-- How it works in five steps; limitations (few floods, leave-one-flood-out caveat, thresholds, no future rainfall in the model, Botley Road rail-bridge closure Apr 2023 – Sept 2026 means road-closure dates aren't flood evidence); data credits and licences; disclaimer.
+**3. Protect** ("Where would 500 sandbags do the most good, and by when?"): S4 promoted into the core (below, and §11 S4 for the method and contract). Zoomed Osney/Botley map with the S3 spread heatmap for the selected hour, building footprints and the top-5 candidates as numbered pins; a bag-budget slider and an hour slider; each pin card shows why it is exposed, bags needed, deploy-by time and the checks a human must make. Labelled "Screening, not instructions" and "Experimental".
+
+**4. How good is it?** ("Should you trust it?"): three tiles: beats "nothing changes" (skill at 24 h from `proof.skillByLead`, pooled); honest odds (the reliability diagonal); early without crying wolf (floods caught, false alarms and typical warning time from `proof.tradeoff` at p* = 0.5, plus the per-spot lead vs the EA). "Show the working" holds the existing Proof charts, the per-event table, data quality and the travel-time scatter.
+
+**Show the working (`#/working`):** the original River, Time Machine, Decide, Proof and About views, unchanged and reachable, for expert questions.
+
+**Decide is retired as a screen.** The cost–loss rule (presets: Resident move car C = £20, L = £2,000; Commuter reroute £5 / £100; Council close road £5,000 / £100,000; p* = C / L; expected cost over the backtest) stays in `web/src/lib/costLoss.ts` and drives the advice lines on Now and the "early without crying wolf" tile. The old Decide view stays under Show the working.
+
+**Contracts:** `web/src/contracts.ts` and the §9 / §11 JSON shapes are unchanged by the rebuild.
 
 ---
 
@@ -393,6 +389,7 @@ Tabs: **River · Time Machine · Decide · Proof · About.** Every tab shows a b
 - **UI:** toggle on the River and Time Machine maps, synced to the selected lead time.
 
 ### S4. Sandbag screening (depends on S3)
+**Promoted into the core on 24 Oct (#118) as the Protect screen (§10.2).** The method and contract below are unchanged.
 - **Purpose:** suggest where limited sandbags are worth *inspecting* first. Never instructions.
 - **Data:** OpenStreetMap building footprints for the subarea (ODbL; attribute); S3 outputs.
 - **Method:**
@@ -429,11 +426,14 @@ Stretch items are owned by whoever is free first, agreed at a team check-in.
 | P0 | River (static) + Time Machine on real data, offline | Demo runs from committed JSON | Sun 03:00 |
 | P1 | All 5 spots, all events, full `proof.json`, Proof tab | Metrics render with intervals | Sun 06:00 |
 | P1 | Official-warning comparison and trade-off curve | Markers in Time Machine | Sun 07:00 |
-| P2 | Decide tab | Expected-cost chart works | Sun 08:30 |
+| ~~P2~~ | ~~Decide tab~~ retired as a screen 24 Oct (#118); cost–loss stays internal (advice lines, trust tile), old view under Show the working | | |
+| P0 | Visual-first shell + kit (§10.2: screens, SpotClock, offline basemap, presenter mode) | Four screens route; build passes offline | Sat 21:00 |
+| P1 | Now, Replay, Protect, How good is it? screens (§10.2) | Each screen: headline + hero + ≤ 3 stats from data | Sun 00:30 GMT |
+| P1 | Integration: old tabs under Show the working; presenter rehearsal | 4-min demo runs on the four screens offline | Sun 03:00 GMT |
 | P2 | Live mode (`/api/live`); Tiger Data mirror | Live data shows | Sun 09:30 |
 | — | ~~Vultr deploy~~ dropped 24 Oct (no MLH credit); the `deploy/` kit works on any Docker host | | |
 | **Core gate** | All P0–P2 merged; demo runs end-to-end offline | | |
-| S1–S4 | Stretch backlog (§11), in order | Each works end-to-end | Stop new stretch work 09:00 |
+| S1–S3 | Stretch backlog (§11), in order (S4 is now core: the Protect screen, §10.2) | Each works end-to-end | Stop new stretch work 09:00 |
 | — | **Code freeze 11:00**; submission by 12:00 | | |
 
 ---
