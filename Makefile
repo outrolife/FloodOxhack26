@@ -128,3 +128,11 @@ demo: setup web/dist/index.html
 # Pre-judging checklist; run it while `make demo` is up (docs/demo-backup.md).
 preflight:
 	@$(SYS_PY) scripts/demo_preflight.py --port $(DEMO_PORT)
+
+# ---- Stretch (SPEC §11; only after the core gate in §13) ----------------------------------------
+.PHONY: s2
+
+# S2: Open-Meteo ensemble rain for the next 72 h, context only (not a model input). Writes
+# web/public/data/ensemble_rain.json; the River tab hides the panel when it is over 24 h old.
+s2: setup
+	$(PY) -m stretch.s2_ensemble_rain --write-web

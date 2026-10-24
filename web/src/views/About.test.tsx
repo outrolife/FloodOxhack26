@@ -21,8 +21,10 @@ describe("About", () => {
     }
   });
 
-  it("does not list Open-Meteo, which nothing uses", () => {
-    expect(html).not.toMatch(/open-meteo/i);
+  it("credits Open-Meteo (CC BY 4.0) for the S2 rain context, and says the model doesn't use it", () => {
+    expect(html).toContain("Open-Meteo");
+    expect(html).toContain("CC BY 4.0");
+    expect(html).toMatch(/not a model input/);
   });
 
   it("states the known limitations", () => {

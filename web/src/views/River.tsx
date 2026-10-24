@@ -6,6 +6,7 @@ import { formatDateTime } from "../time";
 import { SpotMap } from "../components/river/SpotMap";
 import { SpotPanel } from "../components/river/SpotPanel";
 import { RiskLayers } from "../components/river/RiskLayers"; // S1 (SPEC §11); remove this and <RiskLayers /> to hide
+import { EnsembleRainPanel } from "../components/river/EnsembleRain"; // S2 (SPEC §11); remove this and <EnsembleRainPanel /> to hide
 import { FixtureNotice, Pending } from "../components/shared/DataNotice";
 import { RiverStrip } from "../components/shared/RiverStrip";
 import { useLive } from "../components/shared/useLive";
@@ -97,6 +98,8 @@ export default function River() {
         )}
         {travel.status === "error" && <p className="small muted">Travel times not available yet.</p>}
       </section>
+
+      <EnsembleRainPanel />
     </>
   );
 }

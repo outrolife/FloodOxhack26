@@ -122,7 +122,9 @@ def member_matrix(loc: dict, issued: datetime, horizon: int = HORIZON_H) -> dict
     return out
 
 
-def compute(body: list[dict], points: list[str], issued: datetime, horizon: int = HORIZON_H) -> dict[str, Any]:
+def compute(
+    body: list[dict], points: list[str], issued: datetime, horizon: int = HORIZON_H
+) -> dict[str, Any]:
     """Build the ensemble_rain.json object from the raw API response (one entry per point)."""
     if len(body) != len(points):
         raise ValueError(f"expected {len(points)} locations in the response, got {len(body)}")
@@ -171,7 +173,8 @@ def main(argv: list[str] | None = None) -> int:
         write_json(out, t)
         print(f"wrote {t}")
     c = out["cumMm"]
-    print(f"issuedAt {out['issuedAt']}: 72 h rain p10 {c['p10'][-1]} mm, p50 {c['p50'][-1]} mm, p90 {c['p90'][-1]} mm")
+    p10, p50, p90 = (c[k][-1] for k in ("p10", "p50", "p90"))
+    print(f"issuedAt {out['issuedAt']}: 72 h rain p10 {p10} mm, p50 {p50} mm, p90 {p90} mm")
     return 0
 
 

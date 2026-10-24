@@ -15,8 +15,9 @@ ISSUED = datetime(2026, 10, 24, 18, tzinfo=UTC)
 PUBLIC = Path(__file__).resolve().parent.parent / "web" / "public" / "data" / "ensemble_rain.json"
 
 
-def canned(n_members: int = 51, hours: int = 96, start: datetime = ISSUED - timedelta(hours=18)) -> list[dict]:
+def canned(n_members: int = 51, hours: int = 96, start: datetime | None = None) -> list[dict]:
     """Three locations; member m rains m * 0.01 mm every hour at point 0, twice that at 1, 0 at 2."""
+    start = start or ISSUED - timedelta(hours=18)
     times = [(start + timedelta(hours=h)).strftime("%Y-%m-%dT%H:%M") for h in range(hours)]
     out = []
     for p, scale in enumerate([1.0, 2.0, 0.0]):
