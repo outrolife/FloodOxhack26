@@ -59,7 +59,7 @@ import numpy as np
 import pandas as pd
 
 from model.calibrate import INTERVALS, apply_cqr, calibration_rows, event_mask, fit_cqr
-from model.probability import ALPHAS, sort_quantiles
+from model.probability import ALPHAS, HORIZONS_H, sort_quantiles
 from model.train import DATA_DIR, MODELS_DIR, WEIGHT_MARGIN_M, GaugeModel
 
 log = logging.getLogger(__name__)
@@ -84,7 +84,9 @@ VARIANT_SCHEME = {"current": 1, "pooled_all": 1, "m2": 2, "m3": 3, "m2h": 2, "m3
 # ---------------------------------------------------------------------------------------------
 
 
-def regimes(X: pd.DataFrame, amber: float, scheme: int) -> np.ndarray:
+def regimes(
+    X: pd.DataFrame, amber: float, scheme: int, rise_m: float = RISE_M, wet_mm: float = WET_MM
+) -> np.ndarray:
     """Regime label per row of the feature frame ``X``, from that row's own columns only.
 
     ``scheme`` 1: all calm (one pooled Q); 2: calm / high; 3: calm / rising / high. Rows with NaN
@@ -98,20 +100,20 @@ def regimes(X: pd.DataFrame, amber: float, scheme: int) -> np.ndarray:
     if scheme == 1:
         return out
     if scheme == 3:
-        out[rising(X)] = RISING
+        out[rising(X, rise_m, wet_mm)] = RISING
     out[high] = HIGH
     return out
 
 
-def rising(X: pd.DataFrame) -> np.ndarray:
-    """Some upstream gauge rose >= RISE_M over 24 h, or >= WET_MM of catchment rain in 72 h."""
+def rising(X: pd.DataFrame, rise_m: float = RISE_M, wet_mm: float = WET_MM) -> np.ndarray:
+    """Some upstream gauge rose >= rise_m over 24 h, or >= wet_mm of catchment rain in 72 h."""
     up = [c for c in X.columns if c.endswith("_change_24h") and not c.startswith("level_")]
     with np.errstate(invalid="ignore"):
         r = np.zeros(len(X), dtype=bool)
         if up:
-            r |= np.nan_to_num(X[up].to_numpy(dtype=float), nan=-np.inf).max(axis=1) >= RISE_M
+            r |= np.nan_to_num(X[up].to_numpy(dtype=float), nan=-np.inf).max(axis=1) >= rise_m
         if "rain_sum_72h" in X.columns:
-            r |= np.nan_to_num(X["rain_sum_72h"].to_numpy(dtype=float), nan=0.0) >= WET_MM
+            r |= np.nan_to_num(X["rain_sum_72h"].to_numpy(dtype=float), nan=0.0) >= wet_mm
     return r
 
 
@@ -387,6 +389,143 @@ def tail_check(
     return rows
 
 
+SENS_GRID: tuple[tuple[float, float], ...] = (
+    (np.inf, np.inf),  # = m2h: no rising regime
+    (0.10, 20.0),
+    (0.10, 10.0),
+    (0.05, 20.0),
+    (0.05, 10.0),  # = m3h (the pre-declared thresholds)
+    (0.05, 5.0),
+    (0.02, 10.0),
+    (0.02, 5.0),
+    (0.0, 0.0),  # every non-high row is "rising" while any upstream gauge is not falling
+)
+CV_SPLIT = pd.Timestamp("2020-04-01", tz="UTC")  # two validation folds for choosing the thresholds
+
+
+def _hybrid_q(
+    raw: np.ndarray, y: np.ndarray, reg: np.ndarray, fit_rows: np.ndarray, shipped: Mapping[str, float]
+) -> np.ndarray:
+    """m3h-style quantiles: calm rows get a Q fitted on ``fit_rows`` & calm, others the shipped Q."""
+    calm = fit_rows & (reg == CALM)
+    q_calm = fit_cqr(raw[calm], y[calm]) if calm.sum() >= MIN_REGIME_ROWS else dict(shipped)
+    return apply_regime_q(raw, reg, {CALM: q_calm, RISING: shipped, HIGH: shipped})
+
+
+def _pin_rows(q: np.ndarray, y: np.ndarray) -> np.ndarray:
+    a = np.asarray(ALPHAS)[None, :]
+    d = y[:, None] - q
+    return np.maximum(a * d, (a - 1) * d).mean(axis=1)
+
+
+def sensitivity_stage(out: Path) -> dict[str, Any]:
+    """Rising-regime thresholds for the hybrid: chosen on validation (2-fold cross-fit), then tested.
+
+    Validation: calm Q fitted on one fold (split at CV_SPLIT), scored on the other; non-calm rows keep
+    the shipped Q in every arm. Test: calm Q from all validation calm rows (as in m3h). Reported per
+    grid point: pinball change vs current per gauge and lead (%, negative = better), pooled in-event
+    coverage (event windows from level_now, as proof.json), share of calm rows.
+    """
+    from model.train import load_hourly
+
+    hourly = load_hourly()
+    models = load_shipped()
+    frames = {}
+    for g, m in models.items():
+        X, Y, _ = gauge_frame(hourly, m)
+        ok = np.isfinite(X["level_now"].to_numpy(dtype=float))
+        X, Y = X[ok], Y[ok]
+        ev = event_mask(X["level_now"], m.amber).to_numpy()
+        raw = RawCache(m, CACHE_DIR / f"{g}_raw.npz").predict_raw(X)
+        frames[g] = (m, X, Y, ev, raw)
+    res: dict[str, Any] = {"grid": []}
+    for rise_m, wet_mm in SENS_GRID:
+        row: dict[str, Any] = {"riseM": rise_m, "wetMm": wet_mm, "val": {}, "test": {}}
+        for part in ("val", "test"):
+            cov_n = {(h, k): [0, 0] for h in HORIZONS_H for k in INTERVALS}
+            cov_cur = {(h, k): [0, 0] for h in HORIZONS_H for k in INTERVALS}
+            pin: dict[str, dict[int, float]] = {}
+            calm_share = []
+            for g, (m, X, Y, ev, raw) in frames.items():
+                reg = regimes(X, m.amber, 3, rise_m, wet_mm)
+                lv = X["level_now"].to_numpy(dtype=float)
+                pin[g] = {}
+                for h in m.horizons:
+                    y = Y[f"y_{h}h"].to_numpy(dtype=float)
+                    val = val_rows(m, X.index, h, y, lv)
+                    cur = apply_cqr(raw[h], m.cqr[h])
+                    if part == "val":
+                        fold_a = val & (X.index < CV_SPLIT)
+                        fold_b = val & (X.index >= CV_SPLIT)
+                        qa = _hybrid_q(raw[h], y, reg, fold_b, m.cqr[h])  # fitted on B, scored on A
+                        qb = _hybrid_q(raw[h], y, reg, fold_a, m.cqr[h])
+                        q = np.where(fold_a[:, None], qa, qb)
+                        score = val
+                    else:
+                        q = _hybrid_q(raw[h], y, reg, val, m.cqr[h])
+                        score = (X.index >= m.splits.test_start) & np.isfinite(y)
+                    pm, pc = _pin_rows(q[score], y[score]).mean(), _pin_rows(cur[score], y[score]).mean()
+                    pin[g][h] = round(100 * (pm - pc) / pc, 2)
+                    if h == 72:
+                        calm_share.append(float((reg[score] == CALM).mean()))
+                    e = score & ev
+                    for k, (lo, hi, _) in INTERVALS.items():
+                        i, j = ALPHAS.index(lo), ALPHAS.index(hi)
+                        for qq, acc in ((q, cov_n), (cur, cov_cur)):
+                            inside = (y[e] >= qq[e, i]) & (y[e] <= qq[e, j])
+                            acc[(h, k)][0] += int(inside.sum())
+                            acc[(h, k)][1] += int(e.sum())
+            row[part] = {
+                "pinballPct": pin,
+                "inEventCov": {f"{h}h {k}": round(a / max(n, 1), 3) for (h, k), (a, n) in cov_n.items()},
+                "inEventCovDelta": {
+                    f"{h}h {k}": round(a / max(n, 1) - cov_cur[(h, k)][0] / max(cov_cur[(h, k)][1], 1), 3)
+                    for (h, k), (a, n) in cov_n.items()
+                },
+                "calmShare72h": round(float(np.mean(calm_share)), 3),
+            }
+        res["grid"].append(row)
+        log.info("sensitivity %s/%s done", rise_m, wet_mm)
+
+    def ok_val(r: Mapping[str, Any]) -> bool:
+        v = r["val"]
+        return min(v["inEventCovDelta"].values()) >= -0.01 and all(
+            x <= 0 for d in v["pinballPct"].values() for x in d.values()
+        )
+
+    cands = [r for r in res["grid"] if ok_val(r)]
+    pick = (
+        min(cands, key=lambda r: np.mean([d[72] for d in r["val"]["pinballPct"].values()])) if cands else None
+    )
+    res["selectedOnValidation"] = None if pick is None else {"riseM": pick["riseM"], "wetMm": pick["wetMm"]}
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(res, indent=1, default=str), encoding="utf-8")
+    return res
+
+
+def sensitivity_report(res: Mapping[str, Any]) -> str:
+    L = [
+        "### Rising-regime thresholds (hybrid): pinball change vs current, % (− = better), "
+        "worst gauge-lead / mean 72 h; min in-event coverage change vs current; calm share",
+        "| rise m / rain mm | val: worst, mean72 | val: min Δcov | test: worst, mean72 | test: min Δcov "
+        "| calm |",
+        "|---|---|---|---|---|---|",
+    ]
+    for r in res["grid"]:
+        cells = []
+        for part in ("val", "test"):
+            p = r[part]["pinballPct"]
+            worst = max((x, f"{g} {h}h") for g, d in p.items() for h, x in d.items())
+            mean72 = np.mean([d[72] if 72 in d else d["72"] for d in p.values()])
+            dcov = min(r[part]["inEventCovDelta"].items(), key=lambda kv: kv[1])
+            cells += [f"{worst[0]:+.2f} ({worst[1]}), {mean72:+.1f}", f"{dcov[1]:+.3f} ({dcov[0]})"]
+        L.append(
+            f"| {r['riseM']} / {r['wetMm']} | " + " | ".join(cells) + f" | {r['test']['calmShare72h']} |"
+        )
+    L.append(f"Selected on validation: {res.get('selectedOnValidation')}")
+    return "\n".join(L)
+
+
 def evaluate_stage(variants: Sequence[str], min_rows: int, events: bool, out: Path) -> dict[str, Any]:
     from analysis import feature_experiment as fe
     from model import backtest
@@ -579,12 +718,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     e.add_argument("--min-rows", type=int, default=MIN_REGIME_ROWS)
     e.add_argument("--no-events", action="store_true")
     e.add_argument("--out", default=str(OUT_PATH))
+    sn = sub.add_parser("sensitivity", help="rising-regime thresholds: validation cross-fit, then test")
+    sn.add_argument("--out", default=str(DATA_DIR / "processed" / "exp125_calib_sensitivity.json"))
     r = sub.add_parser("report", help="print the tables from a results JSON")
     r.add_argument("--path", default=str(OUT_PATH))
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     if args.cmd == "cache":
         cache_stage(args.targets)
+    elif args.cmd == "sensitivity":
+        print(sensitivity_report(sensitivity_stage(Path(args.out))))
     elif args.cmd == "report":
         print(report(load_results(Path(args.path))))
     else:
