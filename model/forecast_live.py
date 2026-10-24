@@ -32,9 +32,13 @@ Method
 
 Stale rule (SPEC §10.1)
 -----------------------
-A gauge whose latest reading is more than 3 h old (or that returned no data) is listed in ``stale``,
-and every spot that depends on it gets ``leads: []`` and ``arrival: null``. A spot depends on its own
-gauge; with the model it also depends on that gauge's upstream inputs.
+A gauge whose latest reading is more than 3 h old (or that returned no data) is listed in ``stale``.
+A spot whose own gauge is stale gets ``leads: []`` and ``arrival: null``. A spot whose own gauge is
+fresh but one of its model's upstream inputs (its river walk, ``TrainedForecaster.upstreams``) is stale
+gets labelled persistence instead (#125, PM condition 2): the ``note`` names the spot and the stale
+gauge, and every other spot keeps its model forecast. So a stale Shifford sends Botley and Osney (minns)
+to persistence, while Abingdon Road (coldharbour) and Cherwell (kingsmill), which do not read it, are
+unaffected.
 
 Live-only gauges (SPEC §4.1.1: godstow, osney, iffley have no downstream-stage history) are shown with
 their live level but never forecast: a spot on one (wolvercote -> godstow) is ``timing_only`` with
@@ -97,6 +101,10 @@ PERSISTENCE_NOTE = (
 PARTIAL_PERSISTENCE_NOTE = (
     "Persistence fallback for {spots}: no trained model or no current reading for that gauge, so the "
     "forecast there assumes the level stays roughly where it is. The other spots use the River Clock model."
+)
+STALE_UPSTREAM_NOTE = (
+    "Persistence fallback for {spot}: no reading for over 3 hours from {gauges} upstream, which its "
+    "model needs, so the forecast there assumes the level stays roughly where it is."
 )
 GAP_NOTE = (
     "Data gap: the {spot} forecast is missing recent readings from {inputs}, so its range may be too narrow."
@@ -425,6 +433,7 @@ def build_forecast(
 
     out_spots, fallback_spots = [], []
     gaps: list[str] = []  # data-gap sentences for the note
+    stale_up_notes: list[str] = []  # spots on persistence because an upstream input is stale
     for spot in spots:
         level_now = _level_now(hourly, meta, spot.gauge)
         if level_now is None:
@@ -437,22 +446,32 @@ def build_forecast(
             "arrival": None,
             "mode": spot.effective_mode,
         }
-        if forecastable[spot.key] and not any(g in stale for g in depends[spot.key]):
-            try:
-                deltas = forecaster.predict(hourly, spot.gauge, now)
-                base = forecaster.base_level(hourly, spot.gauge, now)
-                missing = (
-                    forecaster.missing_inputs(hourly, spot.gauge, now)
-                    if deltas is not None and isinstance(forecaster, TrainedForecaster)
-                    else []
+        stale_ups = [g for g in depends[spot.key][1:] if g in stale]
+        if forecastable[spot.key] and spot.gauge not in stale:
+            deltas, missing = None, []
+            if stale_ups:  # a stale upstream input: labelled persistence for this spot only
+                log.warning("spot %s: upstream %s stale; using persistence", spot.key, stale_ups)
+                stale_up_notes.append(
+                    STALE_UPSTREAM_NOTE.format(
+                        spot=spot.name, gauges=" and ".join(g.capitalize() for g in stale_ups)
+                    )
                 )
-            except Exception:  # one broken model or input must not take live mode down
-                log.exception("spot %s: model forecast failed; using persistence", spot.key)
-                deltas, missing = None, []
+            else:
+                try:
+                    deltas = forecaster.predict(hourly, spot.gauge, now)
+                    base = forecaster.base_level(hourly, spot.gauge, now)
+                    missing = (
+                        forecaster.missing_inputs(hourly, spot.gauge, now)
+                        if deltas is not None and isinstance(forecaster, TrainedForecaster)
+                        else []
+                    )
+                except Exception:  # one broken model or input must not take live mode down
+                    log.exception("spot %s: model forecast failed; using persistence", spot.key)
+                    deltas, missing = None, []
             if deltas is None:  # no model for this gauge, no level in the anchor hour, or an error
                 deltas = persistence.predict(hourly, spot.gauge, now)
                 base = persistence.base_level(hourly, spot.gauge, now)
-                if forecaster is not persistence:
+                if forecaster is not persistence and not stale_ups:
                     fallback_spots.append(spot.key)
             if missing:
                 names = ", ".join("catchment rain" if m == "rain" else m.capitalize() for m in missing)
@@ -481,7 +500,7 @@ def build_forecast(
         note = PARTIAL_PERSISTENCE_NOTE.format(spots=", ".join(fallback_spots))
     else:
         note = ""
-    note = " ".join(part for part in [note, *gaps] if part)
+    note = " ".join(part for part in [note, *stale_up_notes, *gaps] if part)
     return {
         "issuedAt": iso_utc(now),
         "dataAsOf": data_as_of,

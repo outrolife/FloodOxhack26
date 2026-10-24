@@ -349,8 +349,10 @@ def test_model_upstreams_count_as_dependencies(tmp_path: Path) -> None:
 
     fc = fl.build_forecast(hourly, meta, T0, forecaster=Model())
     spots = {s["spot"]: s for s in fc["spots"]}
-    assert fc["method"] == "model" and fc["note"] == ""
-    assert spots["botley"]["leads"] == [] and spots["cherwell"]["leads"]
+    # Stale upstream: labelled persistence for botley only (#125), never a silent model forecast.
+    assert fc["method"] == "model" and fc["note"].startswith("Persistence fallback for Botley Road")
+    assert "Farmoor upstream" in fc["note"] and "Cherwell" not in fc["note"]
+    assert spots["botley"]["leads"] and spots["cherwell"]["leads"]
 
 
 def test_no_live_data_raises() -> None:

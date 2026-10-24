@@ -377,12 +377,15 @@ def test_stale_gauge_through_full_ingest(tmp_path: Path) -> None:
     assert next(s for s in fc["spots"] if s["spot"] == "botley")["leads"] == []
 
 
-def test_upstream_stale_blanks_model_spot(tmp_path: Path, forecaster: fl.TrainedForecaster) -> None:
+def test_upstream_stale_gives_labelled_persistence(tmp_path: Path, forecaster: fl.TrainedForecaster) -> None:
+    """A stale upstream input (#125 PM condition 2): labelled persistence for that spot, not a blank."""
     old = FakeEA(T0 - timedelta(hours=5), hours=24 * 28)
     hourly, meta = ingest(tmp_path, OddEA(T0 - timedelta(minutes=15), {"farmoor": old}, hours=24 * 28), T0)
     fc = fl.build_forecast(hourly, meta, T0, forecaster=forecaster)
     assert "farmoor" in fc["stale"]
-    assert next(s for s in fc["spots"] if s["spot"] == "botley")["leads"] == []
+    assert next(s for s in fc["spots"] if s["spot"] == "botley")["leads"]
+    assert "Persistence fallback for Botley Road / New Botley / Hinksey" in fc["note"]
+    assert "Farmoor upstream" in fc["note"]
 
 
 # ---------------------------------------------------------------------------------------------
