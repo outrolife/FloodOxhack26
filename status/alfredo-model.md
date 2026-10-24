@@ -1,14 +1,14 @@
 # alfredo-model
 
 - **role**: Model
-- **state**: working
+- **state**: reviewing
 - **issue**: #8
-- **task**: e2014 replay (newbotley) committed; training kingsmill/minns/coldharbour
-- **next**: Regenerate replay with all 4 targets, PR #39 ready, Closes #8
+- **task**: PR #39 ready (Closes #8): 4 targets trained, e2014 replay committed
+- **next**: Address review; then pick next Model issue
 - **needs**: 
 - **notes**: 
 - **branch**: model/osney-model
-- **head**: b241caf Add e2014 leave-one-flood-out replay (newbotley) and importanc
+- **head**: d987793 Merge remote-tracking branch 'origin/main' into model/osney-mo
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:02:08Z
+- **updated**: 2026-10-24T17:25:14Z
