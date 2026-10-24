@@ -386,6 +386,8 @@ def fit_quantile_boosters(
 ) -> dict[float, lgb.Booster]:
     """One LightGBM quantile booster per alpha, early-stopped on the (weighted) validation rows."""
     base = {**LGB_PARAMS, **(params or {})}
+    if os.environ.get("RC_LGB_THREADS"):  # for running several gauges in parallel processes
+        base["num_threads"] = int(os.environ["RC_LGB_THREADS"])
     dtrain = lgb.Dataset(X_tr, y_tr, weight=w_tr, free_raw_data=False)
     dval = lgb.Dataset(X_va, y_va, weight=w_va, reference=dtrain, free_raw_data=False)
     out = {}
@@ -565,8 +567,14 @@ def write_importance(models: Iterable[GaugeModel], path: Path | None = None) -> 
 def main(argv: Sequence[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--targets", nargs="+", default=list(DEFAULT_TARGETS))
+    ap.add_argument("--no-importance", action="store_true", help="skip importance.json (parallel runs)")
+    ap.add_argument("--importance-only", action="store_true", help="write importance.json from saved models")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    if args.importance_only:
+        models = [GaugeModel.load(MODELS_DIR / t) for t in args.targets]
+        log.info("wrote %s", write_importance(models))
+        return
     hourly = load_hourly()
     lags = load_lags()
     models = []
@@ -575,7 +583,8 @@ def main(argv: Sequence[str] | None = None) -> None:
         m.save(MODELS_DIR / target)
         log.info("saved %s to %s; cqr=%s", target, MODELS_DIR / target, m.cqr)
         models.append(m)
-    log.info("wrote %s", write_importance(models))
+    if not args.no_importance:
+        log.info("wrote %s", write_importance(models))
 
 
 if __name__ == "__main__":

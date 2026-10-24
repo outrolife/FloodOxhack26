@@ -2,7 +2,7 @@
 
 Issue #8.
 
-``python -m model.backtest [--event e2014] [--targets newbotley] [--retrain]``:
+``python -m model.backtest [--event e2014] [--targets newbotley] [--retrain] [--train-only]``:
 
 1. Leave-one-flood-out: train every target model with the event window ± 7 days removed from training
    and calibration (cached under ``$RC_DATA_DIR/models/lofo/<event>/<gauge>/``; ``--retrain`` refits).
@@ -366,12 +366,15 @@ def main(argv: Sequence[str] | None = None) -> None:
     ap.add_argument("--event", default="e2014")
     ap.add_argument("--targets", nargs="+", default=list(DEFAULT_TARGETS))
     ap.add_argument("--retrain", action="store_true")
+    ap.add_argument("--train-only", action="store_true", help="fit/cache the leave-one-out models and stop")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     events = load_events()
     event = events[args.event]
     hourly = load_hourly()
     models = lofo_models(hourly, args.event, event, args.targets, load_lags(), retrain=args.retrain)
+    if args.train_only:
+        return
     replay = build_replay(hourly, models, args.event, event, load_spots())
     path = write_json(replay, WEB_DATA / "replays" / f"{args.event}.json")
     log.info("wrote %s (%d forecasts, %.1f MB)", path, len(replay["forecasts"]), path.stat().st_size / 1e6)
