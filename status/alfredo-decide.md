@@ -3,12 +3,12 @@
 - **role**: App
 - **state**: working
 - **issue**: #15
-- **task**: Decide tab: cost-loss module pushed; building Decide.tsx
-- **next**: Decide.tsx UI on scaffold (presets, sliders, chart, advice)
+- **task**: Decide tab UI pushed; checking render on fixtures
+- **next**: Visual check, then PR against app/web-scaffold
 - **needs**: 
 - **notes**: 
 - **branch**: app/decide
-- **head**: cd614e9 Add pure cost-loss module for the Decide tab, with vitest test
-- **unpushed**: 0
-- **dirty**: 0
-- **updated**: 2026-10-24T16:10:08Z
+- **head**: 7479b7f Build the Decide tab: presets, log sliders, outcomes, cost cha
+- **unpushed**: 3
+- **dirty**: 1
+- **updated**: 2026-10-24T16:13:52Z
