@@ -8,7 +8,7 @@
 - **needs**: 
 - **notes**: alfredo: #103 judge-first UX will touch views after #101/#102; please merge those early
 - **branch**: main
-- **head**: b958dd2 Merge pull request #98 from outrolife/data/live-models-clean
+- **head**: a714e4f Merge pull request #104 from outrolife/app/about-diagram
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:17:19Z
+- **updated**: 2026-10-24T18:21:19Z
