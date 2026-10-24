@@ -71,14 +71,13 @@ EARLY_STOPPING_ROUNDS = 100
 HIGH_WEIGHT = 5.0  # sample weight where level_now > amber - WEIGHT_MARGIN_M
 WEIGHT_MARGIN_M = 0.3
 
-# Fallback gauge lines for the trained targets (SPEC §4.1, §4.1.1, re-target PR #30) until
-# config/stations.yaml exists. minns and coldharbour thresholds are TBC (Story, #10): NaN until verified,
-# which makes their spots timing_only. osney, godstow and iffley are live only: no history, not trained.
+# Fallback gauge lines for the trained targets (SPEC §4.1, §4.1.1), used only if config/stations.yaml
+# is missing or unreadable. osney, godstow and iffley are live only: no history, not trained.
 GAUGE_LINES: dict[str, dict[str, float]] = {
     "newbotley": {"amber": 2.01, "threshold": 2.76},
     "kingsmill": {"amber": 2.40, "threshold": 2.60},
-    "minns": {"amber": 2.13, "threshold": math.nan},
-    "coldharbour": {"amber": 2.30, "threshold": math.nan},
+    "minns": {"amber": 2.13, "threshold": 2.90},
+    "coldharbour": {"amber": 2.30, "threshold": 2.44},
 }
 DEFAULT_TARGETS: tuple[str, ...] = ("newbotley",)
 

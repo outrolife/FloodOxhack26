@@ -61,7 +61,8 @@ EVENTS: dict[str, dict[str, Any]] = {
     "e2026": {"name": "Feb–Mar 2026", "start": "2026-02-18", "end": "2026-03-10"},
 }
 
-# SPEC §4.2 after the re-target (PR #30). Thresholds None = TBC (Story, #10) -> timing_only.
+# SPEC §4.2 after the re-target (PR #30); fallback only, config/spots.yaml overrides.
+# A threshold of None (unverified) makes the spot timing_only.
 # wolvercote is on godstow, which is live only: timing_only, no forecast.
 SPOTS: list[dict[str, Any]] = [
     {
