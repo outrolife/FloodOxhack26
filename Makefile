@@ -92,3 +92,33 @@ docker:
 # (.venv/Scripts/python.exe on Windows)
 mirror: setup
 	$(PY) -m pipeline.mirror_tiger --hourly --live
+
+# ---- Offline demo kit (issue #70; docs/demo-backup.md) -----------------------------------------
+.PHONY: demo preflight
+
+DEMO_PORT ?= 8080
+DEMO_LIVE ?= 0
+DEMO_OPEN ?= 1
+# The preflight runs on the system Python (stdlib only, 3.9+), so it works before `make setup`.
+SYS_PY := $(if $(filter Windows_NT,$(OS)),python,python3)
+# Everything the web build reads: dist is rebuilt only when one of these is newer than it.
+WEB_SOURCES := $(shell find web/src web/public tests/fixtures -type f 2>/dev/null) \
+  web/index.html web/package.json web/package-lock.json web/vite.config.ts web/tsconfig.json
+
+# npm ci only when the lockfile changed (needs network the first time, never after).
+web/node_modules/.package-lock.json: web/package-lock.json
+	cd web && npm ci --no-audit --no-fund
+
+# Build, then stamp dist with the commit it was built from (make preflight checks it against HEAD).
+web/dist/index.html: $(WEB_SOURCES) web/node_modules/.package-lock.json
+	cd web && npm run build
+	$(SYS_PY) scripts/demo_preflight.py --stamp
+
+# The presenter's command: built SPA + /data + /api from one process on 127.0.0.1:$(DEMO_PORT), and
+# the browser opens. Offline by default; DEMO_LIVE=1 polls the EA; DEMO_OPEN=0 skips the browser.
+demo: setup web/dist/index.html
+	@DEMO_PORT=$(DEMO_PORT) DEMO_LIVE=$(DEMO_LIVE) DEMO_OPEN=$(DEMO_OPEN) $(PY) scripts/demo_serve.py
+
+# Pre-judging checklist; run it while `make demo` is up (docs/demo-backup.md).
+preflight:
+	@$(SYS_PY) scripts/demo_preflight.py --port $(DEMO_PORT)
