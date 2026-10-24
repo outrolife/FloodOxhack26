@@ -135,13 +135,18 @@ LEVEL_MEASURES: dict[str, str] = {
     "minns": "1635TH-level-stage-i-15_min-mASD",
     "coldharbour": "1675TH-level-stage-i-15_min-mASD",
 }
+# Main-channel locks with live data only (SPEC §4.1.1): shown, never forecast.
+LIVE_ONLY_GAUGES: frozenset[str] = frozenset({"godstow", "osney", "iffley"})
+
 # Catchment ring (issue #146): display-only gauges further out, from `catchment_gauges:` in
-# config/stations.yaml (key -> fm measure). Requested after the core gauges and rain, so a slow EA
-# or the poll deadline costs these first.
-CATCHMENT_MEASURES: dict[str, str] = {g.key: g.fm_level_measure for g in stations.load_catchment_gauges()}
-LEVEL_MEASURES.update({k: m for k, m in CATCHMENT_MEASURES.items() if k not in LEVEL_MEASURES})
-# Live data only, never forecast: the main-channel locks (SPEC §4.1.1) and the catchment ring (#146).
-LIVE_ONLY_GAUGES: frozenset[str] = frozenset({"godstow", "osney", "iffley", *CATCHMENT_MEASURES})
+# config/stations.yaml (key -> fm measure); a key already listed above (e.g. a #125 gauge adopted as a
+# model input) keeps its core entry. Requested after the core gauges and rain, so a slow EA or the
+# poll deadline costs these first. Live only, never forecast.
+CATCHMENT_MEASURES: dict[str, str] = {
+    g.key: g.fm_level_measure for g in stations.load_catchment_gauges() if g.key not in LEVEL_MEASURES
+}
+LEVEL_MEASURES.update(CATCHMENT_MEASURES)
+LIVE_ONLY_GAUGES = LIVE_ONLY_GAUGES | frozenset(CATCHMENT_MEASURES)
 # Rain gauges are keyed by their EA station ref, as in hourly.parquet.
 RAIN_MEASURES: dict[str, str] = {
     ref: f"{ref}-rainfall-tipping_bucket_raingauge-t-15_min-mm"

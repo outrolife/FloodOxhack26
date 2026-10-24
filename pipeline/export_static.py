@@ -72,9 +72,11 @@ def _utc(v: Any, what: str) -> str:
 
 
 def build_stations(doc: dict[str, Any]) -> list[dict[str, Any]]:
-    """``gauges:`` then the display-only ``catchment_gauges:`` (#146, role live_only)."""
+    """``gauges:`` then the display-only ``catchment_gauges:`` (#146, role live_only) not already in it."""
     out = []
-    for g in [*doc["gauges"], *(doc.get("catchment_gauges") or [])]:
+    core = {str(g["key"]) for g in doc["gauges"]}
+    ring = [g for g in doc.get("catchment_gauges") or [] if str(g["key"]) not in core]
+    for g in [*doc["gauges"], *ring]:
         key = str(g["key"])
         role = str(g["role"])
         if role not in STATION_ROLES:

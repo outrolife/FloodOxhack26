@@ -297,7 +297,7 @@ def test_catchment_ring_is_display_only() -> None:
     from pipeline import stations
 
     ring = stations.load_catchment_gauges()
-    assert len(ring) >= 6 and {"shifford", "worsham", "lowerarncott"} <= set(il.CATCHMENT_MEASURES)
+    assert len(ring) >= 6 and {"kingslock", "botanic", "thrupp"} <= set(il.CATCHMENT_MEASURES)
     core = {g.key for g in stations.load_gauges()[0]}
     assert not core & set(il.CATCHMENT_MEASURES), "a catchment gauge leaked into load_gauges (history/model)"
     keys = list(il.LEVEL_MEASURES)
