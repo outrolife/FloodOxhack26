@@ -3,12 +3,12 @@
 - **role**: PM
 - **state**: working
 - **issue**: 
-- **task**: PM: 4 agents running (#2 #3 #10 #16); PRs #26 contracts + #27 observer await merge
-- **next**: Decide osney target once #2 confirms downstream-stage history
+- **task**: PM: re-targeted to newbotley (SPEC PR #30); PRs #26 #27 #30 await merge
+- **next**: Merge PRs; track #2 #3 #10 #16
 - **needs**: 
-- **notes**: hourly.parquet = union of both formats (see #3). RISK: Hydrology may lack osney/iffley/godstow downstream stage (see #2)
+- **notes**: DECISION: target = newbotley (+kingsmill, minns, coldharbour); osney/godstow/iffley live only. See SPEC PR #30
 - **branch**: main
 - **head**: 6e8694d Merge pull request #25 from outrolife/integration/scaffold
 - **unpushed**: 0
-- **dirty**: 0
-- **updated**: 2026-10-24T16:10:03Z
+- **dirty**: 1
+- **updated**: 2026-10-24T16:13:42Z
