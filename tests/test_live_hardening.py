@@ -440,30 +440,51 @@ def test_model_error_falls_back_to_persistence_for_that_spot(
 
 
 def test_total_outage_keeps_last_processed_files(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    hourly, meta = ingest(tmp_path, FakeEA(T0 - timedelta(hours=5)), T0 - timedelta(hours=5))
-    before = (tmp_path / "m.json").read_text()
+    ingest(tmp_path, FakeEA(T0 - timedelta(hours=5)), T0 - timedelta(hours=5))
+    before = json.loads((tmp_path / "m.json").read_text())
 
     def down(url: str, params: dict[str, str]) -> dict:
         raise requests.ConnectionError
 
-    with pytest.raises(RuntimeError, match="no live readings"):
+    # EA down and the raw cache gone: every gauge is carried over from the last processed files.
+    _, meta = il.ingest_live(
+        T0,
+        cache_dir=tmp_path / "empty-cache",
+        out_hourly=tmp_path / "h.parquet",
+        out_meta=tmp_path / "m.json",
+        fetch=down,
+    )
+    assert meta == before and json.loads((tmp_path / "m.json").read_text()) == before  # not blanked
+
+    # With no previous files either: NoLiveReadings, and nothing written.
+    with pytest.raises(il.NoLiveReadings):
         il.ingest_live(
             T0,
             cache_dir=tmp_path / "empty-cache",
-            out_hourly=tmp_path / "h.parquet",
-            out_meta=tmp_path / "m.json",
+            out_hourly=tmp_path / "new" / "h.parquet",
+            out_meta=tmp_path / "new" / "m.json",
             fetch=down,
         )
-    assert (tmp_path / "m.json").read_text() == before  # not blanked
+    assert not (tmp_path / "new" / "m.json").exists()
 
     # refresh() then serves those files, all stale, as a valid Forecast.
     monkeypatch.setattr(fl, "LIVE_HOURLY", tmp_path / "h.parquet")
     monkeypatch.setattr(fl, "LIVE_META", tmp_path / "m.json")
     monkeypatch.setattr(fl, "MODELS_DIR", tmp_path / "no-models")
-    monkeypatch.setattr(il, "_http_get_json", down)
     fc = fl.refresh(T0, fetch=False)
     assert fc["stale"] == sorted(il.LEVEL_MEASURES)
     check_contract(fc)
+
+
+def test_ingest_cli_exits_cleanly_on_total_outage(monkeypatch: pytest.MonkeyPatch) -> None:
+    def no_data(*args: object, **kwargs: object) -> None:
+        raise il.NoLiveReadings("no live readings for any level gauge")
+
+    monkeypatch.setattr(il, "ingest_live", no_data)
+    monkeypatch.setattr("sys.argv", ["ingest_live"])
+    with pytest.raises(SystemExit) as exc:
+        il.main()
+    assert exc.value.code == 1
 
 
 def test_cli_without_any_data_exits_cleanly(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -506,3 +527,191 @@ def test_api_without_processed_data_still_starts() -> None:
     time.sleep(0.05)
     with pytest.raises(fl.LiveDataUnavailable):
         cache.get()
+
+
+# ---------------------------------------------------------------------------------------------
+# Review findings on PR #141 (the reviewer's probes, turned into regression tests)
+# ---------------------------------------------------------------------------------------------
+
+
+def _back_after_outage(tmp_path: Path, now: datetime) -> tuple[pd.DataFrame, dict]:
+    """newbotley offline 08:45 -> 12:15 (3.5 h), back with one reading at 12:15 (probe_anchor.py)."""
+    readings = il.fetch_live_readings(
+        now, cache_dir=tmp_path / "raw", fetch=FakeEA(now - timedelta(minutes=5), hours=24 * 28)
+    )
+    r = readings["newbotley"]
+    keep = (r["observed_at"] <= pd.Timestamp("2026-10-25T08:45Z")) | (
+        r["observed_at"] == pd.Timestamp("2026-10-25T12:15Z")
+    )
+    readings["newbotley"] = r[keep].reset_index(drop=True)
+    readings = il.clean_readings(readings)
+    return il.to_hourly(readings), il.live_meta(readings)
+
+
+def test_no_model_forecast_from_an_hours_old_anchor(tmp_path: Path, forecaster: fl.TrainedForecaster) -> None:
+    """Probe 1: the anchor must be floor(now) - 1 h itself, as in the backtest; never an older row."""
+    from model import backtest, train
+
+    now = datetime(2026, 10, 25, 12, 20, tzinfo=UTC)
+    hourly, meta = _back_after_outage(tmp_path, now)
+    assert meta["gauges"]["newbotley"]["observed_at"] == "2026-10-25T12:15:00Z"  # looks fresh
+    assert forecaster.features_at(hourly, "newbotley", now) is None  # was the 08:00 row
+    fc = fl.build_forecast(hourly, meta, now, forecaster=forecaster)
+    botley = next(s for s in fc["spots"] if s["spot"] == "botley")
+    assert "botley" in fc["note"].split(":")[0]  # labelled persistence, not a silent model forecast
+    assert botley["levelNow"] == round(meta["gauges"]["newbotley"]["level"], 3)
+    # The backtest at floor(now) has no level for that row either, so no model forecast there.
+    spot = {"key": "botley", "gauge": "newbotley", "threshold": 2.76, "amber": 2.01, "mode": "probability"}
+    rep = backtest.forecasts_at(
+        train.normalise_hourly(hourly), forecaster.models, [spot], [pd.Timestamp("2026-10-25T12:00Z")]
+    )
+    assert rep[0]["spots"][0]["leads"] == []
+    check_contract(fc)
+
+
+def test_forward_filled_anchor_is_not_fresh(tmp_path: Path, forecaster: fl.TrainedForecaster) -> None:
+    """The gauge missed the whole anchor hour but has a later reading: that hour is only ffilled."""
+    now = datetime(2026, 10, 25, 12, 20, tzinfo=UTC)
+    readings = il.fetch_live_readings(
+        now, cache_dir=tmp_path / "raw", fetch=FakeEA(now - timedelta(minutes=5), hours=24 * 28)
+    )
+    r = readings["newbotley"]
+    hole = r["observed_at"].between(pd.Timestamp("2026-10-25T11:00Z"), pd.Timestamp("2026-10-25T11:45Z"))
+    readings["newbotley"] = r[~hole].reset_index(drop=True)
+    hourly = il.to_hourly(il.clean_readings(readings))
+    nb = hourly[hourly["gauge"] == "newbotley"].set_index("ts_utc")
+    assert nb.loc[pd.Timestamp("2026-10-25T11:00Z"), "filled"]  # clean.py carried 10:00 forward
+    assert forecaster.features_at(hourly, "newbotley", now) is None
+    # An hour later the anchor (12:00) has real readings again: model forecast as normal.
+    assert forecaster.features_at(hourly, "newbotley", now + timedelta(minutes=45)) is not None
+
+
+def test_cold_start_survives_a_short_503_blip(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, no_sleep: list[float]
+) -> None:
+    """Probe 2a: empty raw cache, a few-second EA 503 blip at the start of the poll.
+
+    The blip is modelled per request: every gauge's first 2 attempts (~2 s with backoff) get 503,
+    the third succeeds. With only LIVE_RETRIES = 2 for a cold gauge, every request failed, the
+    breaker opened and the poll ingested almost nothing.
+    """
+    now = datetime(2026, 10, 25, 9, 0, tzinfo=UTC)
+    fake = FakeEA(now - timedelta(minutes=15), hours=48)
+
+    class BlipSession:
+        headers: dict[str, str] = {}
+
+        def __init__(self) -> None:
+            self.attempts: dict[str, int] = {}
+            self._lock = threading.Lock()
+
+        def get(self, url: str, params: dict | None = None, **kwargs: object) -> requests.Response:
+            with self._lock:
+                self.attempts[url] = self.attempts.get(url, 0) + 1
+                blip = self.attempts[url] <= 2
+            r = requests.Response()
+            r.url = url
+            if blip:
+                r.status_code, r._content = 503, b"busy"
+            else:
+                r.status_code, r._content = 200, json.dumps(fake(url, params or {})).encode()
+            return r
+
+    monkeypatch.setattr(ea_client, "_session", BlipSession())
+    _, meta = ingest(tmp_path, il._http_get_json, now)
+    assert set(meta["gauges"]) == set(il.LEVEL_MEASURES)  # was 2 gauges before the fix
+    assert meta["rainGaugesUsed"] == sorted(il.RAIN_MEASURES)
+
+
+def test_a_few_always_failing_measures_do_not_send_healthy_gauges_to_cache(tmp_path: Path) -> None:
+    """Probe 2b: 3 lock measures answer 500 every time; the other gauges must still be fetched."""
+    bad = {il.LEVEL_MEASURES[g] for g in ("godstow", "osney", "iffley")}
+    t = datetime(2026, 10, 25, 9, 0, tzinfo=UTC)
+    il.fetch_live_readings(t, cache_dir=tmp_path, fetch=FakeEA(t - timedelta(minutes=15), hours=24))
+    for k in range(1, 4):
+        now = t + timedelta(minutes=15 * k)
+        fake = FakeEA(now - timedelta(minutes=15), hours=24)
+
+        def fetch(url: str, params: dict[str, str], fake: FakeEA = fake) -> dict:
+            if any(m in url for m in bad):
+                r = requests.Response()
+                r.status_code = 500
+                raise requests.HTTPError("HTTP 500", response=r)
+            return fake(url, params)
+
+        out = il.fetch_live_readings(now, cache_dir=tmp_path, fetch=fetch)
+        fresh = {g for g, df in out.items() if df["received_at"].iloc[-1] == pd.Timestamp(now)}
+        assert fresh == set(out) - {"godstow", "osney", "iffley"}, k
+        assert len(out) == N_GAUGES  # the three failing ones from their cache
+
+
+def test_breaker_still_opens_when_nothing_succeeds() -> None:
+    def down(url: str, params: dict[str, str]) -> dict:
+        raise requests.ConnectionError
+
+    breaker = il._Breaker(down)
+    for _ in range(il.BREAKER_FAILURES):
+        with pytest.raises(requests.ConnectionError):
+            breaker.guard("u", {})
+    assert breaker.open
+    with pytest.raises(il.EAUnavailable):
+        breaker.guard("u", {})
+
+
+def test_poll_deadline_stops_new_requests(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Low finding: a slow-but-answering EA cannot hold a poll (and LiveCache's lock) for minutes."""
+    earlier = T0 - timedelta(hours=1)
+    il.fetch_live_readings(earlier, cache_dir=tmp_path, fetch=FakeEA(earlier, hours=2))
+    monkeypatch.setattr(il, "POLL_DEADLINE_S", 0.15)
+    fake = FakeEA(T0, hours=2)
+
+    def slow(url: str, params: dict[str, str]) -> dict:
+        time.sleep(0.2)
+        return fake(url, params)
+
+    out = il.fetch_live_readings(T0, cache_dir=tmp_path, fetch=slow)
+    assert len(out) == N_GAUGES  # nothing lost: the rest came from the cache
+    assert 0 < fake.calls <= il.MAX_WORKERS  # only the first wave was asked (5 waves without it)
+
+
+def test_cold_start_merges_with_previous_processed_files(tmp_path: Path) -> None:
+    """Probe 2a, second half: gauges this poll could not get are carried over, never dropped."""
+    ingest(tmp_path, FakeEA(T0 - timedelta(hours=1)), T0 - timedelta(hours=1))
+    gone = [il.LEVEL_MEASURES["newbotley"], il.LEVEL_MEASURES["islip"], "264254TP"]
+    fake = FakeEA(T0 - timedelta(minutes=15))
+
+    def fetch(url: str, params: dict[str, str]) -> dict:
+        if any(m in url for m in gone):
+            raise requests.ConnectionError("down")
+        return fake(url, params)
+
+    hourly, meta = il.ingest_live(
+        T0,
+        cache_dir=tmp_path / "wiped-cache",
+        out_hourly=tmp_path / "h.parquet",
+        out_meta=tmp_path / "m.json",
+        fetch=fetch,
+    )
+    assert list(meta["gauges"]) == list(il.LEVEL_MEASURES)
+    assert meta["gauges"]["newbotley"]["observed_at"] == iso(T0 - timedelta(hours=1))  # old time kept
+    assert meta["gauges"]["farmoor"]["observed_at"] == iso(T0 - timedelta(minutes=15))
+    assert "264254TP" in meta["rainGaugesUsed"] and "264254TP" in set(hourly["gauge"])
+    assert (hourly["gauge"] == il.RAIN_KEY).any()
+    assert not hourly.duplicated(["gauge", "ts_utc"]).any()
+    check_contract(fl.build_forecast(hourly, meta, T0))
+
+
+def test_replace_retry_waits_out_a_windows_lock(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    calls = {"n": 0}
+    real = il.os.replace
+
+    def flaky(src: object, dst: object) -> None:
+        calls["n"] += 1
+        if calls["n"] < 3:
+            raise PermissionError("in use")
+        real(src, dst)
+
+    monkeypatch.setattr(il.os, "replace", flaky)
+    (tmp_path / "a.part").write_text("new")
+    il.replace_retry(tmp_path / "a.part", tmp_path / "a.json", wait_s=0)
+    assert (tmp_path / "a.json").read_text() == "new" and calls["n"] == 3

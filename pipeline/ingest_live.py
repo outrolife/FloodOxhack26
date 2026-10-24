@@ -64,6 +64,7 @@ import json
 import logging
 import os
 import threading
+import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
@@ -88,12 +89,17 @@ LIVE_DAYS = 28
 CACHE_TTL_S = 15 * 60  # poll EA at most every 15 minutes
 MAX_WORKERS = 4  # concurrent EA requests per poll (bounded, polite)
 HTTP_TIMEOUT_S = (10, 30)  # (connect, read) seconds: an unreachable host fails fast
-# A slow or dead EA must not hold a poll for minutes (#125 hardening): each request gets 2 attempts
-# (2 s backoff), and after BREAKER_FAILURES network failures in one poll the remaining gauges skip
-# the network and use their cached copies. Measured on a real unreachable host: ~45 s per poll
-# (it was ~15 min: 5 attempts x 30 s per request, every request tried). DNS failure: ~5 s.
+# A slow or dead EA must not hold a poll for minutes (#125 hardening): a request for a gauge that has
+# a cached copy gets 2 attempts (2 s backoff); one with no cache yet (cold start) keeps the full
+# ea_client retries, since there is nothing to fall back to. The poll's circuit breaker opens after
+# BREAKER_FAILURES outages with no success at all in that poll (so a few broken measures never send
+# healthy gauges to the cache), or once POLL_DEADLINE_S has passed; then the gauges not yet requested
+# use their cached copies. Measured on a real unreachable host: ~45 s per poll (it was ~15 min:
+# 5 attempts x 30 s per request, every request tried). DNS failure: ~5 s.
 LIVE_RETRIES = 2
+COLD_RETRIES = ea_client.MAX_RETRIES
 BREAKER_FAILURES = 3
+POLL_DEADLINE_S = 90.0
 FUTURE_TOLERANCE = timedelta(minutes=15)  # readings stamped later than received_at + this are dropped
 RAIN_KEY = clean.RAIN_CATCHMENT  # "rain_catchment"
 PLAUSIBLE_BELOW_AMBER_M = 4.0  # plausible band: amber - 4 m ...
@@ -140,41 +146,93 @@ Fetcher = Callable[[str, dict[str, str]], Any]
 
 
 def _http_get_json(url: str, params: dict[str, str]) -> Any:
-    """GET JSON via ``ea_client.http_get``: retries with exponential backoff on network errors, 429, 5xx."""
+    """GET JSON via ``ea_client.http_get``: ``LIVE_RETRIES`` attempts, backoff on network errors, 429, 5xx."""
     return ea_client.http_get(url, params=params, timeout=HTTP_TIMEOUT_S, retries=LIVE_RETRIES).json()
+
+
+def _http_get_json_cold(url: str, params: dict[str, str]) -> Any:
+    """As ``_http_get_json`` with ``COLD_RETRIES`` attempts: for a gauge with no cached copy yet."""
+    return ea_client.http_get(url, params=params, timeout=HTTP_TIMEOUT_S, retries=COLD_RETRIES).json()
 
 
 class EAUnavailable(ConnectionError):
     """The circuit breaker is open for this poll: the EA is treated as down, so no request is made."""
 
 
+class NoLiveReadings(RuntimeError):
+    """No level gauge has any reading, live or cached: nothing is written."""
+
+
 def _counts_as_outage(exc: Exception) -> bool:
-    """Network errors, timeouts, 429/5xx and broken bodies count; a 4xx for one measure does not."""
+    """Network errors, timeouts and 429/5xx count; a 4xx for one measure does not.
+
+    Only exceptions raised by the fetch itself reach the breaker; a body of the wrong shape is
+    rejected afterwards by ``_check_body`` and does not count.
+    """
     status = getattr(getattr(exc, "response", None), "status_code", None)
     return not (status is not None and 400 <= status < 500 and status != 429)
 
 
 class _Breaker:
-    """Counts EA outages within one poll; once ``limit`` is reached, ``guard`` stops calling the EA."""
+    """One poll's circuit breaker around the EA fetchers.
 
-    def __init__(self, fetch: Fetcher, limit: int = BREAKER_FAILURES) -> None:
-        self.fetch, self.limit, self.failures = fetch, limit, 0
+    Open (no more requests this poll) when ``limit`` outages happened and not one request succeeded,
+    or when ``deadline_s`` has passed since the poll started. Requests already in flight finish.
+    """
+
+    def __init__(
+        self,
+        fetch: Fetcher,
+        cold_fetch: Fetcher | None = None,
+        limit: int = BREAKER_FAILURES,
+        deadline_s: float | None = None,
+    ) -> None:
+        self.fetch, self.cold_fetch = fetch, cold_fetch or fetch
+        self.limit = limit
+        self.deadline_s = POLL_DEADLINE_S if deadline_s is None else deadline_s
+        self.failures = self.successes = 0
+        self.started = time.monotonic()
         self._lock = threading.Lock()
 
     @property
     def open(self) -> bool:
-        return self.failures >= self.limit
+        down = self.failures >= self.limit and self.successes == 0
+        return down or time.monotonic() - self.started > self.deadline_s
 
-    def guard(self, url: str, params: dict[str, str]) -> Any:
+    def _call(self, fetch: Fetcher, url: str, params: dict[str, str]) -> Any:
         if self.open:
-            raise EAUnavailable(f"EA treated as down after {self.failures} failures this poll")
+            raise EAUnavailable(
+                f"EA not called: {self.failures} failures, {self.successes} successes, "
+                f"{time.monotonic() - self.started:.0f} s into this poll"
+            )
         try:
-            return self.fetch(url, params)
+            body = fetch(url, params)
         except Exception as exc:
             if _counts_as_outage(exc):
                 with self._lock:
                     self.failures += 1
             raise
+        with self._lock:
+            self.successes += 1
+        return body
+
+    def guard(self, url: str, params: dict[str, str]) -> Any:
+        return self._call(self.fetch, url, params)
+
+    def guard_cold(self, url: str, params: dict[str, str]) -> Any:
+        return self._call(self.cold_fetch, url, params)
+
+
+def replace_retry(tmp: Path, dst: Path, tries: int = 5, wait_s: float = 0.2) -> None:
+    """``os.replace`` that retries briefly on Windows, where a reader holding ``dst`` blocks it."""
+    for i in range(tries):
+        try:
+            os.replace(tmp, dst)
+            return
+        except PermissionError:
+            if i == tries - 1:
+                raise
+            time.sleep(wait_s)
 
 
 def _check_body(body: Any) -> Any:
@@ -199,8 +257,12 @@ def _cached_get_json(
     cache_dir: Path = RAW_DIR,
     ttl_s: int = CACHE_TTL_S,
     fetch: Fetcher = _http_get_json,
+    cold_fetch: Fetcher | None = None,
 ) -> tuple[Any, datetime]:
     """Return ``(json, received_at)``: from cache if it is younger than ``ttl_s``, else fetched.
+
+    With no cached copy at all, ``cold_fetch`` (if given) is used instead of ``fetch``: there is no
+    fallback, so it may retry for longer.
 
     The cache file stores ``received_at`` itself (not the file mtime), so the TTL is testable and
     survives copies. If the fetch fails (network error, timeout, 5xx, a body that is not
@@ -222,7 +284,8 @@ def _cached_get_json(
         if (now - received_at).total_seconds() < ttl_s:
             return cached["body"], received_at
     try:
-        body = _check_body(fetch(url, params))
+        getter = cold_fetch if cached is None and cold_fetch is not None else fetch
+        body = _check_body(getter(url, params))
     except Exception:
         if cached is None:
             raise
@@ -235,7 +298,7 @@ def _cached_get_json(
     # Write then rename, so a reader (another thread, the API refresher) never sees a half-written file.
     tmp = path.with_name(f"{path.name}.{os.getpid()}.{threading.get_ident()}.part")
     tmp.write_text(json.dumps({"url": url, "params": params, "received_at": now.isoformat(), "body": body}))
-    tmp.replace(path)
+    replace_retry(tmp, path)
     return body, now
 
 
@@ -312,18 +375,27 @@ def fetch_live_readings(
 
     Requests run concurrently, at most ``max_workers`` at a time. The result is in the fixed order of
     ``LEVEL_MEASURES`` then ``RAIN_MEASURES`` whatever order the requests finish in. A gauge whose
-    request fails with no cached copy is logged and left out; the others are unaffected. After
-    ``BREAKER_FAILURES`` outages (timeouts, network errors, 5xx) in this poll, the gauges not yet
-    requested use their cached copies without calling the EA (``_Breaker``).
+    request fails with no cached copy is logged and left out; the others are unaffected. Once the
+    poll's ``_Breaker`` is open (``BREAKER_FAILURES`` outages and no success, or ``POLL_DEADLINE_S``
+    passed), the gauges not yet requested use their cached copies without calling the EA. A gauge
+    with no cached copy is fetched with ``COLD_RETRIES`` attempts (with the default fetcher).
     """
     now = (now or datetime.now(UTC)).astimezone(UTC)
     since = (now - timedelta(days=LIVE_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
     params = {"since": since, "_sorted": "", "_limit": "10000"}
-    breaker = _Breaker(fetch)
+    breaker = _Breaker(fetch, cold_fetch=_http_get_json_cold if fetch is _http_get_json else fetch)
 
     def get(measure: str) -> tuple[Any, datetime]:
         url = f"{BASE_URL}/id/measures/{measure}/readings"
-        return _cached_get_json(url, params, now=now, cache_dir=cache_dir, ttl_s=ttl_s, fetch=breaker.guard)
+        return _cached_get_json(
+            url,
+            params,
+            now=now,
+            cache_dir=cache_dir,
+            ttl_s=ttl_s,
+            fetch=breaker.guard,
+            cold_fetch=breaker.guard_cold,
+        )
 
     jobs = list({**LEVEL_MEASURES, **RAIN_MEASURES}.items())
     with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="ea-live") as pool:
@@ -336,7 +408,11 @@ def fetch_live_readings(
         except Exception as exc:  # one dead gauge or one broken body must not stop live mode
             log.warning("no live data for %s: %s", key, exc)
     if breaker.open:
-        log.warning("EA unreachable this poll (%d failures): cached readings used", breaker.failures)
+        log.warning(
+            "EA calls stopped this poll (%d failures, %d successes): cached readings used",
+            breaker.failures,
+            breaker.successes,
+        )
     return out
 
 
@@ -442,6 +518,51 @@ def live_meta(readings: dict[str, pd.DataFrame]) -> dict[str, Any]:
     return {"gauges": gauges, "rainGaugesUsed": rain_used}
 
 
+def carry_over_previous(
+    hourly: pd.DataFrame, meta: dict[str, Any], prev_hourly: Path, prev_meta: Path, now: datetime
+) -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Keep gauges this poll could not get (no answer, no cache) from the last processed files.
+
+    So a cold start during an EA blip, or a wiped ``raw/live`` cache, never shrinks the processed live
+    data to the few gauges that answered. Carried gauges keep their old ``observed_at`` and
+    ``received_at``, so the stale rule flags them once they are > 3 h old; anything older than
+    ``LIVE_DAYS`` is dropped. ``rain_catchment`` is recomputed when a rain gauge is carried.
+    """
+    if not (prev_hourly.exists() and prev_meta.exists()):
+        return hourly, meta
+    try:
+        old_meta = json.loads(prev_meta.read_text())
+        old = pd.read_parquet(prev_hourly)
+    except Exception as exc:  # unreadable previous files: nothing to carry
+        log.warning("previous live files unreadable (%s); not carried over", exc)
+        return hourly, meta
+    cutoff = pd.Timestamp(now) - pd.Timedelta(days=LIVE_DAYS)
+    levels = {
+        g: v
+        for g, v in old_meta.get("gauges", {}).items()
+        if g in LEVEL_MEASURES and g not in meta["gauges"] and pd.Timestamp(v["observed_at"]) > cutoff
+    }
+    have = set(hourly["gauge"]) if not hourly.empty else set()
+    rain = [g for g in old_meta.get("rainGaugesUsed", []) if g in RAIN_MEASURES and g not in have]
+    if not levels and not rain:
+        return hourly, meta
+    log.warning("no data this poll for %s; carried over from the last live run", sorted([*levels, *rain]))
+    old["ts_utc"] = pd.to_datetime(old["ts_utc"], utc=True).astype("datetime64[ns, UTC]")
+    carried = old[old["gauge"].isin([*levels, *rain]) & (old["ts_utc"] > cutoff)]
+    out = pd.concat([p for p in (hourly, carried) if not p.empty], ignore_index=True)[HOURLY_COLUMNS]
+    if rain:  # recompute the catchment mean over this poll's and the carried rain gauges
+        out = out[out["gauge"] != RAIN_KEY]
+        rain_rows = out[out["kind"] == "rain"]
+        if not rain_rows.empty:
+            catchment, _ = clean.rain_catchment(rain_rows)
+            out = pd.concat([out, catchment], ignore_index=True)
+    out[["filled", "flagged"]] = out[["filled", "flagged"]].astype(bool)
+    out = out.sort_values(["gauge", "ts_utc"]).reset_index(drop=True)
+    merged = {**levels, **meta["gauges"]}
+    gauges = {g: merged[g] for g in LEVEL_MEASURES if g in merged}  # fixed gauge order
+    return out, {"gauges": gauges, "rainGaugesUsed": sorted({*meta["rainGaugesUsed"], *rain})}
+
+
 def ingest_live(
     now: datetime | None = None,
     *,
@@ -452,21 +573,23 @@ def ingest_live(
     max_workers: int = MAX_WORKERS,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     """Fetch (cached), clean, resample and write ``live_hourly.parquet`` and ``live_meta.json``."""
+    now = (now or datetime.now(UTC)).astimezone(UTC)
     readings = fetch_live_readings(now, cache_dir=cache_dir, fetch=fetch, max_workers=max_workers)
     readings = clean_readings(readings)  # before live_meta too: a junk latest reading is not levelNow
     hourly = to_hourly(readings)
     meta = live_meta(readings)
+    hourly, meta = carry_over_previous(hourly, meta, out_hourly, out_meta, now)
     if not meta["gauges"]:
         # Nothing at all (EA down and no cache): keep the last processed files rather than blank them.
-        raise RuntimeError("no live readings for any level gauge; processed live files left as they were")
+        raise NoLiveReadings("no live readings for any level gauge; processed live files left as they were")
     out_hourly.parent.mkdir(parents=True, exist_ok=True)
     # Write then rename: the API's refresher may read these while `make live` writes them.
     tmp_hourly = out_hourly.with_name(f"{out_hourly.name}.{os.getpid()}.part")
     hourly.to_parquet(tmp_hourly, index=False)
     tmp_meta = out_meta.with_name(f"{out_meta.name}.{os.getpid()}.part")
     tmp_meta.write_text(json.dumps(meta, indent=2))
-    tmp_hourly.replace(out_hourly)
-    tmp_meta.replace(out_meta)
+    replace_retry(tmp_hourly, out_hourly)
+    replace_retry(tmp_meta, out_meta)
     log.info(
         "live: %d gauges, %d hourly rows, rain gauges %s",
         len(meta["gauges"]),
@@ -479,7 +602,11 @@ def ingest_live(
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     argparse.ArgumentParser(description=__doc__.splitlines()[0]).parse_args()
-    ingest_live()
+    try:
+        ingest_live()
+    except NoLiveReadings as exc:  # EA down and nothing cached: say so, no traceback
+        log.error("%s", exc)
+        raise SystemExit(1) from None
 
 
 if __name__ == "__main__":
