@@ -104,6 +104,36 @@ def test_compare_event_rows() -> None:
     assert r1["warning_precision"] == "time"
 
 
+def test_compare_event_pairs_within_first_flood() -> None:
+    """Regression (#73): e2012 Cherwell had two floods four weeks apart. At p* = 0.7 our first trigger
+    was for the second flood and the first warning for the first one, giving lead = -670 h."""
+    warn = _warnings(
+        [
+            ("061FWF14CherOxfd", "warning", "2012-11-26T22:02:54Z", "Flood Warning"),
+            ("061FWF14CherOxfd", "warning", "2012-12-24T16:51:02Z", "Flood Warning"),
+        ]
+    )
+    start, end = T("2012-11-20T00:00:00Z"), T("2013-01-05T00:00:00Z")
+    onsets = [T("2012-11-26T14:00:00Z"), T("2012-12-24T22:00:00Z")]
+    idx = pd.date_range(start, end, freq="1h", tz="UTC")
+    p = pd.Series(0.0, index=idx)
+    p[T("2012-11-25T14:00Z") : T("2012-11-26T13:00Z")] = 0.46  # first flood: never reaches 0.7
+    p[T("2012-12-24T20:00Z") : T("2012-12-24T21:00Z")] = 0.8  # second flood
+    old = of.compare_event(p, warn, "cherwell", "e2012", start, end, p_stars=(0.4, 0.7))
+    assert old[1]["lead_vs_warning_h"] == pytest.approx(-669.95, abs=0.01)  # the bug, without onsets
+    r4, r7 = of.compare_event(p, warn, "cherwell", "e2012", start, end, p_stars=(0.4, 0.7), onsets=onsets)
+    assert r7["trigger_at"] is None and r7["lead_vs_warning_h"] is None  # no trigger for the first flood
+    assert r7["warning_at"] == T("2012-11-26T22:02:54Z")
+    assert r4["trigger_at"] == T("2012-11-25T14:00Z")
+    assert r4["lead_vs_warning_h"] == pytest.approx(32.05, abs=0.01)
+    df = of.compare_events({("e2012", "cherwell"): p}, warn, {"e2012": (start, end)}, (0.7,),
+                           onsets={("e2012", "cherwell"): onsets})
+    assert of.mean_lead_vs_official(df, "cherwell", 0.7) is None
+    # One onset (or none): the whole window, as before.
+    assert of.first_flood_end(end, onsets[:1]) == end
+    assert of.first_flood_end(end, None) == end
+
+
 def test_compare_events_and_mean() -> None:
     triggers = {
         ("e2014", "osney"): _p([0.0, 0.2, 0.6]),
