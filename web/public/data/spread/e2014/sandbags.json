@@ -1,0 +1,599 @@
+{
+ "issuedAt": "2014-01-05T00:00:00Z",
+ "budget": 500,
+ "candidates": [
+  {
+   "id": "osm-way-207361945",
+   "lat": 51.75153,
+   "lon": -1.28658,
+   "score": 0.85,
+   "pWet48": 0.85,
+   "medianDepthM": 0.17,
+   "firstWet": "2014-01-05T12:00:00Z",
+   "bags": 49,
+   "reasons": [
+    "Frequency ≥ 0.2 along 5 m of its 211 m walls by 48 h (OSM retail)",
+    "P(wet by 48 h) 0.85",
+    "Median depth 0.17 m (≤ 0.3 m)",
+    "Frequency ≥ 0.5 from the +12 h frame",
+    "Bags assume 10 per metre of exposed wall (assumption)"
+   ],
+   "checks": [
+    "Door and sill height",
+    "Access for delivery",
+    "Owner permission",
+    "Risk of diverting water to neighbours"
+   ]
+  },
+  {
+   "id": "osm-way-954510771",
+   "lat": 51.75351,
+   "lon": -1.2656,
+   "score": 0.61,
+   "pWet48": 0.61,
+   "medianDepthM": 0.12,
+   "firstWet": "2014-01-06T12:00:00Z",
+   "bags": 38,
+   "reasons": [
+    "Frequency ≥ 0.2 along 4 m of its 25 m walls by 48 h (OSM apartments)",
+    "P(wet by 48 h) 0.61",
+    "Median depth 0.12 m (≤ 0.3 m)",
+    "Frequency ≥ 0.5 from the +36 h frame",
+    "Bags assume 10 per metre of exposed wall (assumption)"
+   ],
+   "checks": [
+    "Door and sill height",
+    "Access for delivery",
+    "Owner permission",
+    "Risk of diverting water to neighbours"
+   ]
+  },
+  {
+   "id": "osm-way-264911996",
+   "lat": 51.75138,
+   "lon": -1.2806,
+   "score": 0.595,
+   "pWet48": 0.595,
+   "medianDepthM": 0.11,
+   "firstWet": "2014-01-06T12:00:00Z",
+   "bags": 78,
+   "reasons": [
+    "Frequency ≥ 0.2 along 8 m of its 57 m walls by 48 h (OSM semidetached_house)",
+    "P(wet by 48 h) 0.60",
+    "Median depth 0.11 m (≤ 0.3 m)",
+    "Frequency ≥ 0.5 from the +36 h frame",
+    "Bags assume 10 per metre of exposed wall (assumption)"
+   ],
+   "checks": [
+    "Door and sill height",
+    "Access for delivery",
+    "Owner permission",
+    "Risk of diverting water to neighbours"
+   ]
+  },
+  {
+   "id": "osm-way-1101953852",
+   "lat": 51.75155,
+   "lon": -1.28328,
+   "score": 0.585,
+   "pWet48": 0.585,
+   "medianDepthM": 0.23,
+   "firstWet": "2014-01-06T12:00:00Z",
+   "bags": 61,
+   "reasons": [
+    "Frequency ≥ 0.2 along 6 m of its 54 m walls by 48 h (OSM terrace)",
+    "P(wet by 48 h) 0.58",
+    "Median depth 0.23 m (≤ 0.3 m)",
+    "Frequency ≥ 0.5 from the +36 h frame",
+    "Bags assume 10 per metre of exposed wall (assumption)"
+   ],
+   "checks": [
+    "Door and sill height",
+    "Access for delivery",
+    "Owner permission",
+    "Risk of diverting water to neighbours"
+   ]
+  },
+  {
+   "id": "osm-way-1101979806",
+   "lat": 51.75324,
+   "lon": -1.28725,
+   "score": 0.575,
+   "pWet48": 0.575,
+   "medianDepthM": 0.1,
+   "firstWet": "2014-01-07T00:00:00Z",
+   "bags": 28,
+   "reasons": [
+    "Frequency ≥ 0.2 along 3 m of its 99 m walls by 48 h (OSM building)",
+    "P(wet by 48 h) 0.57",
+    "Median depth 0.10 m (≤ 0.3 m)",
+    "Frequency ≥ 0.5 from the +48 h frame",
+    "Bags assume 10 per metre of exposed wall (assumption)"
+   ],
+   "checks": [
+    "Door and sill height",
+    "Access for delivery",
+    "Owner permission",
+    "Risk of diverting water to neighbours"
+   ]
+  }
+ ],
+ "excluded": [
+  {
+   "id": "osm-relation-12937246",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1044358337",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1049089740",
+   "reason": "Recorded flood defence within 5 m (EA Spatial Flood Defences / OSM): existing defence location, inspect the defence instead; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1049089742",
+   "reason": "Median depth 0.52 m > 0.5 m: sandbags impractical; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-107861327",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-107861330",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-109585724",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1101953860",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1101953861",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1101953864",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1101953865",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1101953866",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1101953868",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1101953873",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-110347263",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-110347264",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1134584955",
+   "reason": "Median depth 0.54 m > 0.5 m: sandbags impractical; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-117063179",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-117063180",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-117063182",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-117082682",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-117082683",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-117082686",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-117082688",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-117213234",
+   "reason": "Median depth 0.67 m > 0.5 m: sandbags impractical; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-117617419",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-117617422",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-117617426",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-117617871",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1248151545",
+   "reason": "Recorded flood defence within 5 m (EA Spatial Flood Defences / OSM): existing defence location, inspect the defence instead; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1383017909",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1383027820",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1383286878",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1383286879",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1383286880",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1383286881",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1383286883",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1383286884",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1383286885",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1383286886",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1383298737",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1383298738",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1383298739",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1383298740",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1383298741",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1383298742",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1383298743",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1383298744",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1447966740",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-1564910042",
+   "reason": "Recorded flood defence within 5 m (EA Spatial Flood Defences / OSM): existing defence location, inspect the defence instead; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-221612667",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-221612670",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-226738766",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-234710057",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-234710058",
+   "reason": "Recorded flood defence within 5 m (EA Spatial Flood Defences / OSM): existing defence location, inspect the defence instead"
+  },
+  {
+   "id": "osm-way-264885223",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-264912010",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-264912019",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-265280468",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-265280469",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-265280545",
+   "reason": "Recorded flood defence within 5 m (EA Spatial Flood Defences / OSM): existing defence location, inspect the defence instead; Median depth 1.11 m > 0.5 m: sandbags impractical; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-265280546",
+   "reason": "Median depth 0.78 m > 0.5 m: sandbags impractical; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-265280549",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-265408738",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-265411418",
+   "reason": "Recorded flood defence within 5 m (EA Spatial Flood Defences / OSM): existing defence location, inspect the defence instead; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-265435655",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-265435656",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-265435658",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-265435659",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-265435660",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-265435663",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-265435664",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-265435665",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-265435669",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-265435670",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-265435671",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-27623390",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-27623394",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-27623395",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-27922864",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-27922985",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-27923067",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-28525943",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-29468067",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-31410600",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-31410641",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-317368788",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-323150051",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-375839429",
+   "reason": "Recorded flood defence within 5 m (EA Spatial Flood Defences / OSM): existing defence location, inspect the defence instead; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-376760419",
+   "reason": "Recorded flood defence within 5 m (EA Spatial Flood Defences / OSM): existing defence location, inspect the defence instead; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-38627749",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-458767061",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-458767062",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-458767068",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-458767069",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-458767070",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-503807293",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-588731401",
+   "reason": "Recorded flood defence within 5 m (EA Spatial Flood Defences / OSM): existing defence location, inspect the defence instead; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-588731404",
+   "reason": "Recorded flood defence within 5 m (EA Spatial Flood Defences / OSM): existing defence location, inspect the defence instead; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-588797866",
+   "reason": "Recorded flood defence within 5 m (EA Spatial Flood Defences / OSM): existing defence location, inspect the defence instead; Median depth 0.86 m > 0.5 m: sandbags impractical; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-824226022",
+   "reason": "Recorded flood defence within 5 m (EA Spatial Flood Defences / OSM): existing defence location, inspect the defence instead; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-835091744",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-896034870",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-896034872",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-954506073",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-954506076",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-961889997",
+   "reason": "Median depth 0.75 m > 0.5 m: sandbags impractical; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-995894322",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-995894323",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-995894324",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-995894325",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-995894326",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-995894327",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-995894328",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-995894329",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-995894332",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-995894333",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-995894335",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  },
+  {
+   "id": "osm-way-995894336",
+   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+  }
+ ]
+}
