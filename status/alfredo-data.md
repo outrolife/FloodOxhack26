@@ -7,8 +7,8 @@
 - **next**: Waiting for alfredo to assign a different task
 - **needs**: 
 - **notes**: 
-- **branch**: data/ingest-clean
+- **branch**: data/historic-warnings
 - **head**: 6e8694d Merge pull request #25 from outrolife/integration/scaffold
 - **unpushed**: no upstream
 - **dirty**: 0
-- **updated**: 2026-10-24T16:04:03Z
+- **updated**: 2026-10-24T16:04:47Z
