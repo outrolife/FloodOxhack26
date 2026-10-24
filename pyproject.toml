@@ -20,6 +20,8 @@ dependencies = [
 dev = ["pytest>=8", "ruff>=0.5", "httpx>=0.27"]
 # SPEC §11; only once the core gate in §13 is met
 stretch = ["geopandas>=0.14", "rasterio>=1.3", "shapely>=2.0"]
+# Optional Tiger Data (Timescale/Postgres) mirror, SPEC §2 (P2): `make mirror`
+mirror = ["psycopg[binary]>=3.1"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
