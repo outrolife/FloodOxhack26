@@ -345,15 +345,214 @@ def test_no_models_means_persistence(tmp_path: Path) -> None:
     assert fl.load_model_forecaster(tmp_path / "models") is None
 
 
-def test_exceedance_and_arrival() -> None:
-    q = dict(zip(fl.QUANT_KEYS, [1.0, 1.1, 1.25, 1.5, 1.75, 1.9, 2.0], strict=True))
-    assert fl.exceedance_probability(q, 1.5) == pytest.approx(0.5)
-    assert fl.exceedance_probability(q, 1.0) == pytest.approx(0.95)
-    assert fl.exceedance_probability(q, 5.0) == 0.0 and fl.exceedance_probability(q, -5.0) == 1.0
-    flat = dict.fromkeys(fl.QUANT_KEYS, 2.0)
-    assert fl.exceedance_probability(flat, 2.0) == 0.0 and fl.exceedance_probability(flat, 1.9) == 1.0
-    arr = fl.arrival_window(1.0, 3.0, {6: 0.0, 12: 0.2, 24: 0.6, 36: 0.8}, T0)
-    assert arr == {"p10": iso(T0 + timedelta(hours=9)), "p50": iso(T0 + timedelta(hours=21)), "p90": None}
+def test_persistence_uses_shared_probability(tmp_path: Path) -> None:
+    """Spot probabilities come from model/probability.py (SPEC §7.5), as in the backtest."""
+    from model import probability
+
+    hourly, meta = _live(tmp_path, FakeEA(T0 - timedelta(minutes=15), hours=24 * 7), T0)
+    fc = fl.build_forecast(hourly, meta, T0)
+    botley = next(s for s in fc["spots"] if s["spot"] == "botley")
+    deltas = fl.PersistenceForecaster().predict(hourly, "newbotley", T0)
+    q = np.array([[deltas[h][k] for k in fl.QUANT_KEYS] for h in fl.LEADS_H])
+    spot = {"key": "botley", "threshold": 2.76, "amber": 2.01, "mode": "probability"}
+    level = meta["gauges"]["newbotley"]["level"]
+    expected = probability.spot_forecast(spot, level, q, pd.Timestamp(T0), fl.LEADS_H)
+    assert botley["leads"] == expected["leads"] and botley["arrival"] == expected["arrival"]
+
+
+# ---------------------------------------------------------------------------------------------
+# Trained models (#79): a tiny fake model directory, no network
+# ---------------------------------------------------------------------------------------------
+
+
+def _tiny_model(target: str = "newbotley"):  # noqa: ANN202 - GaugeModel (lightgbm import kept local)
+    """A real GaugeModel with few trees, fitted on random features of the live column set (lags {})."""
+    from model import features, train
+
+    cols = features.feature_columns(target, {})
+    idx = pd.date_range("2015-01-01", periods=1200, freq="h", tz="UTC")
+    rng = np.random.default_rng(0)
+    X = pd.DataFrame(rng.normal(0, 0.3, (len(idx), len(cols))), index=idx, columns=cols)
+    X["level_now"] += 1.5
+    Y = pd.DataFrame(
+        {
+            f"y_{h}h": 0.05 * h / 6 * X[f"{features.UPSTREAMS[target][0]}_anom_lag0h"]
+            + rng.normal(0, 0.05, len(idx))
+            for h in fl.LEADS_H
+        },
+        index=idx,
+    )
+    return train.fit_gauge(
+        X,
+        Y,
+        target=target,
+        amber=2.01,
+        threshold=2.76,
+        splits=train.Splits(idx[700], idx[1000]),
+        medians=dict.fromkeys(features.UPSTREAMS[target], 1.0),
+        lags={},
+        params={"min_data_in_leaf": 20},
+        n_estimators=8,
+        early_stopping_rounds=3,
+    )
+
+
+@pytest.fixture(scope="module")
+def models_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    d = tmp_path_factory.mktemp("models")
+    m = _tiny_model()
+    m.save(d / "newbotley")
+    m.save(d / "lofo" / "e2014" / "newbotley")  # backtest cache: must be skipped
+    (d / "notes.txt").write_text("not a model")
+    return d
+
+
+def test_load_trained_models(models_dir: Path) -> None:
+    fc = fl.load_model_forecaster(models_dir)
+    assert isinstance(fc, fl.TrainedForecaster)
+    assert list(fc.models) == ["newbotley"]  # lofo/ and stray files skipped
+    assert fc.upstreams == {"newbotley": ["farmoor", "eynsham", "cassington"]}
+
+
+def test_model_forecast_is_the_backtest_forecast(models_dir: Path, tmp_path: Path) -> None:
+    """Live = model/backtest.forecasts_at at the anchor hour: same features, lags, medians, CQR."""
+    from model import backtest, train
+
+    hourly, meta = _live(tmp_path, FakeEA(T0 - timedelta(minutes=15), hours=24 * 28), T0)
+    forecaster = fl.load_model_forecaster(models_dir)
+    fc = fl.build_forecast(hourly, meta, T0, forecaster=forecaster)
+    assert fc["method"] == "model"
+    # Only newbotley has a model here: the other forecast spots fall back to persistence, and say so.
+    assert "Persistence fallback for osney, abingdonrd, cherwell" in fc["note"]
+    botley = next(s for s in fc["spots"] if s["spot"] == "botley")
+    assert botley["levelNow"] == round(meta["gauges"]["newbotley"]["level"], 3)  # latest 15-min reading
+    assert [lead["h"] for lead in botley["leads"]] == list(fl.LEADS_H)
+
+    anchor = pd.Timestamp("2026-10-25T02:00:00Z")  # hour of the latest reading (02:15)
+    spot = {"key": "botley", "gauge": "newbotley", "threshold": 2.76, "amber": 2.01, "mode": "probability"}
+    replay = backtest.forecasts_at(train.normalise_hourly(hourly), forecaster.models, [spot], [anchor])
+    assert replay[0]["spots"][0]["leads"] == botley["leads"]
+
+    # And the quantiles really are the model's: different from persistence.
+    pers = fl.build_forecast(hourly, meta, T0)
+    assert next(s for s in pers["spots"] if s["spot"] == "botley")["leads"] != botley["leads"]
+    check_contract(fc)
+
+
+def check_contract(fc: dict) -> None:
+    from tests.test_fixtures import FORECAST, check
+
+    check(json.loads(json.dumps(fc, allow_nan=False)), FORECAST)
+
+
+def test_model_forecast_ignores_rows_after_now(models_dir: Path, tmp_path: Path) -> None:
+    hourly, meta = _live(tmp_path, FakeEA(T0 - timedelta(minutes=15), hours=24 * 28), T0)
+    forecaster = fl.load_model_forecaster(models_dir)
+    future = hourly.copy()
+    extra = future[future["ts_utc"] == future["ts_utc"].max()].copy()
+    extra["ts_utc"] += pd.Timedelta(hours=3)
+    extra["level_mean"] += 5.0
+    future = pd.concat([future, extra], ignore_index=True)
+    a = forecaster.predict(hourly, "newbotley", T0)
+    assert a is not None and a == forecaster.predict(future, "newbotley", T0)
+
+
+def test_model_without_reading_falls_back_per_spot(models_dir: Path, tmp_path: Path) -> None:
+    hourly, meta = _live(tmp_path, FakeEA(T0 - timedelta(minutes=15)), T0)
+    forecaster = fl.load_model_forecaster(models_dir)
+    no_nb = hourly[hourly["gauge"] != "newbotley"]
+    assert forecaster.predict(no_nb, "newbotley", T0) is None
+    assert forecaster.predict(hourly, "kingsmill", T0) is None  # no model for that gauge
+
+
+def test_refresh_uses_trained_models(
+    models_dir: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    hourly, meta = _live(tmp_path, FakeEA(T0 - timedelta(minutes=15), hours=24 * 28), T0)
+    monkeypatch.setattr(fl, "LIVE_HOURLY", tmp_path / "h.parquet")
+    monkeypatch.setattr(fl, "LIVE_META", tmp_path / "m.json")
+    monkeypatch.setattr(fl, "MODELS_DIR", models_dir)
+    assert fl.refresh(T0, fetch=False)["method"] == "model"
+    monkeypatch.setattr(fl, "MODELS_DIR", tmp_path / "no-models")
+    assert fl.refresh(T0, fetch=False)["method"] == "persistence"
+
+
+# ---------------------------------------------------------------------------------------------
+# Cleaning live readings (#80)
+# ---------------------------------------------------------------------------------------------
+
+JUNK_AT = datetime(2026, 10, 22, 6, 45, tzinfo=UTC)  # the real Osney d/s junk reading
+
+
+class JunkEA(FakeEA):
+    """FakeEA plus the -52.477 m reading at Osney d/s (2026-10-22T06:45Z) from issue #80."""
+
+    def __call__(self, url: str, params: dict[str, str]) -> dict:
+        body = super().__call__(url, params)
+        if il.LEVEL_MEASURES["osney"] in url:
+            for item in body["items"]:
+                if item["dateTime"] == iso(JUNK_AT):
+                    item["value"] = -52.477
+        return body
+
+
+def test_minus_52_m_junk_reading_is_dropped(tmp_path: Path) -> None:
+    hourly, meta = _live(tmp_path, JunkEA(T0 - timedelta(minutes=15), hours=24 * 7), T0)
+    osney = hourly[hourly["gauge"] == "osney"].set_index("ts_utc")
+    assert osney["level_mean"].min() > 1.5  # was -11.475 before #80
+    # The 06:00 hour is the mean of its three good readings, not NaN and not dragged down.
+    hour = osney.loc[pd.Timestamp("2026-10-22T06:00:00Z")]
+    raw = il.parse_readings(
+        FakeEA(T0 - timedelta(minutes=15), hours=24 * 7)(
+            f"{il.BASE_URL}/id/measures/{il.LEVEL_MEASURES['osney']}/readings", {}
+        ),
+        T0,
+    )
+    good = raw[(raw["observed_at"] >= "2026-10-22T06:00Z") & (raw["observed_at"] < "2026-10-22T06:45Z")]
+    assert hour["level_mean"] == pytest.approx(good["value"].mean())
+    fc = fl.build_forecast(hourly, meta, T0)
+    assert min(p["level"] for p in fc["observed"]["osney"]) > 1.5
+
+
+def test_spike_rule_catches_junk_even_without_the_band() -> None:
+    """The shared clean.py spike rule (SPEC §5.2 step 4) NaNs the -11 m hour on its own."""
+    body = JunkEA(T0 - timedelta(minutes=15), hours=24 * 7)(
+        f"{il.BASE_URL}/id/measures/{il.LEVEL_MEASURES['osney']}/readings", {}
+    )
+    hourly = il.to_hourly({"osney": il.parse_readings(body, T0)})  # no clean_readings
+    row = hourly[hourly["ts_utc"] == pd.Timestamp("2026-10-22T06:00:00Z")].iloc[0]
+    assert np.isnan(row["level_mean"]) and row["flagged"]
+    assert hourly["level_mean"].min() > 1.5
+
+
+def test_plausible_band_from_stations_yaml() -> None:
+    bands = il.plausible_bands()
+    assert set(bands) == set(il.LEVEL_MEASURES)
+    low, high = bands["osney"]  # amber 3.175, record 3.97
+    assert low == pytest.approx(3.175 - 4.0) and high == pytest.approx(3.97 + 2.0)
+    assert bands["islip"][0] > 2.0  # Islip's datum: normal levels ~6-8 m, so 2 m there is junk
+
+
+def test_clean_readings_drops_flagged_implausible_and_negative_rain() -> None:
+    t = [T0 - timedelta(minutes=15 * i) for i in range(4)][::-1]
+    level = il.parse_readings(
+        {
+            "items": [
+                {"dateTime": iso(t[0]), "value": 2.2},
+                {"dateTime": iso(t[1]), "value": 2.3, "quality": "Suspect"},
+                {"dateTime": iso(t[2]), "value": 99.0},
+                {"dateTime": iso(t[3]), "value": -52.477},  # junk as the latest reading
+            ]
+        },
+        T0,
+    )
+    rain_ref = next(iter(il.RAIN_MEASURES))
+    rain = il.parse_readings(readings_body(t, [0.2, -1.0, 0.0, 0.4]), T0)
+    out = il.clean_readings({"osney": level, rain_ref: rain})
+    assert out["osney"]["value"].to_list() == [2.2]
+    assert out[rain_ref]["value"].to_list() == [0.2, 0.0, 0.4]
+    meta = il.live_meta(out)  # levelNow / dataAsOf come from the last *good* reading
+    assert meta["gauges"]["osney"]["level"] == 2.2 and meta["gauges"]["osney"]["observed_at"] == iso(t[0])
 
 
 # ---------------------------------------------------------------------------------------------

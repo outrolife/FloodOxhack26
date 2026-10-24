@@ -312,9 +312,7 @@ def to_hourly(readings: dict[str, pd.DataFrame]) -> pd.DataFrame:
     Uses the same ``pipeline/clean.py`` functions as the history (SPEC §5.2), so live features are built
     from data cleaned the same way as the training data.
     """
-    parts = [
-        _hourly_one(g, r, "level") for g, r in readings.items() if not r.empty and g in LEVEL_MEASURES
-    ]
+    parts = [_hourly_one(g, r, "level") for g, r in readings.items() if not r.empty and g in LEVEL_MEASURES]
     rain_parts = [
         _hourly_one(g, r, "rain") for g, r in readings.items() if not r.empty and g in RAIN_MEASURES
     ]

@@ -8,13 +8,20 @@ Builds the SPEC §9 ``Forecast`` for the current time from ``<data>/processed/li
 
 Method
 ------
-- **Model** (when trained models exist): ``model.train.load_forecaster(models_dir)`` must return an
-  object with ``predict(hourly, gauge, issued_at) -> {h: {QuantKey: level change}}`` and a ``upstreams``
-  mapping ``{target gauge: [upstream gauges]}``. That hook belongs to #8; until it exists (or
-  ``data/models/`` is empty) this module falls back to:
+- **Model** (``method: "model"``, issue #79): ``load_model_forecaster`` loads every trained
+  ``model.train.GaugeModel`` under ``<data>/models/<gauge>/`` (``GaugeModel.load``; ``models/lofo/`` is
+  skipped) into a ``TrainedForecaster``. It forecasts exactly as ``model/backtest.forecasts_at`` does
+  for the Time Machine: ``model.features.build_features`` on the live hourly rows up to the anchor hour,
+  with the medians and travel-time lags saved in the model, then ``GaugeModel.predict`` (sorted and
+  CQR-calibrated, SPEC §7.4), then ``model.probability.spot_forecast`` (SPEC §7.5).
+  The anchor hour is the hour of the target gauge's latest reading (at most ``floor(now)``). As in the
+  backtest, the level quantiles are the model's ``level_now`` (that hour's mean, the quantity it was
+  trained on) plus the predicted changes; ``levelNow`` shows the latest 15-min reading.
 - **Persistence (fallback, labelled)**: probabilistic persistence (SPEC §7.6) with the level-change
-  quantiles estimated from the last 28 days of live readings at that gauge. The Forecast then carries
-  ``method: "persistence"`` and a ``note`` saying so; the UI must show it.
+  quantiles estimated from the last 28 days of live readings at that gauge. Used when no model loads
+  (``method: "persistence"`` and a ``note`` saying so; the UI must show it), and per spot when its gauge
+  has no trained model or no level in the anchor hour (``method`` stays "model"; the ``note`` names
+  those spots).
 
 Stale rule (SPEC §10.1)
 -----------------------
@@ -27,8 +34,8 @@ their live level but never forecast: a spot on one (wolvercote -> godstow) is ``
 ``leads: []`` and ``arrival: null``. A spot whose threshold is still TBC is ``timing_only``: leads with
 quantiles and ``pAmber``, but ``pFlood: null`` and no arrival window.
 
-Probabilities follow SPEC §7.5 steps 2-5 (``exceedance_probability``, ``arrival_window``). They are a
-local copy until ``model/probability.py`` (#8) lands; then swap these for the shared functions.
+Probabilities and arrival windows come from the shared ``model/probability.py`` (SPEC §7.5), the same
+functions the backtest uses.
 
 ``observed`` (SPEC §9, adopted on #38) holds the hourly level of every level gauge over the last 7 days
 up to ``issuedAt``, live-only gauges included, so the River strip can draw sparklines. It is the hourly
@@ -42,7 +49,6 @@ All times are UTC; ISO strings end in ``Z``.
 from __future__ import annotations
 
 import argparse
-import importlib
 import json
 import logging
 from collections.abc import Mapping
@@ -54,6 +60,7 @@ from typing import Any, Protocol
 import numpy as np
 import pandas as pd
 
+from model import probability
 from pipeline import ingest_live
 
 log = logging.getLogger(__name__)
@@ -68,9 +75,9 @@ WEB_LIVE = REPO_ROOT / "web" / "public" / "data" / "live.json"
 SPOTS_YAML = REPO_ROOT / "config" / "spots.yaml"
 
 STALE_AFTER = timedelta(hours=3)
-LEADS_H: tuple[int, ...] = (6, 12, 24, 36, 48, 72)
-ALPHAS: tuple[float, ...] = (0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95)
-QUANT_KEYS: tuple[str, ...] = ("05", "10", "25", "50", "75", "90", "95")
+LEADS_H: tuple[int, ...] = probability.HORIZONS_H  # (6, 12, 24, 36, 48, 72)
+ALPHAS: tuple[float, ...] = probability.ALPHAS
+QUANT_KEYS: tuple[str, ...] = probability.QUANT_KEYS
 MIN_PERSISTENCE_SAMPLES = 48
 OBSERVED_WINDOW = timedelta(days=7)  # Forecast.observed: last 7 days, hourly
 
@@ -78,6 +85,10 @@ PERSISTENCE_NOTE = (
     "Persistence fallback: trained models are not available, so this forecast assumes the level stays "
     "roughly where it is, with spread from the last 28 days of level changes at each gauge. "
     "It is a baseline, not the River Clock model."
+)
+PARTIAL_PERSISTENCE_NOTE = (
+    "Persistence fallback for {spots}: no trained model or no current reading for that gauge, so the "
+    "forecast there assumes the level stays roughly where it is. The other spots use the River Clock model."
 )
 
 
@@ -117,12 +128,18 @@ class LiveDataUnavailable(RuntimeError):
 
 
 class QuantileForecaster(Protocol):
-    """Interface the trained models (#8) must provide via ``model.train.load_forecaster``."""
+    """What ``build_forecast`` needs: ``PersistenceForecaster`` or ``TrainedForecaster``."""
 
     upstreams: Mapping[str, list[str]]
 
-    def predict(self, hourly: pd.DataFrame, gauge: str, issued_at: datetime) -> dict[int, dict[str, float]]:
-        """Quantiles of ``level(t + h) - level(t)`` per lead h, keyed by ``QUANT_KEYS``."""
+    def predict(
+        self, hourly: pd.DataFrame, gauge: str, issued_at: datetime
+    ) -> dict[int, dict[str, float]] | None:
+        """Quantiles of ``level(t + h) - base`` per lead h, keyed by ``QUANT_KEYS``; None if not possible."""
+        ...
+
+    def base_level(self, hourly: pd.DataFrame, gauge: str, issued_at: datetime) -> float | None:
+        """The level ``base`` the changes are added to; None means the latest reading."""
         ...
 
 
@@ -208,60 +225,89 @@ class PersistenceForecaster:
             out[h] = dict(zip(QUANT_KEYS, (float(q) for q in qs), strict=True))
         return out
 
+    def base_level(self, hourly: pd.DataFrame, gauge: str, issued_at: datetime) -> float | None:
+        return None  # the changes are added to the latest reading
 
-def load_model_forecaster(models_dir: Path = MODELS_DIR) -> QuantileForecaster | None:
-    """Trained models via ``model.train.load_forecaster(models_dir)``, or None if not available yet."""
-    if not models_dir.exists() or not any(models_dir.iterdir()):
+
+# ---------------------------------------------------------------------------------------------
+# Trained models (issue #79): the backtest's forecast path, at "now"
+# ---------------------------------------------------------------------------------------------
+
+
+class TrainedForecaster:
+    """The saved ``model.train.GaugeModel`` per target gauge, used exactly as in the backtest.
+
+    ``model/backtest.forecasts_at`` builds ``features.build_features(hourly, g, m.medians, m.lags)``,
+    reads row t and calls ``m.predict`` (CQR-calibrated). This does the same on the live rows up to the
+    anchor hour: the hour of the gauge's latest reading, never after ``floor(now)`` (no future data).
+    """
+
+    def __init__(self, models: Mapping[str, Any]) -> None:
+        from model import features
+
+        self.models = dict(models)
+        self.upstreams: dict[str, list[str]] = {g: list(features.UPSTREAMS[g]) for g in self.models}
+
+    def features_at(self, hourly: pd.DataFrame, gauge: str, issued_at: datetime) -> pd.DataFrame | None:
+        """The one-row feature frame at the anchor hour, or None (no model, or no level there)."""
+        from model import features, train
+
+        m = self.models.get(gauge)
+        if m is None:
+            return None
+        h = train.normalise_hourly(hourly)
+        h = h[h["ts_utc"] <= pd.Timestamp(issued_at).floor("h")]  # nothing after now
+        seen = h.loc[(h["gauge"] == gauge) & h["level_mean"].notna(), "ts_utc"]
+        if seen.empty:
+            return None
+        anchor = seen.max()
+        X = features.build_features(h, gauge, m.medians, m.lags).reindex([anchor])
+        if X["level_now"].isna().iloc[0]:
+            return None
+        n_nan = int(X.isna().sum(axis=1).iloc[0])
+        if n_nan:
+            log.info(
+                "%s at %s: %d of %d features NaN (LightGBM handles NaN)", gauge, anchor, n_nan, X.shape[1]
+            )
+        return X
+
+    def predict(
+        self, hourly: pd.DataFrame, gauge: str, issued_at: datetime
+    ) -> dict[int, dict[str, float]] | None:
+        X = self.features_at(hourly, gauge, issued_at)
+        if X is None:
+            return None
+        q = self.models[gauge].predict(X)  # {h: (1, 7)}, sorted and CQR-calibrated
+        return {h: dict(zip(QUANT_KEYS, map(float, q[h][0]), strict=True)) for h in LEADS_H}
+
+    def base_level(self, hourly: pd.DataFrame, gauge: str, issued_at: datetime) -> float | None:
+        X = self.features_at(hourly, gauge, issued_at)
+        return None if X is None else float(X["level_now"].iloc[0])
+
+
+def load_model_forecaster(models_dir: Path = MODELS_DIR) -> TrainedForecaster | None:
+    """Every trained target model in ``models_dir/<gauge>/`` (``GaugeModel.load``), or None if none load."""
+    if not models_dir.is_dir():
         return None
     try:
-        loader = importlib.import_module("model.train").load_forecaster
-        return loader(models_dir)
-    except (AttributeError, NotImplementedError, FileNotFoundError) as exc:
-        log.warning("models in %s not loadable yet (%s); using persistence", models_dir, exc)
+        from model import features
+        from model.train import GaugeModel
+    except Exception as exc:  # e.g. lightgbm can't load (libomp missing on macOS)
+        log.warning("model code not importable (%s); using persistence", exc)
         return None
-
-
-# ---------------------------------------------------------------------------------------------
-# Probability and timing (SPEC §7.5 steps 2-5; local copy until model/probability.py lands)
-# ---------------------------------------------------------------------------------------------
-
-
-def exceedance_probability(levels: Mapping[str, float], threshold: float) -> float:
-    """P(level > threshold) from level quantiles: piecewise-linear CDF, linear tails, clipped."""
-    q = np.sort([levels[k] for k in QUANT_KEYS])
-    a = np.array(ALPHAS)
-    if q[-1] == q[0]:  # no spread
-        return 0.0 if threshold >= q[0] else 1.0
-    if threshold < q[0]:
-        slope = (a[2] - a[0]) / (q[2] - q[0]) if q[2] > q[0] else np.inf
-        cdf = a[0] - (q[0] - threshold) * slope
-    elif threshold > q[-1]:
-        slope = (a[-1] - a[-3]) / (q[-1] - q[-3]) if q[-1] > q[-3] else np.inf
-        cdf = a[-1] + (threshold - q[-1]) * slope
-    else:
-        cdf = float(np.interp(threshold, q, a))
-    return float(1.0 - np.clip(cdf, 0.0, 1.0))
-
-
-def arrival_window(
-    level_now: float, threshold: float, p_by_lead: Mapping[int, float], issued_at: datetime
-) -> dict:
-    """First times p reaches 0.1 / 0.5 / 0.9, interpolated between leads (h = 0 is the observation)."""
-    hs = [0, *sorted(p_by_lead)]
-    ps = [1.0 if level_now >= threshold else 0.0, *(p_by_lead[h] for h in sorted(p_by_lead))]
-    out: dict[str, str | None] = {}
-    for name, target in (("p10", 0.1), ("p50", 0.5), ("p90", 0.9)):
-        hit: float | None = None
-        if ps[0] >= target:
-            hit = 0.0
-        else:
-            for i in range(1, len(hs)):
-                h0, p0, h1, p1 = hs[i - 1], ps[i - 1], hs[i], ps[i]
-                if p1 >= target > p0:
-                    hit = h0 + (target - p0) / (p1 - p0) * (h1 - h0)
-                    break
-        out[name] = iso_utc(issued_at + timedelta(hours=hit)) if hit is not None else None
-    return out
+    models = {}
+    for d in sorted(models_dir.iterdir()):
+        if d.name not in features.UPSTREAMS or not (d / "meta.json").exists():
+            continue  # lofo/ (backtest models), stray files
+        try:
+            models[d.name] = GaugeModel.load(d)
+        except Exception as exc:
+            log.warning("model %s not loadable (%s); that gauge uses persistence", d, exc)
+    if not models:
+        log.warning("no trained models in %s; using persistence", models_dir)
+        return None
+    log.info("loaded trained models for %s", sorted(models))
+    return TrainedForecaster(models)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -309,7 +355,8 @@ def build_forecast(
     now = _utc(now).replace(second=0, microsecond=0)
     spots = spots if spots is not None else list(DEFAULT_SPOTS)
     method = "model" if forecaster is not None else "persistence"
-    forecaster = forecaster or PersistenceForecaster()
+    persistence = PersistenceForecaster()
+    forecaster = forecaster or persistence
 
     data_as_of = {g: v["observed_at"] for g, v in sorted(meta.get("gauges", {}).items())}
     if not data_as_of:
@@ -319,7 +366,7 @@ def build_forecast(
     all_gauges = sorted({g for gs in depends.values() for g in gs} | set(data_as_of))
     stale = stale_gauges(data_as_of, all_gauges, now)
 
-    out_spots = []
+    out_spots, fallback_spots = [], []
     for spot in spots:
         level_now = _level_now(hourly, meta, spot.gauge)
         if level_now is None:
@@ -333,29 +380,36 @@ def build_forecast(
             "mode": spot.effective_mode,
         }
         if forecastable[spot.key] and not any(g in stale for g in depends[spot.key]):
+            used: QuantileForecaster = forecaster
             deltas = forecaster.predict(hourly, spot.gauge, now)
-            p_flood_run, p_amber_run, p_flood = 0.0, 0.0, {}
-            for h in LEADS_H:
-                levels = dict(
-                    zip(QUANT_KEYS, sorted(level_now + deltas[h][k] for k in QUANT_KEYS), strict=True)
-                )
-                # SPEC §7.5 step 4: probabilities never decrease with lead time.
-                if spot.threshold is not None:
-                    p_flood_run = max(p_flood_run, exceedance_probability(levels, spot.threshold))
-                p_amber_run = max(p_amber_run, exceedance_probability(levels, spot.amber))
-                p_flood[h] = p_flood_run
-                entry["leads"].append(
-                    {
-                        "h": h,
-                        "q": {k: round(v, 3) for k, v in levels.items()},
-                        "pFlood": round(p_flood_run, 3) if spot.effective_mode == "probability" else None,
-                        "pAmber": round(p_amber_run, 3),
-                    }
-                )
-            if spot.effective_mode == "probability" and spot.threshold is not None:
-                entry["arrival"] = arrival_window(level_now, spot.threshold, p_flood, now)
+            if deltas is None:  # no model for this gauge, or no level in the anchor hour
+                used, deltas = persistence, persistence.predict(hourly, spot.gauge, now)
+                if forecaster is not persistence:
+                    fallback_spots.append(spot.key)
+            base = used.base_level(hourly, spot.gauge, now)
+            q = np.array([[deltas[h][k] for k in QUANT_KEYS] for h in LEADS_H])
+            # SPEC §7.5 via the shared functions, exactly as the backtest (monotone p, arrival rules).
+            sf = probability.spot_forecast(
+                {
+                    "key": spot.key,
+                    "threshold": spot.threshold,
+                    "amber": spot.amber,
+                    "mode": spot.effective_mode,
+                },
+                level_now if base is None else base,
+                q,
+                pd.Timestamp(now),
+                LEADS_H,
+            )
+            entry["leads"], entry["arrival"] = sf["leads"], sf["arrival"]
         out_spots.append(entry)
 
+    if method == "persistence":
+        note = PERSISTENCE_NOTE
+    elif fallback_spots:
+        note = PARTIAL_PERSISTENCE_NOTE.format(spots=", ".join(fallback_spots))
+    else:
+        note = ""
     return {
         "issuedAt": iso_utc(now),
         "dataAsOf": data_as_of,
@@ -363,7 +417,7 @@ def build_forecast(
         "spots": out_spots,
         "observed": observed_series(hourly, now),
         "method": method,
-        "note": PERSISTENCE_NOTE if method == "persistence" else "",
+        "note": note,
     }
 
 
@@ -382,7 +436,8 @@ def refresh(now: datetime | None = None, *, fetch: bool = True) -> dict[str, Any
         raise LiveDataUnavailable("no processed live data")
     hourly = pd.read_parquet(LIVE_HOURLY)
     meta = json.loads(LIVE_META.read_text())
-    return build_forecast(hourly, meta, now, forecaster=load_model_forecaster(), spots=load_spots())
+    forecaster = load_model_forecaster(MODELS_DIR)
+    return build_forecast(hourly, meta, now, forecaster=forecaster, spots=load_spots())
 
 
 def main() -> None:
