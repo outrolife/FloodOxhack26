@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: working
 - **issue**: #8
-- **task**: Osney model: probability/calibrate/train/e2014 replay
-- **next**: probability.py + calibrate.py with tests
+- **task**: Osney model: probability+calibrate done, now train.py
+- **next**: train.py loop + persistence baseline, synthetic tests
 - **needs**: 
 - **notes**: 
 - **branch**: model/osney-model
-- **head**: e5c35bf Merge remote-tracking branch 'origin/model/features-leakage' i
-- **unpushed**: 2
+- **head**: 45a4e51 Add calibrate.py: CQR offsets, apply, event windows (SPEC 7.4)
+- **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:07:20Z
+- **updated**: 2026-10-24T16:10:30Z
