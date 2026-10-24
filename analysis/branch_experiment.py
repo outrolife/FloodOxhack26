@@ -23,6 +23,18 @@ Data: data-hourly-v1 plus the six #125 A gauges ingested by ``analysis/upstream_
 (``ingest`` + ``combine``; Hydrology 15-min level from 2006, cleaned by ``pipeline.clean``). Lags:
 the shipped lags.json plus the §6 matched pairs for the new gauges (identical to #125 A's).
 
+Result (24 Oct 2026, strict test >= 2021-10-01; full table on issue #134): NOT ADOPTED
+-------------------------------------------------------------------------------------
+No arm passes the rule (24-72 h skill up, no lead worse by > 0.01, Brier no worse, no extra false
+alarms). routed: coldharbour worse at every lead (72 h -0.318 -> -0.365), kingsmill 12 h -0.022.
+front: coldharbour 24/48/72 h worse, kingsmill 12 h -0.027, +1 Abingdon Rd false alarm at warn-at 0.2.
+ff05: coldharbour 36-72 h better at seed 42 (72 h +0.044) but WORSE at seed 7 (72 h -0.040 vs that
+seed's baseline). The same model retrained with seed 7 moves 48/72 h skill by up to 0.04, so most
+72 h differences here (and #125 A's 72 h "loss" at these two spots) are within seed noise. Consistent
+across seeds: raw new-gauge columns help coldharbour at 36 h (+0.10 to +0.14) and kingsmill at
+24-36 h, and give Abingdon Rd an earlier e2024a trigger at warn-at 0.2 (EA lead -8.5 h -> +13.5 to
++22.5 h, one flood), at a cost at 6-12 h and in-event 80 % coverage (0.76 -> 0.68 at 24 h).
+
 Usage (needs analysis/upstream_experiment.py from branch model/exp-upstream, and its data)::
 
     RC_LGB_THREADS=1 python -m analysis.branch_experiment train --arms routed ff05 front --jobs 4
