@@ -1,0 +1,7420 @@
+[
+ {
+  "up": "farmoor",
+  "down": "newbotley",
+  "n": 0,
+  "tHalf": {
+   "p10": 0.0,
+   "median": 5.0,
+   "p90": 11.0
+  },
+  "tPeak": {
+   "p10": 0.0,
+   "median": 5.0,
+   "p90": 11.0
+  },
+  "events": [
+   {
+    "eventId": "auto-20061126",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.462,
+    "excluded": "ambiguous: second peak at farmoor with 62% of the main peak's prominence (0.29 m vs 0.47 m)"
+   },
+   {
+    "eventId": "auto-20070101",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.689,
+    "excluded": "ambiguous: second peak at farmoor with 54% of the main peak's prominence (0.36 m vs 0.67 m)"
+   },
+   {
+    "eventId": "auto-20070225",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.468,
+    "excluded": "T_half = -219.4 h, T_peak = -18.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2007",
+    "tHalf": null,
+    "tPeak": 15.0,
+    "rise": 1.121,
+    "excluded": "T_half = -34.7 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080113",
+    "tHalf": null,
+    "tPeak": 14.0,
+    "rise": 0.71,
+    "excluded": "T_half = -37.4 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080316",
+    "tHalf": 2.6,
+    "tPeak": null,
+    "rise": 0.562,
+    "excluded": "T_peak = -20.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080603",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.344,
+    "excluded": "ambiguous: second peak at farmoor with 97% of the main peak's prominence (0.30 m vs 0.31 m)"
+   },
+   {
+    "eventId": "auto-20081215",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.443,
+    "excluded": "ambiguous: second peak at farmoor with 112% of the main peak's prominence (0.19 m vs 0.17 m)"
+   },
+   {
+    "eventId": "auto-20090210",
+    "tHalf": null,
+    "tPeak": 20.0,
+    "rise": 0.64,
+    "excluded": "T_half = -28.7 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20100117",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.468,
+    "excluded": "ambiguous: second peak at farmoor with 116% of the main peak's prominence (0.33 m vs 0.28 m)"
+   },
+   {
+    "eventId": "auto-20120501",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.303,
+    "excluded": "ambiguous: second peak at farmoor with 72% of the main peak's prominence (0.23 m vs 0.31 m)"
+   },
+   {
+    "eventId": "auto-20121122",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.908,
+    "excluded": "T_half = -60.8 h, T_peak = -25.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": null,
+    "tPeak": 4.0,
+    "rise": 0.872,
+    "excluded": "T_half = -34.3 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20130127",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.55,
+    "excluded": "ambiguous: second peak at farmoor with 59% of the main peak's prominence (0.36 m vs 0.61 m)"
+   },
+   {
+    "eventId": "auto-20130317",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.322,
+    "excluded": "ambiguous: second peak at farmoor with 53% of the main peak's prominence (0.22 m vs 0.41 m)"
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.93,
+    "excluded": "ambiguous: second peak at farmoor with 67% of the main peak's prominence (0.63 m vs 0.94 m)"
+   },
+   {
+    "eventId": "auto-20150116",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "peak at window edge at farmoor"
+   },
+   {
+    "eventId": "auto-20160102",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.479,
+    "excluded": "T_half = -89.5 h, T_peak = -18.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20160208",
+    "tHalf": null,
+    "tPeak": 5.0,
+    "rise": 0.421,
+    "excluded": "T_half = -33.9 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20160310",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.22,
+    "excluded": "ambiguous: second peak at farmoor with 79% of the main peak's prominence (0.20 m vs 0.26 m)"
+   },
+   {
+    "eventId": "auto-20180123",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.081,
+    "excluded": "ambiguous: second peak at farmoor with 248% of the main peak's prominence (0.22 m vs 0.09 m)"
+   },
+   {
+    "eventId": "auto-20180331",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.397,
+    "excluded": "T_half = -55.2 h, T_peak = -15.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20191108",
+    "tHalf": null,
+    "tPeak": 46.0,
+    "rise": 0.415,
+    "excluded": "T_half = -38.9 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20191214",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.57,
+    "excluded": "T_half = -140.4 h, T_peak = -1.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20200115",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.467,
+    "excluded": "T_half = -38.5 h, T_peak = -22.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20200215",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.698,
+    "excluded": "ambiguous: second peak at farmoor with 51% of the main peak's prominence (0.35 m vs 0.70 m)"
+   },
+   {
+    "eventId": "auto-20201006",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "no clear rise at farmoor (0.04 m above baseline)"
+   },
+   {
+    "eventId": "auto-20201223",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.664,
+    "excluded": "T_half = -34.8 h, T_peak = -117.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": null,
+    "tPeak": 10.0,
+    "rise": 0.812,
+    "excluded": "T_half = -183.3 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20230101",
+    "tHalf": null,
+    "tPeak": 10.0,
+    "rise": 0.735,
+    "excluded": "T_half = -272.6 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20230401",
+    "tHalf": null,
+    "tPeak": 11.0,
+    "rise": 0.524,
+    "excluded": "T_half = -24.6 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20231104",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.677,
+    "excluded": "ambiguous: second peak at farmoor with 57% of the main peak's prominence (0.36 m vs 0.64 m)"
+   },
+   {
+    "eventId": "auto-20231207",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.206,
+    "excluded": "ambiguous: second peak at farmoor with 58% of the main peak's prominence (0.13 m vs 0.23 m)"
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.886,
+    "excluded": "T_half = -33.6 h, T_peak = -47.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20240208",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.769,
+    "excluded": "ambiguous: second peak at farmoor with 76% of the main peak's prominence (0.55 m vs 0.72 m)"
+   },
+   {
+    "eventId": "auto-20240328",
+    "tHalf": null,
+    "tPeak": 8.0,
+    "rise": 0.496,
+    "excluded": "T_half = -25.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20240925",
+    "tHalf": null,
+    "tPeak": 19.0,
+    "rise": 0.324,
+    "excluded": "T_half = -85.2 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": null,
+    "tPeak": 19.0,
+    "rise": 0.798,
+    "excluded": "T_half = -45.2 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20250107",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.15,
+    "excluded": "ambiguous: second peak at farmoor with 62% of the main peak's prominence (0.16 m vs 0.25 m)"
+   },
+   {
+    "eventId": "auto-20250128",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.361,
+    "excluded": "T_half = -46.4 h, T_peak = -20.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20251211",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.547,
+    "excluded": "T_half = -189.2 h, T_peak = -38.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": null,
+    "tPeak": 57.0,
+    "rise": 0.668,
+    "excluded": "T_half = -253.4 h outside (0, 168) h"
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.0145
+   },
+   {
+    "lagH": 1,
+    "r": 0.0137
+   },
+   {
+    "lagH": 2,
+    "r": 0.1104
+   },
+   {
+    "lagH": 3,
+    "r": 0.2411
+   },
+   {
+    "lagH": 4,
+    "r": 0.3361
+   },
+   {
+    "lagH": 5,
+    "r": 0.3809
+   },
+   {
+    "lagH": 6,
+    "r": 0.3749
+   },
+   {
+    "lagH": 7,
+    "r": 0.3409
+   },
+   {
+    "lagH": 8,
+    "r": 0.2888
+   },
+   {
+    "lagH": 9,
+    "r": 0.2357
+   },
+   {
+    "lagH": 10,
+    "r": 0.1875
+   },
+   {
+    "lagH": 11,
+    "r": 0.1473
+   },
+   {
+    "lagH": 12,
+    "r": 0.1143
+   },
+   {
+    "lagH": 13,
+    "r": 0.0905
+   },
+   {
+    "lagH": 14,
+    "r": 0.0713
+   },
+   {
+    "lagH": 15,
+    "r": 0.0571
+   },
+   {
+    "lagH": 16,
+    "r": 0.0465
+   },
+   {
+    "lagH": 17,
+    "r": 0.0347
+   },
+   {
+    "lagH": 18,
+    "r": 0.0231
+   },
+   {
+    "lagH": 19,
+    "r": 0.0128
+   },
+   {
+    "lagH": 20,
+    "r": 0.0032
+   },
+   {
+    "lagH": 21,
+    "r": -0.0027
+   },
+   {
+    "lagH": 22,
+    "r": -0.0126
+   },
+   {
+    "lagH": 23,
+    "r": -0.0255
+   },
+   {
+    "lagH": 24,
+    "r": -0.0346
+   },
+   {
+    "lagH": 25,
+    "r": -0.032
+   },
+   {
+    "lagH": 26,
+    "r": -0.0108
+   },
+   {
+    "lagH": 27,
+    "r": 0.0172
+   },
+   {
+    "lagH": 28,
+    "r": 0.0436
+   },
+   {
+    "lagH": 29,
+    "r": 0.0552
+   },
+   {
+    "lagH": 30,
+    "r": 0.0549
+   },
+   {
+    "lagH": 31,
+    "r": 0.0455
+   },
+   {
+    "lagH": 32,
+    "r": 0.0319
+   },
+   {
+    "lagH": 33,
+    "r": 0.0175
+   },
+   {
+    "lagH": 34,
+    "r": 0.0044
+   },
+   {
+    "lagH": 35,
+    "r": -0.0057
+   },
+   {
+    "lagH": 36,
+    "r": -0.0135
+   },
+   {
+    "lagH": 37,
+    "r": -0.0206
+   },
+   {
+    "lagH": 38,
+    "r": -0.0255
+   },
+   {
+    "lagH": 39,
+    "r": -0.0301
+   },
+   {
+    "lagH": 40,
+    "r": -0.0348
+   },
+   {
+    "lagH": 41,
+    "r": -0.039
+   },
+   {
+    "lagH": 42,
+    "r": -0.0397
+   },
+   {
+    "lagH": 43,
+    "r": -0.0382
+   },
+   {
+    "lagH": 44,
+    "r": -0.0354
+   },
+   {
+    "lagH": 45,
+    "r": -0.035
+   },
+   {
+    "lagH": 46,
+    "r": -0.0332
+   },
+   {
+    "lagH": 47,
+    "r": -0.0326
+   },
+   {
+    "lagH": 48,
+    "r": -0.0315
+   },
+   {
+    "lagH": 49,
+    "r": -0.0282
+   },
+   {
+    "lagH": 50,
+    "r": -0.0108
+   },
+   {
+    "lagH": 51,
+    "r": 0.0116
+   },
+   {
+    "lagH": 52,
+    "r": 0.0268
+   },
+   {
+    "lagH": 53,
+    "r": 0.0347
+   },
+   {
+    "lagH": 54,
+    "r": 0.033
+   },
+   {
+    "lagH": 55,
+    "r": 0.0294
+   },
+   {
+    "lagH": 56,
+    "r": 0.0243
+   },
+   {
+    "lagH": 57,
+    "r": 0.0182
+   },
+   {
+    "lagH": 58,
+    "r": 0.0125
+   },
+   {
+    "lagH": 59,
+    "r": 0.0066
+   },
+   {
+    "lagH": 60,
+    "r": -0.0005
+   },
+   {
+    "lagH": 61,
+    "r": -0.0059
+   },
+   {
+    "lagH": 62,
+    "r": -0.0109
+   },
+   {
+    "lagH": 63,
+    "r": -0.0142
+   },
+   {
+    "lagH": 64,
+    "r": -0.0173
+   },
+   {
+    "lagH": 65,
+    "r": -0.0198
+   },
+   {
+    "lagH": 66,
+    "r": -0.0199
+   },
+   {
+    "lagH": 67,
+    "r": -0.0174
+   },
+   {
+    "lagH": 68,
+    "r": -0.016
+   },
+   {
+    "lagH": 69,
+    "r": -0.0159
+   },
+   {
+    "lagH": 70,
+    "r": -0.0139
+   },
+   {
+    "lagH": 71,
+    "r": -0.0142
+   },
+   {
+    "lagH": 72,
+    "r": -0.0194
+   },
+   {
+    "lagH": 73,
+    "r": -0.0234
+   },
+   {
+    "lagH": 74,
+    "r": -0.0192
+   },
+   {
+    "lagH": 75,
+    "r": -0.0052
+   },
+   {
+    "lagH": 76,
+    "r": 0.0092
+   },
+   {
+    "lagH": 77,
+    "r": 0.0167
+   },
+   {
+    "lagH": 78,
+    "r": 0.0201
+   },
+   {
+    "lagH": 79,
+    "r": 0.0207
+   },
+   {
+    "lagH": 80,
+    "r": 0.0202
+   },
+   {
+    "lagH": 81,
+    "r": 0.018
+   },
+   {
+    "lagH": 82,
+    "r": 0.0143
+   },
+   {
+    "lagH": 83,
+    "r": 0.0089
+   },
+   {
+    "lagH": 84,
+    "r": 0.0042
+   },
+   {
+    "lagH": 85,
+    "r": -0.0022
+   },
+   {
+    "lagH": 86,
+    "r": -0.0088
+   },
+   {
+    "lagH": 87,
+    "r": -0.0127
+   },
+   {
+    "lagH": 88,
+    "r": -0.0174
+   },
+   {
+    "lagH": 89,
+    "r": -0.0193
+   },
+   {
+    "lagH": 90,
+    "r": -0.0191
+   },
+   {
+    "lagH": 91,
+    "r": -0.0165
+   },
+   {
+    "lagH": 92,
+    "r": -0.0125
+   },
+   {
+    "lagH": 93,
+    "r": -0.01
+   },
+   {
+    "lagH": 94,
+    "r": -0.0085
+   },
+   {
+    "lagH": 95,
+    "r": -0.0128
+   },
+   {
+    "lagH": 96,
+    "r": -0.0172
+   },
+   {
+    "lagH": 97,
+    "r": -0.0211
+   },
+   {
+    "lagH": 98,
+    "r": -0.0179
+   },
+   {
+    "lagH": 99,
+    "r": -0.0054
+   },
+   {
+    "lagH": 100,
+    "r": 0.0041
+   },
+   {
+    "lagH": 101,
+    "r": 0.011
+   },
+   {
+    "lagH": 102,
+    "r": 0.0137
+   },
+   {
+    "lagH": 103,
+    "r": 0.0129
+   },
+   {
+    "lagH": 104,
+    "r": 0.0098
+   },
+   {
+    "lagH": 105,
+    "r": 0.007
+   },
+   {
+    "lagH": 106,
+    "r": 0.0024
+   },
+   {
+    "lagH": 107,
+    "r": -0.0015
+   },
+   {
+    "lagH": 108,
+    "r": -0.007
+   },
+   {
+    "lagH": 109,
+    "r": -0.0113
+   },
+   {
+    "lagH": 110,
+    "r": -0.0147
+   },
+   {
+    "lagH": 111,
+    "r": -0.0176
+   },
+   {
+    "lagH": 112,
+    "r": -0.0223
+   },
+   {
+    "lagH": 113,
+    "r": -0.0256
+   },
+   {
+    "lagH": 114,
+    "r": -0.0276
+   },
+   {
+    "lagH": 115,
+    "r": -0.0254
+   },
+   {
+    "lagH": 116,
+    "r": -0.0224
+   },
+   {
+    "lagH": 117,
+    "r": -0.0221
+   },
+   {
+    "lagH": 118,
+    "r": -0.0236
+   },
+   {
+    "lagH": 119,
+    "r": -0.0262
+   },
+   {
+    "lagH": 120,
+    "r": -0.0266
+   }
+  ],
+  "slopeHoursPerMetre": null
+ },
+ {
+  "up": "eynsham",
+  "down": "newbotley",
+  "n": 3,
+  "tHalf": {
+   "p10": 0.1,
+   "median": 0.6,
+   "p90": 4.4
+  },
+  "tPeak": {
+   "p10": 8.0,
+   "median": 8.0,
+   "p90": 12.0
+  },
+  "events": [
+   {
+    "eventId": "auto-20061126",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at eynsham (77% of window missing)"
+   },
+   {
+    "eventId": "auto-20070101",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at eynsham (46% of window missing)"
+   },
+   {
+    "eventId": "auto-20070225",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.679,
+    "excluded": "ambiguous: second peak at eynsham with 51% of the main peak's prominence (0.29 m vs 0.58 m)"
+   },
+   {
+    "eventId": "e2007",
+    "tHalf": null,
+    "tPeak": 15.0,
+    "rise": 1.06,
+    "excluded": "T_half = -15.9 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080113",
+    "tHalf": null,
+    "tPeak": 11.0,
+    "rise": 0.755,
+    "excluded": "T_half = -12.1 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080316",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.503,
+    "excluded": "T_half = -3.2 h, T_peak = -1.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080603",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.343,
+    "excluded": "ambiguous: second peak at newbotley with 59% of the main peak's prominence (0.69 m vs 1.16 m)"
+   },
+   {
+    "eventId": "auto-20081215",
+    "tHalf": null,
+    "tPeak": 16.0,
+    "rise": 0.399,
+    "excluded": "T_half = -2.5 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20090210",
+    "tHalf": null,
+    "tPeak": 16.0,
+    "rise": 0.638,
+    "excluded": "T_half = -7.7 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20100117",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.516,
+    "excluded": "ambiguous: second peak at eynsham with 85% of the main peak's prominence (0.37 m vs 0.44 m)"
+   },
+   {
+    "eventId": "auto-20120501",
+    "tHalf": null,
+    "tPeak": 1.0,
+    "rise": 0.34,
+    "excluded": "T_half = -45.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20121122",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.86,
+    "excluded": "T_half = -23.5 h, T_peak = -33.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": null,
+    "tPeak": 1.0,
+    "rise": 0.896,
+    "excluded": "T_half = -17.6 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20130127",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.704,
+    "excluded": "ambiguous: second peak at eynsham with 78% of the main peak's prominence (0.58 m vs 0.74 m)"
+   },
+   {
+    "eventId": "auto-20130317",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.269,
+    "excluded": "ambiguous: second peak at eynsham with 93% of the main peak's prominence (0.29 m vs 0.31 m)"
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.822,
+    "excluded": "ambiguous: second peak at eynsham with 57% of the main peak's prominence (0.52 m vs 0.92 m)"
+   },
+   {
+    "eventId": "auto-20150116",
+    "tHalf": 0.6,
+    "tPeak": 8.0,
+    "rise": 0.27
+   },
+   {
+    "eventId": "auto-20160102",
+    "tHalf": null,
+    "tPeak": 7.0,
+    "rise": 0.456,
+    "excluded": "T_half = -82.4 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20160208",
+    "tHalf": null,
+    "tPeak": 5.0,
+    "rise": 0.602,
+    "excluded": "T_half = -16.4 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20160310",
+    "tHalf": null,
+    "tPeak": 16.0,
+    "rise": 0.432,
+    "excluded": "T_half = -17.5 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20180123",
+    "tHalf": 5.4,
+    "tPeak": 13.0,
+    "rise": 0.23
+   },
+   {
+    "eventId": "auto-20180331",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.581,
+    "excluded": "T_half = -39.7 h, T_peak = -6.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20191108",
+    "tHalf": null,
+    "tPeak": 18.0,
+    "rise": 0.688,
+    "excluded": "T_half = -24.2 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20191214",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.7,
+    "excluded": "T_half = -74.4 h, T_peak = -3.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20200115",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.572,
+    "excluded": "T_half = -18.5 h, T_peak = -15.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20200215",
+    "tHalf": null,
+    "tPeak": 9.0,
+    "rise": 0.732,
+    "excluded": "T_half = -57.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20201006",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.214,
+    "excluded": "ambiguous: second peak at eynsham with 53% of the main peak's prominence (0.17 m vs 0.32 m)"
+   },
+   {
+    "eventId": "auto-20201223",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.734,
+    "excluded": "T_half = -14.5 h, T_peak = -120.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": null,
+    "tPeak": 12.0,
+    "rise": 0.897,
+    "excluded": "T_half = -27.5 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20230101",
+    "tHalf": null,
+    "tPeak": 8.0,
+    "rise": 0.723,
+    "excluded": "T_half = -42.3 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20230401",
+    "tHalf": 0.0,
+    "tPeak": 8.0,
+    "rise": 0.596
+   },
+   {
+    "eventId": "auto-20231104",
+    "tHalf": null,
+    "tPeak": 20.0,
+    "rise": 0.621,
+    "excluded": "T_half = -23.2 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20231207",
+    "tHalf": null,
+    "tPeak": 3.0,
+    "rise": 0.378,
+    "excluded": "T_half = -26.9 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.89,
+    "excluded": "T_half = -17.5 h, T_peak = -48.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20240208",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.794,
+    "excluded": "ambiguous: second peak at eynsham with 57% of the main peak's prominence (0.45 m vs 0.80 m)"
+   },
+   {
+    "eventId": "auto-20240328",
+    "tHalf": null,
+    "tPeak": 6.0,
+    "rise": 0.542,
+    "excluded": "T_half = -9.8 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20240925",
+    "tHalf": null,
+    "tPeak": 17.0,
+    "rise": 0.491,
+    "excluded": "T_half = -40.2 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": null,
+    "tPeak": 13.0,
+    "rise": 0.887,
+    "excluded": "T_half = -14.7 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20250107",
+    "tHalf": null,
+    "tPeak": 9.0,
+    "rise": 0.396,
+    "excluded": "T_half = -31.1 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20250128",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.387,
+    "excluded": "T_half = -32.2 h, T_peak = -8.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20251211",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.564,
+    "excluded": "T_half = -178.6 h, T_peak = -39.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": null,
+    "tPeak": 14.0,
+    "rise": 0.743,
+    "excluded": "T_half = -178.5 h outside (0, 168) h"
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.1072
+   },
+   {
+    "lagH": 1,
+    "r": 0.1268
+   },
+   {
+    "lagH": 2,
+    "r": 0.2504
+   },
+   {
+    "lagH": 3,
+    "r": 0.3774
+   },
+   {
+    "lagH": 4,
+    "r": 0.4429
+   },
+   {
+    "lagH": 5,
+    "r": 0.4469
+   },
+   {
+    "lagH": 6,
+    "r": 0.4153
+   },
+   {
+    "lagH": 7,
+    "r": 0.3671
+   },
+   {
+    "lagH": 8,
+    "r": 0.3141
+   },
+   {
+    "lagH": 9,
+    "r": 0.2636
+   },
+   {
+    "lagH": 10,
+    "r": 0.2168
+   },
+   {
+    "lagH": 11,
+    "r": 0.18
+   },
+   {
+    "lagH": 12,
+    "r": 0.1508
+   },
+   {
+    "lagH": 13,
+    "r": 0.1304
+   },
+   {
+    "lagH": 14,
+    "r": 0.1139
+   },
+   {
+    "lagH": 15,
+    "r": 0.0999
+   },
+   {
+    "lagH": 16,
+    "r": 0.0846
+   },
+   {
+    "lagH": 17,
+    "r": 0.0725
+   },
+   {
+    "lagH": 18,
+    "r": 0.0612
+   },
+   {
+    "lagH": 19,
+    "r": 0.0513
+   },
+   {
+    "lagH": 20,
+    "r": 0.0385
+   },
+   {
+    "lagH": 21,
+    "r": 0.0287
+   },
+   {
+    "lagH": 22,
+    "r": 0.021
+   },
+   {
+    "lagH": 23,
+    "r": 0.0129
+   },
+   {
+    "lagH": 24,
+    "r": 0.0077
+   },
+   {
+    "lagH": 25,
+    "r": 0.0094
+   },
+   {
+    "lagH": 26,
+    "r": 0.0312
+   },
+   {
+    "lagH": 27,
+    "r": 0.0577
+   },
+   {
+    "lagH": 28,
+    "r": 0.073
+   },
+   {
+    "lagH": 29,
+    "r": 0.076
+   },
+   {
+    "lagH": 30,
+    "r": 0.0693
+   },
+   {
+    "lagH": 31,
+    "r": 0.061
+   },
+   {
+    "lagH": 32,
+    "r": 0.0499
+   },
+   {
+    "lagH": 33,
+    "r": 0.0392
+   },
+   {
+    "lagH": 34,
+    "r": 0.0284
+   },
+   {
+    "lagH": 35,
+    "r": 0.0184
+   },
+   {
+    "lagH": 36,
+    "r": 0.0108
+   },
+   {
+    "lagH": 37,
+    "r": 0.0037
+   },
+   {
+    "lagH": 38,
+    "r": 0.0007
+   },
+   {
+    "lagH": 39,
+    "r": -0.0041
+   },
+   {
+    "lagH": 40,
+    "r": -0.0087
+   },
+   {
+    "lagH": 41,
+    "r": -0.0134
+   },
+   {
+    "lagH": 42,
+    "r": -0.0143
+   },
+   {
+    "lagH": 43,
+    "r": -0.0124
+   },
+   {
+    "lagH": 44,
+    "r": -0.0121
+   },
+   {
+    "lagH": 45,
+    "r": -0.0107
+   },
+   {
+    "lagH": 46,
+    "r": -0.0086
+   },
+   {
+    "lagH": 47,
+    "r": -0.0104
+   },
+   {
+    "lagH": 48,
+    "r": -0.0072
+   },
+   {
+    "lagH": 49,
+    "r": 0.0012
+   },
+   {
+    "lagH": 50,
+    "r": 0.0118
+   },
+   {
+    "lagH": 51,
+    "r": 0.0261
+   },
+   {
+    "lagH": 52,
+    "r": 0.0349
+   },
+   {
+    "lagH": 53,
+    "r": 0.0373
+   },
+   {
+    "lagH": 54,
+    "r": 0.0357
+   },
+   {
+    "lagH": 55,
+    "r": 0.0322
+   },
+   {
+    "lagH": 56,
+    "r": 0.0274
+   },
+   {
+    "lagH": 57,
+    "r": 0.0216
+   },
+   {
+    "lagH": 58,
+    "r": 0.0162
+   },
+   {
+    "lagH": 59,
+    "r": 0.0105
+   },
+   {
+    "lagH": 60,
+    "r": 0.0031
+   },
+   {
+    "lagH": 61,
+    "r": -0.0031
+   },
+   {
+    "lagH": 62,
+    "r": -0.0062
+   },
+   {
+    "lagH": 63,
+    "r": -0.0061
+   },
+   {
+    "lagH": 64,
+    "r": -0.008
+   },
+   {
+    "lagH": 65,
+    "r": -0.0115
+   },
+   {
+    "lagH": 66,
+    "r": -0.0121
+   },
+   {
+    "lagH": 67,
+    "r": -0.0097
+   },
+   {
+    "lagH": 68,
+    "r": -0.0083
+   },
+   {
+    "lagH": 69,
+    "r": -0.0099
+   },
+   {
+    "lagH": 70,
+    "r": -0.0159
+   },
+   {
+    "lagH": 71,
+    "r": -0.0198
+   },
+   {
+    "lagH": 72,
+    "r": -0.0198
+   },
+   {
+    "lagH": 73,
+    "r": -0.0146
+   },
+   {
+    "lagH": 74,
+    "r": -0.0066
+   },
+   {
+    "lagH": 75,
+    "r": 0.0047
+   },
+   {
+    "lagH": 76,
+    "r": 0.0136
+   },
+   {
+    "lagH": 77,
+    "r": 0.019
+   },
+   {
+    "lagH": 78,
+    "r": 0.0228
+   },
+   {
+    "lagH": 79,
+    "r": 0.0229
+   },
+   {
+    "lagH": 80,
+    "r": 0.0209
+   },
+   {
+    "lagH": 81,
+    "r": 0.0178
+   },
+   {
+    "lagH": 82,
+    "r": 0.0129
+   },
+   {
+    "lagH": 83,
+    "r": 0.0071
+   },
+   {
+    "lagH": 84,
+    "r": -0.0008
+   },
+   {
+    "lagH": 85,
+    "r": -0.0069
+   },
+   {
+    "lagH": 86,
+    "r": -0.0099
+   },
+   {
+    "lagH": 87,
+    "r": -0.0133
+   },
+   {
+    "lagH": 88,
+    "r": -0.0169
+   },
+   {
+    "lagH": 89,
+    "r": -0.0193
+   },
+   {
+    "lagH": 90,
+    "r": -0.0182
+   },
+   {
+    "lagH": 91,
+    "r": -0.0174
+   },
+   {
+    "lagH": 92,
+    "r": -0.0163
+   },
+   {
+    "lagH": 93,
+    "r": -0.0139
+   },
+   {
+    "lagH": 94,
+    "r": -0.0146
+   },
+   {
+    "lagH": 95,
+    "r": -0.0172
+   },
+   {
+    "lagH": 96,
+    "r": -0.0176
+   },
+   {
+    "lagH": 97,
+    "r": -0.0103
+   },
+   {
+    "lagH": 98,
+    "r": -0.0004
+   },
+   {
+    "lagH": 99,
+    "r": 0.0015
+   },
+   {
+    "lagH": 100,
+    "r": 0.0021
+   },
+   {
+    "lagH": 101,
+    "r": -0.0003
+   },
+   {
+    "lagH": 102,
+    "r": -0.0006
+   },
+   {
+    "lagH": 103,
+    "r": 0.0014
+   },
+   {
+    "lagH": 104,
+    "r": 0.0011
+   },
+   {
+    "lagH": 105,
+    "r": -0.0024
+   },
+   {
+    "lagH": 106,
+    "r": -0.0031
+   },
+   {
+    "lagH": 107,
+    "r": -0.0061
+   },
+   {
+    "lagH": 108,
+    "r": -0.0083
+   },
+   {
+    "lagH": 109,
+    "r": -0.0118
+   },
+   {
+    "lagH": 110,
+    "r": -0.0157
+   },
+   {
+    "lagH": 111,
+    "r": -0.0197
+   },
+   {
+    "lagH": 112,
+    "r": -0.0237
+   },
+   {
+    "lagH": 113,
+    "r": -0.027
+   },
+   {
+    "lagH": 114,
+    "r": -0.0261
+   },
+   {
+    "lagH": 115,
+    "r": -0.024
+   },
+   {
+    "lagH": 116,
+    "r": -0.0218
+   },
+   {
+    "lagH": 117,
+    "r": -0.0222
+   },
+   {
+    "lagH": 118,
+    "r": -0.0253
+   },
+   {
+    "lagH": 119,
+    "r": -0.027
+   },
+   {
+    "lagH": 120,
+    "r": -0.0224
+   }
+  ],
+  "slopeHoursPerMetre": -9.78
+ },
+ {
+  "up": "cassington",
+  "down": "newbotley",
+  "n": 24,
+  "tHalf": {
+   "p10": 1.3,
+   "median": 9.5,
+   "p90": 42.5
+  },
+  "tPeak": {
+   "p10": 20.6,
+   "median": 32.0,
+   "p90": 84.9
+  },
+  "events": [
+   {
+    "eventId": "auto-20061126",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.324,
+    "excluded": "ambiguous: second peak at cassington with 53% of the main peak's prominence (0.08 m vs 0.14 m)"
+   },
+   {
+    "eventId": "auto-20070101",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.379,
+    "excluded": "ambiguous: second peak at cassington with 68% of the main peak's prominence (0.19 m vs 0.27 m)"
+   },
+   {
+    "eventId": "auto-20070225",
+    "tHalf": 15.4,
+    "tPeak": 22.0,
+    "rise": 0.348
+   },
+   {
+    "eventId": "e2007",
+    "tHalf": null,
+    "tPeak": 86.0,
+    "rise": 0.917,
+    "excluded": "T_half = -11.2 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080113",
+    "tHalf": 29.8,
+    "tPeak": 67.0,
+    "rise": 0.478
+   },
+   {
+    "eventId": "auto-20080316",
+    "tHalf": 1.6,
+    "tPeak": 20.0,
+    "rise": 0.59
+   },
+   {
+    "eventId": "auto-20080603",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.545,
+    "excluded": "ambiguous: second peak at cassington with 86% of the main peak's prominence (0.30 m vs 0.35 m)"
+   },
+   {
+    "eventId": "auto-20081215",
+    "tHalf": 6.3,
+    "tPeak": 24.0,
+    "rise": 0.447
+   },
+   {
+    "eventId": "auto-20090210",
+    "tHalf": 1.8,
+    "tPeak": 60.0,
+    "rise": 0.334
+   },
+   {
+    "eventId": "auto-20100117",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.478,
+    "excluded": "ambiguous: second peak at cassington with 56% of the main peak's prominence (0.15 m vs 0.26 m)"
+   },
+   {
+    "eventId": "auto-20120501",
+    "tHalf": 45.4,
+    "tPeak": 29.0,
+    "rise": 0.556
+   },
+   {
+    "eventId": "auto-20121122",
+    "tHalf": 9.1,
+    "tPeak": 27.0,
+    "rise": 0.571
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": 134.7,
+    "tPeak": 80.0,
+    "rise": 0.398
+   },
+   {
+    "eventId": "auto-20130127",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.415,
+    "excluded": "ambiguous: second peak at cassington with 55% of the main peak's prominence (0.18 m vs 0.32 m)"
+   },
+   {
+    "eventId": "auto-20130317",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.352,
+    "excluded": "ambiguous: second peak at cassington with 81% of the main peak's prominence (0.19 m vs 0.24 m)"
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.702,
+    "excluded": "ambiguous: second peak at cassington with 71% of the main peak's prominence (0.23 m vs 0.33 m)"
+   },
+   {
+    "eventId": "auto-20150116",
+    "tHalf": 11.6,
+    "tPeak": 19.0,
+    "rise": 0.361
+   },
+   {
+    "eventId": "auto-20160102",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.305,
+    "excluded": "ambiguous: second peak at cassington with 72% of the main peak's prominence (0.14 m vs 0.19 m)"
+   },
+   {
+    "eventId": "auto-20160208",
+    "tHalf": 16.2,
+    "tPeak": 66.0,
+    "rise": 0.356
+   },
+   {
+    "eventId": "auto-20160310",
+    "tHalf": 6.7,
+    "tPeak": 24.0,
+    "rise": 0.479
+   },
+   {
+    "eventId": "auto-20180123",
+    "tHalf": 0.8,
+    "tPeak": 13.0,
+    "rise": 0.328
+   },
+   {
+    "eventId": "auto-20180331",
+    "tHalf": 11.7,
+    "tPeak": 58.0,
+    "rise": 0.365
+   },
+   {
+    "eventId": "auto-20191108",
+    "tHalf": 0.2,
+    "tPeak": 25.0,
+    "rise": 0.414
+   },
+   {
+    "eventId": "auto-20191214",
+    "tHalf": 29.6,
+    "tPeak": 59.0,
+    "rise": 0.353
+   },
+   {
+    "eventId": "auto-20200115",
+    "tHalf": 109.5,
+    "tPeak": 35.0,
+    "rise": 0.324
+   },
+   {
+    "eventId": "auto-20200215",
+    "tHalf": 13.4,
+    "tPeak": 77.0,
+    "rise": 0.44
+   },
+   {
+    "eventId": "auto-20201006",
+    "tHalf": 1.1,
+    "tPeak": 22.0,
+    "rise": 0.601
+   },
+   {
+    "eventId": "auto-20201223",
+    "tHalf": null,
+    "tPeak": 19.0,
+    "rise": 0.52,
+    "excluded": "T_half = -2.8 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.313,
+    "excluded": "ambiguous: second peak at cassington with 66% of the main peak's prominence (0.21 m vs 0.32 m)"
+   },
+   {
+    "eventId": "auto-20230101",
+    "tHalf": 35.9,
+    "tPeak": 87.0,
+    "rise": 0.127
+   },
+   {
+    "eventId": "auto-20230401",
+    "tHalf": 9.9,
+    "tPeak": 52.0,
+    "rise": 0.122
+   },
+   {
+    "eventId": "auto-20231104",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at cassington (100% of window missing)"
+   },
+   {
+    "eventId": "auto-20231207",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at cassington (100% of window missing)"
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at cassington (100% of window missing)"
+   },
+   {
+    "eventId": "auto-20240208",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at cassington (83% of window missing)"
+   },
+   {
+    "eventId": "auto-20240328",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.267,
+    "excluded": "ambiguous: second peak at cassington with 80% of the main peak's prominence (0.13 m vs 0.16 m)"
+   },
+   {
+    "eventId": "auto-20240925",
+    "tHalf": 4.4,
+    "tPeak": 116.0,
+    "rise": 0.717
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 3.1,
+    "tPeak": 98.0,
+    "rise": 0.753
+   },
+   {
+    "eventId": "auto-20250107",
+    "tHalf": 2.2,
+    "tPeak": 23.0,
+    "rise": 0.389
+   },
+   {
+    "eventId": "auto-20250128",
+    "tHalf": 4.1,
+    "tPeak": 27.0,
+    "rise": 0.381
+   },
+   {
+    "eventId": "auto-20251211",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.137,
+    "excluded": "ambiguous: second peak at cassington with 58% of the main peak's prominence (0.11 m vs 0.20 m)"
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": 16.3,
+    "tPeak": null,
+    "rise": 0.232,
+    "excluded": "T_peak = 194.0 h outside (0, 168) h"
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.2667
+   },
+   {
+    "lagH": 1,
+    "r": 0.2762
+   },
+   {
+    "lagH": 2,
+    "r": 0.3065
+   },
+   {
+    "lagH": 3,
+    "r": 0.3424
+   },
+   {
+    "lagH": 4,
+    "r": 0.3502
+   },
+   {
+    "lagH": 5,
+    "r": 0.3381
+   },
+   {
+    "lagH": 6,
+    "r": 0.3194
+   },
+   {
+    "lagH": 7,
+    "r": 0.2972
+   },
+   {
+    "lagH": 8,
+    "r": 0.2824
+   },
+   {
+    "lagH": 9,
+    "r": 0.2727
+   },
+   {
+    "lagH": 10,
+    "r": 0.2597
+   },
+   {
+    "lagH": 11,
+    "r": 0.2414
+   },
+   {
+    "lagH": 12,
+    "r": 0.2301
+   },
+   {
+    "lagH": 13,
+    "r": 0.2226
+   },
+   {
+    "lagH": 14,
+    "r": 0.2093
+   },
+   {
+    "lagH": 15,
+    "r": 0.1931
+   },
+   {
+    "lagH": 16,
+    "r": 0.1797
+   },
+   {
+    "lagH": 17,
+    "r": 0.1678
+   },
+   {
+    "lagH": 18,
+    "r": 0.1585
+   },
+   {
+    "lagH": 19,
+    "r": 0.1495
+   },
+   {
+    "lagH": 20,
+    "r": 0.1426
+   },
+   {
+    "lagH": 21,
+    "r": 0.1349
+   },
+   {
+    "lagH": 22,
+    "r": 0.1219
+   },
+   {
+    "lagH": 23,
+    "r": 0.1105
+   },
+   {
+    "lagH": 24,
+    "r": 0.099
+   },
+   {
+    "lagH": 25,
+    "r": 0.0899
+   },
+   {
+    "lagH": 26,
+    "r": 0.0875
+   },
+   {
+    "lagH": 27,
+    "r": 0.0817
+   },
+   {
+    "lagH": 28,
+    "r": 0.0729
+   },
+   {
+    "lagH": 29,
+    "r": 0.0627
+   },
+   {
+    "lagH": 30,
+    "r": 0.0539
+   },
+   {
+    "lagH": 31,
+    "r": 0.0494
+   },
+   {
+    "lagH": 32,
+    "r": 0.0449
+   },
+   {
+    "lagH": 33,
+    "r": 0.0398
+   },
+   {
+    "lagH": 34,
+    "r": 0.0347
+   },
+   {
+    "lagH": 35,
+    "r": 0.0308
+   },
+   {
+    "lagH": 36,
+    "r": 0.0248
+   },
+   {
+    "lagH": 37,
+    "r": 0.0194
+   },
+   {
+    "lagH": 38,
+    "r": 0.015
+   },
+   {
+    "lagH": 39,
+    "r": 0.0129
+   },
+   {
+    "lagH": 40,
+    "r": 0.0114
+   },
+   {
+    "lagH": 41,
+    "r": 0.0108
+   },
+   {
+    "lagH": 42,
+    "r": 0.0094
+   },
+   {
+    "lagH": 43,
+    "r": 0.0107
+   },
+   {
+    "lagH": 44,
+    "r": 0.0071
+   },
+   {
+    "lagH": 45,
+    "r": 0.0029
+   },
+   {
+    "lagH": 46,
+    "r": 0.0017
+   },
+   {
+    "lagH": 47,
+    "r": 0.0002
+   },
+   {
+    "lagH": 48,
+    "r": -0.0002
+   },
+   {
+    "lagH": 49,
+    "r": 0.0012
+   },
+   {
+    "lagH": 50,
+    "r": 0.0021
+   },
+   {
+    "lagH": 51,
+    "r": 0.0022
+   },
+   {
+    "lagH": 52,
+    "r": -0.0025
+   },
+   {
+    "lagH": 53,
+    "r": -0.0049
+   },
+   {
+    "lagH": 54,
+    "r": -0.0067
+   },
+   {
+    "lagH": 55,
+    "r": -0.0071
+   },
+   {
+    "lagH": 56,
+    "r": -0.0098
+   },
+   {
+    "lagH": 57,
+    "r": -0.0128
+   },
+   {
+    "lagH": 58,
+    "r": -0.0149
+   },
+   {
+    "lagH": 59,
+    "r": -0.0189
+   },
+   {
+    "lagH": 60,
+    "r": -0.024
+   },
+   {
+    "lagH": 61,
+    "r": -0.027
+   },
+   {
+    "lagH": 62,
+    "r": -0.0293
+   },
+   {
+    "lagH": 63,
+    "r": -0.0285
+   },
+   {
+    "lagH": 64,
+    "r": -0.0265
+   },
+   {
+    "lagH": 65,
+    "r": -0.026
+   },
+   {
+    "lagH": 66,
+    "r": -0.0284
+   },
+   {
+    "lagH": 67,
+    "r": -0.0296
+   },
+   {
+    "lagH": 68,
+    "r": -0.0275
+   },
+   {
+    "lagH": 69,
+    "r": -0.0262
+   },
+   {
+    "lagH": 70,
+    "r": -0.0288
+   },
+   {
+    "lagH": 71,
+    "r": -0.0313
+   },
+   {
+    "lagH": 72,
+    "r": -0.0312
+   },
+   {
+    "lagH": 73,
+    "r": -0.0296
+   },
+   {
+    "lagH": 74,
+    "r": -0.0273
+   },
+   {
+    "lagH": 75,
+    "r": -0.0316
+   },
+   {
+    "lagH": 76,
+    "r": -0.0368
+   },
+   {
+    "lagH": 77,
+    "r": -0.0415
+   },
+   {
+    "lagH": 78,
+    "r": -0.0418
+   },
+   {
+    "lagH": 79,
+    "r": -0.0376
+   },
+   {
+    "lagH": 80,
+    "r": -0.0357
+   },
+   {
+    "lagH": 81,
+    "r": -0.0332
+   },
+   {
+    "lagH": 82,
+    "r": -0.0324
+   },
+   {
+    "lagH": 83,
+    "r": -0.0341
+   },
+   {
+    "lagH": 84,
+    "r": -0.0364
+   },
+   {
+    "lagH": 85,
+    "r": -0.0357
+   },
+   {
+    "lagH": 86,
+    "r": -0.0322
+   },
+   {
+    "lagH": 87,
+    "r": -0.0277
+   },
+   {
+    "lagH": 88,
+    "r": -0.0248
+   },
+   {
+    "lagH": 89,
+    "r": -0.0239
+   },
+   {
+    "lagH": 90,
+    "r": -0.0267
+   },
+   {
+    "lagH": 91,
+    "r": -0.0277
+   },
+   {
+    "lagH": 92,
+    "r": -0.0256
+   },
+   {
+    "lagH": 93,
+    "r": -0.0266
+   },
+   {
+    "lagH": 94,
+    "r": -0.0247
+   },
+   {
+    "lagH": 95,
+    "r": -0.0256
+   },
+   {
+    "lagH": 96,
+    "r": -0.0262
+   },
+   {
+    "lagH": 97,
+    "r": -0.0246
+   },
+   {
+    "lagH": 98,
+    "r": -0.0193
+   },
+   {
+    "lagH": 99,
+    "r": -0.018
+   },
+   {
+    "lagH": 100,
+    "r": -0.0183
+   },
+   {
+    "lagH": 101,
+    "r": -0.0199
+   },
+   {
+    "lagH": 102,
+    "r": -0.0203
+   },
+   {
+    "lagH": 103,
+    "r": -0.0221
+   },
+   {
+    "lagH": 104,
+    "r": -0.0205
+   },
+   {
+    "lagH": 105,
+    "r": -0.0198
+   },
+   {
+    "lagH": 106,
+    "r": -0.0215
+   },
+   {
+    "lagH": 107,
+    "r": -0.0218
+   },
+   {
+    "lagH": 108,
+    "r": -0.0234
+   },
+   {
+    "lagH": 109,
+    "r": -0.0202
+   },
+   {
+    "lagH": 110,
+    "r": -0.0192
+   },
+   {
+    "lagH": 111,
+    "r": -0.0201
+   },
+   {
+    "lagH": 112,
+    "r": -0.0205
+   },
+   {
+    "lagH": 113,
+    "r": -0.0184
+   },
+   {
+    "lagH": 114,
+    "r": -0.0167
+   },
+   {
+    "lagH": 115,
+    "r": -0.0158
+   },
+   {
+    "lagH": 116,
+    "r": -0.0123
+   },
+   {
+    "lagH": 117,
+    "r": -0.0099
+   },
+   {
+    "lagH": 118,
+    "r": -0.0114
+   },
+   {
+    "lagH": 119,
+    "r": -0.0097
+   },
+   {
+    "lagH": 120,
+    "r": -0.0084
+   }
+  ],
+  "slopeHoursPerMetre": -43.48
+ },
+ {
+  "up": "farmoor",
+  "down": "minns",
+  "n": 1,
+  "tHalf": {
+   "p10": 0.0,
+   "median": 6.0,
+   "p90": 12.0
+  },
+  "tPeak": {
+   "p10": 0.0,
+   "median": 6.0,
+   "p90": 12.0
+  },
+  "events": [
+   {
+    "eventId": "auto-20061127",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.462,
+    "excluded": "ambiguous: second peak at farmoor with 68% of the main peak's prominence (0.29 m vs 0.43 m)"
+   },
+   {
+    "eventId": "auto-20070110",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.523,
+    "excluded": "ambiguous: second peak at farmoor with 56% of the main peak's prominence (0.36 m vs 0.64 m)"
+   },
+   {
+    "eventId": "auto-20070306",
+    "tHalf": 1.1,
+    "tPeak": null,
+    "rise": 0.468,
+    "excluded": "T_peak = -19.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2007",
+    "tHalf": null,
+    "tPeak": 16.0,
+    "rise": 1.121,
+    "excluded": "T_half = -11.7 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080114",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.71,
+    "excluded": "T_half = -23.2 h, T_peak = 0.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080318",
+    "tHalf": 0.9,
+    "tPeak": null,
+    "rise": 0.562,
+    "excluded": "T_peak = -16.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080604",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.344,
+    "excluded": "ambiguous: second peak at farmoor with 97% of the main peak's prominence (0.30 m vs 0.31 m)"
+   },
+   {
+    "eventId": "auto-20090212",
+    "tHalf": null,
+    "tPeak": 25.0,
+    "rise": 0.64,
+    "excluded": "T_half = -28.1 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.908,
+    "excluded": "T_half = -38.0 h, T_peak = -33.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20121222",
+    "tHalf": 10.2,
+    "tPeak": 3.0,
+    "rise": 0.799
+   },
+   {
+    "eventId": "auto-20130128",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.512,
+    "excluded": "T_half = -43.5 h, T_peak = -39.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.93,
+    "excluded": "ambiguous: second peak at farmoor with 67% of the main peak's prominence (0.63 m vs 0.94 m)"
+   },
+   {
+    "eventId": "auto-20160105",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.479,
+    "excluded": "T_half = -77.1 h, T_peak = -7.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20160208",
+    "tHalf": null,
+    "tPeak": 4.0,
+    "rise": 0.421,
+    "excluded": "T_half = -28.2 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20160311",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.22,
+    "excluded": "ambiguous: second peak at farmoor with 79% of the main peak's prominence (0.20 m vs 0.26 m)"
+   },
+   {
+    "eventId": "auto-20180402",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.397,
+    "excluded": "T_half = -52.6 h, T_peak = -10.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20191111",
+    "tHalf": null,
+    "tPeak": 44.0,
+    "rise": 0.341,
+    "excluded": "T_half = -1.6 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20191216",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.563,
+    "excluded": "T_half = -128.5 h, T_peak = 0.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20200116",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.385,
+    "excluded": "ambiguous: second peak at minns with 100% of the main peak's prominence (0.66 m vs 0.66 m)"
+   },
+   {
+    "eventId": "auto-20200216",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.698,
+    "excluded": "ambiguous: second peak at farmoor with 54% of the main peak's prominence (0.35 m vs 0.65 m)"
+   },
+   {
+    "eventId": "auto-20201224",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.664,
+    "excluded": "T_half = -17.1 h, T_peak = -117.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": null,
+    "tPeak": 10.0,
+    "rise": 0.812,
+    "excluded": "T_half = -155.7 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20230103",
+    "tHalf": null,
+    "tPeak": 3.0,
+    "rise": 0.735,
+    "excluded": "T_half = -239.1 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20230401",
+    "tHalf": null,
+    "tPeak": 13.0,
+    "rise": 0.524,
+    "excluded": "T_half = -22.2 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20231114",
+    "tHalf": null,
+    "tPeak": 24.0,
+    "rise": 0.416,
+    "excluded": "T_half = -0.5 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.886,
+    "excluded": "T_half = -1.1 h, T_peak = -46.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20240209",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.769,
+    "excluded": "ambiguous: second peak at farmoor with 77% of the main peak's prominence (0.55 m vs 0.71 m)"
+   },
+   {
+    "eventId": "auto-20240329",
+    "tHalf": null,
+    "tPeak": 17.0,
+    "rise": 0.496,
+    "excluded": "T_half = -15.1 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20240926",
+    "tHalf": null,
+    "tPeak": 28.0,
+    "rise": 0.324,
+    "excluded": "T_half = -98.4 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": null,
+    "tPeak": 20.0,
+    "rise": 0.798,
+    "excluded": "T_half = -22.5 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20250108",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.15,
+    "excluded": "ambiguous: second peak at farmoor with 62% of the main peak's prominence (0.16 m vs 0.25 m)"
+   },
+   {
+    "eventId": "auto-20250129",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.361,
+    "excluded": "ambiguous: second peak at farmoor with 53% of the main peak's prominence (0.16 m vs 0.29 m)"
+   },
+   {
+    "eventId": "auto-20251219",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.441,
+    "excluded": "T_half = -11.7 h, T_peak = -24.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": null,
+    "tPeak": 57.0,
+    "rise": 0.668,
+    "excluded": "T_half = -76.8 h outside (0, 168) h"
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.0504
+   },
+   {
+    "lagH": 1,
+    "r": 0.0598
+   },
+   {
+    "lagH": 2,
+    "r": 0.092
+   },
+   {
+    "lagH": 3,
+    "r": 0.1592
+   },
+   {
+    "lagH": 4,
+    "r": 0.2447
+   },
+   {
+    "lagH": 5,
+    "r": 0.3109
+   },
+   {
+    "lagH": 6,
+    "r": 0.3435
+   },
+   {
+    "lagH": 7,
+    "r": 0.3416
+   },
+   {
+    "lagH": 8,
+    "r": 0.3104
+   },
+   {
+    "lagH": 9,
+    "r": 0.263
+   },
+   {
+    "lagH": 10,
+    "r": 0.2128
+   },
+   {
+    "lagH": 11,
+    "r": 0.171
+   },
+   {
+    "lagH": 12,
+    "r": 0.1368
+   },
+   {
+    "lagH": 13,
+    "r": 0.1086
+   },
+   {
+    "lagH": 14,
+    "r": 0.087
+   },
+   {
+    "lagH": 15,
+    "r": 0.0701
+   },
+   {
+    "lagH": 16,
+    "r": 0.0579
+   },
+   {
+    "lagH": 17,
+    "r": 0.044
+   },
+   {
+    "lagH": 18,
+    "r": 0.0322
+   },
+   {
+    "lagH": 19,
+    "r": 0.0218
+   },
+   {
+    "lagH": 20,
+    "r": 0.013
+   },
+   {
+    "lagH": 21,
+    "r": 0.0106
+   },
+   {
+    "lagH": 22,
+    "r": 0.0026
+   },
+   {
+    "lagH": 23,
+    "r": -0.0073
+   },
+   {
+    "lagH": 24,
+    "r": -0.0114
+   },
+   {
+    "lagH": 25,
+    "r": -0.0119
+   },
+   {
+    "lagH": 26,
+    "r": -0.005
+   },
+   {
+    "lagH": 27,
+    "r": 0.0149
+   },
+   {
+    "lagH": 28,
+    "r": 0.0364
+   },
+   {
+    "lagH": 29,
+    "r": 0.0554
+   },
+   {
+    "lagH": 30,
+    "r": 0.0657
+   },
+   {
+    "lagH": 31,
+    "r": 0.0628
+   },
+   {
+    "lagH": 32,
+    "r": 0.05
+   },
+   {
+    "lagH": 33,
+    "r": 0.0341
+   },
+   {
+    "lagH": 34,
+    "r": 0.02
+   },
+   {
+    "lagH": 35,
+    "r": 0.0073
+   },
+   {
+    "lagH": 36,
+    "r": -0.0033
+   },
+   {
+    "lagH": 37,
+    "r": -0.0103
+   },
+   {
+    "lagH": 38,
+    "r": -0.0164
+   },
+   {
+    "lagH": 39,
+    "r": -0.0248
+   },
+   {
+    "lagH": 40,
+    "r": -0.0302
+   },
+   {
+    "lagH": 41,
+    "r": -0.0339
+   },
+   {
+    "lagH": 42,
+    "r": -0.0365
+   },
+   {
+    "lagH": 43,
+    "r": -0.0346
+   },
+   {
+    "lagH": 44,
+    "r": -0.0315
+   },
+   {
+    "lagH": 45,
+    "r": -0.029
+   },
+   {
+    "lagH": 46,
+    "r": -0.0266
+   },
+   {
+    "lagH": 47,
+    "r": -0.0256
+   },
+   {
+    "lagH": 48,
+    "r": -0.0245
+   },
+   {
+    "lagH": 49,
+    "r": -0.0235
+   },
+   {
+    "lagH": 50,
+    "r": -0.0155
+   },
+   {
+    "lagH": 51,
+    "r": 0.0014
+   },
+   {
+    "lagH": 52,
+    "r": 0.0168
+   },
+   {
+    "lagH": 53,
+    "r": 0.0281
+   },
+   {
+    "lagH": 54,
+    "r": 0.0363
+   },
+   {
+    "lagH": 55,
+    "r": 0.0376
+   },
+   {
+    "lagH": 56,
+    "r": 0.0323
+   },
+   {
+    "lagH": 57,
+    "r": 0.0261
+   },
+   {
+    "lagH": 58,
+    "r": 0.02
+   },
+   {
+    "lagH": 59,
+    "r": 0.015
+   },
+   {
+    "lagH": 60,
+    "r": 0.0105
+   },
+   {
+    "lagH": 61,
+    "r": 0.0054
+   },
+   {
+    "lagH": 62,
+    "r": -0.0027
+   },
+   {
+    "lagH": 63,
+    "r": -0.0106
+   },
+   {
+    "lagH": 64,
+    "r": -0.0138
+   },
+   {
+    "lagH": 65,
+    "r": -0.0157
+   },
+   {
+    "lagH": 66,
+    "r": -0.0181
+   },
+   {
+    "lagH": 67,
+    "r": -0.0173
+   },
+   {
+    "lagH": 68,
+    "r": -0.0157
+   },
+   {
+    "lagH": 69,
+    "r": -0.0149
+   },
+   {
+    "lagH": 70,
+    "r": -0.0137
+   },
+   {
+    "lagH": 71,
+    "r": -0.0124
+   },
+   {
+    "lagH": 72,
+    "r": -0.0147
+   },
+   {
+    "lagH": 73,
+    "r": -0.018
+   },
+   {
+    "lagH": 74,
+    "r": -0.0242
+   },
+   {
+    "lagH": 75,
+    "r": -0.0204
+   },
+   {
+    "lagH": 76,
+    "r": -0.009
+   },
+   {
+    "lagH": 77,
+    "r": 0.0035
+   },
+   {
+    "lagH": 78,
+    "r": 0.013
+   },
+   {
+    "lagH": 79,
+    "r": 0.0183
+   },
+   {
+    "lagH": 80,
+    "r": 0.0199
+   },
+   {
+    "lagH": 81,
+    "r": 0.018
+   },
+   {
+    "lagH": 82,
+    "r": 0.0152
+   },
+   {
+    "lagH": 83,
+    "r": 0.013
+   },
+   {
+    "lagH": 84,
+    "r": 0.0086
+   },
+   {
+    "lagH": 85,
+    "r": 0.0014
+   },
+   {
+    "lagH": 86,
+    "r": -0.005
+   },
+   {
+    "lagH": 87,
+    "r": -0.0102
+   },
+   {
+    "lagH": 88,
+    "r": -0.0135
+   },
+   {
+    "lagH": 89,
+    "r": -0.0163
+   },
+   {
+    "lagH": 90,
+    "r": -0.0179
+   },
+   {
+    "lagH": 91,
+    "r": -0.0175
+   },
+   {
+    "lagH": 92,
+    "r": -0.0148
+   },
+   {
+    "lagH": 93,
+    "r": -0.0082
+   },
+   {
+    "lagH": 94,
+    "r": -0.0077
+   },
+   {
+    "lagH": 95,
+    "r": -0.0087
+   },
+   {
+    "lagH": 96,
+    "r": -0.0116
+   },
+   {
+    "lagH": 97,
+    "r": -0.0179
+   },
+   {
+    "lagH": 98,
+    "r": -0.0216
+   },
+   {
+    "lagH": 99,
+    "r": -0.018
+   },
+   {
+    "lagH": 100,
+    "r": -0.0076
+   },
+   {
+    "lagH": 101,
+    "r": 0.001
+   },
+   {
+    "lagH": 102,
+    "r": 0.0077
+   },
+   {
+    "lagH": 103,
+    "r": 0.0129
+   },
+   {
+    "lagH": 104,
+    "r": 0.0123
+   },
+   {
+    "lagH": 105,
+    "r": 0.0075
+   },
+   {
+    "lagH": 106,
+    "r": 0.0031
+   },
+   {
+    "lagH": 107,
+    "r": -0.0012
+   },
+   {
+    "lagH": 108,
+    "r": -0.0059
+   },
+   {
+    "lagH": 109,
+    "r": -0.0109
+   },
+   {
+    "lagH": 110,
+    "r": -0.0156
+   },
+   {
+    "lagH": 111,
+    "r": -0.0182
+   },
+   {
+    "lagH": 112,
+    "r": -0.0195
+   },
+   {
+    "lagH": 113,
+    "r": -0.0235
+   },
+   {
+    "lagH": 114,
+    "r": -0.0266
+   },
+   {
+    "lagH": 115,
+    "r": -0.0246
+   },
+   {
+    "lagH": 116,
+    "r": -0.0232
+   },
+   {
+    "lagH": 117,
+    "r": -0.0227
+   },
+   {
+    "lagH": 118,
+    "r": -0.0218
+   },
+   {
+    "lagH": 119,
+    "r": -0.0202
+   },
+   {
+    "lagH": 120,
+    "r": -0.0213
+   }
+  ],
+  "slopeHoursPerMetre": null
+ },
+ {
+  "up": "eynsham",
+  "down": "minns",
+  "n": 7,
+  "tHalf": {
+   "p10": 0.1,
+   "median": 7.1,
+   "p90": 10.3
+  },
+  "tPeak": {
+   "p10": 11.2,
+   "median": 15.0,
+   "p90": 17.6
+  },
+  "events": [
+   {
+    "eventId": "auto-20061127",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at eynsham (67% of window missing)"
+   },
+   {
+    "eventId": "auto-20070110",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at eynsham (28% of window missing)"
+   },
+   {
+    "eventId": "auto-20070306",
+    "tHalf": 7.2,
+    "tPeak": null,
+    "rise": 0.418,
+    "excluded": "T_peak = -4.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2007",
+    "tHalf": 7.1,
+    "tPeak": 16.0,
+    "rise": 1.06
+   },
+   {
+    "eventId": "auto-20080114",
+    "tHalf": 2.2,
+    "tPeak": null,
+    "rise": 0.755,
+    "excluded": "T_peak = -3.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080318",
+    "tHalf": null,
+    "tPeak": 3.0,
+    "rise": 0.503,
+    "excluded": "T_half = -4.9 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080604",
+    "tHalf": null,
+    "tPeak": 13.0,
+    "rise": 0.343,
+    "excluded": "T_half = -7.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20090212",
+    "tHalf": null,
+    "tPeak": 21.0,
+    "rise": 0.638,
+    "excluded": "T_half = -7.1 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.86,
+    "excluded": "T_half = -0.7 h, T_peak = -41.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20121222",
+    "tHalf": 18.9,
+    "tPeak": null,
+    "rise": 0.694,
+    "excluded": "T_peak = 0.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20130128",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.707,
+    "excluded": "T_half = -8.1 h, T_peak = -41.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.822,
+    "excluded": "ambiguous: second peak at eynsham with 57% of the main peak's prominence (0.52 m vs 0.92 m)"
+   },
+   {
+    "eventId": "auto-20160105",
+    "tHalf": null,
+    "tPeak": 17.0,
+    "rise": 0.456,
+    "excluded": "T_half = -69.9 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20160208",
+    "tHalf": null,
+    "tPeak": 4.0,
+    "rise": 0.602,
+    "excluded": "T_half = -10.7 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20160311",
+    "tHalf": null,
+    "tPeak": 19.0,
+    "rise": 0.432,
+    "excluded": "T_half = -12.6 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20180402",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.581,
+    "excluded": "T_half = -37.1 h, T_peak = -1.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20191111",
+    "tHalf": 9.3,
+    "tPeak": 16.0,
+    "rise": 0.501
+   },
+   {
+    "eventId": "auto-20191216",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.613,
+    "excluded": "T_half = -65.0 h, T_peak = -2.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20200116",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.581,
+    "excluded": "ambiguous: second peak at minns with 100% of the main peak's prominence (0.66 m vs 0.66 m)"
+   },
+   {
+    "eventId": "auto-20200216",
+    "tHalf": null,
+    "tPeak": 9.0,
+    "rise": 0.732,
+    "excluded": "T_half = -17.3 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20201224",
+    "tHalf": 3.2,
+    "tPeak": null,
+    "rise": 0.734,
+    "excluded": "T_peak = -120.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": 0.1,
+    "tPeak": 12.0,
+    "rise": 0.897
+   },
+   {
+    "eventId": "auto-20230103",
+    "tHalf": null,
+    "tPeak": 1.0,
+    "rise": 0.723,
+    "excluded": "T_half = -8.8 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20230401",
+    "tHalf": 2.4,
+    "tPeak": 10.0,
+    "rise": 0.596
+   },
+   {
+    "eventId": "auto-20231114",
+    "tHalf": 11.7,
+    "tPeak": 20.0,
+    "rise": 0.38
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": 15.0,
+    "tPeak": null,
+    "rise": 0.89,
+    "excluded": "T_peak = -47.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20240209",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.794,
+    "excluded": "ambiguous: second peak at eynsham with 58% of the main peak's prominence (0.45 m vs 0.78 m)"
+   },
+   {
+    "eventId": "auto-20240329",
+    "tHalf": 0.0,
+    "tPeak": 15.0,
+    "rise": 0.542
+   },
+   {
+    "eventId": "auto-20240926",
+    "tHalf": null,
+    "tPeak": 26.0,
+    "rise": 0.491,
+    "excluded": "T_half = -53.3 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 8.0,
+    "tPeak": 14.0,
+    "rise": 0.887
+   },
+   {
+    "eventId": "auto-20250108",
+    "tHalf": null,
+    "tPeak": 18.0,
+    "rise": 0.396,
+    "excluded": "T_half = -27.2 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20250129",
+    "tHalf": null,
+    "tPeak": 9.0,
+    "rise": 0.387,
+    "excluded": "T_half = -31.1 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20251219",
+    "tHalf": 3.9,
+    "tPeak": null,
+    "rise": 0.435,
+    "excluded": "T_peak = -25.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": null,
+    "tPeak": 14.0,
+    "rise": 0.743,
+    "excluded": "T_half = -1.9 h outside (0, 168) h"
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.1317
+   },
+   {
+    "lagH": 1,
+    "r": 0.1436
+   },
+   {
+    "lagH": 2,
+    "r": 0.1892
+   },
+   {
+    "lagH": 3,
+    "r": 0.2785
+   },
+   {
+    "lagH": 4,
+    "r": 0.3605
+   },
+   {
+    "lagH": 5,
+    "r": 0.4045
+   },
+   {
+    "lagH": 6,
+    "r": 0.4042
+   },
+   {
+    "lagH": 7,
+    "r": 0.3749
+   },
+   {
+    "lagH": 8,
+    "r": 0.3376
+   },
+   {
+    "lagH": 9,
+    "r": 0.2914
+   },
+   {
+    "lagH": 10,
+    "r": 0.2483
+   },
+   {
+    "lagH": 11,
+    "r": 0.2088
+   },
+   {
+    "lagH": 12,
+    "r": 0.1772
+   },
+   {
+    "lagH": 13,
+    "r": 0.1524
+   },
+   {
+    "lagH": 14,
+    "r": 0.1365
+   },
+   {
+    "lagH": 15,
+    "r": 0.1187
+   },
+   {
+    "lagH": 16,
+    "r": 0.1017
+   },
+   {
+    "lagH": 17,
+    "r": 0.0879
+   },
+   {
+    "lagH": 18,
+    "r": 0.0766
+   },
+   {
+    "lagH": 19,
+    "r": 0.0673
+   },
+   {
+    "lagH": 20,
+    "r": 0.0534
+   },
+   {
+    "lagH": 21,
+    "r": 0.0465
+   },
+   {
+    "lagH": 22,
+    "r": 0.0376
+   },
+   {
+    "lagH": 23,
+    "r": 0.0312
+   },
+   {
+    "lagH": 24,
+    "r": 0.025
+   },
+   {
+    "lagH": 25,
+    "r": 0.027
+   },
+   {
+    "lagH": 26,
+    "r": 0.038
+   },
+   {
+    "lagH": 27,
+    "r": 0.0516
+   },
+   {
+    "lagH": 28,
+    "r": 0.0704
+   },
+   {
+    "lagH": 29,
+    "r": 0.0825
+   },
+   {
+    "lagH": 30,
+    "r": 0.0837
+   },
+   {
+    "lagH": 31,
+    "r": 0.0798
+   },
+   {
+    "lagH": 32,
+    "r": 0.0688
+   },
+   {
+    "lagH": 33,
+    "r": 0.0587
+   },
+   {
+    "lagH": 34,
+    "r": 0.0483
+   },
+   {
+    "lagH": 35,
+    "r": 0.0365
+   },
+   {
+    "lagH": 36,
+    "r": 0.0278
+   },
+   {
+    "lagH": 37,
+    "r": 0.0208
+   },
+   {
+    "lagH": 38,
+    "r": 0.0148
+   },
+   {
+    "lagH": 39,
+    "r": 0.0052
+   },
+   {
+    "lagH": 40,
+    "r": 0.0019
+   },
+   {
+    "lagH": 41,
+    "r": -0.0024
+   },
+   {
+    "lagH": 42,
+    "r": -0.0069
+   },
+   {
+    "lagH": 43,
+    "r": -0.007
+   },
+   {
+    "lagH": 44,
+    "r": -0.0074
+   },
+   {
+    "lagH": 45,
+    "r": -0.0052
+   },
+   {
+    "lagH": 46,
+    "r": -0.0015
+   },
+   {
+    "lagH": 47,
+    "r": -0.0021
+   },
+   {
+    "lagH": 48,
+    "r": -0.0034
+   },
+   {
+    "lagH": 49,
+    "r": 0.002
+   },
+   {
+    "lagH": 50,
+    "r": 0.0088
+   },
+   {
+    "lagH": 51,
+    "r": 0.0174
+   },
+   {
+    "lagH": 52,
+    "r": 0.0292
+   },
+   {
+    "lagH": 53,
+    "r": 0.0398
+   },
+   {
+    "lagH": 54,
+    "r": 0.042
+   },
+   {
+    "lagH": 55,
+    "r": 0.0403
+   },
+   {
+    "lagH": 56,
+    "r": 0.0348
+   },
+   {
+    "lagH": 57,
+    "r": 0.0308
+   },
+   {
+    "lagH": 58,
+    "r": 0.0239
+   },
+   {
+    "lagH": 59,
+    "r": 0.0201
+   },
+   {
+    "lagH": 60,
+    "r": 0.0145
+   },
+   {
+    "lagH": 61,
+    "r": 0.0063
+   },
+   {
+    "lagH": 62,
+    "r": 0.0015
+   },
+   {
+    "lagH": 63,
+    "r": -0.0014
+   },
+   {
+    "lagH": 64,
+    "r": -0.0029
+   },
+   {
+    "lagH": 65,
+    "r": -0.0057
+   },
+   {
+    "lagH": 66,
+    "r": -0.0055
+   },
+   {
+    "lagH": 67,
+    "r": -0.0072
+   },
+   {
+    "lagH": 68,
+    "r": -0.0083
+   },
+   {
+    "lagH": 69,
+    "r": -0.0077
+   },
+   {
+    "lagH": 70,
+    "r": -0.0092
+   },
+   {
+    "lagH": 71,
+    "r": -0.0135
+   },
+   {
+    "lagH": 72,
+    "r": -0.0172
+   },
+   {
+    "lagH": 73,
+    "r": -0.017
+   },
+   {
+    "lagH": 74,
+    "r": -0.0161
+   },
+   {
+    "lagH": 75,
+    "r": -0.0096
+   },
+   {
+    "lagH": 76,
+    "r": 0.0061
+   },
+   {
+    "lagH": 77,
+    "r": 0.0144
+   },
+   {
+    "lagH": 78,
+    "r": 0.0172
+   },
+   {
+    "lagH": 79,
+    "r": 0.0205
+   },
+   {
+    "lagH": 80,
+    "r": 0.0217
+   },
+   {
+    "lagH": 81,
+    "r": 0.0179
+   },
+   {
+    "lagH": 82,
+    "r": 0.015
+   },
+   {
+    "lagH": 83,
+    "r": 0.0097
+   },
+   {
+    "lagH": 84,
+    "r": 0.0041
+   },
+   {
+    "lagH": 85,
+    "r": -0.0019
+   },
+   {
+    "lagH": 86,
+    "r": -0.0068
+   },
+   {
+    "lagH": 87,
+    "r": -0.0097
+   },
+   {
+    "lagH": 88,
+    "r": -0.0173
+   },
+   {
+    "lagH": 89,
+    "r": -0.0189
+   },
+   {
+    "lagH": 90,
+    "r": -0.0169
+   },
+   {
+    "lagH": 91,
+    "r": -0.0159
+   },
+   {
+    "lagH": 92,
+    "r": -0.0137
+   },
+   {
+    "lagH": 93,
+    "r": -0.0108
+   },
+   {
+    "lagH": 94,
+    "r": -0.0134
+   },
+   {
+    "lagH": 95,
+    "r": -0.0183
+   },
+   {
+    "lagH": 96,
+    "r": -0.0177
+   },
+   {
+    "lagH": 97,
+    "r": -0.0172
+   },
+   {
+    "lagH": 98,
+    "r": -0.0142
+   },
+   {
+    "lagH": 99,
+    "r": -0.0057
+   },
+   {
+    "lagH": 100,
+    "r": -0.0037
+   },
+   {
+    "lagH": 101,
+    "r": -0.0022
+   },
+   {
+    "lagH": 102,
+    "r": 0.0009
+   },
+   {
+    "lagH": 103,
+    "r": 0.0013
+   },
+   {
+    "lagH": 104,
+    "r": -0.0012
+   },
+   {
+    "lagH": 105,
+    "r": -0.0048
+   },
+   {
+    "lagH": 106,
+    "r": -0.0057
+   },
+   {
+    "lagH": 107,
+    "r": -0.0065
+   },
+   {
+    "lagH": 108,
+    "r": -0.0108
+   },
+   {
+    "lagH": 109,
+    "r": -0.0146
+   },
+   {
+    "lagH": 110,
+    "r": -0.0193
+   },
+   {
+    "lagH": 111,
+    "r": -0.0208
+   },
+   {
+    "lagH": 112,
+    "r": -0.0252
+   },
+   {
+    "lagH": 113,
+    "r": -0.0283
+   },
+   {
+    "lagH": 114,
+    "r": -0.0261
+   },
+   {
+    "lagH": 115,
+    "r": -0.0243
+   },
+   {
+    "lagH": 116,
+    "r": -0.0256
+   },
+   {
+    "lagH": 117,
+    "r": -0.0242
+   },
+   {
+    "lagH": 118,
+    "r": -0.0233
+   },
+   {
+    "lagH": 119,
+    "r": -0.0228
+   },
+   {
+    "lagH": 120,
+    "r": -0.0243
+   }
+  ],
+  "slopeHoursPerMetre": -4.12
+ },
+ {
+  "up": "cassington",
+  "down": "minns",
+  "n": 22,
+  "tHalf": {
+   "p10": 6.4,
+   "median": 18.4,
+   "p90": 43.9
+  },
+  "tPeak": {
+   "p10": 21.2,
+   "median": 48.5,
+   "p90": 79.9
+  },
+  "events": [
+   {
+    "eventId": "auto-20061127",
+    "tHalf": 24.4,
+    "tPeak": 62.0,
+    "rise": 0.324
+   },
+   {
+    "eventId": "auto-20070110",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.179,
+    "excluded": "ambiguous: second peak at minns with 51% of the main peak's prominence (0.40 m vs 0.79 m)"
+   },
+   {
+    "eventId": "auto-20070306",
+    "tHalf": 16.2,
+    "tPeak": 21.0,
+    "rise": 0.153
+   },
+   {
+    "eventId": "e2007",
+    "tHalf": 11.8,
+    "tPeak": 87.0,
+    "rise": 0.917
+   },
+   {
+    "eventId": "auto-20080114",
+    "tHalf": 44.0,
+    "tPeak": 53.0,
+    "rise": 0.478
+   },
+   {
+    "eventId": "auto-20080318",
+    "tHalf": null,
+    "tPeak": 24.0,
+    "rise": 0.567,
+    "excluded": "T_half = -0.5 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080604",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.353,
+    "excluded": "ambiguous: second peak at cassington with 64% of the main peak's prominence (0.21 m vs 0.33 m)"
+   },
+   {
+    "eventId": "auto-20090212",
+    "tHalf": 3.4,
+    "tPeak": 65.0,
+    "rise": 0.349
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": 31.9,
+    "tPeak": 19.0,
+    "rise": 0.571
+   },
+   {
+    "eventId": "auto-20121222",
+    "tHalf": 46.7,
+    "tPeak": 79.0,
+    "rise": 0.219
+   },
+   {
+    "eventId": "auto-20130128",
+    "tHalf": 9.5,
+    "tPeak": 38.0,
+    "rise": 0.415
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.656,
+    "excluded": "ambiguous: second peak at cassington with 79% of the main peak's prominence (0.23 m vs 0.29 m)"
+   },
+   {
+    "eventId": "auto-20160105",
+    "tHalf": 42.9,
+    "tPeak": 30.0,
+    "rise": 0.163
+   },
+   {
+    "eventId": "auto-20160208",
+    "tHalf": 21.8,
+    "tPeak": 65.0,
+    "rise": 0.356
+   },
+   {
+    "eventId": "auto-20160311",
+    "tHalf": 9.0,
+    "tPeak": 27.0,
+    "rise": 0.432
+   },
+   {
+    "eventId": "auto-20180402",
+    "tHalf": 14.3,
+    "tPeak": 63.0,
+    "rise": 0.365
+   },
+   {
+    "eventId": "auto-20191111",
+    "tHalf": 20.0,
+    "tPeak": 23.0,
+    "rise": 0.322
+   },
+   {
+    "eventId": "auto-20191216",
+    "tHalf": 42.4,
+    "tPeak": 60.0,
+    "rise": 0.353
+   },
+   {
+    "eventId": "auto-20200116",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.331,
+    "excluded": "ambiguous: second peak at minns with 100% of the main peak's prominence (0.66 m vs 0.66 m)"
+   },
+   {
+    "eventId": "auto-20200216",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.441,
+    "excluded": "ambiguous: second peak at cassington with 60% of the main peak's prominence (0.18 m vs 0.30 m)"
+   },
+   {
+    "eventId": "auto-20201224",
+    "tHalf": 14.9,
+    "tPeak": 19.0,
+    "rise": 0.52
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.313,
+    "excluded": "ambiguous: second peak at cassington with 66% of the main peak's prominence (0.21 m vs 0.32 m)"
+   },
+   {
+    "eventId": "auto-20230103",
+    "tHalf": 69.3,
+    "tPeak": 80.0,
+    "rise": 0.127
+   },
+   {
+    "eventId": "auto-20230401",
+    "tHalf": 12.3,
+    "tPeak": 54.0,
+    "rise": 0.122
+   },
+   {
+    "eventId": "auto-20231114",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at cassington (100% of window missing)"
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at cassington (100% of window missing)"
+   },
+   {
+    "eventId": "auto-20240209",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at cassington (100% of window missing)"
+   },
+   {
+    "eventId": "auto-20240329",
+    "tHalf": 18.9,
+    "tPeak": 41.0,
+    "rise": 0.267
+   },
+   {
+    "eventId": "auto-20240926",
+    "tHalf": null,
+    "tPeak": 125.0,
+    "rise": 0.717,
+    "excluded": "T_half = -8.7 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 25.9,
+    "tPeak": 99.0,
+    "rise": 0.753
+   },
+   {
+    "eventId": "auto-20250108",
+    "tHalf": 6.1,
+    "tPeak": 32.0,
+    "rise": 0.389
+   },
+   {
+    "eventId": "auto-20250129",
+    "tHalf": 5.2,
+    "tPeak": 44.0,
+    "rise": 0.381
+   },
+   {
+    "eventId": "auto-20251219",
+    "tHalf": 17.8,
+    "tPeak": 37.0,
+    "rise": 0.137
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.232,
+    "excluded": "T_half = 192.9 h, T_peak = 194.0 h outside (0, 168) h"
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.2142
+   },
+   {
+    "lagH": 1,
+    "r": 0.2132
+   },
+   {
+    "lagH": 2,
+    "r": 0.2229
+   },
+   {
+    "lagH": 3,
+    "r": 0.257
+   },
+   {
+    "lagH": 4,
+    "r": 0.2826
+   },
+   {
+    "lagH": 5,
+    "r": 0.2841
+   },
+   {
+    "lagH": 6,
+    "r": 0.2776
+   },
+   {
+    "lagH": 7,
+    "r": 0.267
+   },
+   {
+    "lagH": 8,
+    "r": 0.2556
+   },
+   {
+    "lagH": 9,
+    "r": 0.2456
+   },
+   {
+    "lagH": 10,
+    "r": 0.2382
+   },
+   {
+    "lagH": 11,
+    "r": 0.2303
+   },
+   {
+    "lagH": 12,
+    "r": 0.222
+   },
+   {
+    "lagH": 13,
+    "r": 0.211
+   },
+   {
+    "lagH": 14,
+    "r": 0.1962
+   },
+   {
+    "lagH": 15,
+    "r": 0.1872
+   },
+   {
+    "lagH": 16,
+    "r": 0.1784
+   },
+   {
+    "lagH": 17,
+    "r": 0.1678
+   },
+   {
+    "lagH": 18,
+    "r": 0.158
+   },
+   {
+    "lagH": 19,
+    "r": 0.1512
+   },
+   {
+    "lagH": 20,
+    "r": 0.1428
+   },
+   {
+    "lagH": 21,
+    "r": 0.134
+   },
+   {
+    "lagH": 22,
+    "r": 0.1247
+   },
+   {
+    "lagH": 23,
+    "r": 0.1145
+   },
+   {
+    "lagH": 24,
+    "r": 0.1057
+   },
+   {
+    "lagH": 25,
+    "r": 0.0965
+   },
+   {
+    "lagH": 26,
+    "r": 0.0881
+   },
+   {
+    "lagH": 27,
+    "r": 0.0823
+   },
+   {
+    "lagH": 28,
+    "r": 0.0732
+   },
+   {
+    "lagH": 29,
+    "r": 0.0682
+   },
+   {
+    "lagH": 30,
+    "r": 0.0601
+   },
+   {
+    "lagH": 31,
+    "r": 0.0525
+   },
+   {
+    "lagH": 32,
+    "r": 0.0446
+   },
+   {
+    "lagH": 33,
+    "r": 0.0405
+   },
+   {
+    "lagH": 34,
+    "r": 0.0388
+   },
+   {
+    "lagH": 35,
+    "r": 0.0323
+   },
+   {
+    "lagH": 36,
+    "r": 0.0287
+   },
+   {
+    "lagH": 37,
+    "r": 0.0244
+   },
+   {
+    "lagH": 38,
+    "r": 0.0199
+   },
+   {
+    "lagH": 39,
+    "r": 0.0164
+   },
+   {
+    "lagH": 40,
+    "r": 0.0106
+   },
+   {
+    "lagH": 41,
+    "r": 0.009
+   },
+   {
+    "lagH": 42,
+    "r": 0.0105
+   },
+   {
+    "lagH": 43,
+    "r": 0.0119
+   },
+   {
+    "lagH": 44,
+    "r": 0.0124
+   },
+   {
+    "lagH": 45,
+    "r": 0.0105
+   },
+   {
+    "lagH": 46,
+    "r": 0.0097
+   },
+   {
+    "lagH": 47,
+    "r": 0.0092
+   },
+   {
+    "lagH": 48,
+    "r": 0.0087
+   },
+   {
+    "lagH": 49,
+    "r": 0.0088
+   },
+   {
+    "lagH": 50,
+    "r": 0.0073
+   },
+   {
+    "lagH": 51,
+    "r": 0.004
+   },
+   {
+    "lagH": 52,
+    "r": -0.0006
+   },
+   {
+    "lagH": 53,
+    "r": -0.0027
+   },
+   {
+    "lagH": 54,
+    "r": -0.0031
+   },
+   {
+    "lagH": 55,
+    "r": -0.0051
+   },
+   {
+    "lagH": 56,
+    "r": -0.0073
+   },
+   {
+    "lagH": 57,
+    "r": -0.0094
+   },
+   {
+    "lagH": 58,
+    "r": -0.0087
+   },
+   {
+    "lagH": 59,
+    "r": -0.0136
+   },
+   {
+    "lagH": 60,
+    "r": -0.0161
+   },
+   {
+    "lagH": 61,
+    "r": -0.0223
+   },
+   {
+    "lagH": 62,
+    "r": -0.0239
+   },
+   {
+    "lagH": 63,
+    "r": -0.0227
+   },
+   {
+    "lagH": 64,
+    "r": -0.0227
+   },
+   {
+    "lagH": 65,
+    "r": -0.0228
+   },
+   {
+    "lagH": 66,
+    "r": -0.0255
+   },
+   {
+    "lagH": 67,
+    "r": -0.0295
+   },
+   {
+    "lagH": 68,
+    "r": -0.0254
+   },
+   {
+    "lagH": 69,
+    "r": -0.0205
+   },
+   {
+    "lagH": 70,
+    "r": -0.0242
+   },
+   {
+    "lagH": 71,
+    "r": -0.0245
+   },
+   {
+    "lagH": 72,
+    "r": -0.0253
+   },
+   {
+    "lagH": 73,
+    "r": -0.0262
+   },
+   {
+    "lagH": 74,
+    "r": -0.0245
+   },
+   {
+    "lagH": 75,
+    "r": -0.0234
+   },
+   {
+    "lagH": 76,
+    "r": -0.0279
+   },
+   {
+    "lagH": 77,
+    "r": -0.0343
+   },
+   {
+    "lagH": 78,
+    "r": -0.0353
+   },
+   {
+    "lagH": 79,
+    "r": -0.0336
+   },
+   {
+    "lagH": 80,
+    "r": -0.0308
+   },
+   {
+    "lagH": 81,
+    "r": -0.0279
+   },
+   {
+    "lagH": 82,
+    "r": -0.0272
+   },
+   {
+    "lagH": 83,
+    "r": -0.0271
+   },
+   {
+    "lagH": 84,
+    "r": -0.0282
+   },
+   {
+    "lagH": 85,
+    "r": -0.0316
+   },
+   {
+    "lagH": 86,
+    "r": -0.0301
+   },
+   {
+    "lagH": 87,
+    "r": -0.0241
+   },
+   {
+    "lagH": 88,
+    "r": -0.0246
+   },
+   {
+    "lagH": 89,
+    "r": -0.0253
+   },
+   {
+    "lagH": 90,
+    "r": -0.0265
+   },
+   {
+    "lagH": 91,
+    "r": -0.0258
+   },
+   {
+    "lagH": 92,
+    "r": -0.0254
+   },
+   {
+    "lagH": 93,
+    "r": -0.0241
+   },
+   {
+    "lagH": 94,
+    "r": -0.0228
+   },
+   {
+    "lagH": 95,
+    "r": -0.0198
+   },
+   {
+    "lagH": 96,
+    "r": -0.0219
+   },
+   {
+    "lagH": 97,
+    "r": -0.0195
+   },
+   {
+    "lagH": 98,
+    "r": -0.0166
+   },
+   {
+    "lagH": 99,
+    "r": -0.0141
+   },
+   {
+    "lagH": 100,
+    "r": -0.0153
+   },
+   {
+    "lagH": 101,
+    "r": -0.0155
+   },
+   {
+    "lagH": 102,
+    "r": -0.0172
+   },
+   {
+    "lagH": 103,
+    "r": -0.0168
+   },
+   {
+    "lagH": 104,
+    "r": -0.0151
+   },
+   {
+    "lagH": 105,
+    "r": -0.0139
+   },
+   {
+    "lagH": 106,
+    "r": -0.0152
+   },
+   {
+    "lagH": 107,
+    "r": -0.0169
+   },
+   {
+    "lagH": 108,
+    "r": -0.0159
+   },
+   {
+    "lagH": 109,
+    "r": -0.0118
+   },
+   {
+    "lagH": 110,
+    "r": -0.0146
+   },
+   {
+    "lagH": 111,
+    "r": -0.0155
+   },
+   {
+    "lagH": 112,
+    "r": -0.0172
+   },
+   {
+    "lagH": 113,
+    "r": -0.0154
+   },
+   {
+    "lagH": 114,
+    "r": -0.0149
+   },
+   {
+    "lagH": 115,
+    "r": -0.0174
+   },
+   {
+    "lagH": 116,
+    "r": -0.0147
+   },
+   {
+    "lagH": 117,
+    "r": -0.0118
+   },
+   {
+    "lagH": 118,
+    "r": -0.0086
+   },
+   {
+    "lagH": 119,
+    "r": -0.0095
+   },
+   {
+    "lagH": 120,
+    "r": -0.0107
+   }
+  ],
+  "slopeHoursPerMetre": -20.63
+ },
+ {
+  "up": "farmoor",
+  "down": "coldharbour",
+  "n": 4,
+  "tHalf": {
+   "p10": 6.7,
+   "median": 22.6,
+   "p90": 40.6
+  },
+  "tPeak": {
+   "p10": 10.6,
+   "median": 15.0,
+   "p90": 50.9
+  },
+  "events": [
+   {
+    "eventId": "e2007",
+    "tHalf": 4.9,
+    "tPeak": 18.0,
+    "rise": 1.121
+   },
+   {
+    "eventId": "auto-20080118",
+    "tHalf": 34.2,
+    "tPeak": 10.0,
+    "rise": 0.71
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.908,
+    "excluded": "T_half = -6.1 h, T_peak = -26.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20121226",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.799,
+    "excluded": "ambiguous: second peak at farmoor with 135% of the main peak's prominence (0.16 m vs 0.12 m)"
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": 10.9,
+    "tPeak": 12.0,
+    "rise": 0.4
+   },
+   {
+    "eventId": "auto-20140208",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.149,
+    "excluded": "T_half = -13.7 h, T_peak = -16.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": 4.6,
+    "tPeak": null,
+    "rise": 0.476,
+    "excluded": "T_peak = -15.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": 20.5,
+    "tPeak": null,
+    "rise": 0.886,
+    "excluded": "T_peak = -41.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.798,
+    "excluded": "T_half = -8.7 h, T_peak = -42.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": 43.3,
+    "tPeak": 65.0,
+    "rise": 0.668
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.1059
+   },
+   {
+    "lagH": 1,
+    "r": 0.1445
+   },
+   {
+    "lagH": 2,
+    "r": 0.1348
+   },
+   {
+    "lagH": 3,
+    "r": 0.1062
+   },
+   {
+    "lagH": 4,
+    "r": 0.117
+   },
+   {
+    "lagH": 5,
+    "r": 0.1274
+   },
+   {
+    "lagH": 6,
+    "r": 0.1256
+   },
+   {
+    "lagH": 7,
+    "r": 0.1164
+   },
+   {
+    "lagH": 8,
+    "r": 0.1028
+   },
+   {
+    "lagH": 9,
+    "r": 0.0855
+   },
+   {
+    "lagH": 10,
+    "r": 0.0716
+   },
+   {
+    "lagH": 11,
+    "r": 0.0557
+   },
+   {
+    "lagH": 12,
+    "r": 0.0437
+   },
+   {
+    "lagH": 13,
+    "r": 0.0357
+   },
+   {
+    "lagH": 14,
+    "r": 0.0249
+   },
+   {
+    "lagH": 15,
+    "r": 0.017
+   },
+   {
+    "lagH": 16,
+    "r": 0.012
+   },
+   {
+    "lagH": 17,
+    "r": 0.0099
+   },
+   {
+    "lagH": 18,
+    "r": 0.0091
+   },
+   {
+    "lagH": 19,
+    "r": 0.0128
+   },
+   {
+    "lagH": 20,
+    "r": 0.0162
+   },
+   {
+    "lagH": 21,
+    "r": 0.0211
+   },
+   {
+    "lagH": 22,
+    "r": 0.0286
+   },
+   {
+    "lagH": 23,
+    "r": 0.0426
+   },
+   {
+    "lagH": 24,
+    "r": 0.0546
+   },
+   {
+    "lagH": 25,
+    "r": 0.0605
+   },
+   {
+    "lagH": 26,
+    "r": 0.0496
+   },
+   {
+    "lagH": 27,
+    "r": 0.034
+   },
+   {
+    "lagH": 28,
+    "r": 0.0246
+   },
+   {
+    "lagH": 29,
+    "r": 0.0273
+   },
+   {
+    "lagH": 30,
+    "r": 0.0245
+   },
+   {
+    "lagH": 31,
+    "r": 0.0214
+   },
+   {
+    "lagH": 32,
+    "r": 0.0168
+   },
+   {
+    "lagH": 33,
+    "r": 0.0128
+   },
+   {
+    "lagH": 34,
+    "r": 0.0094
+   },
+   {
+    "lagH": 35,
+    "r": 0.005
+   },
+   {
+    "lagH": 36,
+    "r": 0.0017
+   },
+   {
+    "lagH": 37,
+    "r": -0.0007
+   },
+   {
+    "lagH": 38,
+    "r": -0.0038
+   },
+   {
+    "lagH": 39,
+    "r": -0.0027
+   },
+   {
+    "lagH": 40,
+    "r": -0.0019
+   },
+   {
+    "lagH": 41,
+    "r": -0.0001
+   },
+   {
+    "lagH": 42,
+    "r": 0.0028
+   },
+   {
+    "lagH": 43,
+    "r": 0.0061
+   },
+   {
+    "lagH": 44,
+    "r": 0.0047
+   },
+   {
+    "lagH": 45,
+    "r": 0.0074
+   },
+   {
+    "lagH": 46,
+    "r": 0.0147
+   },
+   {
+    "lagH": 47,
+    "r": 0.0204
+   },
+   {
+    "lagH": 48,
+    "r": 0.0308
+   },
+   {
+    "lagH": 49,
+    "r": 0.038
+   },
+   {
+    "lagH": 50,
+    "r": 0.0311
+   },
+   {
+    "lagH": 51,
+    "r": 0.0276
+   },
+   {
+    "lagH": 52,
+    "r": 0.0291
+   },
+   {
+    "lagH": 53,
+    "r": 0.0298
+   },
+   {
+    "lagH": 54,
+    "r": 0.026
+   },
+   {
+    "lagH": 55,
+    "r": 0.0247
+   },
+   {
+    "lagH": 56,
+    "r": 0.0228
+   },
+   {
+    "lagH": 57,
+    "r": 0.0135
+   },
+   {
+    "lagH": 58,
+    "r": 0.0133
+   },
+   {
+    "lagH": 59,
+    "r": 0.0102
+   },
+   {
+    "lagH": 60,
+    "r": 0.0074
+   },
+   {
+    "lagH": 61,
+    "r": 0.0042
+   },
+   {
+    "lagH": 62,
+    "r": 0.0022
+   },
+   {
+    "lagH": 63,
+    "r": -0.0024
+   },
+   {
+    "lagH": 64,
+    "r": -0.0034
+   },
+   {
+    "lagH": 65,
+    "r": -0.0011
+   },
+   {
+    "lagH": 66,
+    "r": 0.0011
+   },
+   {
+    "lagH": 67,
+    "r": 0.0013
+   },
+   {
+    "lagH": 68,
+    "r": -0.0003
+   },
+   {
+    "lagH": 69,
+    "r": -0.0027
+   },
+   {
+    "lagH": 70,
+    "r": -0.0013
+   },
+   {
+    "lagH": 71,
+    "r": 0.0025
+   },
+   {
+    "lagH": 72,
+    "r": 0.0007
+   },
+   {
+    "lagH": 73,
+    "r": 0.0061
+   },
+   {
+    "lagH": 74,
+    "r": 0.0076
+   },
+   {
+    "lagH": 75,
+    "r": 0.0044
+   },
+   {
+    "lagH": 76,
+    "r": 0.003
+   },
+   {
+    "lagH": 77,
+    "r": 0.0039
+   },
+   {
+    "lagH": 78,
+    "r": 0.0059
+   },
+   {
+    "lagH": 79,
+    "r": 0.0116
+   },
+   {
+    "lagH": 80,
+    "r": 0.0094
+   },
+   {
+    "lagH": 81,
+    "r": 0.0052
+   },
+   {
+    "lagH": 82,
+    "r": 0.0021
+   },
+   {
+    "lagH": 83,
+    "r": 0.0004
+   },
+   {
+    "lagH": 84,
+    "r": 0.0
+   },
+   {
+    "lagH": 85,
+    "r": -0.0018
+   },
+   {
+    "lagH": 86,
+    "r": -0.0073
+   },
+   {
+    "lagH": 87,
+    "r": -0.0098
+   },
+   {
+    "lagH": 88,
+    "r": -0.0081
+   },
+   {
+    "lagH": 89,
+    "r": -0.0061
+   },
+   {
+    "lagH": 90,
+    "r": -0.0066
+   },
+   {
+    "lagH": 91,
+    "r": -0.0083
+   },
+   {
+    "lagH": 92,
+    "r": -0.0121
+   },
+   {
+    "lagH": 93,
+    "r": -0.0126
+   },
+   {
+    "lagH": 94,
+    "r": -0.0155
+   },
+   {
+    "lagH": 95,
+    "r": -0.0211
+   },
+   {
+    "lagH": 96,
+    "r": -0.0177
+   },
+   {
+    "lagH": 97,
+    "r": -0.0186
+   },
+   {
+    "lagH": 98,
+    "r": -0.0155
+   },
+   {
+    "lagH": 99,
+    "r": -0.0125
+   },
+   {
+    "lagH": 100,
+    "r": -0.0069
+   },
+   {
+    "lagH": 101,
+    "r": -0.0033
+   },
+   {
+    "lagH": 102,
+    "r": -0.0
+   },
+   {
+    "lagH": 103,
+    "r": 0.0035
+   },
+   {
+    "lagH": 104,
+    "r": 0.0022
+   },
+   {
+    "lagH": 105,
+    "r": -0.0002
+   },
+   {
+    "lagH": 106,
+    "r": -0.002
+   },
+   {
+    "lagH": 107,
+    "r": -0.0024
+   },
+   {
+    "lagH": 108,
+    "r": -0.0042
+   },
+   {
+    "lagH": 109,
+    "r": -0.0069
+   },
+   {
+    "lagH": 110,
+    "r": -0.0086
+   },
+   {
+    "lagH": 111,
+    "r": -0.0091
+   },
+   {
+    "lagH": 112,
+    "r": -0.0113
+   },
+   {
+    "lagH": 113,
+    "r": -0.0122
+   },
+   {
+    "lagH": 114,
+    "r": -0.0105
+   },
+   {
+    "lagH": 115,
+    "r": -0.0106
+   },
+   {
+    "lagH": 116,
+    "r": -0.0158
+   },
+   {
+    "lagH": 117,
+    "r": -0.0213
+   },
+   {
+    "lagH": 118,
+    "r": -0.0285
+   },
+   {
+    "lagH": 119,
+    "r": -0.0284
+   },
+   {
+    "lagH": 120,
+    "r": -0.0269
+   }
+  ],
+  "slopeHoursPerMetre": -17.15
+ },
+ {
+  "up": "eynsham",
+  "down": "coldharbour",
+  "n": 4,
+  "tHalf": {
+   "p10": 12.8,
+   "median": 41.6,
+   "p90": 100.6
+  },
+  "tPeak": {
+   "p10": 8.2,
+   "median": 14.5,
+   "p90": 20.8
+  },
+  "events": [
+   {
+    "eventId": "e2007",
+    "tHalf": 23.7,
+    "tPeak": 18.0,
+    "rise": 1.06
+   },
+   {
+    "eventId": "auto-20080118",
+    "tHalf": 59.5,
+    "tPeak": 7.0,
+    "rise": 0.755
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": 31.2,
+    "tPeak": null,
+    "rise": 0.86,
+    "excluded": "T_peak = -34.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20121226",
+    "tHalf": 43.7,
+    "tPeak": null,
+    "rise": 0.694,
+    "excluded": "T_peak = -4.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": 8.2,
+    "tPeak": 11.0,
+    "rise": 0.303
+   },
+   {
+    "eventId": "auto-20140208",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at eynsham (71% of window missing)"
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": 8.7,
+    "tPeak": null,
+    "rise": 0.402,
+    "excluded": "T_peak = -13.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": 38.0,
+    "tPeak": null,
+    "rise": 0.915,
+    "excluded": "T_peak = -42.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 21.8,
+    "tPeak": null,
+    "rise": 0.887,
+    "excluded": "T_peak = -48.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": 118.2,
+    "tPeak": 22.0,
+    "rise": 0.743
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.1043
+   },
+   {
+    "lagH": 1,
+    "r": 0.1323
+   },
+   {
+    "lagH": 2,
+    "r": 0.1368
+   },
+   {
+    "lagH": 3,
+    "r": 0.1419
+   },
+   {
+    "lagH": 4,
+    "r": 0.1482
+   },
+   {
+    "lagH": 5,
+    "r": 0.1499
+   },
+   {
+    "lagH": 6,
+    "r": 0.1495
+   },
+   {
+    "lagH": 7,
+    "r": 0.1396
+   },
+   {
+    "lagH": 8,
+    "r": 0.1218
+   },
+   {
+    "lagH": 9,
+    "r": 0.1037
+   },
+   {
+    "lagH": 10,
+    "r": 0.0853
+   },
+   {
+    "lagH": 11,
+    "r": 0.0755
+   },
+   {
+    "lagH": 12,
+    "r": 0.0657
+   },
+   {
+    "lagH": 13,
+    "r": 0.0562
+   },
+   {
+    "lagH": 14,
+    "r": 0.0476
+   },
+   {
+    "lagH": 15,
+    "r": 0.0428
+   },
+   {
+    "lagH": 16,
+    "r": 0.0395
+   },
+   {
+    "lagH": 17,
+    "r": 0.034
+   },
+   {
+    "lagH": 18,
+    "r": 0.036
+   },
+   {
+    "lagH": 19,
+    "r": 0.0451
+   },
+   {
+    "lagH": 20,
+    "r": 0.0477
+   },
+   {
+    "lagH": 21,
+    "r": 0.0462
+   },
+   {
+    "lagH": 22,
+    "r": 0.0503
+   },
+   {
+    "lagH": 23,
+    "r": 0.058
+   },
+   {
+    "lagH": 24,
+    "r": 0.0666
+   },
+   {
+    "lagH": 25,
+    "r": 0.0671
+   },
+   {
+    "lagH": 26,
+    "r": 0.0642
+   },
+   {
+    "lagH": 27,
+    "r": 0.05
+   },
+   {
+    "lagH": 28,
+    "r": 0.0465
+   },
+   {
+    "lagH": 29,
+    "r": 0.0457
+   },
+   {
+    "lagH": 30,
+    "r": 0.0448
+   },
+   {
+    "lagH": 31,
+    "r": 0.0437
+   },
+   {
+    "lagH": 32,
+    "r": 0.0398
+   },
+   {
+    "lagH": 33,
+    "r": 0.0368
+   },
+   {
+    "lagH": 34,
+    "r": 0.033
+   },
+   {
+    "lagH": 35,
+    "r": 0.0295
+   },
+   {
+    "lagH": 36,
+    "r": 0.0253
+   },
+   {
+    "lagH": 37,
+    "r": 0.0225
+   },
+   {
+    "lagH": 38,
+    "r": 0.0194
+   },
+   {
+    "lagH": 39,
+    "r": 0.0192
+   },
+   {
+    "lagH": 40,
+    "r": 0.0217
+   },
+   {
+    "lagH": 41,
+    "r": 0.0229
+   },
+   {
+    "lagH": 42,
+    "r": 0.024
+   },
+   {
+    "lagH": 43,
+    "r": 0.0289
+   },
+   {
+    "lagH": 44,
+    "r": 0.0247
+   },
+   {
+    "lagH": 45,
+    "r": 0.0238
+   },
+   {
+    "lagH": 46,
+    "r": 0.0293
+   },
+   {
+    "lagH": 47,
+    "r": 0.0357
+   },
+   {
+    "lagH": 48,
+    "r": 0.0398
+   },
+   {
+    "lagH": 49,
+    "r": 0.0506
+   },
+   {
+    "lagH": 50,
+    "r": 0.0401
+   },
+   {
+    "lagH": 51,
+    "r": 0.0338
+   },
+   {
+    "lagH": 52,
+    "r": 0.0371
+   },
+   {
+    "lagH": 53,
+    "r": 0.0364
+   },
+   {
+    "lagH": 54,
+    "r": 0.0407
+   },
+   {
+    "lagH": 55,
+    "r": 0.0354
+   },
+   {
+    "lagH": 56,
+    "r": 0.0308
+   },
+   {
+    "lagH": 57,
+    "r": 0.0277
+   },
+   {
+    "lagH": 58,
+    "r": 0.0243
+   },
+   {
+    "lagH": 59,
+    "r": 0.0229
+   },
+   {
+    "lagH": 60,
+    "r": 0.022
+   },
+   {
+    "lagH": 61,
+    "r": 0.0171
+   },
+   {
+    "lagH": 62,
+    "r": 0.0112
+   },
+   {
+    "lagH": 63,
+    "r": 0.0112
+   },
+   {
+    "lagH": 64,
+    "r": 0.0128
+   },
+   {
+    "lagH": 65,
+    "r": 0.016
+   },
+   {
+    "lagH": 66,
+    "r": 0.0139
+   },
+   {
+    "lagH": 67,
+    "r": 0.0078
+   },
+   {
+    "lagH": 68,
+    "r": 0.0091
+   },
+   {
+    "lagH": 69,
+    "r": 0.0053
+   },
+   {
+    "lagH": 70,
+    "r": 0.0041
+   },
+   {
+    "lagH": 71,
+    "r": 0.0059
+   },
+   {
+    "lagH": 72,
+    "r": 0.0111
+   },
+   {
+    "lagH": 73,
+    "r": 0.0095
+   },
+   {
+    "lagH": 74,
+    "r": 0.009
+   },
+   {
+    "lagH": 75,
+    "r": 0.0061
+   },
+   {
+    "lagH": 76,
+    "r": 0.0068
+   },
+   {
+    "lagH": 77,
+    "r": 0.0101
+   },
+   {
+    "lagH": 78,
+    "r": 0.0148
+   },
+   {
+    "lagH": 79,
+    "r": 0.0133
+   },
+   {
+    "lagH": 80,
+    "r": 0.0142
+   },
+   {
+    "lagH": 81,
+    "r": 0.0091
+   },
+   {
+    "lagH": 82,
+    "r": 0.0058
+   },
+   {
+    "lagH": 83,
+    "r": 0.0055
+   },
+   {
+    "lagH": 84,
+    "r": 0.0023
+   },
+   {
+    "lagH": 85,
+    "r": -0.0006
+   },
+   {
+    "lagH": 86,
+    "r": -0.0023
+   },
+   {
+    "lagH": 87,
+    "r": -0.0067
+   },
+   {
+    "lagH": 88,
+    "r": -0.0076
+   },
+   {
+    "lagH": 89,
+    "r": -0.0042
+   },
+   {
+    "lagH": 90,
+    "r": -0.0029
+   },
+   {
+    "lagH": 91,
+    "r": -0.0082
+   },
+   {
+    "lagH": 92,
+    "r": -0.0129
+   },
+   {
+    "lagH": 93,
+    "r": -0.0144
+   },
+   {
+    "lagH": 94,
+    "r": -0.0176
+   },
+   {
+    "lagH": 95,
+    "r": -0.0202
+   },
+   {
+    "lagH": 96,
+    "r": -0.0198
+   },
+   {
+    "lagH": 97,
+    "r": -0.0198
+   },
+   {
+    "lagH": 98,
+    "r": -0.0179
+   },
+   {
+    "lagH": 99,
+    "r": -0.0101
+   },
+   {
+    "lagH": 100,
+    "r": -0.004
+   },
+   {
+    "lagH": 101,
+    "r": -0.0043
+   },
+   {
+    "lagH": 102,
+    "r": -0.0036
+   },
+   {
+    "lagH": 103,
+    "r": -0.004
+   },
+   {
+    "lagH": 104,
+    "r": -0.0022
+   },
+   {
+    "lagH": 105,
+    "r": -0.0049
+   },
+   {
+    "lagH": 106,
+    "r": -0.0057
+   },
+   {
+    "lagH": 107,
+    "r": -0.0039
+   },
+   {
+    "lagH": 108,
+    "r": -0.0031
+   },
+   {
+    "lagH": 109,
+    "r": -0.0051
+   },
+   {
+    "lagH": 110,
+    "r": -0.0068
+   },
+   {
+    "lagH": 111,
+    "r": -0.0095
+   },
+   {
+    "lagH": 112,
+    "r": -0.012
+   },
+   {
+    "lagH": 113,
+    "r": -0.0116
+   },
+   {
+    "lagH": 114,
+    "r": -0.0149
+   },
+   {
+    "lagH": 115,
+    "r": -0.0146
+   },
+   {
+    "lagH": 116,
+    "r": -0.0137
+   },
+   {
+    "lagH": 117,
+    "r": -0.0248
+   },
+   {
+    "lagH": 118,
+    "r": -0.0304
+   },
+   {
+    "lagH": 119,
+    "r": -0.0293
+   },
+   {
+    "lagH": 120,
+    "r": -0.0239
+   }
+  ],
+  "slopeHoursPerMetre": 35.84
+ },
+ {
+  "up": "cassington",
+  "down": "coldharbour",
+  "n": 8,
+  "tHalf": {
+   "p10": 20.8,
+   "median": 52.3,
+   "p90": 80.3
+  },
+  "tPeak": {
+   "p10": 27.4,
+   "median": 50.0,
+   "p90": 89.6
+  },
+  "events": [
+   {
+    "eventId": "e2007",
+    "tHalf": 28.4,
+    "tPeak": 89.0,
+    "rise": 0.917
+   },
+   {
+    "eventId": "auto-20080118",
+    "tHalf": 100.7,
+    "tPeak": 63.0,
+    "rise": 0.47
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": 63.8,
+    "tPeak": 26.0,
+    "rise": 0.571
+   },
+   {
+    "eventId": "auto-20121226",
+    "tHalf": 71.5,
+    "tPeak": 75.0,
+    "rise": 0.219
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": 63.4,
+    "tPeak": 91.0,
+    "rise": 0.164
+   },
+   {
+    "eventId": "auto-20140208",
+    "tHalf": 2.9,
+    "tPeak": 28.0,
+    "rise": 0.095
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": 41.2,
+    "tPeak": 35.0,
+    "rise": 0.173
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at cassington (100% of window missing)"
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 33.6,
+    "tPeak": 37.0,
+    "rise": 0.644
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.417,
+    "excluded": "T_half = 485.5 h, T_peak = 201.0 h outside (0, 168) h"
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.0988
+   },
+   {
+    "lagH": 1,
+    "r": 0.0908
+   },
+   {
+    "lagH": 2,
+    "r": 0.079
+   },
+   {
+    "lagH": 3,
+    "r": 0.0684
+   },
+   {
+    "lagH": 4,
+    "r": 0.0737
+   },
+   {
+    "lagH": 5,
+    "r": 0.0848
+   },
+   {
+    "lagH": 6,
+    "r": 0.0812
+   },
+   {
+    "lagH": 7,
+    "r": 0.0764
+   },
+   {
+    "lagH": 8,
+    "r": 0.0828
+   },
+   {
+    "lagH": 9,
+    "r": 0.089
+   },
+   {
+    "lagH": 10,
+    "r": 0.0817
+   },
+   {
+    "lagH": 11,
+    "r": 0.0783
+   },
+   {
+    "lagH": 12,
+    "r": 0.0754
+   },
+   {
+    "lagH": 13,
+    "r": 0.0737
+   },
+   {
+    "lagH": 14,
+    "r": 0.0691
+   },
+   {
+    "lagH": 15,
+    "r": 0.0649
+   },
+   {
+    "lagH": 16,
+    "r": 0.062
+   },
+   {
+    "lagH": 17,
+    "r": 0.0617
+   },
+   {
+    "lagH": 18,
+    "r": 0.0584
+   },
+   {
+    "lagH": 19,
+    "r": 0.052
+   },
+   {
+    "lagH": 20,
+    "r": 0.0522
+   },
+   {
+    "lagH": 21,
+    "r": 0.0521
+   },
+   {
+    "lagH": 22,
+    "r": 0.0527
+   },
+   {
+    "lagH": 23,
+    "r": 0.0579
+   },
+   {
+    "lagH": 24,
+    "r": 0.0565
+   },
+   {
+    "lagH": 25,
+    "r": 0.0529
+   },
+   {
+    "lagH": 26,
+    "r": 0.05
+   },
+   {
+    "lagH": 27,
+    "r": 0.042
+   },
+   {
+    "lagH": 28,
+    "r": 0.033
+   },
+   {
+    "lagH": 29,
+    "r": 0.0363
+   },
+   {
+    "lagH": 30,
+    "r": 0.0371
+   },
+   {
+    "lagH": 31,
+    "r": 0.0369
+   },
+   {
+    "lagH": 32,
+    "r": 0.031
+   },
+   {
+    "lagH": 33,
+    "r": 0.0285
+   },
+   {
+    "lagH": 34,
+    "r": 0.0257
+   },
+   {
+    "lagH": 35,
+    "r": 0.0264
+   },
+   {
+    "lagH": 36,
+    "r": 0.0327
+   },
+   {
+    "lagH": 37,
+    "r": 0.0266
+   },
+   {
+    "lagH": 38,
+    "r": 0.0267
+   },
+   {
+    "lagH": 39,
+    "r": 0.0263
+   },
+   {
+    "lagH": 40,
+    "r": 0.0235
+   },
+   {
+    "lagH": 41,
+    "r": 0.0224
+   },
+   {
+    "lagH": 42,
+    "r": 0.0297
+   },
+   {
+    "lagH": 43,
+    "r": 0.0366
+   },
+   {
+    "lagH": 44,
+    "r": 0.0375
+   },
+   {
+    "lagH": 45,
+    "r": 0.0328
+   },
+   {
+    "lagH": 46,
+    "r": 0.029
+   },
+   {
+    "lagH": 47,
+    "r": 0.0314
+   },
+   {
+    "lagH": 48,
+    "r": 0.036
+   },
+   {
+    "lagH": 49,
+    "r": 0.0327
+   },
+   {
+    "lagH": 50,
+    "r": 0.026
+   },
+   {
+    "lagH": 51,
+    "r": 0.0267
+   },
+   {
+    "lagH": 52,
+    "r": 0.0293
+   },
+   {
+    "lagH": 53,
+    "r": 0.0291
+   },
+   {
+    "lagH": 54,
+    "r": 0.0284
+   },
+   {
+    "lagH": 55,
+    "r": 0.0316
+   },
+   {
+    "lagH": 56,
+    "r": 0.0309
+   },
+   {
+    "lagH": 57,
+    "r": 0.0284
+   },
+   {
+    "lagH": 58,
+    "r": 0.0255
+   },
+   {
+    "lagH": 59,
+    "r": 0.0236
+   },
+   {
+    "lagH": 60,
+    "r": 0.0192
+   },
+   {
+    "lagH": 61,
+    "r": 0.0192
+   },
+   {
+    "lagH": 62,
+    "r": 0.0167
+   },
+   {
+    "lagH": 63,
+    "r": 0.0181
+   },
+   {
+    "lagH": 64,
+    "r": 0.0181
+   },
+   {
+    "lagH": 65,
+    "r": 0.0186
+   },
+   {
+    "lagH": 66,
+    "r": 0.0156
+   },
+   {
+    "lagH": 67,
+    "r": 0.0175
+   },
+   {
+    "lagH": 68,
+    "r": 0.0179
+   },
+   {
+    "lagH": 69,
+    "r": 0.018
+   },
+   {
+    "lagH": 70,
+    "r": 0.0169
+   },
+   {
+    "lagH": 71,
+    "r": 0.014
+   },
+   {
+    "lagH": 72,
+    "r": 0.0125
+   },
+   {
+    "lagH": 73,
+    "r": 0.0077
+   },
+   {
+    "lagH": 74,
+    "r": 0.0085
+   },
+   {
+    "lagH": 75,
+    "r": 0.0092
+   },
+   {
+    "lagH": 76,
+    "r": 0.0057
+   },
+   {
+    "lagH": 77,
+    "r": 0.0013
+   },
+   {
+    "lagH": 78,
+    "r": -0.0001
+   },
+   {
+    "lagH": 79,
+    "r": -0.0033
+   },
+   {
+    "lagH": 80,
+    "r": -0.0046
+   },
+   {
+    "lagH": 81,
+    "r": -0.0058
+   },
+   {
+    "lagH": 82,
+    "r": -0.0069
+   },
+   {
+    "lagH": 83,
+    "r": -0.0078
+   },
+   {
+    "lagH": 84,
+    "r": -0.0088
+   },
+   {
+    "lagH": 85,
+    "r": -0.0067
+   },
+   {
+    "lagH": 86,
+    "r": -0.0079
+   },
+   {
+    "lagH": 87,
+    "r": -0.0075
+   },
+   {
+    "lagH": 88,
+    "r": -0.0057
+   },
+   {
+    "lagH": 89,
+    "r": -0.0052
+   },
+   {
+    "lagH": 90,
+    "r": -0.0035
+   },
+   {
+    "lagH": 91,
+    "r": -0.0049
+   },
+   {
+    "lagH": 92,
+    "r": -0.005
+   },
+   {
+    "lagH": 93,
+    "r": -0.0042
+   },
+   {
+    "lagH": 94,
+    "r": 0.0029
+   },
+   {
+    "lagH": 95,
+    "r": 0.0052
+   },
+   {
+    "lagH": 96,
+    "r": 0.0033
+   },
+   {
+    "lagH": 97,
+    "r": -0.0042
+   },
+   {
+    "lagH": 98,
+    "r": -0.0093
+   },
+   {
+    "lagH": 99,
+    "r": -0.0076
+   },
+   {
+    "lagH": 100,
+    "r": -0.0018
+   },
+   {
+    "lagH": 101,
+    "r": -0.0014
+   },
+   {
+    "lagH": 102,
+    "r": -0.001
+   },
+   {
+    "lagH": 103,
+    "r": -0.0054
+   },
+   {
+    "lagH": 104,
+    "r": -0.0087
+   },
+   {
+    "lagH": 105,
+    "r": -0.0047
+   },
+   {
+    "lagH": 106,
+    "r": -0.005
+   },
+   {
+    "lagH": 107,
+    "r": -0.0083
+   },
+   {
+    "lagH": 108,
+    "r": -0.0092
+   },
+   {
+    "lagH": 109,
+    "r": -0.0061
+   },
+   {
+    "lagH": 110,
+    "r": -0.0012
+   },
+   {
+    "lagH": 111,
+    "r": -0.0066
+   },
+   {
+    "lagH": 112,
+    "r": -0.0069
+   },
+   {
+    "lagH": 113,
+    "r": -0.0075
+   },
+   {
+    "lagH": 114,
+    "r": -0.0034
+   },
+   {
+    "lagH": 115,
+    "r": -0.0026
+   },
+   {
+    "lagH": 116,
+    "r": -0.0065
+   },
+   {
+    "lagH": 117,
+    "r": -0.0084
+   },
+   {
+    "lagH": 118,
+    "r": -0.0086
+   },
+   {
+    "lagH": 119,
+    "r": -0.0052
+   },
+   {
+    "lagH": 120,
+    "r": -0.0003
+   }
+  ],
+  "slopeHoursPerMetre": 0.02
+ },
+ {
+  "up": "enslow",
+  "down": "kingsmill",
+  "n": 6,
+  "tHalf": {
+   "p10": 15.0,
+   "median": 18.6,
+   "p90": 22.8
+  },
+  "tPeak": {
+   "p10": 15.0,
+   "median": 24.5,
+   "p90": 32.5
+  },
+  "events": [
+   {
+    "eventId": "e2007",
+    "tHalf": 24.4,
+    "tPeak": 35.0,
+    "rise": 1.363
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.686,
+    "excluded": "ambiguous: second peak at enslow with 60% of the main peak's prominence (0.23 m vs 0.38 m)"
+   },
+   {
+    "eventId": "auto-20121223",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.388,
+    "excluded": "ambiguous: second peak at enslow with 54% of the main peak's prominence (0.06 m vs 0.10 m)"
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": null,
+    "tPeak": 19.0,
+    "rise": 0.12,
+    "excluded": "T_half = -25.5 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20140201",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.17,
+    "excluded": "ambiguous: second peak at kingsmill with 62% of the main peak's prominence (0.30 m vs 0.48 m)"
+   },
+   {
+    "eventId": "auto-20191116",
+    "tHalf": 15.1,
+    "tPeak": 22.0,
+    "rise": 0.491
+   },
+   {
+    "eventId": "auto-20201224",
+    "tHalf": 17.0,
+    "tPeak": 8.0,
+    "rise": 0.587
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": 20.3,
+    "tPeak": 22.0,
+    "rise": 0.197
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": 21.2,
+    "tPeak": 27.0,
+    "rise": 0.452
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 14.9,
+    "tPeak": 30.0,
+    "rise": 1.368
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": null,
+    "tPeak": 22.0,
+    "rise": 0.419,
+    "excluded": "T_half = 202.4 h outside (0, 168) h"
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.076
+   },
+   {
+    "lagH": 1,
+    "r": 0.0744
+   },
+   {
+    "lagH": 2,
+    "r": 0.0731
+   },
+   {
+    "lagH": 3,
+    "r": 0.0725
+   },
+   {
+    "lagH": 4,
+    "r": 0.0762
+   },
+   {
+    "lagH": 5,
+    "r": 0.0802
+   },
+   {
+    "lagH": 6,
+    "r": 0.0837
+   },
+   {
+    "lagH": 7,
+    "r": 0.0905
+   },
+   {
+    "lagH": 8,
+    "r": 0.0947
+   },
+   {
+    "lagH": 9,
+    "r": 0.1007
+   },
+   {
+    "lagH": 10,
+    "r": 0.1087
+   },
+   {
+    "lagH": 11,
+    "r": 0.1134
+   },
+   {
+    "lagH": 12,
+    "r": 0.12
+   },
+   {
+    "lagH": 13,
+    "r": 0.1241
+   },
+   {
+    "lagH": 14,
+    "r": 0.1263
+   },
+   {
+    "lagH": 15,
+    "r": 0.1298
+   },
+   {
+    "lagH": 16,
+    "r": 0.1269
+   },
+   {
+    "lagH": 17,
+    "r": 0.1305
+   },
+   {
+    "lagH": 18,
+    "r": 0.1264
+   },
+   {
+    "lagH": 19,
+    "r": 0.1208
+   },
+   {
+    "lagH": 20,
+    "r": 0.1097
+   },
+   {
+    "lagH": 21,
+    "r": 0.1021
+   },
+   {
+    "lagH": 22,
+    "r": 0.0944
+   },
+   {
+    "lagH": 23,
+    "r": 0.0881
+   },
+   {
+    "lagH": 24,
+    "r": 0.0801
+   },
+   {
+    "lagH": 25,
+    "r": 0.0788
+   },
+   {
+    "lagH": 26,
+    "r": 0.0773
+   },
+   {
+    "lagH": 27,
+    "r": 0.074
+   },
+   {
+    "lagH": 28,
+    "r": 0.0709
+   },
+   {
+    "lagH": 29,
+    "r": 0.0687
+   },
+   {
+    "lagH": 30,
+    "r": 0.0641
+   },
+   {
+    "lagH": 31,
+    "r": 0.0593
+   },
+   {
+    "lagH": 32,
+    "r": 0.0565
+   },
+   {
+    "lagH": 33,
+    "r": 0.0547
+   },
+   {
+    "lagH": 34,
+    "r": 0.0513
+   },
+   {
+    "lagH": 35,
+    "r": 0.0475
+   },
+   {
+    "lagH": 36,
+    "r": 0.042
+   },
+   {
+    "lagH": 37,
+    "r": 0.0397
+   },
+   {
+    "lagH": 38,
+    "r": 0.0354
+   },
+   {
+    "lagH": 39,
+    "r": 0.0323
+   },
+   {
+    "lagH": 40,
+    "r": 0.0333
+   },
+   {
+    "lagH": 41,
+    "r": 0.0303
+   },
+   {
+    "lagH": 42,
+    "r": 0.0288
+   },
+   {
+    "lagH": 43,
+    "r": 0.0261
+   },
+   {
+    "lagH": 44,
+    "r": 0.024
+   },
+   {
+    "lagH": 45,
+    "r": 0.0225
+   },
+   {
+    "lagH": 46,
+    "r": 0.0222
+   },
+   {
+    "lagH": 47,
+    "r": 0.0216
+   },
+   {
+    "lagH": 48,
+    "r": 0.0211
+   },
+   {
+    "lagH": 49,
+    "r": 0.0203
+   },
+   {
+    "lagH": 50,
+    "r": 0.0212
+   },
+   {
+    "lagH": 51,
+    "r": 0.0209
+   },
+   {
+    "lagH": 52,
+    "r": 0.0221
+   },
+   {
+    "lagH": 53,
+    "r": 0.0176
+   },
+   {
+    "lagH": 54,
+    "r": 0.0134
+   },
+   {
+    "lagH": 55,
+    "r": 0.011
+   },
+   {
+    "lagH": 56,
+    "r": 0.012
+   },
+   {
+    "lagH": 57,
+    "r": 0.0083
+   },
+   {
+    "lagH": 58,
+    "r": 0.0088
+   },
+   {
+    "lagH": 59,
+    "r": 0.0073
+   },
+   {
+    "lagH": 60,
+    "r": 0.0049
+   },
+   {
+    "lagH": 61,
+    "r": 0.0038
+   },
+   {
+    "lagH": 62,
+    "r": 0.0021
+   },
+   {
+    "lagH": 63,
+    "r": 0.0009
+   },
+   {
+    "lagH": 64,
+    "r": -0.0013
+   },
+   {
+    "lagH": 65,
+    "r": -0.0008
+   },
+   {
+    "lagH": 66,
+    "r": -0.0051
+   },
+   {
+    "lagH": 67,
+    "r": -0.0071
+   },
+   {
+    "lagH": 68,
+    "r": -0.0074
+   },
+   {
+    "lagH": 69,
+    "r": -0.011
+   },
+   {
+    "lagH": 70,
+    "r": -0.0126
+   },
+   {
+    "lagH": 71,
+    "r": -0.0129
+   },
+   {
+    "lagH": 72,
+    "r": -0.0154
+   },
+   {
+    "lagH": 73,
+    "r": -0.018
+   },
+   {
+    "lagH": 74,
+    "r": -0.0193
+   },
+   {
+    "lagH": 75,
+    "r": -0.0224
+   },
+   {
+    "lagH": 76,
+    "r": -0.0212
+   },
+   {
+    "lagH": 77,
+    "r": -0.026
+   },
+   {
+    "lagH": 78,
+    "r": -0.0255
+   },
+   {
+    "lagH": 79,
+    "r": -0.026
+   },
+   {
+    "lagH": 80,
+    "r": -0.0271
+   },
+   {
+    "lagH": 81,
+    "r": -0.0293
+   },
+   {
+    "lagH": 82,
+    "r": -0.0261
+   },
+   {
+    "lagH": 83,
+    "r": -0.0275
+   },
+   {
+    "lagH": 84,
+    "r": -0.03
+   },
+   {
+    "lagH": 85,
+    "r": -0.0295
+   },
+   {
+    "lagH": 86,
+    "r": -0.0277
+   },
+   {
+    "lagH": 87,
+    "r": -0.0302
+   },
+   {
+    "lagH": 88,
+    "r": -0.0302
+   },
+   {
+    "lagH": 89,
+    "r": -0.0335
+   },
+   {
+    "lagH": 90,
+    "r": -0.0335
+   },
+   {
+    "lagH": 91,
+    "r": -0.033
+   },
+   {
+    "lagH": 92,
+    "r": -0.0343
+   },
+   {
+    "lagH": 93,
+    "r": -0.0331
+   },
+   {
+    "lagH": 94,
+    "r": -0.033
+   },
+   {
+    "lagH": 95,
+    "r": -0.0344
+   },
+   {
+    "lagH": 96,
+    "r": -0.0312
+   },
+   {
+    "lagH": 97,
+    "r": -0.0341
+   },
+   {
+    "lagH": 98,
+    "r": -0.0334
+   },
+   {
+    "lagH": 99,
+    "r": -0.0296
+   },
+   {
+    "lagH": 100,
+    "r": -0.0339
+   },
+   {
+    "lagH": 101,
+    "r": -0.0329
+   },
+   {
+    "lagH": 102,
+    "r": -0.032
+   },
+   {
+    "lagH": 103,
+    "r": -0.0342
+   },
+   {
+    "lagH": 104,
+    "r": -0.0324
+   },
+   {
+    "lagH": 105,
+    "r": -0.0327
+   },
+   {
+    "lagH": 106,
+    "r": -0.0329
+   },
+   {
+    "lagH": 107,
+    "r": -0.0315
+   },
+   {
+    "lagH": 108,
+    "r": -0.0349
+   },
+   {
+    "lagH": 109,
+    "r": -0.031
+   },
+   {
+    "lagH": 110,
+    "r": -0.0312
+   },
+   {
+    "lagH": 111,
+    "r": -0.0277
+   },
+   {
+    "lagH": 112,
+    "r": -0.0314
+   },
+   {
+    "lagH": 113,
+    "r": -0.0283
+   },
+   {
+    "lagH": 114,
+    "r": -0.0301
+   },
+   {
+    "lagH": 115,
+    "r": -0.0297
+   },
+   {
+    "lagH": 116,
+    "r": -0.0294
+   },
+   {
+    "lagH": 117,
+    "r": -0.0301
+   },
+   {
+    "lagH": 118,
+    "r": -0.0311
+   },
+   {
+    "lagH": 119,
+    "r": -0.0303
+   },
+   {
+    "lagH": 120,
+    "r": -0.0276
+   }
+  ],
+  "slopeHoursPerMetre": 0.59
+ },
+ {
+  "up": "islip",
+  "down": "kingsmill",
+  "n": 7,
+  "tHalf": {
+   "p10": 16.6,
+   "median": 31.0,
+   "p90": 73.1
+  },
+  "tPeak": {
+   "p10": 10.6,
+   "median": 18.0,
+   "p90": 26.4
+  },
+  "events": [
+   {
+    "eventId": "e2007",
+    "tHalf": 17.9,
+    "tPeak": 22.0,
+    "rise": 2.47
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": 43.2,
+    "tPeak": 10.0,
+    "rise": 2.463
+   },
+   {
+    "eventId": "auto-20121223",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 2.02,
+    "excluded": "ambiguous: second peak at islip with 115% of the main peak's prominence (0.42 m vs 0.36 m)"
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": 18.0,
+    "tPeak": 11.0,
+    "rise": 0.556
+   },
+   {
+    "eventId": "auto-20140201",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.957,
+    "excluded": "ambiguous: second peak at islip with 75% of the main peak's prominence (0.33 m vs 0.44 m)"
+   },
+   {
+    "eventId": "auto-20191116",
+    "tHalf": 107.8,
+    "tPeak": 14.0,
+    "rise": 1.303
+   },
+   {
+    "eventId": "auto-20201224",
+    "tHalf": 23.7,
+    "tPeak": null,
+    "rise": 1.25,
+    "excluded": "T_peak = 0.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": 14.6,
+    "tPeak": 33.0,
+    "rise": 0.421
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": 49.9,
+    "tPeak": 18.0,
+    "rise": 1.582
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 31.0,
+    "tPeak": 20.0,
+    "rise": 2.849
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": null,
+    "tPeak": 12.0,
+    "rise": 2.264,
+    "excluded": "T_half = 193.2 h outside (0, 168) h"
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.1064
+   },
+   {
+    "lagH": 1,
+    "r": 0.1007
+   },
+   {
+    "lagH": 2,
+    "r": 0.0979
+   },
+   {
+    "lagH": 3,
+    "r": 0.104
+   },
+   {
+    "lagH": 4,
+    "r": 0.109
+   },
+   {
+    "lagH": 5,
+    "r": 0.1105
+   },
+   {
+    "lagH": 6,
+    "r": 0.1103
+   },
+   {
+    "lagH": 7,
+    "r": 0.1092
+   },
+   {
+    "lagH": 8,
+    "r": 0.1067
+   },
+   {
+    "lagH": 9,
+    "r": 0.108
+   },
+   {
+    "lagH": 10,
+    "r": 0.1055
+   },
+   {
+    "lagH": 11,
+    "r": 0.1009
+   },
+   {
+    "lagH": 12,
+    "r": 0.095
+   },
+   {
+    "lagH": 13,
+    "r": 0.0932
+   },
+   {
+    "lagH": 14,
+    "r": 0.0901
+   },
+   {
+    "lagH": 15,
+    "r": 0.0862
+   },
+   {
+    "lagH": 16,
+    "r": 0.0845
+   },
+   {
+    "lagH": 17,
+    "r": 0.0812
+   },
+   {
+    "lagH": 18,
+    "r": 0.0803
+   },
+   {
+    "lagH": 19,
+    "r": 0.0748
+   },
+   {
+    "lagH": 20,
+    "r": 0.0718
+   },
+   {
+    "lagH": 21,
+    "r": 0.0702
+   },
+   {
+    "lagH": 22,
+    "r": 0.0667
+   },
+   {
+    "lagH": 23,
+    "r": 0.0647
+   },
+   {
+    "lagH": 24,
+    "r": 0.0623
+   },
+   {
+    "lagH": 25,
+    "r": 0.0561
+   },
+   {
+    "lagH": 26,
+    "r": 0.0505
+   },
+   {
+    "lagH": 27,
+    "r": 0.0476
+   },
+   {
+    "lagH": 28,
+    "r": 0.0458
+   },
+   {
+    "lagH": 29,
+    "r": 0.044
+   },
+   {
+    "lagH": 30,
+    "r": 0.0446
+   },
+   {
+    "lagH": 31,
+    "r": 0.0407
+   },
+   {
+    "lagH": 32,
+    "r": 0.0398
+   },
+   {
+    "lagH": 33,
+    "r": 0.0372
+   },
+   {
+    "lagH": 34,
+    "r": 0.0344
+   },
+   {
+    "lagH": 35,
+    "r": 0.0325
+   },
+   {
+    "lagH": 36,
+    "r": 0.0299
+   },
+   {
+    "lagH": 37,
+    "r": 0.0285
+   },
+   {
+    "lagH": 38,
+    "r": 0.0267
+   },
+   {
+    "lagH": 39,
+    "r": 0.0263
+   },
+   {
+    "lagH": 40,
+    "r": 0.0244
+   },
+   {
+    "lagH": 41,
+    "r": 0.0203
+   },
+   {
+    "lagH": 42,
+    "r": 0.0258
+   },
+   {
+    "lagH": 43,
+    "r": 0.0284
+   },
+   {
+    "lagH": 44,
+    "r": 0.0304
+   },
+   {
+    "lagH": 45,
+    "r": 0.0263
+   },
+   {
+    "lagH": 46,
+    "r": 0.0286
+   },
+   {
+    "lagH": 47,
+    "r": 0.0278
+   },
+   {
+    "lagH": 48,
+    "r": 0.0282
+   },
+   {
+    "lagH": 49,
+    "r": 0.029
+   },
+   {
+    "lagH": 50,
+    "r": 0.0334
+   },
+   {
+    "lagH": 51,
+    "r": 0.0297
+   },
+   {
+    "lagH": 52,
+    "r": 0.0323
+   },
+   {
+    "lagH": 53,
+    "r": 0.027
+   },
+   {
+    "lagH": 54,
+    "r": 0.0193
+   },
+   {
+    "lagH": 55,
+    "r": 0.0252
+   },
+   {
+    "lagH": 56,
+    "r": 0.0245
+   },
+   {
+    "lagH": 57,
+    "r": 0.022
+   },
+   {
+    "lagH": 58,
+    "r": 0.0219
+   },
+   {
+    "lagH": 59,
+    "r": 0.02
+   },
+   {
+    "lagH": 60,
+    "r": 0.0177
+   },
+   {
+    "lagH": 61,
+    "r": 0.0157
+   },
+   {
+    "lagH": 62,
+    "r": 0.0136
+   },
+   {
+    "lagH": 63,
+    "r": 0.0116
+   },
+   {
+    "lagH": 64,
+    "r": 0.0099
+   },
+   {
+    "lagH": 65,
+    "r": 0.0078
+   },
+   {
+    "lagH": 66,
+    "r": 0.006
+   },
+   {
+    "lagH": 67,
+    "r": 0.0079
+   },
+   {
+    "lagH": 68,
+    "r": 0.0058
+   },
+   {
+    "lagH": 69,
+    "r": 0.0025
+   },
+   {
+    "lagH": 70,
+    "r": 0.0018
+   },
+   {
+    "lagH": 71,
+    "r": -0.0001
+   },
+   {
+    "lagH": 72,
+    "r": -0.002
+   },
+   {
+    "lagH": 73,
+    "r": -0.001
+   },
+   {
+    "lagH": 74,
+    "r": -0.0033
+   },
+   {
+    "lagH": 75,
+    "r": 0.0001
+   },
+   {
+    "lagH": 76,
+    "r": -0.0102
+   },
+   {
+    "lagH": 77,
+    "r": -0.0109
+   },
+   {
+    "lagH": 78,
+    "r": -0.0099
+   },
+   {
+    "lagH": 79,
+    "r": -0.0111
+   },
+   {
+    "lagH": 80,
+    "r": -0.0133
+   },
+   {
+    "lagH": 81,
+    "r": -0.0159
+   },
+   {
+    "lagH": 82,
+    "r": -0.0162
+   },
+   {
+    "lagH": 83,
+    "r": -0.0128
+   },
+   {
+    "lagH": 84,
+    "r": -0.0137
+   },
+   {
+    "lagH": 85,
+    "r": -0.0185
+   },
+   {
+    "lagH": 86,
+    "r": -0.0203
+   },
+   {
+    "lagH": 87,
+    "r": -0.0208
+   },
+   {
+    "lagH": 88,
+    "r": -0.0204
+   },
+   {
+    "lagH": 89,
+    "r": -0.0211
+   },
+   {
+    "lagH": 90,
+    "r": -0.0236
+   },
+   {
+    "lagH": 91,
+    "r": -0.0233
+   },
+   {
+    "lagH": 92,
+    "r": -0.0204
+   },
+   {
+    "lagH": 93,
+    "r": -0.022
+   },
+   {
+    "lagH": 94,
+    "r": -0.0263
+   },
+   {
+    "lagH": 95,
+    "r": -0.0249
+   },
+   {
+    "lagH": 96,
+    "r": -0.026
+   },
+   {
+    "lagH": 97,
+    "r": -0.028
+   },
+   {
+    "lagH": 98,
+    "r": -0.0228
+   },
+   {
+    "lagH": 99,
+    "r": -0.0259
+   },
+   {
+    "lagH": 100,
+    "r": -0.0289
+   },
+   {
+    "lagH": 101,
+    "r": -0.0285
+   },
+   {
+    "lagH": 102,
+    "r": -0.0268
+   },
+   {
+    "lagH": 103,
+    "r": -0.0266
+   },
+   {
+    "lagH": 104,
+    "r": -0.0271
+   },
+   {
+    "lagH": 105,
+    "r": -0.027
+   },
+   {
+    "lagH": 106,
+    "r": -0.0259
+   },
+   {
+    "lagH": 107,
+    "r": -0.0236
+   },
+   {
+    "lagH": 108,
+    "r": -0.0191
+   },
+   {
+    "lagH": 109,
+    "r": -0.0232
+   },
+   {
+    "lagH": 110,
+    "r": -0.0278
+   },
+   {
+    "lagH": 111,
+    "r": -0.0276
+   },
+   {
+    "lagH": 112,
+    "r": -0.0293
+   },
+   {
+    "lagH": 113,
+    "r": -0.0279
+   },
+   {
+    "lagH": 114,
+    "r": -0.0272
+   },
+   {
+    "lagH": 115,
+    "r": -0.0292
+   },
+   {
+    "lagH": 116,
+    "r": -0.0303
+   },
+   {
+    "lagH": 117,
+    "r": -0.0286
+   },
+   {
+    "lagH": 118,
+    "r": -0.0292
+   },
+   {
+    "lagH": 119,
+    "r": -0.0309
+   },
+   {
+    "lagH": 120,
+    "r": -0.0278
+   }
+  ],
+  "slopeHoursPerMetre": 0.85
+ }
+]
