@@ -19,7 +19,8 @@ Do these in order, then carry on with whatever the human asked.
 1. **Check the tools.** Run `gh auth status`. If it fails, stop and ask the human to run `gh auth login` (they can type `! gh auth login` into this prompt). Make sure the branch is not the old `agent/magenta/claude-workflow`. If it is, run `git checkout main && git pull`.
 2. **Ask the human two questions in one message:**
    - Their first name.
-   - Their role: Data, Model, App or Story (SPEC.md §12). Say which roles already appear on the board, so two people don't take the same one by accident.
+   - Their role: Data, Model, App or Story (SPEC.md §12), or Observer. Say which roles already appear on the board, so two people don't take the same one by accident.
+   - **If they choose Observer**, register them (step 4) and then follow **OBSERVER.md** instead of steps 5–7: Observers don't claim issues or write project code.
 3. **Pick the session name.**
    - Use the person's first name, lower-case: `sam`.
    - If the person already has another Claude running, add a suffix: `sam-2`, or the area, `sam-web`.

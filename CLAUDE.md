@@ -12,7 +12,7 @@ Several Claude sessions work in this repo at once. Two shared sources of truth k
 
 Rules:
 1. **Identity.** If the board says "NEW SESSION, NO IDENTITY", follow **ONBOARDING.md** before anything else: it covers naming (the person's first name; `<name>-2` for a second Claude), choosing a role and claiming a first issue.
-2. **Read the board before acting.** Don't start work someone else has claimed. If your task touches another module or a §9 contract, check the board for its owner and tell them through your `needs` field or an issue comment.
+2. **Read the board before acting.** Don't start work someone else has claimed. If your task touches another module or a §9 contract, check the board for its owner and tell them through your `needs` field or an issue comment. For what happened recently, rather than who is doing what now, run `python3 scripts/status.py feed --since 1h`. The Observer role is read-only: see OBSERVER.md.
 3. **Claim before coding.** Pick the highest-priority unclaimed issue in your area (SPEC §13 order). Run `gh issue edit <n> --add-assignee @me --add-label in-progress`, then `python3 scripts/status.py set --state working --issue "#<n>" --task "<one line>" --next "<one line>"`.
 4. **Update your status whenever it changes**: a new task, a finished step, a blocker, a new branch. Do it in the same turn as the change. Use `--state blocked --needs "<what, from whom>"` when you're stuck. Keep each field to one line.
 5. **Push code often.** Commit and push your task branch at every working step, at least every 30 minutes, so others can see real progress. Never push to `main` directly. Merge through a PR that says `Closes #<n>`.

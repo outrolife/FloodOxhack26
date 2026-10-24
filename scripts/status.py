@@ -16,6 +16,9 @@ Commands
                             update your status and push it
   heartbeat                 refresh auto fields (branch, commit, time) and push; used by the Stop hook
   init                      create the status branch on origin if it does not exist
+  feed [--since 3h] [--json]
+                            read-only timeline: status changes, claims, commits on every branch,
+                            PRs and issue comments, oldest first (for the Observer, see OBSERVER.md)
 
 Identity can also come from the RC_AGENT env var (e.g. `RC_AGENT=sam-2 claude`),
 which wins over .claude/agent.json. Use that when running two Claudes in one checkout.
@@ -28,7 +31,7 @@ import re
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -37,7 +40,7 @@ BRANCH = "status"
 REMOTE_REF = f"refs/remotes/{REMOTE}/{BRANCH}"
 FIELDS = ["role", "state", "issue", "task", "next", "needs", "notes",
           "branch", "head", "unpushed", "dirty", "updated"]
-STATES = ["working", "blocked", "reviewing", "idle", "done"]
+STATES = ["working", "blocked", "reviewing", "idle", "done", "watching"]
 STALE_MIN = 30
 HEARTBEAT_MIN_GAP_S = 180
 ISSUE_CACHE_S = 120
@@ -362,6 +365,170 @@ def cmd_init() -> None:
     print("created status branch on origin")
 
 
+# --------------------------------------------------------------------- feed
+# One chronological timeline of what the team did: status changes, claims, commits on
+# every branch, PRs and issue comments. Read-only; made for the Observer (OBSERVER.md).
+Event = Tuple[datetime, str, str]  # (time UTC, kind, text)
+
+
+def parse_since(s: str) -> datetime:
+    m = re.fullmatch(r"(\d+)([mhd])", s)
+    if m:
+        secs = int(m.group(1)) * {"m": 60, "h": 3600, "d": 86400}[m.group(2)]
+        return datetime.now(timezone.utc) - timedelta(seconds=secs)
+    t = datetime.fromisoformat(s.replace("Z", "+00:00"))
+    return t if t.tzinfo else t.replace(tzinfo=timezone.utc)
+
+
+def parse_ts(s: str) -> datetime:
+    return datetime.fromisoformat(s.replace("Z", "+00:00")).astimezone(timezone.utc)
+
+
+def cat_files(specs: List[str]) -> List[str]:
+    """Contents of many <rev>:<path> objects in one git call ('' if missing)."""
+    if not specs:
+        return []
+    r = subprocess.run(["git", "cat-file", "--batch"], input=("\n".join(specs) + "\n").encode(),
+                       capture_output=True, cwd=ROOT, timeout=30)
+    out, data, pos = [], r.stdout, 0
+    for _ in specs:
+        nl = data.index(b"\n", pos)
+        header = data[pos:nl].split()
+        pos = nl + 1
+        if len(header) < 3 or header[1] == b"missing":
+            out.append("")
+            continue
+        size = int(header[2])
+        out.append(data[pos:pos + size].decode("utf-8", "replace"))
+        pos += size + 1
+    return out
+
+
+def status_events(since: datetime) -> List[Event]:
+    """Changes to anyone's state, issue, task or needs (heartbeats skipped)."""
+    if not ref_exists(REMOTE_REF):
+        return []
+    log = git("log", REMOTE_REF, "--reverse", "--format=@%H %cI %s", "--name-only", check=False)
+    commits: List[Tuple[str, datetime, str]] = []  # (sha, time, name)
+    sha, ts, skip = "", None, True
+    for line in log.splitlines():
+        if line.startswith("@"):
+            sha, iso, subject = line[1:].split(" ", 2)
+            ts, skip = parse_ts(iso), subject.endswith(" heartbeat")
+        elif line.startswith("status/") and line.endswith(".md") and not skip and ts:
+            commits.append((sha, ts, line[len("status/"):-3]))
+    texts = cat_files([f"{c}:status/{n}.md" for c, _, n in commits])
+    last: Dict[str, Dict[str, str]] = {}
+    events: List[Event] = []
+    for (_, t, name), text in zip(commits, texts):
+        d = parse(text)
+        prev = last.get(name, {})
+        last[name] = d
+        if t < since or all(d.get(k) == prev.get(k) for k in ("state", "issue", "task", "needs")):
+            continue
+        issue = f" {d['issue']}" if d.get("issue") else ""
+        text_ = f"{name} -> {d.get('state', '?')}{issue}"
+        if d.get("task"):
+            text_ += f": {d['task']}"
+        if d.get("needs"):
+            text_ += f"  NEEDS: {d['needs']}"
+        events.append((t, "status", text_))
+    return events
+
+
+def commit_events(since: datetime) -> List[Event]:
+    """Commits on main, then each other branch's own commits (those not yet on main)."""
+    prefix = f"refs/remotes/{REMOTE}/"
+    refs = [r[len(prefix):] for r in git("for-each-ref", "--format=%(refname)", prefix,
+                                         check=False).splitlines()]
+    branches = sorted(b for b in refs if b not in ("HEAD", BRANCH, "main"))
+    main = f"{REMOTE}/main"
+    has_main = ref_exists(f"{prefix}main")
+    seen: set = set()
+    events: List[Event] = []
+    for b in (["main"] if has_main else []) + branches:
+        rng = [main] if b == "main" else ([f"{main}..{REMOTE}/{b}"] if has_main else [f"{REMOTE}/{b}"])
+        log = git("log", *rng, "--no-merges", f"--since={since.isoformat()}",
+                  "--format=%H%x09%cI%x09%s", check=False)
+        for line in log.splitlines():
+            parts = line.split("\t", 2)
+            if len(parts) == 3 and parts[0] not in seen:
+                seen.add(parts[0])
+                events.append((parse_ts(parts[1]), "commit", f"[{b}] {parts[2]}"))
+    return events
+
+
+def gh_json(*args: str) -> Optional[list]:
+    try:
+        r = subprocess.run(["gh", *args], capture_output=True, text=True, cwd=ROOT, timeout=15)
+        return json.loads(r.stdout) if r.returncode == 0 else None
+    except Exception:
+        return None
+
+
+def github_events(since: datetime) -> Optional[List[Event]]:
+    """PRs opened/merged/closed, claims and closes, issue/PR comments. None if gh is unavailable."""
+    prs = gh_json("pr", "list", "--state", "all", "--limit", "100", "--json",
+                  "number,title,headRefName,author,createdAt,mergedAt,closedAt,state")
+    if prs is None:
+        return None
+    events: List[Event] = []
+    for p in prs:
+        what = f"#{p['number']} {p['title']} [{p['headRefName']}] by {p['author']['login']}"
+        events.append((parse_ts(p["createdAt"]), "pr", f"opened {what}"))
+        if p.get("mergedAt"):
+            events.append((parse_ts(p["mergedAt"]), "pr", f"MERGED {what}"))
+        elif p.get("closedAt"):
+            events.append((parse_ts(p["closedAt"]), "pr", f"closed unmerged {what}"))
+    for e in gh_json("api", "repos/{owner}/{repo}/issues/events?per_page=100") or []:
+        kind = e.get("event")
+        num = (e.get("issue") or {}).get("number")
+        actor = (e.get("actor") or {}).get("login", "?")
+        if kind in ("assigned", "unassigned"):
+            text = f"#{num} {kind} {(e.get('assignee') or {}).get('login', '?')} (by {actor})"
+        elif kind in ("labeled", "unlabeled") and (e.get("label") or {}).get("name") == "in-progress":
+            text = f"#{num} {'claimed' if kind == 'labeled' else 'released'} (in-progress, by {actor})"
+        elif kind in ("closed", "reopened"):
+            text = f"#{num} {kind} by {actor}"
+        else:
+            continue
+        events.append((parse_ts(e["created_at"]), "issue", text))
+    for c in gh_json("api", "repos/{owner}/{repo}/issues/comments?per_page=100&since="
+                     + since.strftime("%Y-%m-%dT%H:%M:%SZ")) or []:
+        num = c.get("issue_url", "").rsplit("/", 1)[-1]
+        first = " ".join(c.get("body", "").split())[:160]
+        events.append((parse_ts(c["created_at"]), "comment",
+                       f"#{num} {(c.get('user') or {}).get('login', '?')}: {first}"))
+    return events
+
+
+def cmd_feed(args: List[str]) -> None:
+    since_arg = "3h"
+    as_json = "--json" in args
+    if "--since" in args:
+        i = args.index("--since")
+        if i + 1 >= len(args):
+            sys.exit("usage: status.py feed [--since 90m|3h|1d|2026-10-24T15:00Z] [--json]")
+        since_arg = args[i + 1]
+    since = parse_since(since_arg)
+    ok = fetch_all()
+    events = status_events(since) + commit_events(since)
+    gh_events = github_events(since)
+    events += gh_events or []
+    events = sorted((e for e in events if e[0] >= since), key=lambda e: e[0])
+    if as_json:
+        print(json.dumps([{"t": t.strftime("%Y-%m-%dT%H:%M:%SZ"), "kind": k, "text": x}
+                          for t, k, x in events], indent=1))
+        return
+    print(f"=== River Clock feed since {since.strftime('%a %H:%M')} UTC "
+          f"({'fetched' if ok else 'OFFLINE, cached'}; {len(events)} events) ===")
+    if gh_events is None:
+        print("(GitHub unavailable: PRs, claims and comments missing; log in to `gh`)")
+    for t, kind, text in events:
+        print(f"{t.strftime('%a %H:%M')}  {kind:<7} {text}")
+    print("=== end feed ===")
+
+
 def main() -> None:
     if len(sys.argv) < 2:
         print(__doc__)
@@ -378,6 +545,8 @@ def main() -> None:
             cmd_heartbeat()
         elif cmd == "init":
             cmd_init()
+        elif cmd == "feed":
+            cmd_feed(rest)
         else:
             print(__doc__)
             sys.exit(2)
