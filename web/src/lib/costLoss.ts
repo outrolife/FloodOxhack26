@@ -360,7 +360,11 @@ export function formatPct(p: number): string {
   return `${Math.round(pct)}%`;
 }
 
-export type Advice = { act: boolean | null; text: string };
+/**
+ * text is the full sentence; head is its first part ("At your costs, act when
+ * P ≥ X%."); now is the "Now: …" remainder without the "Now: " prefix.
+ */
+export type Advice = { act: boolean | null; text: string; head: string; now: string };
 
 const LIVE_REASON: Record<Exclude<LiveProbability["status"], "ok">, string> = {
   unavailable: "Live data unavailable",
@@ -372,10 +376,15 @@ const LIVE_REASON: Record<Exclude<LiveProbability["status"], "ok">, string> = {
 /** "At your costs, act when P ≥ X%. Now: Y% → act / don't act yet." */
 export function advice(pStar: number, live: LiveProbability): Advice {
   if (pStar >= 1) {
-    return { act: false, text: "At your costs, acting never pays off (the action costs at least as much as the loss)." };
+    const head = "At your costs, acting never pays off (the action costs at least as much as the loss).";
+    return { act: false, text: head, head, now: "" };
   }
   const head = `At your costs, act when P ≥ ${formatPct(pStar)}.`;
-  if (live.status !== "ok") return { act: null, text: `${head} Now: ${LIVE_REASON[live.status]}.` };
+  if (live.status !== "ok") {
+    const now = `${LIVE_REASON[live.status]}.`;
+    return { act: null, text: `${head} Now: ${now}`, head, now };
+  }
   const act = live.p >= pStar;
-  return { act, text: `${head} Now: ${formatPct(live.p)} → ${act ? "act" : "don't act yet"}.` };
+  const now = `${formatPct(live.p)} → ${act ? "act" : "don't act yet"}.`;
+  return { act, text: `${head} Now: ${now}`, head, now };
 }

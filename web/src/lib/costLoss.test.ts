@@ -190,14 +190,23 @@ describe("liveProbability", () => {
 
 describe("advice", () => {
   it("says act when P >= p*", () => {
-    expect(advice(0.05, { status: "ok", p: 0.34 })).toEqual({ act: true, text: "At your costs, act when P ≥ 5%. Now: 34% → act." });
+    expect(advice(0.05, { status: "ok", p: 0.34 })).toEqual({
+      act: true,
+      text: "At your costs, act when P ≥ 5%. Now: 34% → act.",
+      head: "At your costs, act when P ≥ 5%.",
+      now: "34% → act.",
+    });
     expect(advice(0.05, { status: "ok", p: 0.05 }).act).toBe(true);
   });
   it("says don't act yet when P < p*", () => {
-    expect(advice(0.5, { status: "ok", p: 0.34 })).toEqual({ act: false, text: "At your costs, act when P ≥ 50%. Now: 34% → don't act yet." });
+    expect(advice(0.5, { status: "ok", p: 0.34 })).toMatchObject({ act: false, text: "At your costs, act when P ≥ 50%. Now: 34% → don't act yet." });
   });
   it("degrades without live data", () => {
-    expect(advice(0.01, { status: "unavailable" })).toEqual({ act: null, text: "At your costs, act when P ≥ 1%. Now: Live data unavailable." });
+    expect(advice(0.01, { status: "unavailable" })).toMatchObject({
+      act: null,
+      text: "At your costs, act when P ≥ 1%. Now: Live data unavailable.",
+      now: "Live data unavailable.",
+    });
   });
   it("handles C >= L", () => {
     expect(advice(1, { status: "ok", p: 0.99 }).act).toBe(false);
