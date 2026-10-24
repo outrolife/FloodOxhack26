@@ -76,13 +76,13 @@ export function EnsembleRainView({ data, source, nowMs }: { data?: EnsembleRain;
         {yTicks.map((v) => (
           <g key={v}>
             <line x1={PAD.l} x2={W - PAD.r} y1={y(v)} y2={y(v)} stroke="var(--grid)" />
-            <text x={PAD.l - 4} y={y(v) + 3} textAnchor="end" fontSize={11} fill="var(--ink-2)">
+            <text x={PAD.l - 4} y={y(v) + 3} textAnchor="end" fontSize={12} fill="var(--ink-2)">
               {`${v} mm`}
             </text>
           </g>
         ))}
         {xTicks.map((h) => (
-          <text key={h} x={x(h)} y={H - 6} textAnchor="middle" fontSize={11} fill="var(--ink-2)">
+          <text key={h} x={x(h)} y={H - 6} textAnchor="middle" fontSize={12} fill="var(--ink-2)">
             {h === 0 ? "now" : `+${h} h`}
           </text>
         ))}

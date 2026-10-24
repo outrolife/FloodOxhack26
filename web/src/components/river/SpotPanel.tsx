@@ -3,6 +3,7 @@
 import type { Forecast, Spot, Station } from "../../contracts";
 import { formatDateTime } from "../../time";
 import { LEVEL_STYLE, arrivalSentence, eaAreaUrl, spotLevel } from "../shared/forecast";
+import { LevelGlyph } from "../shared/LevelGlyph";
 import { ProbBars } from "../shared/ProbBars";
 import { Sparkline } from "../shared/Sparkline";
 
@@ -34,7 +35,7 @@ export function SpotPanel({
       </p>
       <p>
         <span className="chip">
-          <span className="dot" style={{ background: LEVEL_STYLE[lvl].colour }} />
+          <LevelGlyph level={lvl} />
           {LEVEL_STYLE[lvl].label}
         </span>
         {stale && <span className="chip" style={{ marginLeft: 6 }}>Gauge data stale</span>}

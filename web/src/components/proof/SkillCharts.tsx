@@ -23,7 +23,7 @@ import type { Proof, Spot } from "../../contracts";
 import { FLOOD_EPISODE_NOTE, FLOOD_EPISODE_RULE, FLOOD_EPISODES } from "../shared/episodes";
 import { DIRECTION_TERM, coverageSummary } from "./coverage";
 
-const AXIS = { stroke: "#c3c2b7", tick: { fill: "#52514e", fontSize: 11 } };
+const AXIS = { stroke: "#c3c2b7", tick: { fill: "#52514e", fontSize: 12 } };
 const GRID = <CartesianGrid stroke="#e1e0d9" vertical={false} />;
 const SERIES = ["#2a78d6", "#eb6834", "#1baf7a"]; // categorical slots 1-3, fixed order
 
@@ -181,7 +181,7 @@ export function Reliability({ proof, spots }: { proof: Proof; spots: Spot[] }) {
               <ScatterChart margin={{ top: 8, right: 16, left: 0, bottom: 16 }}>
                 <CartesianGrid stroke="#e1e0d9" />
                 <XAxis type="number" dataKey="pPred" domain={[0, 1]} tickFormatter={(v: number) => `${v * 100}%`} {...AXIS}
-                  label={{ value: "Forecast probability", position: "insideBottom", offset: -8, fill: "#898781", fontSize: 11 }} />
+                  label={{ value: "Forecast probability", position: "insideBottom", offset: -8, fill: "#52514e", fontSize: 12 }} />
                 <YAxis type="number" dataKey="pObs" domain={[0, 1]} tickFormatter={(v: number) => `${v * 100}%`} {...AXIS} width={44} />
                 <ZAxis type="number" dataKey="n" range={[40, 260]} />
                 <ReferenceLine segment={[{ x: 0, y: 0 }, { x: 1, y: 1 }]} stroke="#898781" strokeDasharray="4 3" />
@@ -260,7 +260,7 @@ export function Tradeoff({
           <LineChart data={rows} margin={{ top: 8, right: 16, left: 0, bottom: 16 }}>
             {GRID}
             <XAxis dataKey="falseAlarms" type="number" allowDecimals={false} {...AXIS}
-              label={{ value: "False alarms over the backtest", position: "insideBottom", offset: -8, fill: "#898781", fontSize: 11 }} />
+              label={{ value: "False alarms over the backtest", position: "insideBottom", offset: -8, fill: "#52514e", fontSize: 12 }} />
             <YAxis {...AXIS} width={44} tickFormatter={(v: number) => `${v} h`} />
             <Tooltip
               labelFormatter={(fa) => `${fa} false alarms`}
@@ -270,7 +270,7 @@ export function Tradeoff({
               }}
             />
             <Legend verticalAlign="top" wrapperStyle={{ fontSize: 12, paddingBottom: 6 }} />
-            <ReferenceLine y={0} stroke="#6250d6" strokeDasharray="5 3" label={{ value: "Official warning", position: "insideBottomRight", fill: "#6250d6", fontSize: 11 }} />
+            <ReferenceLine y={0} stroke="#6250d6" strokeDasharray="5 3" label={{ value: "Official warning", position: "insideBottomRight", fill: "#6250d6", fontSize: 12 }} />
             <Line dataKey="meanLeadH" name="Mean lead before flooding" stroke={SERIES[0]} strokeWidth={2} dot={{ r: 4 }} isAnimationActive={false} connectNulls>
               {anyCi && <ErrorBar dataKey="leadErr" direction="y" width={6} stroke={SERIES[0]} strokeWidth={1.5} isAnimationActive={false} />}
             </Line>
@@ -284,7 +284,7 @@ export function Tradeoff({
                 stroke="#fcfcfb"
                 strokeWidth={2}
                 ifOverflow="extendDomain"
-                label={{ value: "EA warnings", position: "right", fill: "#6250d6", fontSize: 11, fontWeight: 600 }}
+                label={{ value: "EA warnings", position: "right", fill: "#6250d6", fontSize: 12, fontWeight: 600 }}
               />
             )}
           </LineChart>
