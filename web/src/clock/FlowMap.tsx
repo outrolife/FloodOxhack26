@@ -5,7 +5,7 @@
 import { useMemo } from "react";
 import type { FeatureCollection } from "geojson";
 import type { Path, PathOptions } from "leaflet";
-import { CircleMarker, GeoJSON, Polyline, Tooltip } from "react-leaflet";
+import { GeoJSON, Polyline, Tooltip } from "react-leaflet";
 import type { Forecast, Spot, Station, TravelPair } from "../contracts";
 import type { Point } from "../components/shared/series";
 import { BaseMap, useBaseMap, type FitPadding } from "../ui/BaseMap";
@@ -14,6 +14,8 @@ import { gaugeName } from "../lib/plain";
 import { FLOW_LOOK, PULSE_DASH, PULSE_PATH_LENGTH, bucketFor, chainLinks, flowBounds, levelFraction, linesByGauge, linkWords, type Bucket } from "./flow";
 import { spotDots } from "./markers";
 import { SpotDots } from "./SpotDots";
+import { GaugeLayer } from "./GaugeLayer";
+import { gaugeIconSvg, lookFor, type GaugeLook } from "./gauges";
 
 /**
  * Keep the spots and gauges clear of the panels drawn over the map: the badge
@@ -28,8 +30,8 @@ function fitPadding(): FitPadding {
 /** "Islip (Cherwell)" → "Islip". */
 const shortGauge = (name: string) => gaugeName(name).replace(/ \(.*\)$/, "");
 
-/** Upstream gauges further north than this (degrees) above the spots stay off the map; their link runs in from the edge. */
-const NORTH_LIMIT = 0.06;
+/** A gauge this close (degrees of latitude; 1.6× in longitude) to a spot is an Oxford gauge whose river lines are drawn. */
+const NEAR_DEG = 0.04;
 const NO_READING = "#b7c3cc";
 
 const baseWeight = (kind: unknown) => (kind === "river" ? 4 : 2.2);
@@ -75,7 +77,13 @@ export function FlowMap({
   stale,
   selected,
   onSelect,
+  t = null,
+  lagH = 0,
 }: {
+  /** The moment shown (epoch ms), for the gauge cards. */
+  t?: number | null;
+  /** Readings are known this many hours after they happen (replays: 1 h). */
+  lagH?: number;
   spots: Spot[];
   stations: Station[];
   pairs: TravelPair[];
@@ -93,18 +101,20 @@ export function FlowMap({
   const byKey = useMemo(() => new Map(stations.map((s) => [s.key, s])), [stations]);
   const links = useMemo(() => chainLinks(stations, pairs), [stations, pairs]);
 
-  // No spots yet (still loading): no upstream gauges either, rather than Math.max() of nothing (-Infinity).
-  const maxSpotLat = spots.length ? Math.max(...spots.map((s) => s.lat)) : null;
-  const shownUpstream =
-    maxSpotLat == null ? [] : stations.filter((s) => s.role === "upstream" && s.lat <= maxSpotLat + NORTH_LIMIT);
+  // The whole catchment: the spots and every gauge in stations.json (upstream, live_only, targets),
+  // so water from further out is on the map. Oxford until they load (flowBounds' fallback).
   const bounds = useMemo(
-    () => flowBounds([...spots, ...shownUpstream]),
-    // Keyed on the gauge lists, not the arrays, so a re-render does not re-fit the map.
-    [spots.map((s) => s.key).join(), shownUpstream.map((s) => s.key).join()],
+    () => flowBounds([...spots, ...stations]),
+    // Keyed on the lists, not the arrays, so a re-render does not re-fit the map.
+    [spots.map((s) => s.key).join(), stations.map((s) => s.key).join()],
   );
 
-  // Oxford gauges that exist in this data set (or are known to be offline): each river line takes its nearest.
-  const oxford = stations.filter((s) => s.role !== "upstream" && ((observed?.[s.key]?.length ?? 0) > 0 || stale.includes(s.key)));
+  // Oxford gauges (near a spot, where the basemap draws rivers) that exist in this data set or are
+  // known to be offline: each river line takes its nearest. Far catchment gauges have no lines here.
+  const nearOxford = (s: Station) => spots.some((p) => Math.abs(p.lat - s.lat) < NEAR_DEG && Math.abs(p.lon - s.lon) < NEAR_DEG * 1.6);
+  const oxford = stations.filter(
+    (s) => s.role !== "upstream" && nearOxford(s) && ((observed?.[s.key]?.length ?? 0) > 0 || stale.includes(s.key)),
+  );
   const oxfordKey = oxford.map((s) => s.key).join();
   const groups = useMemo(() => {
     if (base.status !== "ready") return {};
@@ -124,6 +134,20 @@ export function FlowMap({
   };
 
   const dots = spotDots(clocksFor(forecast, spots), forecast, spots);
+
+  // Gauge icons: each gauge's own level vs its usual high, and where its water goes next.
+  const looks: Record<string, GaugeLook> = {};
+  for (const s of stations) looks[s.key] = bucketOf(s.key).known ? lookFor(bucketOf(s.key).bucket) : "none";
+  const reaches = useMemo(() => {
+    const out: Record<string, { name: string; hours: number }> = {};
+    for (const l of links) {
+      const spot = spots.find((p) => p.gauge === l.down);
+      const down = byKey.get(l.down);
+      const name = spot ? spot.name.split(" / ")[0].trim() : down ? shortGauge(down.name) : null;
+      if (name) out[l.up] = { name, hours: l.tHalfH };
+    }
+    return out;
+  }, [links, spots, byKey]);
 
   return (
     <BaseMap bounds={bounds} className="rc-flowmap" fitPadding={fitPadding()}>
@@ -190,21 +214,7 @@ export function FlowMap({
           />
         );
       })}
-      {shownUpstream.map((s) => {
-        const { bucket, known } = bucketOf(s.key);
-        return (
-          <CircleMarker
-            key={s.key}
-            center={[s.lat, s.lon]}
-            radius={5}
-            pathOptions={{ color: "#0b0b0b", weight: 1.5, fillColor: known ? FLOW_LOOK[bucket].colour : "#ffffff", fillOpacity: 1 }}
-          >
-            <Tooltip direction="top" offset={[0, -5]} className="rc-gauge-label" opacity={1}>
-              {shortGauge(s.name)}: {known ? FLOW_LOOK[bucket].words : "no reading"}
-            </Tooltip>
-          </CircleMarker>
-        );
-      })}
+      <GaugeLayer stations={stations} looks={looks} observed={observed} t={t} lagH={lagH} reaches={reaches} />
 
       <SpotDots dots={dots} selected={selected} onSelect={onSelect} />
     </BaseMap>
@@ -226,6 +236,9 @@ export function FlowKey() {
         <i className="rc-flowkey-sw" style={{ borderTopColor: NO_READING }} /> no reading
       </span>
       <span>Pulses move at the real travel time from upstream</span>
+      <span>
+        <i className="rc-flowkey-gauge" aria-hidden="true" dangerouslySetInnerHTML={{ __html: gaugeIconSvg("above") }} /> gauge: hover or tap
+      </span>
       <span>
         <i className="rc-flowkey-ring" aria-hidden="true" /> Ring = chance of flooding in the next 3 days
       </span>

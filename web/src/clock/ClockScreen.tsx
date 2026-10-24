@@ -149,6 +149,8 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
           stale={forecast?.stale ?? []}
           selected={spot}
           onSelect={setSpot}
+          t={t}
+          lagH={replay ? REPLAY_LAG_H : 0}
         />
         <div className="rc-badge" aria-live="polite">
           <strong>{label}</strong>
