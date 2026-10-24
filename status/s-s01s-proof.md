@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: working
 - **issue**: #11
-- **task**: PR #49 metrics open; drafting model/proof.py on top of #39 branch
-- **next**: rebase proof.py onto main once #39 merges, run all events
+- **task**: Training main models for 4 targets; proof.py drafted locally on top of #39
+- **next**: LOFO replays for e2007/e2012/e2014/e2021 once #39 merges
 - **needs**: 
 - **notes**: 
-- **branch**: model/proof-metrics
-- **head**: 6c6bd4c Add proof metrics module: pinball skill, coverage, Brier, even
-- **unpushed**: 0
+- **branch**: model/proof-json
+- **head**: 7c3138b Add proof.json assembly from test-period scores and event repl
+- **unpushed**: 19
 - **dirty**: 0
-- **updated**: 2026-10-24T16:44:37Z
+- **updated**: 2026-10-24T16:49:31Z
