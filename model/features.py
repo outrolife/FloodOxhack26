@@ -6,7 +6,7 @@ Public API
 ----------
 ::
 
-    TARGETS, UPSTREAMS, HORIZONS_H, MAX_WINDOW_H, RAIN_KEY, DATA_DIR, LAGS_PATH
+    TARGETS, LIVE_ONLY, UPSTREAMS, HORIZONS_H, MAX_WINDOW_H, RAIN_KEY, DATA_DIR, LAGS_PATH
 
     compute_gauge_medians(hourly, cutoff_utc, gauges=None) -> dict[str, float]
     load_lags(path=LAGS_PATH) -> dict[str, dict[str, int]]              # {} if the file is missing
@@ -22,8 +22,12 @@ Typical use (training, #8)::
     hourly = pd.read_parquet(DATA_DIR / "processed" / "hourly.parquet")
     medians = compute_gauge_medians(hourly, "2018-09-30 23:00")  # end of the training split
     lags = load_lags()
-    X = build_features(hourly, "osney", medians, lags)
-    Y = build_targets(hourly, "osney")  # same index as X
+    X = build_features(hourly, "newbotley", medians, lags)
+    Y = build_targets(hourly, "newbotley")  # join with X.join(Y)
+
+Targets follow SPEC §4.1.1 (PR #30): newbotley (primary), kingsmill, minns, coldharbour. The locks
+godstow, osney and iffley are ``LIVE_ONLY``: they have no downstream-stage history, so they get no
+features and no model.
 
 Live mode and replays pass only the rows with ``ts_utc <= t`` and read ``X.loc[t]``. That row is
 identical to the one computed from the full record (the leakage test checks this).
@@ -33,19 +37,19 @@ Input
 The long-format hourly frame written by ``pipeline/clean.py`` (``data/processed/hourly.parquet``),
 one row per (gauge, hour)::
 
-    gauge       str   config key (``osney``, ``farmoor``, ...), a rain gauge ref (``256230TP``)
+    gauge       str   config key (``newbotley``, ``farmoor``, ...), a rain gauge ref (``256230TP``)
                       or the derived catchment series ``rain_catchment``
     ts_utc      tz-aware timestamp, hour start (converted to UTC; naive timestamps are rejected)
-    kind        "level" | "rain"   (optional, see below)
+    kind        "level" | "rain"   (rain_catchment and the rain gauges are "rain")
     level_mean  float level (m, that gauge's own datum); NaN for rain
     rain_mm     float hourly rain total (mm); NaN for levels
     level_max, filled, flagged     (not used here)
 
-Both proposed variants of the file are accepted. If ``kind`` is present it decides which rows are
-rain. Without it, a row is rain if its gauge is ``rain_catchment``, or if that gauge has no
-``level_mean`` values at all but does have ``rain_mm`` values. Catchment rain (SPEC §4.1) is the
-pipeline's ``rain_catchment`` series if present, else the mean of the rain gauges available in each
-hour (``catchment_rain``).
+If ``kind`` is present it decides which rows are rain. Without it (older drafts), a row is rain if its
+gauge is ``rain_catchment``, or if that gauge has no ``level_mean`` values at all but does have
+``rain_mm`` values. Catchment rain (SPEC §4.1) is the pipeline's ``rain_catchment`` series if it is
+present, used on its own and never averaged with the individual gauges; otherwise it is the mean of
+the rain gauges available in each hour (``catchment_rain``).
 
 The functions take that DataFrame; they never read the parquet file themselves.
 
@@ -111,19 +115,22 @@ UPSTREAM_CHANGE_H: tuple[int, ...] = (3, 24)
 RAIN_SUM_H: tuple[int, ...] = (6, 24, 72, 168, MAX_WINDOW_H)
 TRAVEL_LAG_KEYS: tuple[str, ...] = ("lag_lo", "lag_main", "lag_hi")
 
-# Upstream gauges for each target gauge (SPEC §4.1 flow paths and §6.2 pairs).
-# Thames: farmoor, eynsham, cassington -> godstow -> osney -> iffley.
-# newbotley (Bulstake Stream) is fed by the Thames system: farmoor, eynsham, cassington, godstow.
+# Upstream gauges for each trained target gauge (SPEC §4.1 flow paths, §4.1.1, §6.2 pairs; PR #30).
+# Thames: farmoor, eynsham (u/s series), cassington -> newbotley (Bulstake Stream, primary),
+#         minns (Minns Estate 1635TH, Seacourt Stream), coldharbour (Cold Harbour 1675TH, Hinksey Stream).
 # Cherwell: enslow, islip -> kingsmill.
+# The main-channel locks godstow, osney, iffley have no downstream-stage history: they are live only
+# (LIVE_ONLY), never trained targets and never upstream features.
 # config/stations.yaml does not exist yet; if it gains a `flow_paths:` section, keep this in sync.
+_THAMES_UP: tuple[str, ...] = ("farmoor", "eynsham", "cassington")
 UPSTREAMS: dict[str, tuple[str, ...]] = {
-    "godstow": ("farmoor", "eynsham", "cassington"),
-    "osney": ("farmoor", "eynsham", "cassington", "godstow"),
-    "iffley": ("farmoor", "eynsham", "cassington", "godstow", "osney"),
-    "newbotley": ("farmoor", "eynsham", "cassington", "godstow"),
+    "newbotley": _THAMES_UP,
+    "minns": _THAMES_UP,
+    "coldharbour": _THAMES_UP,
     "kingsmill": ("enslow", "islip"),
 }
-TARGETS: tuple[str, ...] = tuple(UPSTREAMS)
+TARGETS: tuple[str, ...] = tuple(UPSTREAMS)  # newbotley first: the primary target
+LIVE_ONLY: tuple[str, ...] = ("godstow", "osney", "iffley")
 
 LagsArg = Mapping[str, Any] | None
 
@@ -244,7 +251,7 @@ def _normalise_lags(lags: LagsArg) -> dict[str, dict[str, int]]:
 
 
 def load_lags(path: Path | str = LAGS_PATH) -> dict[str, dict[str, int]]:
-    """Read ``lags.json`` (SPEC §6.3, issue #7) into ``{"farmoor->osney": {"lag_lo": .., ...}}``.
+    """Read ``lags.json`` (SPEC §6.3, issue #7) into ``{"farmoor->newbotley": {"lag_lo": .., ...}}``.
 
     File format: ``{"pairs": [{"up", "down", "lag_lo", "lag_main", "lag_hi", "source"}]}`` with
     integer hours. Returns ``{}`` if the file does not exist yet; then every pair uses only the fixed
@@ -288,10 +295,16 @@ def _rolling(series: pd.Series, hours: int, how: str) -> pd.Series:
     return roll.sum() if how == "sum" else roll.mean()
 
 
+def _bad_target(target: str) -> str:
+    if target in LIVE_ONLY:
+        return f"{target!r} is live only (no downstream-stage history, SPEC §4.1.1); targets: {TARGETS}"
+    return f"unknown target gauge {target!r}; expected one of {TARGETS}"
+
+
 def feature_columns(target: str, lags: LagsArg = None) -> list[str]:
     """Feature column names, in order, that ``build_features`` returns for ``target``."""
     if target not in UPSTREAMS:
-        raise ValueError(f"unknown target gauge {target!r}; expected one of {sorted(UPSTREAMS)}")
+        raise ValueError(_bad_target(target))
     cols = ["level_now", *[f"level_change_{k}h" for k in TARGET_CHANGE_H], "level_mean_21d"]
     for up in UPSTREAMS[target]:
         cols += [f"{up}_anom_lag{k}h" for k in upstream_lags_h(up, target, lags)]
@@ -323,7 +336,7 @@ def build_features(
         ``hourly`` give all-NaN columns, so the schema is stable.
     """
     if target not in UPSTREAMS:
-        raise ValueError(f"unknown target gauge {target!r}; expected one of {sorted(UPSTREAMS)}")
+        raise ValueError(_bad_target(target))
     missing = [g for g in UPSTREAMS[target] if g not in medians]
     if missing:
         raise KeyError(f"medians missing for upstream gauges {missing}; use compute_gauge_medians()")
