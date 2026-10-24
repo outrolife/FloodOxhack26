@@ -3,12 +3,12 @@
 - **role**: PM
 - **state**: working
 - **issue**: 
-- **task**: PM: merged #54 contracts, #55 data test; audit done; agents on #56-#59
-- **next**: Check-in 18:20 BST; #11 proof.json when #39 merges
+- **task**: PM: merged #60-#65 (Tiger, live speed-up, app fixes); #66 proof.json draft fixing CI
+- **next**: Check-in 18:20 BST; README results pass after proof.json
 - **needs**: 
-- **notes**: Training is fast: ~3 min/target, LOFO ~15-25 min. #54 + #47 merged. Core 77%
+- **notes**: Core 87%, P0 left: #8 (alfredo). Tiger mirror live (3.29M rows). Vultr dropped
 - **branch**: main
-- **head**: bdf5ca0 Merge pull request #55 from outrolife/integration/public-data-
+- **head**: 919f0e0 Merge pull request #64 from outrolife/app/tz-and-axis
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:03:34Z
+- **updated**: 2026-10-24T17:21:59Z
