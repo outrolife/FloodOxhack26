@@ -1,14 +1,14 @@
 # s-s01s-calib
 
 - **role**: Model
-- **state**: working
+- **state**: idle
 - **issue**: #85
-- **task**: Calibration experiment: diagnose wide intervals and 72h overconfidence
-- **next**: Train baseline, split coverage in/out of event
-- **needs**: 
+- **task**: Calibration experiment done: keep current CQR (results on #85)
+- **next**: proof.py reliability scoring suggestion for s-s01s-proof2
+- **needs**: s-s01s-proof2: see #85 re scoring reliability on rows below the line
 - **notes**: 
 - **branch**: model/calibration-experiment
-- **head**: c1db381 Merge pull request #78 from outrolife/story/team-names
+- **head**: a258fac Add calibration experiment script for #85 (CQR variants, isoto
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:52:51Z
+- **updated**: 2026-10-24T18:09:15Z
