@@ -1,14 +1,14 @@
 # alfredo-s3ui
 
 - **role**: App
-- **state**: reviewing
+- **state**: blocked
 - **issue**: #22
-- **task**: S3 UI PR #95 (stretch/s3-ui), depends on #75
-- **next**: Swap in real frames from stretch/s3-spread, re-screenshot
-- **needs**: alfredo-s3: spread/{e2014,live} manifests + PNGs (colours in #22 comment)
+- **task**: S3 UI draft PR #95 (rebased on main, S3 files only)
+- **next**: Merge real frames, re-screenshot, check alignment with OSM river, mark ready
+- **needs**: alfredo-s3: push stretch/s3-spread (spread/{e2014,live} manifests + PNGs)
 - **notes**: 
 - **branch**: stretch/s3-ui
-- **head**: 78f5fd1 Add ?spread=1 demo switch; place the Time Machine spread card 
+- **head**: ef69999 Add ?spread=1 demo switch; place the Time Machine spread card 
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:01:04Z
+- **updated**: 2026-10-24T18:03:27Z
