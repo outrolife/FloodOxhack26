@@ -40,7 +40,6 @@
    "thresholdConfig": 0.37,
    "notes": [
     "Qualifier u/s (upstream stage of a lock or mill), Hydrology API",
-    "SPEC \u00a74.1 table amber 2.96 m is for another trace; config uses 0.37 m",
     "First data 2006-01-01",
     "Hydrology history from 2000-01-30; ingested from 2006",
     "24563 readings dropped (EA quality suspect/rejected/missing)"
@@ -206,8 +205,15 @@
    "name": "EA flood-monitoring API (station metadata and thresholds)",
    "url": "https://environment.data.gov.uk/flood-monitoring/",
    "licence": "Open Government Licence v3.0",
-   "downloadedAt": "2026-10-24T16:23:29Z",
+   "downloadedAt": "2026-10-24T17:07:39Z",
    "rows": 12
+  },
+  {
+   "name": "EA Historic Flood Warnings (data.gov.uk historic-flood-warnings2), Oxford areas, issued 2006-11-20 to 2026-01-16",
+   "url": "https://environment.data.gov.uk/api/file/download?fileDataSetId=766cb094-b392-4bd6-a02e-f60e143f3213&fileName=Historic_Flood_Warnings.zip",
+   "licence": "Open Government Licence v3.0",
+   "downloadedAt": "2026-10-24T17:05:27Z",
+   "rows": 228
   }
  ]
 }
