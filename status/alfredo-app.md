@@ -3,12 +3,12 @@
 - **role**: App
 - **state**: working
 - **issue**: #9
-- **task**: Tab follow-ups (#14 done, #9 playback done); app/tabs-followups
-- **next**: #12 date caveat + CIs; #9 sparklines + real-data check
+- **task**: PR (draft) for #9/#12/#14 on app/tabs-followups; #14 + #12 done
+- **next**: #9 River sparklines from optional live observed; real-data offline check
 - **needs**: 
 - **notes**: 
 - **branch**: app/tabs-followups
-- **head**: 9cc4b13 Time Machine: Flood Alert marker and alert/warning lead senten
+- **head**: caa6c15 Proof: date-only official caveat and 90% interval whiskers (#1
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:26:20Z
+- **updated**: 2026-10-24T16:30:18Z
