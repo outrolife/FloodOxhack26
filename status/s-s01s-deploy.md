@@ -1,14 +1,14 @@
 # s-s01s-deploy
 
 - **role**: App
-- **state**: working
+- **state**: blocked
 - **issue**: #18
-- **task**: Single-container Vultr deploy: image + API done, verified locally without Docker
-- **next**: deploy/README.md + vultr.sh, then PR
-- **needs**: 
+- **task**: PR #48 open: single-container Vultr deploy (image not built: no Docker here)
+- **next**: Human runs deploy/README.md (vultr.sh or dashboard, then ship.sh)
+- **needs**: Vultr account/API key from PM
 - **notes**: 
 - **branch**: app/vultr-deploy
-- **head**: 952a4df Refresh live forecast in a background thread in the container
+- **head**: 6039030 Add Vultr deploy guide, cloud-init and ship/create scripts
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:37:19Z
+- **updated**: 2026-10-24T16:41:11Z
