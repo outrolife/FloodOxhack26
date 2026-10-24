@@ -5,19 +5,25 @@ Synthetic data only (seeded); no network, no data files.
 
 from __future__ import annotations
 
+import json
+import time
+
 import numpy as np
 import pandas as pd
 import pytest
 
 from model.features import (
     MAX_WINDOW_H,
-    PLACEHOLDER_LAGS,
     RAIN_KEY,
+    TARGETS,
+    UPSTREAM_FIXED_LAGS_H,
     UPSTREAMS,
     build_features,
     build_targets,
+    catchment_rain,
     compute_gauge_medians,
     feature_columns,
+    load_lags,
     pivot_hourly,
     upstream_lags_h,
 )
@@ -25,25 +31,43 @@ from model.features import (
 START = pd.Timestamp("2026-09-01 00:00", tz="UTC")
 N_HOURS = 40 * 24  # longer than the 21-day window
 LEVEL_GAUGES = ["farmoor", "eynsham", "cassington", "godstow", "osney"]
+RAIN_GAUGES = ["256230TP", "254336TP", "261021TP"]
 TEST_LAGS = {"farmoor->osney": {"lag_lo": 30, "lag_main": 40, "lag_hi": 55}}
 
 
-def make_hourly(seed: int = 0, n_hours: int = N_HOURS, drop_frac: float = 0.03) -> pd.DataFrame:
-    """Long-format frame like data/processed/hourly.parquet, with a few hours missing per gauge."""
+def make_hourly(
+    seed: int = 0, n_hours: int = N_HOURS, drop_frac: float = 0.03, fmt: str = "derived"
+) -> pd.DataFrame:
+    """Long-format frame like data/processed/hourly.parquet, with a few hours missing per gauge.
+
+    ``fmt="derived"``: the pipeline's variant (no ``kind``; one derived ``rain_catchment`` series).
+    ``fmt="kind"``: the variant agreed on issue #3 (``kind`` column, one row set per rain gauge ref).
+    """
     rng = np.random.default_rng(seed)
     ts = pd.date_range(START, periods=n_hours, freq="h", tz="UTC")
     rows = []
     for i, g in enumerate(LEVEL_GAUGES):
         level = 1.0 + i + np.cumsum(rng.normal(0, 0.01, n_hours))  # each gauge its own datum
-        rows.append(pd.DataFrame({"gauge": g, "ts_utc": ts, "level_mean": level, "rain_mm": np.nan}))
-    rain = rng.gamma(0.3, 1.0, n_hours) * (rng.random(n_hours) < 0.3)
-    rows.append(pd.DataFrame({"gauge": RAIN_KEY, "ts_utc": ts, "level_mean": np.nan, "rain_mm": rain}))
+        rows.append(
+            pd.DataFrame({"gauge": g, "ts_utc": ts, "kind": "level", "level_mean": level, "rain_mm": np.nan})
+        )
+    for g in [RAIN_KEY] if fmt == "derived" else RAIN_GAUGES:
+        rain = rng.gamma(0.3, 1.0, n_hours) * (rng.random(n_hours) < 0.3)
+        rows.append(
+            pd.DataFrame({"gauge": g, "ts_utc": ts, "kind": "rain", "level_mean": np.nan, "rain_mm": rain})
+        )
     df = pd.concat(rows, ignore_index=True)
     df["level_max"] = df["level_mean"]
-    df["filled"] = False
     df["flagged"] = False
+    if fmt == "derived":
+        df = df.drop(columns="kind")
+        df["filled"] = False
     keep = rng.random(len(df)) >= drop_frac
     return df[keep].reset_index(drop=True)
+
+
+def _rain_mask(df: pd.DataFrame) -> pd.Series:
+    return df["level_mean"].isna() & df["rain_mm"].notna() | df["gauge"].isin([RAIN_KEY, *RAIN_GAUGES])
 
 
 def perturb_after(df: pd.DataFrame, cut: pd.Timestamp, seed: int) -> pd.DataFrame:
@@ -51,7 +75,7 @@ def perturb_after(df: pd.DataFrame, cut: pd.Timestamp, seed: int) -> pd.DataFram
     rng = np.random.default_rng(seed)
     out = df.copy()
     future = out["ts_utc"] > cut
-    is_rain = out["gauge"] == RAIN_KEY
+    is_rain = _rain_mask(out)
     out.loc[future & ~is_rain, "level_mean"] = rng.normal(50, 20, int((future & ~is_rain).sum()))
     out.loc[future & is_rain, "rain_mm"] = rng.uniform(0, 100, int((future & is_rain).sum()))
     drop = future & (rng.random(len(out)) < 0.2)
@@ -67,14 +91,15 @@ def assert_same(a: pd.DataFrame, b: pd.DataFrame) -> None:
 # ---------------------------------------------------------------------------------------------
 
 
+@pytest.mark.parametrize("fmt", ["derived", "kind"])
 @pytest.mark.parametrize("target", ["osney", "godstow"])
-def test_features_do_not_see_the_future(target: str) -> None:
+def test_features_do_not_see_the_future(target: str, fmt: str) -> None:
     """Replace everything after t: features at every time <= t must not change.
 
     The anomaly medians are recomputed from the perturbed data with the cut as cutoff, so the test
     covers the whole chain (medians + features), not just build_features with fixed numbers.
     """
-    hourly = make_hourly(seed=1)
+    hourly = make_hourly(seed=1, fmt=fmt)
     rng = np.random.default_rng(42)
     cuts = [START + pd.Timedelta(hours=int(h)) for h in rng.integers(30, N_HOURS - 30, size=6)]
     for i, cut in enumerate(cuts):
@@ -92,13 +117,15 @@ def test_features_do_not_see_the_future(target: str) -> None:
         assert not base.loc[cut:].iloc[1:].equals(feats.loc[cut:].iloc[1:])
 
 
-def test_medians_ignore_data_after_cutoff() -> None:
-    hourly = make_hourly(seed=2)
+@pytest.mark.parametrize("fmt", ["derived", "kind"])
+def test_medians_ignore_data_after_cutoff(fmt: str) -> None:
+    hourly = make_hourly(seed=2, fmt=fmt)
     cutoff = START + pd.Timedelta(days=10, hours=5)
     before = compute_gauge_medians(hourly, cutoff)
     after = compute_gauge_medians(perturb_after(hourly, cutoff, seed=7), cutoff)
-    assert before == after
-    assert RAIN_KEY not in before
+    pd.testing.assert_series_equal(pd.Series(before), pd.Series(after))
+    assert set(LEVEL_GAUGES) <= set(before) and not set(before) & {RAIN_KEY, *RAIN_GAUGES}
+    assert np.isnan(before["enslow"])  # configured but absent -> NaN, so build_features still works
     expected = hourly[(hourly["gauge"] == "farmoor") & (hourly["ts_utc"] <= cutoff)]["level_mean"].median()
     assert before["farmoor"] == pytest.approx(expected)
 
@@ -126,15 +153,74 @@ def _features(hourly: pd.DataFrame, target: str = "osney") -> pd.DataFrame:
 
 def test_columns_and_lags() -> None:
     assert upstream_lags_h("farmoor", "osney", TEST_LAGS) == [0, 6, 12, 24, 30, 40, 55]
-    placeholder = sorted({0, 6, 12, 24, *PLACEHOLDER_LAGS.values()})
-    assert upstream_lags_h("eynsham", "osney", TEST_LAGS) == placeholder  # no entry -> placeholder
-    assert upstream_lags_h(
-        "godstow", "osney", {"godstow->osney": {"lag_lo": 6, "lag_main": 6, "lag_hi": 999}}
-    ) == [0, 6, 12, 24, MAX_WINDOW_H]  # deduplicated and capped at 21 days
     feats = _features(make_hourly())
     assert list(feats.columns) == feature_columns("osney", TEST_LAGS)
+    assert all(dt == np.float64 for dt in feats.dtypes)
     for up in UPSTREAMS["osney"]:
         assert f"{up}_anom_lag0h" in feats.columns
+        assert f"{up}_change_3h" in feats.columns and f"{up}_change_24h" in feats.columns
+    assert feature_columns("osney")[:6] == [
+        "level_now",
+        "level_change_1h",
+        "level_change_3h",
+        "level_change_6h",
+        "level_change_24h",
+        "level_mean_21d",
+    ]
+    assert feature_columns("osney")[-7:] == [
+        "rain_sum_6h",
+        "rain_sum_24h",
+        "rain_sum_72h",
+        "rain_sum_168h",
+        "rain_sum_21d",
+        "doy_sin",
+        "doy_cos",
+    ]
+    for target in TARGETS:
+        cols = feature_columns(target)
+        assert len(cols) == len(set(cols))
+
+
+def test_lags_deduplicated_and_capped() -> None:
+    lags = {"godstow->osney": {"lag_lo": 6, "lag_main": 12, "lag_hi": 999}}
+    # 6 and 12 already in the fixed set; 999 h is capped at 21 days.
+    assert upstream_lags_h("godstow", "osney", lags) == [0, 6, 12, 24, MAX_WINDOW_H]
+    cols = feature_columns("osney", lags)
+    assert [c for c in cols if c.startswith("godstow_anom")] == [
+        f"godstow_anom_lag{k}h" for k in (0, 6, 12, 24, MAX_WINDOW_H)
+    ]
+
+
+def test_lags_fallback_to_fixed_set(tmp_path) -> None:
+    fixed = list(UPSTREAM_FIXED_LAGS_H)
+    assert fixed == [0, 6, 12, 24]
+    assert upstream_lags_h("eynsham", "osney", TEST_LAGS) == fixed  # pair not in lags.json
+    assert upstream_lags_h("eynsham", "osney", None) == fixed  # no lags.json at all
+    assert load_lags(tmp_path / "missing.json") == {}
+    assert feature_columns("osney", load_lags(tmp_path / "missing.json")) == feature_columns("osney")
+
+
+def test_load_lags_reads_issue_7_format(tmp_path) -> None:
+    raw = {
+        "pairs": [
+            {
+                "up": "farmoor",
+                "down": "osney",
+                "lag_lo": 30,
+                "lag_main": 40,
+                "lag_hi": 55,
+                "source": "events",
+            },
+            {"up": "godstow", "down": "osney", "lag_lo": 0, "lag_main": 3, "lag_hi": 9, "source": "xcorr"},
+        ]
+    }
+    path = tmp_path / "lags.json"
+    path.write_text(json.dumps(raw), encoding="utf-8")
+    lags = load_lags(path)
+    assert lags["farmoor->osney"] == {"lag_lo": 30, "lag_main": 40, "lag_hi": 55}
+    assert upstream_lags_h("godstow", "osney", lags) == [0, 3, 6, 9, 12, 24]
+    # The raw JSON dict works directly too.
+    assert feature_columns("osney", raw) == feature_columns("osney", lags)
 
 
 def test_lag_and_anomaly_at_t_equal_value_at_t_minus_lag() -> None:
@@ -185,6 +271,47 @@ def test_rain_sums() -> None:
     assert feats.loc[t, "rain_sum_6h"] - feats.loc[t - pd.Timedelta(hours=1), "rain_sum_6h"] == pytest.approx(
         rain[t] - rain[t - pd.Timedelta(hours=6)]
     )
+
+
+def test_catchment_rain_is_mean_of_available_gauges() -> None:
+    hourly = make_hourly(seed=9, drop_frac=0.0, fmt="kind")
+    t1 = START + pd.Timedelta(hours=100)
+    t2 = START + pd.Timedelta(hours=101)
+    gone = (hourly["gauge"] == RAIN_GAUGES[0]) & (hourly["ts_utc"] == t1)
+    gone |= hourly["gauge"].isin(RAIN_GAUGES) & (hourly["ts_utc"] == t2)
+    hourly = hourly[~gone]
+    rain = catchment_rain(hourly)
+    wide = pivot_hourly(hourly[hourly["kind"] == "rain"], "rain_mm")
+    t0 = START + pd.Timedelta(hours=99)
+    assert rain[t0] == pytest.approx(wide.loc[t0, RAIN_GAUGES].mean())
+    assert rain[t1] == pytest.approx(wide.loc[t1, RAIN_GAUGES[1:]].mean())  # one gauge missing
+    assert np.isnan(rain[t2])  # no gauge reporting -> NaN, not 0
+    feats = _features(hourly)
+    assert np.isnan(feats.loc[t2, "rain_sum_6h"])  # 5 of 6 hours is below 90 % coverage
+    # The pipeline's derived series wins over individual gauges (no double counting).
+    derived = pd.DataFrame(
+        {"gauge": RAIN_KEY, "ts_utc": [t0], "kind": "rain", "level_mean": np.nan, "rain_mm": [7.0]}
+    )
+    assert catchment_rain(pd.concat([hourly, derived])).dropna().tolist() == [7.0]
+
+
+def test_nan_propagation() -> None:
+    hourly = make_hourly(seed=10, drop_frac=0.0)
+    t = START + pd.Timedelta(hours=700)  # past the first 21 days, so level_mean_21d exists
+    # A NaN value (e.g. a long gap the pipeline left unfilled) behaves like a missing row.
+    hourly.loc[(hourly["gauge"] == "osney") & (hourly["ts_utc"] == t), "level_mean"] = np.nan
+    # Eynsham is entirely absent: its columns exist but are all NaN.
+    hourly = hourly[hourly["gauge"] != "eynsham"]
+    feats = _features(hourly)
+    assert np.isnan(feats.loc[t, "level_now"])
+    for k in (1, 3, 6, 24):
+        assert np.isnan(feats.loc[t, f"level_change_{k}h"])
+        assert np.isnan(feats.loc[t + pd.Timedelta(hours=k), f"level_change_{k}h"])
+        assert not np.isnan(feats.loc[t + pd.Timedelta(hours=k + 1), f"level_change_{k}h"])
+    assert not np.isnan(feats.loc[t, "level_mean_21d"])  # 1 of 504 hours missing is tolerated
+    eyn = [c for c in feats.columns if c.startswith("eynsham_")]
+    assert eyn and feats[eyn].isna().all().all()
+    assert feats.drop(columns=eyn).iloc[MAX_WINDOW_H + 30 :].notna().mean().min() > 0.9
 
 
 def test_rain_sum_nan_when_window_mostly_missing() -> None:
@@ -255,6 +382,40 @@ def test_clock_change_one_row_per_utc_hour() -> None:
         np.testing.assert_allclose(feats["level_change_1h"].iloc[1:], 0.1)
         y = build_targets(hourly, "osney", horizons=[1])
         np.testing.assert_allclose(y["y_1h"].iloc[:-1], 0.1)
+
+
+def test_clock_change_with_missing_hour_stays_continuous() -> None:
+    """Full fixture across the DST change, with every gauge missing 01:00 UTC: no row is lost."""
+    hourly = make_hourly(seed=11, drop_frac=0.0, fmt="kind")
+    shift = pd.Timestamp("2026-10-25 01:00", tz="UTC") - (START + pd.Timedelta(hours=N_HOURS // 2))
+    hourly["ts_utc"] = hourly["ts_utc"] + shift  # put the clock change mid-series
+    gap = pd.Timestamp("2026-10-25 01:00", tz="UTC")
+    hourly = hourly[hourly["ts_utc"] != gap]
+    hourly["ts_utc"] = hourly["ts_utc"].dt.tz_convert("Europe/London")  # wall-clock input is fine
+    medians = compute_gauge_medians(hourly, "2026-10-01")
+    feats = build_features(hourly, "osney", medians, TEST_LAGS)
+    assert str(feats.index.tz) == "UTC"
+    assert feats.index.to_series().diff().dropna().eq(pd.Timedelta(hours=1)).all()
+    window = feats.loc["2026-10-25 00:30":"2026-10-25 02:30"]
+    assert list(window.index) == [gap, gap + pd.Timedelta(hours=1)]
+    assert np.isnan(window.loc[gap, "level_now"])
+    assert not np.isnan(window.loc[gap + pd.Timedelta(hours=1), "level_now"])
+    assert np.isnan(window.loc[gap + pd.Timedelta(hours=1), "level_change_1h"])
+    y = build_targets(hourly, "osney")
+    assert y.index.equals(feats.index)
+
+
+def test_fast_on_twenty_years() -> None:
+    """Vectorised: ~20 years of hourly data for 5 level and 3 rain gauges builds in seconds."""
+    n = 20 * 8766
+    hourly = make_hourly(seed=12, n_hours=n, drop_frac=0.01, fmt="kind")
+    t0 = time.perf_counter()
+    medians = compute_gauge_medians(hourly, START + pd.Timedelta(days=365 * 12))
+    feats = build_features(hourly, "osney", medians, TEST_LAGS)
+    build_targets(hourly, "osney")
+    elapsed = time.perf_counter() - t0
+    assert len(feats) == n
+    assert elapsed < 30, f"took {elapsed:.1f} s"
 
 
 def test_naive_timestamps_rejected() -> None:
