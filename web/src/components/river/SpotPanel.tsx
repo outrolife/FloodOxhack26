@@ -40,19 +40,29 @@ export function SpotPanel({
         {stale && <span className="chip" style={{ marginLeft: 6 }}>Gauge data stale</span>}
       </p>
 
+      {sf && (
+        <p className="small">
+          Now <strong>{sf.levelNow.toFixed(2)} m</strong>:{" "}
+          {sf.levelNow >= spot.threshold
+            ? `${(sf.levelNow - spot.threshold).toFixed(2)} m above`
+            : `${(spot.threshold - sf.levelNow).toFixed(2)} m below`}{" "}
+          the flood threshold.
+        </p>
+      )}
+
       <h3>Level, last 7 days</h3>
       {history && history.length > 1 ? (
         <Sparkline points={history} amber={spot.amber} width={280} height={60} />
       ) : (
         <p className="small muted">
-          {sf ? `Now ${sf.levelNow.toFixed(2)} m. ` : ""}No 7-day history in the live data yet.
+          No 7-day history in the live data yet.
         </p>
       )}
 
       <h3 style={{ marginTop: "0.8rem" }}>Next 72 hours</h3>
       <ProbBars sf={sf} />
       <p style={{ marginTop: "0.6rem" }}>
-        <strong>{arrivalSentence(sf)}</strong>
+        <strong>{arrivalSentence(sf, stale)}</strong>
       </p>
 
       <p className="small muted">

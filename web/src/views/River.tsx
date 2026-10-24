@@ -14,7 +14,8 @@ export default function River() {
   const spots = useData<SpotsFile>("spots.json");
   const travel = useData<TravelTimesFile>("travel_times.json");
   const live = useLive();
-  const [selected, setSelected] = useState<string | null>("osney");
+  // Default to Botley (newbotley is the primary target, SPEC §4.1.1).
+  const [selected, setSelected] = useState<string | null>("botley");
 
   if (stations.status !== "ready" || spots.status !== "ready" || travel.status !== "ready") {
     return <Pending states={[stations, spots, travel]} />;

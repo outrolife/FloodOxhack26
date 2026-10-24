@@ -92,7 +92,8 @@ function ReplayPlayer({
   }, [forecasts, spots]);
 
   const [spotKey, setSpotKey] = useState<string>(
-    () => (spotKeys.find((s) => s.key === "osney") ?? spotKeys[0])?.key ?? "",
+    // Headline replay is on newbotley (Botley spot), SPEC §4.3; fall back to osney, then any.
+    () => (spotKeys.find((s) => s.key === "botley") ?? spotKeys.find((s) => s.key === "osney") ?? spotKeys[0])?.key ?? "",
   );
   // ?step=N in the URL opens the replay at forecast N (handy for demos and screenshots).
   const [idx, setIdx] = useState(() => {
@@ -234,7 +235,7 @@ function ReplayPlayer({
           <p className="sub">At {formatDateTime(sliderT)}</p>
           <ProbBars sf={sf} />
           <p style={{ marginTop: "0.6rem" }}>
-            <strong>{arrivalSentence(sf)}</strong>
+            <strong>{arrivalSentence(sf, f.stale.includes(spot.gauge))}</strong>
           </p>
         </div>
         <div className="card">

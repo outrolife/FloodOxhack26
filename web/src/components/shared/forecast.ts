@@ -45,9 +45,9 @@ export function spotLevel(f: Forecast | null, spot: Spot): Level {
 }
 
 /** One-sentence arrival window, e.g. "50% chance by Tue 18:00 GMT". */
-export function arrivalSentence(sf: SpotForecast | undefined): string {
+export function arrivalSentence(sf: SpotForecast | undefined, stale = false): string {
   if (!sf) return "No forecast for this spot.";
-  if (sf.leads.length === 0) return "No forecast: gauge data is stale.";
+  if (sf.leads.length === 0) return stale ? "No forecast: gauge data is stale." : "No forecast: no gauge history.";
   const a = sf.arrival;
   if (sf.mode === "timing_only") {
     if (!a?.p50) return "Median forecast stays below the normal range for the next 72 h.";

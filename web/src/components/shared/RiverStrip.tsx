@@ -5,20 +5,31 @@ import { Sparkline } from "./Sparkline";
 
 type Point = { t: string; level: number };
 
-// Flow paths from SPEC §4.1, upstream first.
+// Flow paths from SPEC §4.1 / §4.1.1, upstream first. Gauges missing from
+// stations.json are skipped, so this works with both old and new gauge sets.
 const BRANCHES: { title: string; gauges: string[] }[] = [
-  { title: "Thames", gauges: ["farmoor", "eynsham", "cassington", "godstow", "osney", "iffley", "newbotley"] },
+  { title: "Thames (west and south Oxford streams)", gauges: ["farmoor", "eynsham", "cassington", "newbotley", "minns", "coldharbour"] },
   { title: "Cherwell", gauges: ["enslow", "islip", "kingsmill"] },
+  { title: "Thames main channel (live only)", gauges: ["godstow", "osney", "iffley"] },
 ];
 
+// When a gauge feeds several targets, label the link to the primary one.
+const TARGET_PREFERENCE = ["newbotley", "kingsmill", "minns", "coldharbour", "osney", "godstow", "iffley"];
+
 function linkLabel(key: string, pairs: TravelPair[], stations: Station[]): string | null {
-  // Prefer the pair into the next gauge down; otherwise any pair from this gauge.
-  const from = pairs.filter((p) => p.up === key);
+  const from = pairs
+    .filter((p) => p.up === key)
+    .sort((a, b) => rank(a.down) - rank(b.down));
   if (from.length === 0) return null;
   const p = from[0];
   const down = stations.find((s) => s.key === p.down)?.name ?? p.down;
   const xc = p.n < 3 ? " (cross-correlation only)" : "";
   return `≈ ${Math.round(p.tHalf.median)} h to ${down}${xc}`;
+}
+
+function rank(gauge: string): number {
+  const i = TARGET_PREFERENCE.indexOf(gauge);
+  return i < 0 ? TARGET_PREFERENCE.length : i;
 }
 
 function lastAtOrBefore(points: Point[] | undefined, until?: string): Point | undefined {
@@ -47,7 +58,7 @@ export function RiverStrip({
 }) {
   return (
     <div className="strip">
-      {BRANCHES.map((b) => (
+      {BRANCHES.filter((b) => b.gauges.some((g) => stations.some((s) => s.key === g))).map((b) => (
         <div className="strip-branch" key={b.title}>
           <h3>{b.title}</h3>
           {b.gauges.map((g, i) => {
