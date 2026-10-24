@@ -35,8 +35,19 @@ function dayTicks([a, b]: [number, number]): number[] {
   return out;
 }
 
-// Stagger marker labels so nearby markers don't overprint each other.
-const MARKER_POS = ["insideTopLeft", "insideBottomLeft", "insideTopRight", "insideBottomRight"] as const;
+// Marker labels sit in their own row at the top of the plot (one row per
+// marker), with a white halo, so nearby markers never overprint each other.
+function markerLabel(text: string, colour: string, row: number) {
+  return (props: { viewBox?: { x?: number; y?: number } }) => {
+    const x = (props.viewBox?.x ?? 0) + 4;
+    const y = (props.viewBox?.y ?? 0) + 12 + row * 14;
+    return (
+      <text x={x} y={y} fill={colour} fontSize={11} fontWeight={600} stroke="#fcfcfb" strokeWidth={3} paintOrder="stroke">
+        {text}
+      </text>
+    );
+  };
+}
 
 export function FanChart({
   observed,
@@ -151,7 +162,7 @@ export function FanChart({
               x={Date.parse(m.t)}
               stroke={m.colour}
               strokeWidth={1.5}
-              label={{ value: m.label, position: MARKER_POS[i % MARKER_POS.length], fill: m.colour, fontSize: 11 }}
+              label={markerLabel(m.label, m.colour, i)}
             />
           ))}
           <ReferenceLine x={now} stroke="#52514e" strokeWidth={2} />

@@ -53,6 +53,14 @@ export function zoneAt(t: string | number | Date): string {
   return part?.value ?? "UK time";
 }
 
+const fmtIsoDay = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" });
+
+/** Whole UK calendar days from a to b (for date-only official times, SPEC §8.2). */
+export function londonDaysBetween(a: string, b: string): number {
+  const day = (t: string) => Date.parse(`${fmtIsoDay.format(toDate(t))}T00:00:00Z`);
+  return Math.round((day(b) - day(a)) / 86_400_000);
+}
+
 export const ms = (t: string): number => Date.parse(t);
 export const HOUR = 3_600_000;
 
