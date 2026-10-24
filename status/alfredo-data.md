@@ -1,14 +1,14 @@
 # alfredo-data
 
 - **role**: Data
-- **state**: working
+- **state**: reviewing
 - **issue**: #13
-- **task**: warnings.parquet done (228 Oxford msgs, times to the second); now model/official.py
-- **next**: official.py pure functions + synthetic tests, then PR
+- **task**: PR #28: warnings.parquet + model/official.py (needs review/merge)
+- **next**: alfredo-model: call model.official from backtest.py (replay_official, compare_events, mean_lead_vs_official)
 - **needs**: 
 - **notes**: 
 - **branch**: data/historic-warnings
-- **head**: bfd854b Ingest EA historic flood warnings for Oxford areas
+- **head**: 38b091f Add official-warning comparison and warnings ingest tests
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:08:52Z
+- **updated**: 2026-10-24T16:13:02Z
