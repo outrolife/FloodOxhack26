@@ -3,3 +3,6 @@
 
 /** S3: experimental flood-spread overlay on the River and Time Machine maps. */
 export const SHOW_S3 = true;
+
+/** S4: sandbag "Inspection candidates" list (components/spread/SandbagList). Off until S4 is signed off. */
+export const SHOW_S4 = false;
