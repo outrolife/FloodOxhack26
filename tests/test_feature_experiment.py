@@ -90,3 +90,32 @@ def test_rise_uses_travel_lag(hourly, medians):
     expect = lv - lv.shift(30)
     pd.testing.assert_series_equal(X["farmoor_anom_rise_main"], expect, check_names=False)
     assert fe.lag_main_h("eynsham", "newbotley", {"eynsham->newbotley": {"lag_main": 0}}) == 1
+
+
+def test_train_wrap_and_score_end_to_end(tmp_path):
+    """Both arms train with the same harness; saved variant models rebuild their extra columns."""
+    from model import backtest
+
+    hourly = normalise_hourly(make_hourly(years=4.0, seed=1))
+    fast = {"n_estimators": 20, "early_stopping_rounds": 5, "params": {"num_threads": 2}}
+    lags = {"farmoor->newbotley": {"lag_lo": 24, "lag_main": 30, "lag_hi": 36}}
+    base = fe.train_arm_gauge(hourly, "newbotley", lags, "baseline", **fast)
+    var = fe.train_arm_gauge(hourly, "newbotley", lags, "features", **fast)
+    assert var.feature_cols == base.feature_cols + fe.extra_columns("newbotley", lags)
+    var.save(tmp_path / "newbotley")
+    loaded = fe.load_models(tmp_path)
+    wrapped = fe.wrap_arm(hourly, loaded)["newbotley"]
+    assert wrapped.extra is not None and wrapped.splits == var.splits
+    X = F.build_features(hourly, "newbotley", var.medians, var.lags).iloc[-500:]
+    np.testing.assert_allclose(wrapped.predict(X)[72], var.predict(X.join(wrapped.extra))[72])
+    spots = [s for s in backtest.load_spots() if s["gauge"] == "newbotley"]
+    res = {"testStart": str(var.splits.test_start), "dataEnd": str(hourly["ts_utc"].max()), "events": []}
+    res["scores"] = [
+        fe.score_arm(n, fe.wrap_arm(hourly, {"newbotley": m}), hourly, spots)
+        for n, m in (("baseline", base), ("features", var))
+    ]
+    res["importance"] = {"features": fe.importance_summary({"newbotley": var})}
+    assert [r["h"] for r in res["scores"][1]["skill"]] == list(F.HORIZONS_H)
+    assert "botley" in res["scores"][0]["brier"]
+    text = fe.report(res)
+    assert "Pinball skill" in text and "Gain share" in text
