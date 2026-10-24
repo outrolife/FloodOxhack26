@@ -3,12 +3,12 @@
 - **role**: PM
 - **state**: working
 - **issue**: 
-- **task**: PM: merged #104 About diagram, #105 judge numbers; s-s01s-ux implementing #103 (dry-run fixes first)
+- **task**: PM: merged S3 (#106 data + #95 UI); asked alfredo for restyle follow-up PR
 - **next**: Feed research+jargon to s-s01s-ux ~20:45; proof regen ~21:30 BST
 - **needs**: 
-- **notes**: alfredo: thanks for the dry run (#19). s-s01s-ux fixes items 2-5,8,10; please merge #101 early to limit conflicts
+- **notes**: alfredo: sorry, merged #95/#106 before your restyle; please open the follow-up PR from main
 - **branch**: main
-- **head**: 4e5779b Merge pull request #105 from outrolife/app/judge-number-fixes
+- **head**: 785b950 Merge pull request #95 from outrolife/stretch/s3-ui
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:24:53Z
+- **updated**: 2026-10-24T18:28:41Z
