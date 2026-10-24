@@ -1,0 +1,370 @@
+# River Clock gauge configuration (SPEC §4.1). Owner: Data.
+#
+# Verified against the live EA APIs on 2026-10-24 (issue #2, SPEC §14):
+#   - flood-monitoring  https://environment.data.gov.uk/flood-monitoring/id/stations/{ref}
+#   - Hydrology         https://environment.data.gov.uk/hydrology/id/stations?wiskiID={ref}
+#   - GOV.UK pages      https://check-for-flooding.service.gov.uk/station/{rloi_id}[/downstream]
+# Raw responses are cached under data/raw/verify/ (gitignored).
+#
+# Field guide
+#   key, name, river, role, ref, lat, lon, amber, threshold, record: the SPEC §9 `Station` fields.
+#     ref     = flood-monitoring stationReference. lat/lon = flood-monitoring station position.
+#     amber   = typicalRangeHigh of the trace we use (GOV.UK "top of normal range").
+#     threshold = GOV.UK "property flooding is possible above this level" (not in the API), or null.
+#     record  = maxOnRecord of the trace we use (GOV.UK "highest level recorded").
+#   trace          stage (upstream / single-trace) or downstage (downstream of a lock). The SPEC §4.1 choice.
+#   fm_measure     flood-monitoring live measure for that trace (15-min, mASD).
+#   hydrology      Hydrology API station GUID, 15-min level measure, which trace it holds, earliest reading.
+#                  Hydrology dateTimes have no offset; they agree with flood-monitoring record times, which are
+#                  treated as UTC. Hydrology measure ids end in `level-i-900-m-qualified` (not `level-i-900`).
+#   history_ok     true if the Hydrology series is the same trace as `trace` (usable for training/backtests).
+#   datum_maod     flood-monitoring scale `datum` for the trace (undocumented field; see datum note below).
+#   api            raw scale values from flood-monitoring metadata for the trace used.
+#   spec           §4.1 table values, only where they differ from what we verified.
+#   verified       one-line provenance.
+#
+# Datum note (for stretch S3): the scale `datum` values are consistent with metres above Ordnance Datum
+# along the Thames lock chain. Readings at 2026-10-24 15:30Z: Godstow d/s 56.534, Osney u/s 56.478 (5.6 cm
+# lower, the reach slope), Osney d/s 54.723, Iffley u/s 54.742 (same pound, within 2 cm). Round values
+# (50, 54, 60, 0) are flagged as unverified.
+#
+# BIG CAVEAT (issue #2): for the four lock gauges that §4.1 reads downstream (eynsham, godstow, osney,
+# iffley), the Hydrology API holds ONLY the upstream (head-water) stage. No public downstream history
+# exists before 2025-10-29 (the start of the rolling flood-monitoring archive). The upstream series of
+# osney and godstow are near-flat in floods because the weir holds them. See the issue #2 comments.
+
+gauges:
+  - key: farmoor
+    name: Farmoor
+    river: Thames
+    role: upstream
+    ref: 1100TH
+    rloi_id: "7047"
+    lat: 51.757544
+    lon: -1.366384
+    amber: 1.30
+    threshold: 1.75
+    record: 2.006            # 2007-07-24T19:30
+    trace: stage
+    fm_measure: 1100TH-level-stage-i-15_min-mASD
+    hydrology:
+      station: 6b80bd1c-6c19-4c26-875d-108bf8ef1a84
+      level_measure: 6b80bd1c-6c19-4c26-875d-108bf8ef1a84-level-i-900-m-qualified
+      trace: stage
+      earliest: "1992-09-07T14:45:00Z"
+    history_ok: true
+    datum_maod: 60.0         # round value: unverified
+    api: {typicalRangeLow: 0.5, typicalRangeHigh: 1.3, highestRecent: 1.835, maxOnRecord: 2.006}
+    verified: "API + GOV.UK match §4.1. Hydrology Jul 2007 15-min peak 2.006 at 19:30 = maxOnRecord. Level only (flow rating unreliable)."
+
+  - key: eynsham
+    name: Eynsham Lock d/s
+    river: Thames
+    role: upstream
+    ref: 1201TH
+    rloi_id: "7049"
+    lat: 51.774692
+    lon: -1.356854
+    amber: 2.67              # API typicalRangeHigh and GOV.UK both say 2.67; §4.1 said 2.96
+    threshold: 3.48          # GOV.UK downstream page; §4.1 had none
+    record: 3.648            # 2007-07-20T03:00
+    trace: downstage
+    fm_measure: 1201TH-level-downstage-i-15_min-mASD
+    hydrology:
+      station: dd230984-b45b-4fd6-8ebf-45ca375799f1
+      level_measure: dd230984-b45b-4fd6-8ebf-45ca375799f1-level-i-900-m-qualified
+      trace: stage           # UPSTREAM only (max 1.187 on 2007-07-24 = upstream maxOnRecord)
+      earliest: "2000-01-30T09:00:00Z"
+    history_ok: false
+    upstream_alt:            # the trace Hydrology actually holds; rises clearly in floods (median 0.16, ~1.0 at peaks)
+      fm_measure: 1201TH-level-stage-i-15_min-mASD
+      datum_maod: 59.676
+      api: {typicalRangeLow: 0.038, typicalRangeHigh: 0.37, highestRecent: 1.187, maxOnRecord: 1.187}
+    datum_maod: 57.134
+    api: {typicalRangeLow: 1.773, typicalRangeHigh: 2.67, highestRecent: 3.648, maxOnRecord: 3.648}
+    spec: {amber: 2.96, threshold: null}
+    verified: "Threshold MISMATCH vs §4.1 (amber 2.96 -> 2.67). D/s history only from 2025-10-29 (archive) + live."
+
+  - key: cassington
+    name: Cassington Weir B
+    river: Evenlode
+    role: upstream
+    ref: 1290_w2TH           # resolved from GOV.UK id 7054
+    rloi_id: "7054"
+    lat: 51.786053
+    lon: -1.351198
+    amber: 0.77
+    threshold: null
+    record: 1.292            # 2007-07-21T19:00
+    trace: stage
+    fm_measure: 1290_w2TH-level-stage-i-15_min-mASD
+    hydrology:
+      station: 8afc6e20-b0bd-4b79-bf65-345dac8cafee_1290_w2TH
+      level_measure: 8afc6e20-b0bd-4b79-bf65-345dac8cafee_1290_w2TH-level-i-900-m-qualified
+      trace: stage
+      earliest: "1986-11-01T09:15:00Z"
+    history_ok: true
+    datum_maod: 60.17
+    api: {typicalRangeLow: 0.144, typicalRangeHigh: 0.77, highestRecent: 1.292, maxOnRecord: 1.292}
+    verified: "Matches §4.1. Hydrology has ~3% Suspect days (drop them). Weir A (1290_w1TH) also exists; not used."
+
+  - key: enslow
+    name: Enslow Weir A
+    river: Cherwell
+    role: upstream
+    ref: 1460_w1TH           # resolved from GOV.UK id 7064
+    rloi_id: "7064"
+    lat: 51.861393
+    lon: -1.30321
+    amber: 1.29
+    threshold: null          # GOV.UK shows 1.05 (below its own normal top), which §4.1 calls unreliable
+    record: 2.103            # 1998-04-10T19:45
+    trace: stage
+    fm_measure: 1460_w1TH-level-stage-i-15_min-mASD
+    hydrology:
+      station: dac96a5d-7fde-4066-b8a2-58a085e0c002
+      level_measure: dac96a5d-7fde-4066-b8a2-58a085e0c002-level-i-900-m-qualified
+      trace: stage
+      earliest: "1987-07-01T09:15:00Z"
+    history_ok: true
+    datum_maod: 64.99
+    api: {typicalRangeLow: 0.143, typicalRangeHigh: 1.29, highestRecent: 1.728, maxOnRecord: 2.103}
+    verified: "Matches §4.1. GOV.UK property threshold 1.05 recorded but not used."
+
+  - key: islip
+    name: Islip
+    river: Ray
+    role: upstream
+    ref: 1489TH              # resolved from GOV.UK id 9082 (Hydrology label "Islip Weir")
+    rloi_id: "9082"
+    lat: 51.819783
+    lon: -1.242178
+    amber: 7.80
+    threshold: 8.85
+    record: 9.327            # 1998-04-10T04:45
+    trace: stage
+    fm_measure: 1489TH-level-stage-i-15_min-mASD   # not the "-m" or "----" variants
+    hydrology:
+      station: 34e23121-3c10-454d-80dc-45d824b9e2cf
+      level_measure: 34e23121-3c10-454d-80dc-45d824b9e2cf-level-i-900-m-qualified
+      trace: stage
+      earliest: "1995-02-16T09:45:00Z"
+    history_ok: true
+    datum_maod: 50.0         # round value: unverified
+    api: {typicalRangeLow: 6.492, typicalRangeHigh: 7.8, highestRecent: null, maxOnRecord: 9.327}
+    verified: "Matches §4.1. Hydrology daily max 9.921 on 2022-12-22 exceeds the record: a spike for the cleaner. ~5% Suspect days."
+
+  - key: godstow
+    name: Godstow Lock d/s
+    river: Thames
+    role: target
+    ref: 1302TH
+    rloi_id: "7056"
+    lat: 51.776669
+    lon: -1.298428
+    amber: 2.57
+    threshold: 3.07
+    record: 3.111            # 2007-07-20T12:45
+    trace: downstage
+    fm_measure: 1302TH-level-downstage-i-15_min-mASD
+    hydrology:
+      station: 7500ccb3-dc3b-49fb-ac42-241fd7ab908c
+      level_measure: 7500ccb3-dc3b-49fb-ac42-241fd7ab908c-level-i-900-m-qualified
+      trace: stage           # UPSTREAM only; near-flat in floods (2014 peak 0.145 < p95 0.232)
+      earliest: "1998-03-10T05:45:00Z"
+    history_ok: false
+    datum_maod: 54.882
+    api: {typicalRangeLow: 1.624, typicalRangeHigh: 2.57, highestRecent: 3.02, maxOnRecord: 3.111}
+    verified: "Thresholds match §4.1, but the d/s trace has no history before 2025-10-29. The u/s series is not a usable proxy."
+
+  - key: osney
+    name: Osney Lock d/s
+    river: Thames
+    role: target
+    ref: 1303TH
+    rloi_id: "7057"          # §4.1 gave no GOV.UK id; API says 7057
+    lat: 51.74909
+    lon: -1.272781
+    amber: 3.175             # GOV.UK rounds to 3.18
+    threshold: 3.79
+    record: 3.97             # 2014-01-09T06:45 (flood-monitoring metadata)
+    trace: downstage
+    fm_measure: 1303TH-level-downstage-i-15_min-mASD
+    hydrology:
+      station: 5086b349-e04b-4f8e-b8f1-fa92b21078d0
+      level_measure: 5086b349-e04b-4f8e-b8f1-fa92b21078d0-level-i-900-m-qualified
+      trace: stage           # UPSTREAM only: max 0.188 at 2014-01-09T11:45 (= upstream highestRecent)
+      earliest: "1995-11-13T00:00:00Z"
+    history_ok: false
+    upstream_alt:
+      fm_measure: 1303TH-level-stage-i-15_min-mASD
+      datum_maod: 56.509
+      api: {typicalRangeLow: -0.15, typicalRangeHigh: 0.12, highestRecent: 0.188, maxOnRecord: 0.341}
+    datum_maod: 52.477       # S3 prerequisite: consistent with mAOD by the lock-chain check above
+    api: {typicalRangeLow: 2.198, typicalRangeHigh: 3.175, highestRecent: 3.97, maxOnRecord: 3.97}
+    verified: "Metadata confirms the 3.97 record on 9 Jan 2014, but the 15-min d/s series is not in Hydrology. U/s is near-flat in floods (-0.001 while d/s 3.34 on 2026-02-25)."
+
+  - key: iffley
+    name: Iffley Lock d/s
+    river: Thames
+    role: target
+    ref: 1501TH              # resolved from GOV.UK id 7072
+    rloi_id: "7072"
+    lat: 51.72955
+    lon: -1.239792
+    amber: 2.72
+    threshold: 3.25
+    record: 3.665            # 2014-01-09T10:00
+    trace: downstage
+    fm_measure: 1501TH-level-downstage-i-15_min-mASD
+    hydrology:
+      station: ab070726-7ac8-4037-a352-90552398d491
+      level_measure: ab070726-7ac8-4037-a352-90552398d491-level-i-900-m-qualified
+      trace: stage           # UPSTREAM only; does rise in floods (median 0.14, 0.857 in Jan 2014)
+      earliest: "1995-11-13T00:00:00Z"
+    history_ok: false
+    upstream_alt:
+      fm_measure: 1501TH-level-stage-i-15_min-mASD
+      datum_maod: 54.617
+      api: {typicalRangeLow: 0.003, typicalRangeHigh: 0.25, highestRecent: 0.857, maxOnRecord: 0.937}
+    datum_maod: 51.514
+    api: {typicalRangeLow: 2.294, typicalRangeHigh: 2.72, highestRecent: 3.665, maxOnRecord: 3.665}
+    verified: "Thresholds match §4.1. D/s history only from 2025-10-29. U/s could be a proxy if thresholds are re-derived."
+
+  - key: kingsmill
+    name: Kings Mill u/s
+    river: Cherwell
+    role: target
+    ref: 1491TH
+    rloi_id: "7071"
+    lat: 51.756247
+    lon: -1.238765
+    amber: 2.40
+    threshold: 2.60
+    record: 2.785            # 2024-11-27T01:30
+    trace: stage
+    fm_measure: 1491TH-level-stage-i-15_min-mASD
+    hydrology:
+      station: a2d56f20-689b-4d3f-ab13-5e7c4baf2772
+      level_measure: a2d56f20-689b-4d3f-ab13-5e7c4baf2772-level-i-900-m-qualified
+      trace: stage
+      earliest: "1998-01-12T15:15:00Z"
+    history_ok: true
+    datum_maod: 54.0         # round value: unverified (downstageScale datum is 0)
+    api: {typicalRangeLow: 1.631, typicalRangeHigh: 2.4, highestRecent: 2.678, maxOnRecord: 2.785}
+    verified: "Matches §4.1. TELEMETRY STALE: last reading 2026-10-13T14:45Z in both APIs (11 days old on 24 Oct)."
+
+  - key: newbotley
+    name: New Botley
+    river: Bulstake Stream
+    role: target
+    ref: 1645TH              # resolved from GOV.UK id 7075
+    rloi_id: "7075"
+    lat: 51.752648
+    lon: -1.281126
+    amber: 2.01
+    threshold: 2.76
+    record: 3.141            # 2007-07-25T09:30
+    trace: stage
+    fm_measure: 1645TH-level-stage-i-15_min-mASD
+    hydrology:
+      station: d3ed05d0-98fe-4dfb-9281-8e049743f92d
+      level_measure: d3ed05d0-98fe-4dfb-9281-8e049743f92d-level-i-900-m-qualified
+      trace: stage
+      earliest: "2002-05-01T09:15:00Z"
+    history_ok: true
+    datum_maod: 54.0         # round value: unverified (reads 54.84 now vs Osney d/s 54.72: plausible)
+    api: {typicalRangeLow: 0.87, typicalRangeHigh: 2.01, highestRecent: 3.032, maxOnRecord: 3.141}
+    verified: "Matches §4.1. Hydrology 9 Jan 2014 peak 3.032 = highestRecent."
+
+# Single-trace West Oxford gauges with long Hydrology history. NOT in SPEC §4.1: these are candidate
+# substitutes for the osney / abingdonrd spots if the PM retargets (issue #2). The pipeline ignores this
+# section unless they are moved into `gauges`.
+candidates:
+  - key: minns
+    name: Minns Estate
+    river: Seacourt Stream
+    ref: 1635TH
+    rloi_id: "7074"
+    lat: 51.753242
+    lon: -1.290099
+    amber: 2.13
+    threshold: 2.90          # GOV.UK
+    record: 3.117            # 2007-07-23
+    fm_measure: 1635TH-level-stage-i-15_min-mASD
+    hydrology:
+      station: 745d25c4-7e29-48a9-bfe7-cc14eea17751
+      level_measure: 745d25c4-7e29-48a9-bfe7-cc14eea17751-level-i-900-m-qualified
+      earliest: "2003-07-15T09:00:00Z"
+    event_peaks: {e2007: 3.117, e2012: 2.927, e2014: 3.09, e2024a: 2.968, e2024b: 2.819, e2026: 2.70}
+  - key: coldharbour
+    name: Cold Harbour
+    river: Hinksey Stream
+    ref: 1675TH
+    rloi_id: "7076"
+    lat: 51.730973
+    lon: -1.251352
+    amber: 2.30
+    threshold: 2.44          # GOV.UK
+    record: 2.738            # 2003-01-05
+    fm_measure: 1675TH-level-stage-i-15_min-mASD
+    hydrology:
+      station: a65c175a-bae8-427a-822d-896ed2d53c58
+      level_measure: a65c175a-bae8-427a-822d-896ed2d53c58-level-i-900-m-qualified
+      earliest: "2002-05-01T09:15:00Z"
+    event_peaks: {e2007: 2.69, e2012: 2.558, e2014: 2.699, e2024a: 2.659, e2024b: 2.455, e2026: 2.086}
+
+# EA tipping-bucket rain gauges (SPEC §4.1). Catchment rain = mean of the available gauges per hour.
+# All have 15-min Hydrology history before 2006 and are live on flood-monitoring. ~10% of daily values are
+# flagged Suspect in Hydrology: drop them.
+rain_gauges:
+  - ref: 256230TP
+    name: Osney Lock
+    lat: 51.749085
+    lon: -1.272057
+    fm_measure: 256230TP-rainfall-tipping_bucket_raingauge-t-15_min-mm
+    hydrology_measure: 5086b349-e04b-4f8e-b8f1-fa92b21078d0_256230TP-rainfall-t-900-mm-qualified
+    earliest: "1986-01-01T09:00:00Z"
+    notes: "Low-coverage years since 2006: 2017 (298 days), 2018 (319)."
+  - ref: 254336TP
+    name: Eynsham
+    lat: 51.774757
+    lon: -1.357157
+    fm_measure: 254336TP-rainfall-tipping_bucket_raingauge-t-15_min-mm
+    hydrology_measure: de8bb5b8-45a5-4282-8028-6268e5af1d30-rainfall-t-900-mm-qualified
+    earliest: "1982-07-30T09:00:00Z"
+    notes: "Low-coverage years since 2006: 2010 (321 days)."
+  - ref: 261021TP
+    name: Abingdon
+    lat: 51.653876
+    lon: -1.288038
+    fm_measure: 261021TP-rainfall-tipping_bucket_raingauge-t-15_min-mm
+    hydrology_measure: fe3efb87-062c-4880-9dc3-7dd8f335a6d1-rainfall-t-900-mm-qualified
+    earliest: "1985-11-23T09:00:00Z"
+    notes: "Full coverage since 2006."
+  - ref: 264254TP
+    name: Benson
+    lat: 51.617635
+    lon: -1.115281
+    fm_measure: 264254TP-rainfall-tipping_bucket_raingauge-t-15_min-mm
+    hydrology_measure: 1ad8ff76-625d-4ff1-82bd-9efcc5d41b2f_264254TP-rainfall-t-900-mm-qualified
+    earliest: "1990-11-01T09:00:00Z"   # 15-min series dense from at least 2000
+    notes: "Low-coverage years: 2007 (296 days), 2008, 2009 (269), 2011 (271)."
+  - ref: 263541TP
+    name: Wheatley
+    lat: 51.741752
+    lon: -1.120101
+    fm_measure: 263541TP-rainfall-tipping_bucket_raingauge-t-15_min-mm
+    hydrology_measure: 7eb546a1-8663-4d07-a9cc-e7b5f6e13006-rainfall-t-900-mm-qualified
+    earliest: "1991-03-18T09:15:00Z"   # 15-min series dense from at least 2000
+    notes: "Low-coverage years: 2006 (319 days), 2013 (277)."
+
+# Flow paths (SPEC §4.1): upstream gauges per downstream gauge, for travel times and features.
+flow_paths:
+  thames:
+    godstow: [farmoor, eynsham, cassington]
+    osney: [godstow]
+    iffley: [osney]
+    newbotley: [farmoor, eynsham, cassington, godstow]   # Bulstake Stream, fed by the Thames system
+  cherwell:
+    kingsmill: [enslow, islip]
