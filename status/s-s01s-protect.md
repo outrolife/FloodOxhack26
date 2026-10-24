@@ -1,14 +1,14 @@
 # s-s01s-protect
 
 - **role**: App
-- **state**: working
+- **state**: reviewing
 - **issue**: #121
-- **task**: UI v2 Protect screen: helpers pushed, building map + cards
-- **next**: Protect.tsx with BaseMap stub until kit lands
+- **task**: PR #129 UI v2: Protect screen open
+- **next**: review follow-ups; S4 full candidate pool would make budget slider fully live (#23)
 - **needs**: 
 - **notes**: 
 - **branch**: app/v2-protect
-- **head**: d760f5c Add Protect screen helpers: budget greedy, deploy-by times, he
+- **head**: 51190a0 Build the Protect screen on the UI kit: spread heatmap, number
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:54:06Z
+- **updated**: 2026-10-24T19:00:43Z
