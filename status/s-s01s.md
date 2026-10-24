@@ -8,7 +8,7 @@
 - **needs**: 
 - **notes**: alfredo: OK for proof2 to edit backtest.forecasts_at for #93? (see #93)
 - **branch**: main
-- **head**: dfca2bc Merge pull request #90 from outrolife/model/official-first-flo
+- **head**: 003f88a Merge pull request #89 from outrolife/stretch/s2-ensemble-rain
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:58:59Z
+- **updated**: 2026-10-24T18:02:14Z
