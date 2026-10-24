@@ -1,0 +1,946 @@
+{
+ "newbotley": [
+  {
+   "h": 6,
+   "features": [
+    {
+     "name": "level_change_1h",
+     "gain": 0.26091
+    },
+    {
+     "name": "eynsham_change_3h",
+     "gain": 0.21506
+    },
+    {
+     "name": "farmoor_change_3h",
+     "gain": 0.08328
+    },
+    {
+     "name": "cassington_change_3h",
+     "gain": 0.04789
+    },
+    {
+     "name": "level_change_3h",
+     "gain": 0.04605
+    },
+    {
+     "name": "level_now",
+     "gain": 0.03296
+    },
+    {
+     "name": "cassington_change_24h",
+     "gain": 0.02412
+    },
+    {
+     "name": "level_change_6h",
+     "gain": 0.01946
+    },
+    {
+     "name": "level_mean_21d",
+     "gain": 0.0157
+    },
+    {
+     "name": "level_change_24h",
+     "gain": 0.01522
+    },
+    {
+     "name": "rain_sum_24h",
+     "gain": 0.01515
+    },
+    {
+     "name": "eynsham_change_24h",
+     "gain": 0.01452
+    },
+    {
+     "name": "rain_sum_168h",
+     "gain": 0.01255
+    },
+    {
+     "name": "rain_sum_6h",
+     "gain": 0.01231
+    },
+    {
+     "name": "rain_sum_21d",
+     "gain": 0.01145
+    },
+    {
+     "name": "farmoor_change_24h",
+     "gain": 0.01088
+    },
+    {
+     "name": "rain_sum_72h",
+     "gain": 0.01069
+    },
+    {
+     "name": "cassington_anom_lag43h",
+     "gain": 0.01026
+    },
+    {
+     "name": "doy_sin",
+     "gain": 0.01003
+    },
+    {
+     "name": "eynsham_anom_lag12h",
+     "gain": 0.00981
+    },
+    {
+     "name": "doy_cos",
+     "gain": 0.00944
+    },
+    {
+     "name": "cassington_anom_lag0h",
+     "gain": 0.00917
+    },
+    {
+     "name": "eynsham_anom_lag0h",
+     "gain": 0.00871
+    },
+    {
+     "name": "eynsham_anom_lag24h",
+     "gain": 0.00863
+    },
+    {
+     "name": "cassington_anom_lag24h",
+     "gain": 0.00749
+    },
+    {
+     "name": "farmoor_anom_lag24h",
+     "gain": 0.00725
+    },
+    {
+     "name": "farmoor_anom_lag0h",
+     "gain": 0.00714
+    },
+    {
+     "name": "eynsham_anom_lag6h",
+     "gain": 0.00704
+    },
+    {
+     "name": "cassington_anom_lag6h",
+     "gain": 0.00673
+    },
+    {
+     "name": "cassington_anom_lag1h",
+     "gain": 0.00665
+    },
+    {
+     "name": "cassington_anom_lag12h",
+     "gain": 0.00633
+    },
+    {
+     "name": "eynsham_anom_lag1h",
+     "gain": 0.00618
+    },
+    {
+     "name": "farmoor_anom_lag11h",
+     "gain": 0.00589
+    },
+    {
+     "name": "farmoor_anom_lag5h",
+     "gain": 0.00548
+    },
+    {
+     "name": "cassington_anom_lag10h",
+     "gain": 0.00539
+    },
+    {
+     "name": "eynsham_anom_lag4h",
+     "gain": 0.00527
+    },
+    {
+     "name": "farmoor_anom_lag12h",
+     "gain": 0.005
+    },
+    {
+     "name": "farmoor_anom_lag6h",
+     "gain": 0.0039
+    }
+   ]
+  },
+  {
+   "h": 12,
+   "features": [
+    {
+     "name": "eynsham_change_3h",
+     "gain": 0.16901
+    },
+    {
+     "name": "farmoor_change_3h",
+     "gain": 0.14876
+    },
+    {
+     "name": "level_change_1h",
+     "gain": 0.1073
+    },
+    {
+     "name": "cassington_change_3h",
+     "gain": 0.06056
+    },
+    {
+     "name": "level_now",
+     "gain": 0.05468
+    },
+    {
+     "name": "cassington_change_24h",
+     "gain": 0.03563
+    },
+    {
+     "name": "rain_sum_24h",
+     "gain": 0.03366
+    },
+    {
+     "name": "level_change_3h",
+     "gain": 0.02707
+    },
+    {
+     "name": "level_mean_21d",
+     "gain": 0.02394
+    },
+    {
+     "name": "level_change_24h",
+     "gain": 0.02055
+    },
+    {
+     "name": "rain_sum_168h",
+     "gain": 0.01939
+    },
+    {
+     "name": "eynsham_change_24h",
+     "gain": 0.01789
+    },
+    {
+     "name": "rain_sum_21d",
+     "gain": 0.01669
+    },
+    {
+     "name": "doy_cos",
+     "gain": 0.01653
+    },
+    {
+     "name": "farmoor_change_24h",
+     "gain": 0.0156
+    },
+    {
+     "name": "rain_sum_72h",
+     "gain": 0.01531
+    },
+    {
+     "name": "cassington_anom_lag43h",
+     "gain": 0.0144
+    },
+    {
+     "name": "cassington_anom_lag0h",
+     "gain": 0.01305
+    },
+    {
+     "name": "doy_sin",
+     "gain": 0.01299
+    },
+    {
+     "name": "level_change_6h",
+     "gain": 0.0127
+    },
+    {
+     "name": "eynsham_anom_lag6h",
+     "gain": 0.01252
+    },
+    {
+     "name": "farmoor_anom_lag0h",
+     "gain": 0.01194
+    },
+    {
+     "name": "rain_sum_6h",
+     "gain": 0.01172
+    },
+    {
+     "name": "cassington_anom_lag24h",
+     "gain": 0.01157
+    },
+    {
+     "name": "eynsham_anom_lag12h",
+     "gain": 0.01139
+    },
+    {
+     "name": "eynsham_anom_lag24h",
+     "gain": 0.0106
+    },
+    {
+     "name": "eynsham_anom_lag0h",
+     "gain": 0.01008
+    },
+    {
+     "name": "farmoor_anom_lag24h",
+     "gain": 0.00963
+    },
+    {
+     "name": "cassington_anom_lag6h",
+     "gain": 0.00922
+    },
+    {
+     "name": "farmoor_anom_lag5h",
+     "gain": 0.00877
+    },
+    {
+     "name": "eynsham_anom_lag4h",
+     "gain": 0.00832
+    },
+    {
+     "name": "cassington_anom_lag12h",
+     "gain": 0.00783
+    },
+    {
+     "name": "cassington_anom_lag1h",
+     "gain": 0.00748
+    },
+    {
+     "name": "eynsham_anom_lag1h",
+     "gain": 0.00732
+    },
+    {
+     "name": "cassington_anom_lag10h",
+     "gain": 0.00717
+    },
+    {
+     "name": "farmoor_anom_lag11h",
+     "gain": 0.00704
+    },
+    {
+     "name": "farmoor_anom_lag12h",
+     "gain": 0.00594
+    },
+    {
+     "name": "farmoor_anom_lag6h",
+     "gain": 0.00576
+    }
+   ]
+  },
+  {
+   "h": 24,
+   "features": [
+    {
+     "name": "eynsham_change_3h",
+     "gain": 0.11587
+    },
+    {
+     "name": "farmoor_change_3h",
+     "gain": 0.0847
+    },
+    {
+     "name": "level_now",
+     "gain": 0.07458
+    },
+    {
+     "name": "cassington_change_3h",
+     "gain": 0.07248
+    },
+    {
+     "name": "rain_sum_24h",
+     "gain": 0.07164
+    },
+    {
+     "name": "cassington_change_24h",
+     "gain": 0.04249
+    },
+    {
+     "name": "level_mean_21d",
+     "gain": 0.03958
+    },
+    {
+     "name": "rain_sum_168h",
+     "gain": 0.03341
+    },
+    {
+     "name": "level_change_1h",
+     "gain": 0.03152
+    },
+    {
+     "name": "doy_cos",
+     "gain": 0.0258
+    },
+    {
+     "name": "eynsham_anom_lag24h",
+     "gain": 0.02577
+    },
+    {
+     "name": "rain_sum_21d",
+     "gain": 0.02486
+    },
+    {
+     "name": "level_change_24h",
+     "gain": 0.02462
+    },
+    {
+     "name": "rain_sum_72h",
+     "gain": 0.02255
+    },
+    {
+     "name": "cassington_anom_lag43h",
+     "gain": 0.02133
+    },
+    {
+     "name": "cassington_anom_lag24h",
+     "gain": 0.02058
+    },
+    {
+     "name": "farmoor_anom_lag0h",
+     "gain": 0.01917
+    },
+    {
+     "name": "cassington_anom_lag0h",
+     "gain": 0.01799
+    },
+    {
+     "name": "doy_sin",
+     "gain": 0.01774
+    },
+    {
+     "name": "farmoor_change_24h",
+     "gain": 0.01635
+    },
+    {
+     "name": "eynsham_change_24h",
+     "gain": 0.01609
+    },
+    {
+     "name": "eynsham_anom_lag0h",
+     "gain": 0.01519
+    },
+    {
+     "name": "eynsham_anom_lag12h",
+     "gain": 0.0141
+    },
+    {
+     "name": "eynsham_anom_lag6h",
+     "gain": 0.01405
+    },
+    {
+     "name": "level_change_3h",
+     "gain": 0.0135
+    },
+    {
+     "name": "farmoor_anom_lag5h",
+     "gain": 0.0127
+    },
+    {
+     "name": "rain_sum_6h",
+     "gain": 0.01137
+    },
+    {
+     "name": "farmoor_anom_lag12h",
+     "gain": 0.01094
+    },
+    {
+     "name": "farmoor_anom_lag24h",
+     "gain": 0.01043
+    },
+    {
+     "name": "cassington_anom_lag1h",
+     "gain": 0.01037
+    },
+    {
+     "name": "cassington_anom_lag6h",
+     "gain": 0.00978
+    },
+    {
+     "name": "eynsham_anom_lag4h",
+     "gain": 0.00934
+    },
+    {
+     "name": "cassington_anom_lag12h",
+     "gain": 0.00932
+    },
+    {
+     "name": "level_change_6h",
+     "gain": 0.00931
+    },
+    {
+     "name": "cassington_anom_lag10h",
+     "gain": 0.00802
+    },
+    {
+     "name": "farmoor_anom_lag6h",
+     "gain": 0.00779
+    },
+    {
+     "name": "farmoor_anom_lag11h",
+     "gain": 0.00775
+    },
+    {
+     "name": "eynsham_anom_lag1h",
+     "gain": 0.00692
+    }
+   ]
+  },
+  {
+   "h": 36,
+   "features": [
+    {
+     "name": "level_now",
+     "gain": 0.10335
+    },
+    {
+     "name": "rain_sum_24h",
+     "gain": 0.08203
+    },
+    {
+     "name": "eynsham_change_3h",
+     "gain": 0.08161
+    },
+    {
+     "name": "cassington_change_3h",
+     "gain": 0.05593
+    },
+    {
+     "name": "level_mean_21d",
+     "gain": 0.05118
+    },
+    {
+     "name": "farmoor_change_3h",
+     "gain": 0.04695
+    },
+    {
+     "name": "rain_sum_168h",
+     "gain": 0.0405
+    },
+    {
+     "name": "doy_cos",
+     "gain": 0.03446
+    },
+    {
+     "name": "cassington_change_24h",
+     "gain": 0.03286
+    },
+    {
+     "name": "rain_sum_21d",
+     "gain": 0.03256
+    },
+    {
+     "name": "rain_sum_72h",
+     "gain": 0.03047
+    },
+    {
+     "name": "doy_sin",
+     "gain": 0.0257
+    },
+    {
+     "name": "cassington_anom_lag43h",
+     "gain": 0.02434
+    },
+    {
+     "name": "eynsham_anom_lag24h",
+     "gain": 0.0243
+    },
+    {
+     "name": "level_change_24h",
+     "gain": 0.02232
+    },
+    {
+     "name": "farmoor_anom_lag0h",
+     "gain": 0.02171
+    },
+    {
+     "name": "eynsham_change_24h",
+     "gain": 0.02076
+    },
+    {
+     "name": "cassington_anom_lag0h",
+     "gain": 0.02062
+    },
+    {
+     "name": "rain_sum_6h",
+     "gain": 0.0199
+    },
+    {
+     "name": "cassington_anom_lag24h",
+     "gain": 0.01917
+    },
+    {
+     "name": "farmoor_change_24h",
+     "gain": 0.01773
+    },
+    {
+     "name": "eynsham_anom_lag12h",
+     "gain": 0.01729
+    },
+    {
+     "name": "farmoor_anom_lag5h",
+     "gain": 0.01728
+    },
+    {
+     "name": "eynsham_anom_lag0h",
+     "gain": 0.01596
+    },
+    {
+     "name": "eynsham_anom_lag6h",
+     "gain": 0.01531
+    },
+    {
+     "name": "farmoor_anom_lag24h",
+     "gain": 0.01433
+    },
+    {
+     "name": "level_change_1h",
+     "gain": 0.01243
+    },
+    {
+     "name": "farmoor_anom_lag11h",
+     "gain": 0.01138
+    },
+    {
+     "name": "cassington_anom_lag1h",
+     "gain": 0.0113
+    },
+    {
+     "name": "farmoor_anom_lag6h",
+     "gain": 0.01043
+    },
+    {
+     "name": "cassington_anom_lag6h",
+     "gain": 0.00999
+    },
+    {
+     "name": "level_change_3h",
+     "gain": 0.00962
+    },
+    {
+     "name": "cassington_anom_lag12h",
+     "gain": 0.00904
+    },
+    {
+     "name": "eynsham_anom_lag4h",
+     "gain": 0.00889
+    },
+    {
+     "name": "level_change_6h",
+     "gain": 0.00786
+    },
+    {
+     "name": "cassington_anom_lag10h",
+     "gain": 0.00723
+    },
+    {
+     "name": "farmoor_anom_lag12h",
+     "gain": 0.00666
+    },
+    {
+     "name": "eynsham_anom_lag1h",
+     "gain": 0.00654
+    }
+   ]
+  },
+  {
+   "h": 48,
+   "features": [
+    {
+     "name": "level_now",
+     "gain": 0.1128
+    },
+    {
+     "name": "rain_sum_24h",
+     "gain": 0.07669
+    },
+    {
+     "name": "eynsham_change_3h",
+     "gain": 0.06471
+    },
+    {
+     "name": "level_mean_21d",
+     "gain": 0.06209
+    },
+    {
+     "name": "rain_sum_168h",
+     "gain": 0.04364
+    },
+    {
+     "name": "cassington_change_3h",
+     "gain": 0.04321
+    },
+    {
+     "name": "doy_cos",
+     "gain": 0.04276
+    },
+    {
+     "name": "rain_sum_21d",
+     "gain": 0.04244
+    },
+    {
+     "name": "rain_sum_72h",
+     "gain": 0.03563
+    },
+    {
+     "name": "doy_sin",
+     "gain": 0.03505
+    },
+    {
+     "name": "cassington_change_24h",
+     "gain": 0.03253
+    },
+    {
+     "name": "farmoor_change_3h",
+     "gain": 0.02598
+    },
+    {
+     "name": "cassington_anom_lag43h",
+     "gain": 0.02365
+    },
+    {
+     "name": "eynsham_anom_lag24h",
+     "gain": 0.02269
+    },
+    {
+     "name": "eynsham_anom_lag12h",
+     "gain": 0.02255
+    },
+    {
+     "name": "farmoor_anom_lag0h",
+     "gain": 0.02239
+    },
+    {
+     "name": "level_change_24h",
+     "gain": 0.0215
+    },
+    {
+     "name": "cassington_anom_lag0h",
+     "gain": 0.02096
+    },
+    {
+     "name": "cassington_anom_lag6h",
+     "gain": 0.01901
+    },
+    {
+     "name": "cassington_anom_lag24h",
+     "gain": 0.0188
+    },
+    {
+     "name": "rain_sum_6h",
+     "gain": 0.01816
+    },
+    {
+     "name": "farmoor_change_24h",
+     "gain": 0.01722
+    },
+    {
+     "name": "eynsham_anom_lag0h",
+     "gain": 0.01559
+    },
+    {
+     "name": "farmoor_anom_lag24h",
+     "gain": 0.01519
+    },
+    {
+     "name": "eynsham_anom_lag6h",
+     "gain": 0.01497
+    },
+    {
+     "name": "eynsham_change_24h",
+     "gain": 0.01492
+    },
+    {
+     "name": "farmoor_anom_lag5h",
+     "gain": 0.0143
+    },
+    {
+     "name": "farmoor_anom_lag11h",
+     "gain": 0.01306
+    },
+    {
+     "name": "farmoor_anom_lag6h",
+     "gain": 0.01163
+    },
+    {
+     "name": "cassington_anom_lag1h",
+     "gain": 0.01067
+    },
+    {
+     "name": "farmoor_anom_lag12h",
+     "gain": 0.00957
+    },
+    {
+     "name": "cassington_anom_lag12h",
+     "gain": 0.00903
+    },
+    {
+     "name": "eynsham_anom_lag4h",
+     "gain": 0.00839
+    },
+    {
+     "name": "cassington_anom_lag10h",
+     "gain": 0.00821
+    },
+    {
+     "name": "eynsham_anom_lag1h",
+     "gain": 0.00815
+    },
+    {
+     "name": "level_change_6h",
+     "gain": 0.00785
+    },
+    {
+     "name": "level_change_1h",
+     "gain": 0.00712
+    },
+    {
+     "name": "level_change_3h",
+     "gain": 0.00689
+    }
+   ]
+  },
+  {
+   "h": 72,
+   "features": [
+    {
+     "name": "level_now",
+     "gain": 0.16696
+    },
+    {
+     "name": "level_mean_21d",
+     "gain": 0.0808
+    },
+    {
+     "name": "rain_sum_24h",
+     "gain": 0.07861
+    },
+    {
+     "name": "doy_cos",
+     "gain": 0.05639
+    },
+    {
+     "name": "eynsham_change_3h",
+     "gain": 0.04831
+    },
+    {
+     "name": "rain_sum_168h",
+     "gain": 0.04239
+    },
+    {
+     "name": "rain_sum_21d",
+     "gain": 0.04135
+    },
+    {
+     "name": "doy_sin",
+     "gain": 0.03406
+    },
+    {
+     "name": "rain_sum_72h",
+     "gain": 0.03352
+    },
+    {
+     "name": "eynsham_anom_lag12h",
+     "gain": 0.02877
+    },
+    {
+     "name": "cassington_change_24h",
+     "gain": 0.02493
+    },
+    {
+     "name": "cassington_change_3h",
+     "gain": 0.02376
+    },
+    {
+     "name": "cassington_anom_lag43h",
+     "gain": 0.02056
+    },
+    {
+     "name": "eynsham_anom_lag24h",
+     "gain": 0.02032
+    },
+    {
+     "name": "cassington_anom_lag6h",
+     "gain": 0.02002
+    },
+    {
+     "name": "cassington_anom_lag0h",
+     "gain": 0.01987
+    },
+    {
+     "name": "eynsham_anom_lag6h",
+     "gain": 0.01973
+    },
+    {
+     "name": "level_change_24h",
+     "gain": 0.01913
+    },
+    {
+     "name": "eynsham_anom_lag0h",
+     "gain": 0.01825
+    },
+    {
+     "name": "farmoor_anom_lag5h",
+     "gain": 0.01667
+    },
+    {
+     "name": "farmoor_anom_lag6h",
+     "gain": 0.0153
+    },
+    {
+     "name": "cassington_anom_lag1h",
+     "gain": 0.01527
+    },
+    {
+     "name": "cassington_anom_lag24h",
+     "gain": 0.01489
+    },
+    {
+     "name": "farmoor_change_3h",
+     "gain": 0.01482
+    },
+    {
+     "name": "farmoor_anom_lag24h",
+     "gain": 0.01399
+    },
+    {
+     "name": "rain_sum_6h",
+     "gain": 0.01392
+    },
+    {
+     "name": "farmoor_anom_lag0h",
+     "gain": 0.0132
+    },
+    {
+     "name": "farmoor_change_24h",
+     "gain": 0.01287
+    },
+    {
+     "name": "eynsham_change_24h",
+     "gain": 0.01187
+    },
+    {
+     "name": "cassington_anom_lag12h",
+     "gain": 0.01058
+    },
+    {
+     "name": "eynsham_anom_lag4h",
+     "gain": 0.00959
+    },
+    {
+     "name": "farmoor_anom_lag11h",
+     "gain": 0.00912
+    },
+    {
+     "name": "farmoor_anom_lag12h",
+     "gain": 0.00861
+    },
+    {
+     "name": "cassington_anom_lag10h",
+     "gain": 0.00667
+    },
+    {
+     "name": "eynsham_anom_lag1h",
+     "gain": 0.00588
+    },
+    {
+     "name": "level_change_6h",
+     "gain": 0.00381
+    },
+    {
+     "name": "level_change_1h",
+     "gain": 0.00307
+    },
+    {
+     "name": "level_change_3h",
+     "gain": 0.00214
+    }
+   ]
+  }
+ ]
+}
