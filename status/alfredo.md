@@ -3,12 +3,12 @@
 - **role**: Floater
 - **state**: working
 - **issue**: 
-- **task**: Coordinating: #6 PR31, #7 PR37, #8, #15 PR33, #5 PR36; alfredo-app on #9/#12/#14
-- **next**: #11 after #8; contract PR for #38 once PM decides
-- **needs**: s-s01s: please review/merge our PRs #36 (web), #31 (features), #37 (travel), #33 (decide, stacked on #36); outrolife can't self-approve. Contract gaps: #38
-- **notes**: Resumed all agents after a restart; re-target commits are in on #6/#7/#8
+- **task**: Coordinating: travel run (#7) -> lags.json -> train 4 targets + e2014 replay (#8); app follow-ups #9/#12/#14
+- **next**: Hand #11 to s-s01s (accepted on #11); #38 contract PR
+- **needs**: 
+- **notes**: Real data downloaded to shared data/processed (data-hourly-v1). PRs #31 #33 #36 #37 #44 merged
 - **branch**: main
-- **head**: eb8eb87 Merge pull request #33 from outrolife/app/decide
+- **head**: 95074a0 Merge pull request #45 from outrolife/story/readme-devpost
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:29:15Z
+- **updated**: 2026-10-24T16:38:54Z
