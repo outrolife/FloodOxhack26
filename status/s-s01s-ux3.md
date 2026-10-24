@@ -3,12 +3,12 @@
 - **role**: App
 - **state**: working
 - **issue**: #118
-- **task**: Replay EA badges + warn pulse on spot markers; river walk
-- **next**: PR for item 6, then river walk
+- **task**: River walk: highlight selected spot's upstream path, gauges light up in replays
+- **next**: PR, then wait for visual feedback
 - **needs**: 
 - **notes**: 
-- **branch**: app/ux-gauges
-- **head**: 11fb8fd Gauge icons with hover cards; fit the map to the whole catchme
+- **branch**: app/ux-ea-badges
+- **head**: ca5f4b5 Replay badges on the spot markers: River Clock vs the EA, and 
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T21:45:13Z
+- **updated**: 2026-10-24T21:47:52Z
