@@ -9,7 +9,10 @@ import {
   SPREAD_LIMITATIONS,
   type SpreadFrame,
   frameUrl,
+  SPREAD_RAMP,
   iouSentence,
+  legendGradient,
+  legendPos,
   pickFrame,
   usableManifest,
 } from "./frames";
@@ -66,6 +69,24 @@ describe("pickFrame", () => {
   });
 });
 
+describe("legend ramp", () => {
+  it("uses exactly the PNG ramp stops (green to red), with 5% at the left end and 100% at the right", () => {
+    expect(SPREAD_RAMP).toEqual([
+      { at: 0.05, colour: "#1a9850" },
+      { at: 0.3, colour: "#91cf60" },
+      { at: 0.5, colour: "#fee08b" },
+      { at: 0.75, colour: "#fc8d59" },
+      { at: 1, colour: "#d73027" },
+    ]);
+    expect(legendPos(0.05)).toBe(0);
+    expect(legendPos(1)).toBe(100);
+    expect(legendPos(0.5)).toBeCloseTo(47.37, 1);
+    expect(legendGradient()).toBe(
+      "linear-gradient(to right, #1a9850 0.0%, #91cf60 26.3%, #fee08b 47.4%, #fc8d59 73.7%, #d73027 100.0%)",
+    );
+  });
+});
+
 describe("frameUrl", () => {
   it("resolves frames under /data/, bare names relative to the manifest's folder", () => {
     expect(frameUrl("spread/live/tau24.png", "live")).toMatch(/data\/spread\/live\/tau24\.png$/);
@@ -114,8 +135,15 @@ describe("SpreadPanel", () => {
     );
     expect(html).toContain(SPREAD_LIMITATIONS);
     expect(html).toContain("Matches the recorded Jan 2014 outline: IoU 0.62");
-    expect(html).toContain("75–100%");
+    expect(html).toContain("Share of 200 simulated floods that wet this square");
     expect(html).toContain("+24 h");
+  });
+
+  it("draws the legend as one green-to-red gradient bar ticked at 5, 25, 50, 75 and 100%", () => {
+    const html = panel(manifest, true);
+    expect(html).toContain(`background:${legendGradient()}`);
+    for (const t of ["5%", "25%", "50%", "75%", "100%"]) expect(html).toContain(`>${t}</span>`);
+    expect(html).not.toContain("75–100%"); // the old 4-class legend is gone
   });
 
   it("says no spread is expected when the run's largest extent is 0 ha", () => {

@@ -1,0 +1,16 @@
+/* S3 (SPEC §11): experimental flood-spread overlay. */
+
+/* Each PNG pixel is a 25 m square: upscale without blurring. */
+.leaflet-container img.spread-frame {
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
+/* While the overlay is on, dim the base map tiles only, so the heatmap glows.
+   Markers, the overlay and the controls live in other panes and stay as they are. */
+.leaflet-container.spread-on .leaflet-tile-pane {
+  filter: brightness(0.35) saturate(0.15) contrast(1.1);
+}
+.leaflet-container.spread-on {
+  background: #111;
+}
