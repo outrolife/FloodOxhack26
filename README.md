@@ -80,7 +80,7 @@ For each past flood and each pair of gauges (for example Farmoor → New Botley)
 
 ### The proof: leave-one-flood-out replays
 
-For each past flood we retrain every model **without that flood** (plus 7 days either side), then issue a forecast every hour through the event. No data after a forecast's issue time can affect it, and automated tests check this. Separately, we report scores on a strict time split (test period from Oct 2021).
+For each past flood we retrain every model **without that flood** (plus 7 days either side), then issue a forecast every hour through the event. No data after a forecast's issue time can affect it. Automated tests check this for the inputs (`tests/test_features.py`) and for the replays. <!-- TODO: confirm the replay leakage test is merged (SPEC §15.6); if not, say inputs only. --> Separately, we report scores on a strict time split (test period from Oct 2021).
 
 We score:
 - pinball loss and skill against persistence, by lead time;
