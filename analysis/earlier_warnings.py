@@ -44,7 +44,6 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import math
 import sys
 import time
 from collections.abc import Callable, Mapping, Sequence
@@ -98,7 +97,7 @@ NOISE_BINS_MM: tuple[float, ...] = (0.0, 0.5, 2.0, 5.0, 10.0, 20.0, np.inf)
 RATIO_FROM_MM = 2.0
 NOISE_BLOCK_H = 12  # one error draw per 12 h block, so successive rows see a coherent forecast error
 SEED = 42
-RAIN_ARMS: tuple[str, ...] = ("rain_noise", "rain_mos", "rain_noise_sm")
+RAIN_ARMS: tuple[str, ...] = ("rain_noise", "rain_mos", "rain_noise_sm", "rain_pp")
 
 
 # ---------------------------------------------------------------------------------------------
@@ -121,7 +120,9 @@ def fetch_soil_year(year: int, end: pd.Timestamp, refresh: bool = False, source:
     """
     a = f"{year}-01-01"
     b = min(pd.Timestamp(f"{year}-12-31"), end.tz_localize(None).normalize()).strftime("%Y-%m-%d")
-    model, url, raw = (SM_MODEL, ARCHIVE_URL, SM_RAW_DIR) if source == "era5" else (IFS_MODEL, IFS_URL, IFS_RAW_DIR)
+    model, url, raw = (
+        (SM_MODEL, ARCHIVE_URL, SM_RAW_DIR) if source == "era5" else (IFS_MODEL, IFS_URL, IFS_RAW_DIR)
+    )
     path = raw / f"{model}_{a}_{b}.json"
     if path.is_file() and not refresh:
         return path
@@ -180,7 +181,9 @@ def load_soil(raw_dir: Path = SM_RAW_DIR, source: str = "era5") -> pd.DataFrame:
         for loc in body:
             h = loc["hourly"]
             idx = pd.DatetimeIndex(pd.to_datetime(h["time"])).tz_localize("UTC")
-            stack.append(np.column_stack([np.asarray(h[f"soil_moisture_{x}"], dtype=float) for x in SM_LAYERS]))
+            stack.append(
+                np.column_stack([np.asarray(h[f"soil_moisture_{x}"], dtype=float) for x in SM_LAYERS])
+            )
         arr = np.stack(stack)  # points x hours x layers
         with np.errstate(invalid="ignore"):
             mean = np.where(np.isnan(arr).any(axis=0), np.nan, arr.mean(axis=0))
@@ -226,7 +229,9 @@ def soil_features(sm: pd.DataFrame, index: pd.DatetimeIndex, lag_h: int = 0) -> 
     return pd.DataFrame(out, index=full)[cols].reindex(index)
 
 
-def quantile_map(src: pd.DataFrame, ref: pd.DataFrame, window: tuple[pd.Timestamp, pd.Timestamp]) -> pd.DataFrame:
+def quantile_map(
+    src: pd.DataFrame, ref: pd.DataFrame, window: tuple[pd.Timestamp, pd.Timestamp]
+) -> pd.DataFrame:
     """Map each column of ``src`` onto ``ref``'s distribution (empirical quantiles fitted on ``window``).
 
     A fixed monotone transform per column (fitted on past data only), applied pointwise: the value at t
@@ -391,7 +396,9 @@ class WithExtra:
         return self.m.persistence(n)
 
     def predict(self, X: pd.DataFrame, calibrated: bool = True) -> dict[int, np.ndarray]:
-        Xr = X.drop(columns=[c for c in self.extra.columns if c in X.columns]).join(self.extra.reindex(X.index))
+        Xr = X.drop(columns=[c for c in self.extra.columns if c in X.columns]).join(
+            self.extra.reindex(X.index)
+        )
         return self.m.predict(Xr, calibrated)
 
 
@@ -455,10 +462,14 @@ class Arm:
             self._sm = load_soil()
         return self._sm
 
-    def train_extra(self, hourly: pd.DataFrame, target: str, medians: Mapping[str, float], index: pd.DatetimeIndex):
+    def train_extra(
+        self, hourly: pd.DataFrame, target: str, medians: Mapping[str, float], index: pd.DatetimeIndex
+    ):
         return self.extra(hourly, target, index, training=True)
 
-    def extra(self, hourly: pd.DataFrame, target: str, index: pd.DatetimeIndex, training: bool = False) -> pd.DataFrame:
+    def extra(
+        self, hourly: pd.DataFrame, target: str, index: pd.DatetimeIndex, training: bool = False
+    ) -> pd.DataFrame:
         if self.name == "sm_now" or (self.name == "sm_ifs" and training):
             return soil_features(self.soil(), index, 0)
         if self.name == "sm_ifs":  # the sm_now models, fed the live-available IFS analysis
@@ -475,7 +486,7 @@ class Arm:
         if self.name == "rain_noise_sm":  # PM order (#134): noise-aware rain together with soil moisture
             sm = soil_features(self.soil(), index, SM_LIVE_LAG_H)
             return Arm("rain_noise").extra(hourly, target, index, training).join(sm)
-        if self.name in ("rain_noise", "rain_mos"):
+        if self.name in ("rain_noise", "rain_mos", "rain_pp"):
             from analysis import rain_experiment as RE
 
             rain_obs = hourly[hourly["gauge"] == RE.RAIN_KEY].set_index("ts_utc")["rain_mm"]
@@ -499,14 +510,16 @@ class Arm:
 def arm_dir(arm: str, event_id: str | None = None) -> Path:
     if arm == "baseline":
         return BASELINE_DIR if event_id is None else BASELINE_LOFO_DIR / event_id
-    if arm == "rain_mos":
+    if arm in ("rain_mos", "rain_pp"):  # rain_pp = the #100 honest variant, for reference
         return RAIN_PP_DIR if event_id is None else EXP_DIR / "rain_pp_lofo" / event_id
     if arm == "sm_ifs":
         arm = "sm_now"
     return EXP_DIR / arm if event_id is None else EXP_DIR / f"{arm}_lofo" / event_id
 
 
-def load_arm(arm: str, hourly: pd.DataFrame, event_id: str | None = None, a: Arm | None = None) -> dict[str, Any]:
+def load_arm(
+    arm: str, hourly: pd.DataFrame, event_id: str | None = None, a: Arm | None = None
+) -> dict[str, Any]:
     d = arm_dir(arm, event_id)
     models = {g: GaugeModel.load(d / g) for g in TARGETS if (d / g / "meta.json").exists()}
     if arm == "baseline":
@@ -541,8 +554,13 @@ def event_block(
         for r in ev["perEvent"]
         if r["crossed"]
     ]
-    return {"variant": name, "events": list(replays), "tradeoffP50": p50, "officialOutcome": ev["officialOutcome"],
-            "perEvent": per}
+    return {
+        "variant": name,
+        "events": list(replays),
+        "tradeoffP50": p50,
+        "officialOutcome": ev["officialOutcome"],
+        "perEvent": per,
+    }
 
 
 def models_per_event(arm: str, hourly: pd.DataFrame, event_ids: Sequence[str]) -> dict[str, Any]:
@@ -562,7 +580,9 @@ def models_per_event(arm: str, hourly: pd.DataFrame, event_ids: Sequence[str]) -
     return out
 
 
-def evaluate(arms: Sequence[str], with_events: bool, rain_window: bool) -> dict[str, Any]:
+def evaluate(
+    arms: Sequence[str], with_events: bool, rain_window: bool, rain_start: pd.Timestamp = RAIN_EVAL_START
+) -> dict[str, Any]:
     from analysis.rain_experiment import score_variant
     from model import backtest
     from model.train import build_xy, load_hourly
@@ -577,16 +597,23 @@ def evaluate(arms: Sequence[str], with_events: bool, rain_window: bool) -> dict[
         X, _ = build_xy(hourly, g, base[g].medians, base[g].lags)
         ok = X["level_now"].notna()
         rows_full[g] = X.index[(ok & (X.index >= test_start)).to_numpy()]
-        rows_rain[g] = X.index[(ok & (X.index >= RAIN_EVAL_START)).to_numpy()]
-    out: dict[str, Any] = {"issue": 134, "testStart": str(test_start), "rainEvalStart": str(RAIN_EVAL_START),
-                           "testPeriod": [], "rainWindow": [], "events": [], "testEvents": []}
+        rows_rain[g] = X.index[(ok & (X.index >= rain_start)).to_numpy()]
+    out: dict[str, Any] = {
+        "issue": 134,
+        "testStart": str(test_start),
+        "rainEvalStart": str(rain_start),
+        "testPeriod": [],
+        "rainWindow": [],
+        "events": [],
+        "testEvents": [],
+    }
     for arm in arms:
         t0 = time.time()
         models = load_arm(arm, hourly)
         if arm not in RAIN_ARMS:
             out["testPeriod"].append(score_variant(arm, models, hourly, spots, rows_full, (test_start, end)))
         if rain_window:
-            out["rainWindow"].append(score_variant(arm, models, hourly, spots, rows_rain, (RAIN_EVAL_START, end)))
+            out["rainWindow"].append(score_variant(arm, models, hourly, spots, rows_rain, (rain_start, end)))
         test_ev = ("e2024b", "e2026") if arm in RAIN_ARMS else ("e2024a", "e2024b", "e2026")
         out["testEvents"].append(event_block(arm, {e: models for e in test_ev}, hourly, spots))
         if with_events and arm not in RAIN_ARMS:
@@ -623,7 +650,8 @@ def report(res: Mapping[str, Any]) -> str:
             for spot, r in v["tradeoffP50"].items():
                 oo = v["officialOutcome"].get(spot, {})
                 lines.append(
-                    f"   {spot}: hits {r['hits']} miss {r['misses']} FA {r['falseAlarms']} lead {r['meanLeadH']} "
+                    f"   {spot}: hits {r['hits']} miss {r['misses']} FA {r['falseAlarms']} "
+                    f"lead {r['meanLeadH']} "
                     f"vsEA {r['meanLeadVsOfficialH']} | EA hits {oo.get('hits')} FA {oo.get('falseAlarms')}"
                 )
             for p in v["perEvent"]:
@@ -637,7 +665,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     f = sub.add_parser("fetch")
     f.add_argument("--refresh", action="store_true")
     t = sub.add_parser("train")
-    t.add_argument("--arm", required=True, choices=["sm_now", "sm_lag7d", "coinc", "rain_noise", "rain_noise_sm"])
+    t.add_argument(
+        "--arm", required=True, choices=["sm_now", "sm_lag7d", "coinc", "rain_noise", "rain_noise_sm"]
+    )
     t.add_argument("--targets", nargs="+", default=list(TARGETS))
     t.add_argument("--lofo", action="store_true", help="leave-one-flood-out models for the pre-test events")
     t.add_argument("--events", nargs="+", default=None)
@@ -645,14 +675,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     e.add_argument("--arms", nargs="+", default=["baseline"])
     e.add_argument("--events", action="store_true", help="all-event replays (needs LOFO models)")
     e.add_argument("--rain-window", action="store_true")
+    e.add_argument("--rain-start", default=str(RAIN_EVAL_START.date()))
     e.add_argument("--out", default=str(OUT_PATH))
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     if args.cmd == "fetch":
         fetch_soil(refresh=args.refresh)
         sm = load_soil()
-        log.info("soil moisture %s .. %s, %d rows, NaN %s", sm.index.min(), sm.index.max(), len(sm),
-                 sm.isna().sum().to_dict())
+        log.info(
+            "soil moisture %s .. %s, %d rows, NaN %s",
+            sm.index.min(),
+            sm.index.max(),
+            len(sm),
+            sm.isna().sum().to_dict(),
+        )
         return 0
     if args.cmd == "train":
         from model import backtest, proof
@@ -680,7 +716,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 m.save(d)
                 log.info("saved %s in %.0f s", d, time.time() - t0)
         return 0
-    res = evaluate(args.arms, args.events, args.rain_window)
+    res = evaluate(args.arms, args.events, args.rain_window, pd.Timestamp(args.rain_start, tz="UTC"))
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(res, indent=1, default=str), encoding="utf-8")
     print(report(res))

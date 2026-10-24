@@ -43,7 +43,9 @@ def _hourly(seed: int = 0) -> pd.DataFrame:
     rows = []
     for g in sorted(gauges):
         v = 1.0 + 0.02 * rng.standard_normal(N).cumsum()
-        rows.append(pd.DataFrame({"gauge": g, "ts_utc": _idx(), "kind": "level", "level_mean": v, "rain_mm": np.nan}))
+        rows.append(
+            pd.DataFrame({"gauge": g, "ts_utc": _idx(), "kind": "level", "level_mean": v, "rain_mm": np.nan})
+        )
     return pd.concat(rows, ignore_index=True)
 
 
