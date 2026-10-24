@@ -10,6 +10,7 @@ import {
   formatPct,
   liveProbability,
   officialFromPerEvent,
+  officialFromProof,
   officialFromReplays,
   officialMeanLeadH,
   optimalTrigger,
@@ -23,7 +24,7 @@ import { FixtureNotice } from "../components/shared/DataNotice";
 import { formatCount, formatGBP, formatHours, niceRound } from "../components/decide/format";
 
 // The slices of the §9 contracts this tab reads.
-type ProofSlice = Pick<Proof, "tradeoff" | "perEvent">;
+type ProofSlice = Pick<Proof, "tradeoff" | "perEvent" | "officialOutcome">;
 type SpotSlice = Pick<Spot, "key" | "name" | "mode">;
 
 type LiveState =
@@ -63,10 +64,13 @@ function useLiveForecast(): LiveState {
  * exactly (warning issued before the crossing). Resolves to null unless every
  * event has its own replay: the loader's fixture fallback serves the sample
  * replay for any id, so a replay only counts if its eventId matches.
+ * Only loads when `enabled` (proof.officialOutcome makes the replays, which
+ * are tens of MB, unnecessary here).
  */
-function useAllReplays(): ReplayOfficial[] | null {
+function useAllReplays(enabled: boolean): ReplayOfficial[] | null {
   const [replays, setReplays] = useState<ReplayOfficial[] | null>(null);
   useEffect(() => {
+    if (!enabled) return;
     let alive = true;
     (async () => {
       try {
@@ -87,7 +91,7 @@ function useAllReplays(): ReplayOfficial[] | null {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [enabled]);
   return replays;
 }
 
@@ -113,7 +117,7 @@ export default function Decide() {
   const proof = useData<ProofSlice>("proof.json");
   const spots = useData<SpotSlice[]>("spots.json");
   const live = useLiveForecast();
-  const replays = useAllReplays();
+  const replays = useAllReplays(proof.status === "error" || (proof.status === "ready" && !proof.data.officialOutcome));
 
   const [costs, setCosts] = useState<Costs>({ C: PRESETS[0].C, L: PRESETS[0].L });
   const [spotKey, setSpotKey] = useState<string | null>(null);
@@ -133,10 +137,16 @@ export default function Decide() {
   const pStar = optimalTrigger(costs);
   const official = useMemo(() => {
     if (!spot) return null;
+    // Preferred: the backtest's own scoring of official warnings (proof.officialOutcome).
+    const fromProof = proof.status === "ready" ? officialFromProof(proof.data, spot) : null;
+    if (fromProof) {
+      const { hits, misses, falseAlarms, meanLeadH } = fromProof;
+      return { counts: { hits, misses, falseAlarms }, source: "proof" as const, meanLeadH };
+    }
     const fromReplays = replays ? officialFromReplays(replays, spot) : null;
-    if (fromReplays) return { counts: fromReplays, source: "replays" as const };
-    const fromProof = proof.status === "ready" ? officialFromPerEvent(proof.data.perEvent, spot) : null;
-    return fromProof ? { counts: fromProof, source: "perEvent" as const } : null;
+    if (fromReplays) return { counts: fromReplays, source: "replays" as const, meanLeadH: null };
+    const fromPerEvent = proof.status === "ready" ? officialFromPerEvent(proof.data.perEvent, spot) : null;
+    return fromPerEvent ? { counts: fromPerEvent, source: "perEvent" as const, meanLeadH: null } : null;
   }, [replays, proof, spot]);
   const result = useMemo(() => {
     if (proof.status !== "ready" || !spot) return null;
@@ -259,7 +269,11 @@ export default function Decide() {
                     <tr>
                       <td>Mean lead time of hits</td>
                       <td className="num">{formatHours(o.meanLeadH)}</td>
-                      <td className="muted">official warnings ≈ {formatHours(officialMeanLeadH(o))}</td>
+                      <td className="muted">
+                        {official?.source === "proof"
+                          ? `official warnings ${formatHours(official.meanLeadH)}`
+                          : `official warnings ≈ ${formatHours(officialMeanLeadH(o))}`}
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -276,9 +290,11 @@ export default function Decide() {
                 Each hit or false alarm costs C; each miss costs L. <strong>River Clock</strong>: act when the forecast
                 reaches p* (outcomes interpolated from the backtest). <strong>Official warnings</strong>: act on every EA
                 Flood Warning for the spot's area (alerts don't count);{" "}
-                {official?.source === "replays"
-                  ? "scored from the event replays (a warning issued after the crossing is a miss)."
-                  : "inferred from the per-event comparison, which can only see official warnings on events River Clock also triggered on."}{" "}
+                {official?.source === "proof"
+                  ? "scored by the backtest with the same rules as River Clock (a warning issued after the crossing is a miss)."
+                  : official?.source === "replays"
+                    ? "scored from the event replays (a warning issued after the crossing is a miss)."
+                    : "inferred from the per-event comparison, which can only see official warnings on events River Clock also triggered on."}{" "}
                 <strong>Never act</strong>: every flood is a miss.{" "}
                 <strong>Always act</strong>: act on every flood and on every false-alarm episode the most sensitive
                 trigger flagged; a lower bound, since acting literally all the time would cost more.
