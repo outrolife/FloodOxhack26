@@ -30,13 +30,15 @@ export function ProtectMap({
   outline: OutlineFeature | null;
 }) {
   return (
-    <BaseMap bounds={manifest.bounds} className="spread-on protect-map" label="Osney and Botley: where water could spread">
+    <BaseMap bounds={manifest.bounds} className="protect-map">
       {frameUrl && (
-        <Pane name="rc-protect-spread" style={{ zIndex: 380 }}>
+        // Above the vector basemap (overlay pane, z 400) so the heat shows over water and parks;
+        // building outlines stay visible through it.
+        <Pane name="rc-protect-spread" style={{ zIndex: 450 }}>
           <ImageOverlay
             url={frameUrl}
             bounds={manifest.bounds}
-            opacity={0.85}
+            opacity={0.75}
             interactive={false}
             className="spread-frame"
             attribution="Flood spread: experimental terrain fill on EA LiDAR (OGL v3.0)"
@@ -44,7 +46,7 @@ export function ProtectMap({
         </Pane>
       )}
       {outline && (
-        <Pane name="rc-protect-outline" style={{ zIndex: 390 }}>
+        <Pane name="rc-protect-outline" style={{ zIndex: 460 }}>
           <GeoJSON
             key={outline.properties.label ?? "outline"}
             data={outline as unknown as GeoJsonObject}
@@ -82,7 +84,7 @@ function PinMarker({ pin, active, onSelect }: { pin: Pin; active: boolean; onSel
       alt={label}
       keyboard
       zIndexOffset={active ? 1000 : 0}
-      eventHandlers={{ click: () => onSelect(c.id), keypress: () => onSelect(c.id) }}
+      eventHandlers={{ click: () => onSelect(c.id) }}
     />
   );
 }

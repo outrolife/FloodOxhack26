@@ -1,0 +1,85 @@
+/* Protect screen (#121). Builds on styles.css + ui.css; no new colours for flood state. */
+
+.protect-hero { position: relative; height: 100%; min-height: 60vh; display: flex; flex-direction: column; }
+.protect-hero > .ui-basemap { flex: 1; }
+.protect-legend {
+  position: absolute; z-index: 700; left: 10px; bottom: 22px; max-width: min(320px, calc(100% - 20px));
+  background: rgba(255, 255, 255, 0.94); border-radius: 8px; padding: 6px 10px; font-size: 0.8rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+.protect-outline-key { display: flex; align-items: center; gap: 6px; margin-top: 4px; color: var(--ink-2); }
+.protect-dash { display: inline-block; width: 22px; border-top: 2px dashed var(--ink); }
+
+/* Numbered pins: dark disc, white number; the "N h" chip says when water could reach it. */
+.protect-pin { background: none; border: 0; }
+.protect-pin .protect-pin-n {
+  display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+  background: #0d366b; color: #fff; font-weight: 800; font-size: 1rem;
+  border: 3px solid #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+.protect-pin.is-active .protect-pin-n { background: #fff; color: #0d366b; border-color: #0d366b; transform: scale(1.2); }
+.protect-pin .protect-pin-h {
+  position: absolute; top: 36px; left: 50%; transform: translateX(-50%); white-space: nowrap;
+  background: rgba(255, 255, 255, 0.95); color: var(--ink); border: 1px solid var(--axis);
+  border-radius: 4px; padding: 0 4px; font-size: 0.72rem; font-weight: 700;
+}
+.protect-pin.is-wet .protect-pin-h { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+/* Badges */
+.protect-badge {
+  display: inline-block; padding: 1px 7px; border-radius: 4px; background: #e9e2f8; color: #4a2f8f;
+  font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; vertical-align: middle;
+}
+.protect-badge.is-screen { background: #eef3fa; color: var(--accent); }
+
+/* Controls */
+.protect-controls {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--ui-radius, 10px);
+  padding: 0.8rem 1rem; display: flex; flex-direction: column; gap: 0.5rem;
+}
+.protect-seg { display: flex; border: 1px solid var(--axis); border-radius: 8px; overflow: hidden; }
+.protect-seg button {
+  flex: 1; font: inherit; padding: 0.45rem 0.6rem; border: 0; background: #fff; cursor: pointer; color: var(--ink);
+}
+.protect-seg button + button { border-left: 1px solid var(--axis); }
+.protect-seg button[aria-checked="true"] { background: #0d366b; color: #fff; font-weight: 700; }
+.protect-slider { display: flex; flex-direction: column; gap: 2px; font-size: 0.95rem; }
+.protect-slider input[type="range"] { width: 100%; accent-color: var(--series-1); }
+.protect-caption { margin: 0; font-size: 0.85rem; color: var(--ink-2); }
+.protect-play {
+  align-self: flex-start; font: inherit; font-size: 0.9rem; padding: 0.35rem 0.8rem; border-radius: 6px;
+  border: 1px solid var(--accent); background: #fff; color: var(--accent); cursor: pointer; font-weight: 600;
+}
+.protect-play:disabled { opacity: 0.5; cursor: default; }
+.protect-quiet {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--ui-radius, 10px);
+  padding: 0.8rem 1rem; display: flex; flex-direction: column; gap: 0.5rem;
+}
+
+/* Pin cards */
+.protect-cards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.protect-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--ui-radius, 10px); }
+.protect-card.is-active { border-color: #0d366b; box-shadow: 0 0 0 1px #0d366b; }
+.protect-card-head {
+  display: flex; align-items: center; gap: 0.6rem; width: 100%; text-align: left; font: inherit; color: var(--ink);
+  background: none; border: 0; padding: 0.55rem 0.8rem; cursor: pointer;
+}
+.protect-num {
+  flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
+  background: #0d366b; color: #fff; font-weight: 800;
+}
+.protect-card-title { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.protect-card-when { font-size: 0.85rem; color: var(--ink-2); }
+.protect-card-bags { font-size: 0.85rem; white-space: nowrap; }
+.protect-card-bags strong { font-size: 1.15rem; }
+.protect-card-body { padding: 0 0.8rem 0.7rem; font-size: 0.9rem; }
+.protect-facts { margin: 0 0 0.4rem; display: grid; gap: 0.25rem; }
+.protect-facts div { display: grid; grid-template-columns: 9.5rem 1fr; gap: 0.5rem; }
+.protect-facts dt { color: var(--ink-2); }
+.protect-facts dd { margin: 0; font-weight: 600; }
+.protect-sub { font-weight: 700; margin-top: 0.3rem; }
+.protect-list { margin: 0.15rem 0 0.3rem; padding-left: 1.1rem; }
+.protect-checks li::marker { content: "☐  "; }
+.protect-working h3 { margin-top: 0.8rem; }
+.protect-excluded { font-size: 0.85rem; color: var(--ink-2); max-height: 18rem; overflow-y: auto; }
+@media (max-width: 600px) { .protect-facts div { grid-template-columns: 1fr; } }

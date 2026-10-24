@@ -166,8 +166,6 @@ export type HeadlineInput = {
   deadline: string | null;
 };
 
-const buildings = (n: number): string => (n === 1 ? "building" : "buildings");
-
 /**
  * The headline sentence, built from the data only. Screening wording: these are
  * the places to *check* first, never an instruction.
