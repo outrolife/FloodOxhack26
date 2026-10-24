@@ -114,6 +114,26 @@ _FALLBACK_GAUGES: list[dict[str, Any]] = [
          trace="d/s", history_ok=False,
          hydrology_measure="ab070726-7ac8-4037-a352-90552398d491-level-i-900-m-qualified",
          amber=2.72, threshold=3.25, record=3.665),
+    # Further upstream (#125 A): Thames/Windrush/Evenlode features for newbotley + minns, and two
+    # Cherwell-side gauges shown live only (history ingested, not used by the model).
+    dict(key="shifford", name="Shifford Lock u/s", river="Thames", role="upstream", ref="0904TH", trace="u/s",
+         hydrology_measure="b94cc43a-f693-4efa-8749-c4718c7eb2b8-level-i-900-m-qualified",
+         amber=0.42, threshold=None, record=0.728),
+    dict(key="hannington", name="Hannington Bridge", river="Thames", role="upstream", ref="0569TH",
+         hydrology_measure="62a5f097-03e7-4dca-91cc-cb3cf6f1c1c7-level-i-900-m-qualified",
+         amber=3.81, threshold=4.47, record=4.49),
+    dict(key="worsham", name="Worsham", river="Windrush", role="upstream", ref="1080TH",
+         hydrology_measure="bed0ef93-6faa-4f98-af56-bfb3fed3ed61-level-i-900-m-qualified",
+         amber=1.62, threshold=2.16, record=1.698),
+    dict(key="shipton", name="Shipton", river="Evenlode", role="upstream", ref="1238TH",
+         hydrology_measure="22eb53c1-ea9b-4094-a813-6d8f9328b8aa-level-i-900-m-qualified",
+         amber=2.02, threshold=2.62, record=3.437),
+    dict(key="banbury", name="Banbury", river="Cherwell", role="live_only", ref="1420TH", trace="u/s",
+         hydrology_measure="08a56e86-d214-4288-8726-8de31eb55766-level-i-900-m-qualified",
+         amber=1.14, threshold=1.83, record=2.392),
+    dict(key="lowerarncott", name="Lower Arncott", river="Ray", role="live_only", ref="1483TH",
+         hydrology_measure="2253c9fa-d697-46d6-a9b2-e4368862af85-level-i-900-m-qualified",
+         amber=2.00, threshold=3.26, record=2.984),
 ]
 
 _FALLBACK_RAIN: list[dict[str, Any]] = [
@@ -130,9 +150,10 @@ _FALLBACK_RAIN: list[dict[str, Any]] = [
 ]
 
 # Ingest order (PM, SPEC §4.1.1): primary target newbotley + Thames upstreams first, then the other
-# targets and the Cherwell; the live-only locks (u/s history only) last.
+# targets and the Cherwell; the live-only locks (u/s history only), then the #125 further-upstream gauges.
 PRIORITY = ["newbotley", "farmoor", "eynsham", "cassington", "minns", "coldharbour", "kingsmill",
-            "enslow", "islip", "osney", "godstow", "iffley"]
+            "enslow", "islip", "osney", "godstow", "iffley",
+            "shifford", "hannington", "worsham", "shipton", "banbury", "lowerarncott"]
 
 _FIELDS = {"key", "name", "river", "role", "ref", "trace", "history_ok", "hydrology_measure", "fm_measure",
            "amber", "threshold", "record"}
