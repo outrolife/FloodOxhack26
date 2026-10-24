@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: working
 - **issue**: #6
-- **task**: Finishing features.py draft (s-s01s-model) on model/features
-- **next**: Adapt to hourly.parquet kind/rain-gauge schema + lags.json pairs, post API on #6
+- **task**: features.py API posted on #6; tests+ruff green
+- **next**: Check for real hourly.parquet, then rebase and open PR
 - **needs**: 
 - **notes**: 
 - **branch**: model/features
-- **head**: dd67a68 Add feature builder and leakage test for model features
-- **unpushed**: 2
+- **head**: 74f05e7 Accept agreed hourly/lags formats in features and cover fallba
+- **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:07:05Z
+- **updated**: 2026-10-24T16:12:42Z
