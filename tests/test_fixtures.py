@@ -189,7 +189,14 @@ SPOT_FORECAST = {
     "arrival": Nullable({"p10": Nullable(UTC), "p50": Nullable(UTC), "p90": Nullable(UTC)}),
     "mode": Lit("probability", "timing_only"),
 }
-FORECAST = {"issuedAt": UTC, "dataAsOf": RecordOf(UTC), "stale": ListOf(STR), "spots": ListOf(SPOT_FORECAST)}
+FORECAST = {
+    "issuedAt": UTC,
+    "dataAsOf": RecordOf(UTC),
+    "stale": ListOf(STR),
+    "spots": ListOf(SPOT_FORECAST),
+    "method?": Lit("model", "persistence"),
+    "note?": STR,
+}
 REPLAY = {
     "eventId": STR,
     "name": STR,

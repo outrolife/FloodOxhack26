@@ -353,3 +353,11 @@ def test_refresh_without_processed_files_is_unavailable(
     monkeypatch.setattr(fl, "LIVE_META", tmp_path / "none.json")
     with pytest.raises(fl.LiveDataUnavailable):
         fl.refresh(T0, fetch=False)
+
+
+def test_forecast_matches_contract_schema(tmp_path: Path) -> None:
+    """build_forecast output passes the same SPEC §9 schema check as tests/fixtures/live.json."""
+    from tests.test_fixtures import FORECAST, check
+
+    hourly, meta = _live(tmp_path, FakeEA(T0 - timedelta(minutes=15)), T0)
+    check(json.loads(json.dumps(fl.build_forecast(hourly, meta, T0))), FORECAST)

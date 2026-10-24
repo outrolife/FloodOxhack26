@@ -95,6 +95,8 @@ export type Forecast = {
   dataAsOf: Record<string /*gauge*/, string>; // latest reading time per gauge, ISO 8601 UTC
   stale: string[]; // Station.key of gauges whose latest reading is > 3 h old
   spots: SpotForecast[];
+  method?: "model" | "persistence"; // "persistence" = labelled fallback until trained models exist
+  note?: string; // show in the UI when non-empty (always set when method is "persistence")
 };
 
 /** replays/{eventId}.json: the Time Machine data for one event (SPEC §8.1). */
