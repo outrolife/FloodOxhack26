@@ -1,0 +1,39 @@
+# River Clock on one VM (issue #18). From the repo root:
+#   docker compose -f deploy/compose.yaml up -d --build
+# Plain HTTP on port 80 by default. For HTTPS, point a domain's A record at the VM and set
+#   SITE_ADDRESS=rc.example.org   (in deploy/.env or the shell); Caddy then gets a certificate itself.
+name: river-clock
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: river-clock:latest
+    restart: unless-stopped
+    environment:
+      RIVER_CLOCK_LIVE_FETCH: ${RIVER_CLOCK_LIVE_FETCH:-1}  # 0 = no EA polling, serve last data only
+    volumes:
+      - rc-data:/data  # live readings, EA cache, optional trained models (/data/models)
+    expose:
+      - "8000"  # reachable only through Caddy
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  rc-data:
+  caddy-data:
+  caddy-config:

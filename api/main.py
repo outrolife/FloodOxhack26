@@ -6,6 +6,11 @@ GET /api/live returns the current Forecast from ``model/forecast_live.py``, reco
 
 Set ``RIVER_CLOCK_LIVE_FETCH=0`` to serve only the last processed live data without polling the EA.
 
+Set ``RIVER_CLOCK_STATIC_DIR`` to a built web app (``web/dist``) to serve it from this same process:
+files at ``/`` (so ``/data/*.json`` too), with unknown page paths falling back to ``index.html``.
+This is how the single-container deploy works (``deploy/``, issue #18). Unset, the API serves only
+``/api/*``, as in development.
+
 Issue #16.
 """
 
@@ -16,9 +21,13 @@ import os
 import threading
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.staticfiles import StaticFiles
+from starlette.types import Scope
 
 from model import forecast_live
 
@@ -79,3 +88,32 @@ def live() -> dict[str, Any]:
         return live_cache.get()
     except forecast_live.LiveDataUnavailable as exc:
         raise HTTPException(status_code=503, detail="Live data unavailable") from exc
+
+
+class SPAStaticFiles(StaticFiles):
+    """Static files with a single-page-app fallback.
+
+    A missing page path (no file extension, e.g. ``/proof``) gets ``index.html`` so the React app can
+    route it. Missing files (``/data/x.json``, ``/assets/y.js``) and anything under ``/api/`` stay 404,
+    so the web app's fixture fallback and API clients see a real error.
+    """
+
+    async def get_response(self, path: str, scope: Scope):  # type: ignore[override]
+        try:
+            return await super().get_response(path, scope)
+        except StarletteHTTPException as exc:
+            last = path.rsplit("/", 1)[-1]
+            if exc.status_code != 404 or path == "api" or path.startswith("api/") or "." in last:
+                raise
+            return await super().get_response("index.html", scope)
+
+
+def mount_static(target: FastAPI, directory: Path) -> None:
+    """Serve the built web app at ``/``. Call after the API routes so ``/api/*`` wins."""
+    if not (directory / "index.html").is_file():
+        raise RuntimeError(f"RIVER_CLOCK_STATIC_DIR={directory} has no index.html; run `npm run build`")
+    target.mount("/", SPAStaticFiles(directory=directory, html=True), name="web")
+
+
+if static_dir := os.environ.get("RIVER_CLOCK_STATIC_DIR"):
+    mount_static(app, Path(static_dir))

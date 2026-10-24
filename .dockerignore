@@ -1,0 +1,21 @@
+# Keep the build context small: only what deploy/Dockerfile copies matters.
+.git
+.claude
+.observer
+.venv
+venv
+data
+models
+**/node_modules
+web/dist
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.ruff_cache
+*.lgb
+*.pkl
+*.joblib
+.env
+.env.*
+.DS_Store
+stretch

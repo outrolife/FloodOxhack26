@@ -50,3 +50,14 @@ test: setup
 
 lint: setup
 	$(VENV)/bin/ruff check .
+
+# Single-container deploy (issue #18; deploy/README.md)
+.PHONY: serve docker
+
+# Production-style run without Docker: build the web app, then serve it and the API from one process on :8000
+serve: setup
+	cd web && npm ci && npm run build
+	RIVER_CLOCK_STATIC_DIR=web/dist $(VENV)/bin/uvicorn api.main:app --port 8000
+
+docker:
+	docker build -f deploy/Dockerfile -t river-clock .

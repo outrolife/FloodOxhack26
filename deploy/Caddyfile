@@ -1,0 +1,5 @@
+# SITE_ADDRESS is ":80" (plain HTTP on the VM's IP) or a domain name (automatic HTTPS via Let's Encrypt).
+{$SITE_ADDRESS}
+
+encode gzip zstd
+reverse_proxy app:8000
