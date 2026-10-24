@@ -97,3 +97,6 @@ Every screen says: *Decision-support prototype, not an official warning. Check g
 - Code: https://github.com/outrolife/FloodOxhack26
 - Demo: runs locally and fully offline (`make web`); no public deploy.
 - Video: <!-- TODO if required -->
+
+## Team
+One team of three: s-s01s (project manager and integration), alfredo and adi.
