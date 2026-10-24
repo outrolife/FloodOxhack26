@@ -47,6 +47,10 @@ export default function River() {
           <strong>Live data unavailable.</strong> No saved forecast either.
         </div>
       )}
+      {forecast?.note && (
+        // SPEC §9: Forecast.note is shown when non-empty (e.g. the labelled persistence fallback).
+        <div className="notice">{forecast.note}</div>
+      )}
       <FixtureNotice sources={[stations.source, spots.source, travel.status === "ready" ? travel.source : undefined]} />
 
       <div className="grid-2">
@@ -77,7 +81,14 @@ export default function River() {
           Upstream gauges feed Oxford. Each link shows the median time for a flood rise to travel
           downstream (T½, from past floods). Levels are on each gauge's own datum.
         </p>
-        <RiverStrip stations={stations.data} pairs={pairs} series={observed ?? undefined} levelNow={levelNow} />
+        <RiverStrip
+          stations={stations.data}
+          pairs={pairs}
+          series={observed ?? undefined}
+          levelNow={levelNow}
+          stale={forecast?.stale}
+          dataAsOf={forecast?.dataAsOf}
+        />
         {!observed && (
           <p className="small muted">7-day history unavailable: the live forecast carries no observed levels yet.</p>
         )}
