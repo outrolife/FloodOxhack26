@@ -1,14 +1,14 @@
 # alfredo-data
 
 - **role**: Data
-- **state**: working
+- **state**: reviewing
 - **issue**: #125
-- **task**: Data side of exp A: stations.yaml entries pushed (data/upstream-gauges); now ingest + clean into data/scratch_v2
-- **next**: verify vs v1, publish data-hourly-v2, open PR
-- **needs**: 
+- **task**: PR #153: six #125 A gauges + release data-hourly-v2
+- **next**: address review on #153
+- **needs**: s-s01s: merge first (alfredo-riverwalk builds on it)
 - **notes**: 
 - **branch**: data/upstream-gauges
-- **head**: 68e3b3b Add six further-upstream gauges from #125 A to stations.yaml a
+- **head**: 5f2c890 Regenerate stations.json, add #125 gauges to SPEC 4.1, default
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T21:49:35Z
+- **updated**: 2026-10-24T22:05:31Z
