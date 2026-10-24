@@ -26,6 +26,7 @@ export function SpreadPanel({
   at,
   imageMissing,
   hideWhenMissing,
+  wide,
 }: {
   /** null: no manifest for this context. */
   manifest: SpreadManifest | null;
@@ -42,11 +43,14 @@ export function SpreadPanel({
   imageMissing?: boolean;
   /** River: no manifest means no toggle at all. Time Machine: a disabled toggle and a note. */
   hideWhenMissing?: boolean;
+  /** In a card rather than a map corner: no width cap. */
+  wide?: boolean;
 }) {
+  const box = wide ? { ...S.box, maxWidth: "none", padding: 0 } : S.box;
   if (!manifest) {
     if (hideWhenMissing) return null;
     return (
-      <div style={S.box}>
+      <div style={box}>
         <label style={{ ...S.toggle, color: "#8b8a86" }}>
           <input type="checkbox" disabled checked={false} onChange={() => {}} />
           {TOGGLE_LABEL}
@@ -62,7 +66,7 @@ export function SpreadPanel({
   const extraCaveats = manifest.caveats.filter((c) => !SPREAD_LIMITATIONS.includes(c.trim()));
 
   return (
-    <div style={S.box}>
+    <div style={box}>
       <label style={S.toggle}>
         <input type="checkbox" checked={on} onChange={(e) => onToggle(e.target.checked)} />
         {TOGGLE_LABEL}

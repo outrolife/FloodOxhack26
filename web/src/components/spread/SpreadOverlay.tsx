@@ -34,7 +34,8 @@ type SpreadState = {
 /** Manifest, toggle, lead and the frame to draw, for "live" or an event id. */
 function useSpread(context: string, at: string | undefined): SpreadState {
   const spread = useData<SpreadManifest>(SHOW_S3 ? manifestFile(context) : null);
-  const [on, setOn] = useState(false);
+  // Off by default (SPEC §11); ?spread=1 in the URL starts it on (demos, screenshots).
+  const [on, setOn] = useState(() => new URLSearchParams(window.location.search).get("spread") === "1");
   const [tau, setTau] = useState<number>(DEFAULT_LEAD);
   const [failed, setFailed] = useState<string | null>(null);
 
@@ -113,7 +114,7 @@ export function SpreadMapCard({ eventId, at }: { eventId: string; at: string }) 
   if (!SHOW_S3 || !s.ready) return null;
   return (
     <div className="card">
-      <SpreadPanel {...panelProps(s, at)} />
+      <SpreadPanel {...panelProps(s, at)} wide />
       {s.on && s.manifest && (
         <div className="map-wrap" style={{ height: 260, marginTop: 8 }}>
           <MapContainer bounds={s.manifest.bounds} scrollWheelZoom={false}>

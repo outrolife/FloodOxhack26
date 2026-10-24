@@ -322,11 +322,11 @@ function ReplayPlayer({
             <strong>{arrivalSentence(sf, f.stale.includes(spot.gauge), spot.threshold)}</strong>
           </p>
         </div>
+        <SpreadMapCard eventId={replay.eventId} at={sliderT} />
         <div className="card">
           <h2>Upstream at this time</h2>
           <RiverStrip stations={stations} pairs={travel} series={replay.observed} until={sliderT} />
         </div>
-        <SpreadMapCard eventId={replay.eventId} at={sliderT} />
       </aside>
     </div>
   );
