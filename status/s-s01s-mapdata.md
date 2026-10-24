@@ -1,14 +1,14 @@
 # s-s01s-mapdata
 
 - **role**: Data
-- **state**: idle
-- **issue**: 
-- **task**: 
-- **next**: 
+- **state**: working
+- **issue**: #152
+- **task**: Map v3 data: river paths, catchment rivers, PMTiles basemap
+- **next**: Overpass fetch of catchment waterways
 - **needs**: 
 - **notes**: 
 - **branch**: data/map-v3
 - **head**: 728aa2d Merge pull request #150 from outrolife/app/ux-river-walk
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T22:03:40Z
+- **updated**: 2026-10-24T22:03:43Z
