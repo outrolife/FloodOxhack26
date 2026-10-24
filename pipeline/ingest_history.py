@@ -7,11 +7,11 @@ with the source URLs and download times, used for provenance.
 Sources per series:
 - Level gauges and rain gauges: Hydrology API 15-min measure, one cached request per calendar year,
   from 2006 (or the gauge's first reading) to now.
-- Lock gauges whose §4.1 measure is the downstream stage (eynsham, godstow, osney, iffley): the
-  Hydrology API only has the upstream head-water stage, stored as ``<key>_us``. The §4.1 downstream
+- Live-only lock gauges whose key is the d/s stage (osney, godstow, iffley; ``history_ok: false``):
+  the Hydrology API only has the u/s head-water stage, stored as ``<key>_us`` (context only). The d/s
   series ``<key>`` comes from the SPEC fallback, the flood-monitoring daily archive CSVs, for the §4.3
-  event windows (the archive only goes back about 12 months). ``--archive-all`` fetches every
-  archived day instead (~60 MB per day download, a few KB cached).
+  event windows (the archive starts 2025-10-29). ``--archive-all`` fetches every archived day instead
+  (~60 MB download per day, a few KB cached).
 
 Hydrology and archive timestamps are UTC (EA data are in GMT throughout).
 
@@ -31,7 +31,7 @@ import pandas as pd
 import yaml
 
 from pipeline import ea_client
-from pipeline.stations import REPO_ROOT, Gauge, data_root, load_gauges, series_key
+from pipeline.stations import REPO_ROOT, Gauge, data_root, hydrology_series_key, hydrology_trace, load_gauges
 
 log = logging.getLogger("pipeline.ingest_history")
 
@@ -141,7 +141,7 @@ def ingest_hydrology(g: Gauge, series: str, start_year: int, today: date) -> dic
         "series": series, "gauge": g.key, "kind": g.kind, "source": "hydrology",
         "source_url": url, "licence": ea_client.LICENCE_OGL,
         "downloaded_at": max((d for d in downloaded if d), default=None),
-        "qualifier": "upstream" if series.endswith("_us") else g.qualifier,
+        "qualifier": hydrology_trace(g) if g.kind == "level" else None,
         "first_available": first.isoformat(),
     }
 
@@ -171,7 +171,7 @@ def ingest_archive(gauges: list[Gauge], days: list[date], all_refs: list[str]) -
         got_days.append(day.isoformat())
         body = ea_client.read_cached(path)
         for g in gauges:
-            frames[g.key].append(parse_archive_csv(body, g.fm_measure, g.key, g.kind, "fm_archive"))
+            frames[g.key].append(parse_archive_csv(body, g.fm_level_measure, g.key, g.kind, "fm_archive"))
         if (i + 1) % 10 == 0:
             log.info("archive: %d/%d days", i + 1, len(days))
     entries = []
@@ -182,10 +182,10 @@ def ingest_archive(gauges: list[Gauge], days: list[date], all_refs: list[str]) -
         entries.append({
             "series": g.key, "gauge": g.key, "kind": g.kind, "source": "fm_archive",
             "source_url": f"{ea_client.FLOOD_MONITORING}/archive/readings-{{date}}.csv "
-                          f"(measure {g.fm_measure})",
+                          f"(measure {g.fm_level_measure})",
             "licence": ea_client.LICENCE_OGL,
             "downloaded_at": datetime.now(UTC).isoformat(timespec="seconds"),
-            "qualifier": "downstream", "archive_days": got_days,
+            "qualifier": g.trace, "archive_days": got_days,
         })
     return entries
 
@@ -212,13 +212,22 @@ def main(argv: list[str] | None = None) -> None:
         manifest = json.loads(manifest_path().read_text())
 
     for g in [*levels, *rains]:
-        series = series_key(g, upstream_stage=g.is_lock_downstream)
+        series = hydrology_series_key(g) if g.kind == "level" else g.key
         manifest[series] = ingest_hydrology(g, series, args.start, today)
 
-    locks = [g for g in levels if g.is_lock_downstream]
+    # Drop series a config change made stale (e.g. eynsham switched from d/s to its u/s series).
+    all_levels, all_rains = load_gauges()
+    expected = {hydrology_series_key(g) for g in all_levels} | {g.key for g in all_rains}
+    expected |= {g.key for g in all_levels if g.needs_archive}
+    for stale in sorted(set(manifest) - expected):
+        log.info("dropping stale series %s from the manifest", stale)
+        manifest.pop(stale)
+        (interim_dir() / f"{stale}.parquet").unlink(missing_ok=True)
+
+    locks = [g for g in levels if g.needs_archive]
     if locks and not args.no_archive:
         days = archive_days(load_event_windows(), today, args.archive_all)
-        all_refs = [g.ref for g in load_gauges()[0]]
+        all_refs = [g.ref for g in all_levels]
         log.info("archive fallback for %s: %d candidate days", [g.key for g in locks], len(days))
         for entry in ingest_archive(locks, days, all_refs):
             manifest[entry["series"]] = entry

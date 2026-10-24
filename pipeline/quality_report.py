@@ -28,7 +28,8 @@ MISMATCH_TOL_M = 0.02
 MAX_SHIFT_NOTES = 3
 
 SOURCE_INFO = {
-    "hydrology": ("EA Hydrology API (15-min level and rainfall)", "https://environment.data.gov.uk/hydrology/"),
+    "hydrology": ("EA Hydrology API (15-min river level)", "https://environment.data.gov.uk/hydrology/"),
+    "hydrology_rain": ("EA Hydrology API rainfall", "https://environment.data.gov.uk/hydrology/"),
     "fm_archive": ("EA flood-monitoring daily archive (downstream lock stage)",
                    "https://environment.data.gov.uk/flood-monitoring/archive"),
     "fm_meta": ("EA flood-monitoring API (station metadata and thresholds)",
@@ -52,7 +53,7 @@ def api_threshold(g: Gauge, upstream_stage: bool) -> tuple[float | None, str | N
         st = ea_client.fm_station(g.ref)
     except Exception as e:  # metadata is a nice-to-have; never fail the report on it
         return None, f"flood-monitoring metadata unavailable: {e}"
-    name = "downstageScale" if (g.is_lock_downstream and not upstream_stage) else "stageScale"
+    name = "downstageScale" if (g.trace == "d/s" and not upstream_stage) else "stageScale"
     sc = _scale(st, name)
     if not sc or sc.get("typicalRangeHigh") is None:
         return None, f"no {name}.typicalRangeHigh in flood-monitoring metadata"
@@ -74,15 +75,22 @@ def gauge_entry(series: str, st: dict[str, Any], g: Gauge | None, end: pd.Timest
         notes.append("Rain gauge (Hydrology 15-min totals); hourly sum needs >= 3 of 4 readings")
     elif g is not None:
         if upstream_stage:
-            notes.append("UPSTREAM head-water stage of the lock (Hydrology API's only level series here). "
-                         "Different datum from the downstream stage: not comparable with §4.1 thresholds")
-        elif g.is_lock_downstream:
+            notes.append("Qualifier u/s: lock head-water stage, the Hydrology API's only level series here. "
+                         "Context only: different trace and datum from the d/s gauge, not comparable with "
+                         "its thresholds")
+        elif g.needs_archive:
             days = st.get("archive_days") or []
-            notes.append(f"DOWNSTREAM stage (§4.1 measure) from the flood-monitoring daily archive only: "
-                         f"{len(days)} days ({days[0] if days else '-'} to {days[-1] if days else '-'}). "
-                         f"Hydrology API has no downstream series for this lock")
+            notes.append(f"Qualifier d/s, from the flood-monitoring daily archive only: {len(days)} days "
+                         f"({days[0] if days else '-'} to {days[-1] if days else '-'}). The Hydrology API "
+                         f"has no d/s series for this lock; role {g.role}")
+        elif g.trace == "u/s":
+            notes.append("Qualifier u/s (upstream stage of a lock or mill), Hydrology API")
         else:
-            notes.append("Stage (the station's only level series, as in §4.1), Hydrology API")
+            notes.append("Qualifier single (one-trace station), Hydrology API")
+        spec = g.extra.get("spec") if isinstance(g.extra.get("spec"), dict) else {}
+        if spec.get("amber") is not None and g.amber is not None and spec["amber"] != g.amber:
+            notes.append(f"SPEC §4.1 table amber {spec['amber']} m is for another trace; "
+                         f"config uses {g.amber} m")
         t_api, err = api_threshold(g, upstream_stage)
         t_cfg = None if upstream_stage else g.amber
         if err:
@@ -116,25 +124,46 @@ def gauge_entry(series: str, st: dict[str, Any], g: Gauge | None, end: pd.Timest
 
 def build_report(stats: dict[str, Any], prov: pd.DataFrame) -> dict[str, Any]:
     levels, rains = load_gauges()
-    by_key = {g.key: g for g in [*levels, *rains]}
     ends = [pd.Timestamp(s["last_ts"]) for s in stats.values() if s.get("last_ts")]
     end = max(ends) if ends else pd.Timestamp.now(tz="UTC")
-    order = [g.key for g in levels]
-    def sort_key(k: str) -> tuple[int, str]:
-        base = k.removesuffix(UPSTREAM_SUFFIX)
-        if base in order:
-            return (order.index(base) * 2 + (1 if k.endswith(UPSTREAM_SUFFIX) else 0), k)
-        return (1000 if k != RAIN_CATCHMENT else 999, k)
+    # §9: `gauges[].key` is a Station.key, so only config level gauges get an entry. A lock's u/s
+    # context series is summarised in that gauge's notes; rain goes in `sources`.
     gauges = []
-    for series in sorted(stats, key=sort_key):
-        g = by_key.get(series.removesuffix(UPSTREAM_SUFFIX))
-        gauges.append(gauge_entry(series, stats[series], g, end))
+    for g in levels:
+        if g.key not in stats:
+            gauges.append({"key": g.key, "coveragePct": 0.0, "gapsFilled": 0, "gapsFlagged": 0,
+                           "spikesRemoved": 0, "thresholdApi": None, "thresholdConfig": g.amber,
+                           "notes": ["No data ingested"]})
+            continue
+        entry = gauge_entry(g.key, stats[g.key], g, end)
+        us = stats.get(g.key + UPSTREAM_SUFFIX)
+        if us:
+            u = gauge_entry(g.key + UPSTREAM_SUFFIX, us, g, end)
+            entry["notes"].append(
+                f"Also in hourly.parquet as '{g.key}{UPSTREAM_SUFFIX}': the u/s head-water stage (Hydrology, "
+                f"from {str(us.get('first_valid_ts'))[:10]}), context only, different trace and datum. "
+                f"Coverage {u['coveragePct']}%, {u['gapsFilled']} gaps filled, {u['gapsFlagged']} flagged, "
+                f"{u['spikesRemoved']} spikes removed, API typicalRangeHigh {u['thresholdApi']} m")
+        gauges.append(entry)
+
+    def utc(s: Any) -> str:
+        return pd.Timestamp(s).tz_convert("UTC").strftime("%Y-%m-%dT%H:%M:%SZ")
 
     sources = []
+    rain_keys = {g.key for g in rains}
+    prov = prov.assign(source=[
+        "hydrology_rain" if (src == "hydrology" and gauge in rain_keys) else src
+        for src, gauge in zip(prov["source"], prov["gauge"], strict=True)])
     for src, grp in prov.groupby("source"):
         name, url = SOURCE_INFO.get(src, (src, ""))
+        if src == "hydrology_rain":
+            cat = stats.get(RAIN_CATCHMENT, {})
+            share = ", ".join(f"{k} {v}%" for k, v in cat.get("pct_hours_with_gauge", {}).items())
+            name = (f"EA Hydrology API rainfall, {len(grp)} gauges; catchment rain = hourly mean of the "
+                    f"available gauges (hours with data: {share}; any gauge {cat.get('hours_valid', 0)} "
+                    f"of {cat.get('hours', 0)} h)")
         sources.append({"name": name, "url": url, "licence": ea_client.LICENCE_OGL,
-                        "downloadedAt": str(grp["downloaded_at"].dropna().max()),
+                        "downloadedAt": utc(grp["downloaded_at"].dropna().max()),
                         "rows": int(grp["n_rows"].sum())})
     meta_dir = ea_client.raw_dir() / "flood_monitoring" / "stations"
     metas = [ea_client.cache_meta(p).get("downloaded_at") for p in meta_dir.glob("*.json")
@@ -143,7 +172,7 @@ def build_report(stats: dict[str, Any], prov: pd.DataFrame) -> dict[str, Any]:
     if metas:
         name, url = SOURCE_INFO["fm_meta"]
         sources.append({"name": name, "url": url, "licence": ea_client.LICENCE_OGL,
-                        "downloadedAt": max(metas), "rows": len(metas)})
+                        "downloadedAt": utc(max(metas)), "rows": len(metas)})
     return {"gauges": gauges, "sources": sources}
 
 

@@ -47,30 +47,62 @@ def test_fallback_gauges_and_lock_series_keys() -> None:
     assert keys[0] == "newbotley" and len(keys) == 12
     assert {"minns", "coldharbour"} <= set(keys)
     osney = next(g for g in levels if g.key == "osney")
-    assert osney.is_lock_downstream
-    assert osney.fm_measure == "1303TH-level-downstage-i-15_min-mASD"
-    assert stations.series_key(osney, upstream_stage=True) == "osney_us"
+    assert osney.needs_archive
+    assert osney.fm_level_measure == "1303TH-level-downstage-i-15_min-mASD"
+    assert stations.hydrology_series_key(osney) == "osney_us"
+    assert stations.hydrology_trace(osney) == "u/s"
+    eynsham = next(g for g in levels if g.key == "eynsham")
+    assert not eynsham.needs_archive and stations.hydrology_series_key(eynsham) == "eynsham"
     assert {g.key for g in rains} == {"256230TP", "254336TP", "261021TP", "264254TP", "263541TP"}
 
 
-def test_stations_yaml_overrides_fallback(tmp_path) -> None:
+def test_stations_yaml_schema(tmp_path) -> None:
+    """The config/stations.yaml schema from #2: nested hydrology block, trace, history_ok, rain by ref."""
     p = tmp_path / "stations.yaml"
     p.write_text("""
 gauges:
   - key: osney
     ref: 1303TH
     amber: 3.175
-    hydrology_measure: http://environment.data.gov.uk/hydrology/id/measures/new-level-i-900-m-qualified
-    qualifier: downstream
+    trace: d/s
+    fm_measure: 1303TH-level-downstage-i-15_min-mASD
+    hydrology:
+      level_measure: new-level-i-900-m-qualified
+      qualifier: u/s
+    history_ok: false
+  - key: newgauge
+    name: New
+    river: X
+    role: upstream
+    ref: 9999TH
+    trace: single
+    hydrology: {level_measure: abc-level-i-900-m-qualified, qualifier: single}
+    history_ok: true
 rain_gauges:
-  256230TP: {name: Osney}
+  - ref: 256230TP
+    name: Osney Lock
+    hydrology_measure: r-rainfall-t-900-mm-qualified
 """)
     levels, rains = stations.load_gauges(path=p)
     osney = next(g for g in levels if g.key == "osney")
-    assert osney.amber == 3.175
+    assert osney.amber == 3.175 and osney.needs_archive
     assert osney.hydrology_measure == "new-level-i-900-m-qualified"
     assert osney.threshold == 3.79  # untouched fields come from the fallback
+    new = next(g for g in levels if g.key == "newgauge")
+    assert new.hydrology_measure == "abc-level-i-900-m-qualified" and not new.needs_archive
     assert len(rains) == 5
+    assert next(r for r in rains if r.key == "256230TP").hydrology_measure == "r-rainfall-t-900-mm-qualified"
+
+
+def test_repo_stations_yaml_loads() -> None:
+    if not stations.STATIONS_YAML.exists():
+        pytest.skip("config/stations.yaml not present")
+    levels, rains = stations.load_gauges()
+    by = {g.key: g for g in levels}
+    assert by["newbotley"].role == "target" and not by["newbotley"].needs_archive
+    assert all(by[k].needs_archive for k in ("osney", "godstow", "iffley"))
+    assert all(g.hydrology_measure and g.hydrology_measure.endswith("-m-qualified") for g in levels)
+    assert all(r.hydrology_measure for r in rains)
 
 
 def test_cached_get_never_redownloads(tmp_path, monkeypatch) -> None:
