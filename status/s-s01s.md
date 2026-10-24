@@ -8,7 +8,7 @@
 - **needs**: 
 - **notes**: 
 - **branch**: agent/magenta/claude-workflow
-- **head**: f938dbe Add team status board, coordination rules and issue seeding
+- **head**: 80f4528 Add onboarding guide and block duplicate status names
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T15:43:42Z
+- **updated**: 2026-10-24T15:50:27Z
