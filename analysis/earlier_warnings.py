@@ -95,9 +95,10 @@ RAIN_FIT = (pd.Timestamp("2024-01-22", tz="UTC"), pd.Timestamp("2024-09-30 23:00
 RAIN_EVAL_START = pd.Timestamp("2024-10-01", tz="UTC")
 NOISE_BINS_MM: tuple[float, ...] = (0.0, 0.5, 2.0, 5.0, 10.0, 20.0, np.inf)
 RATIO_FROM_MM = 2.0
+HALF_NOISE = 0.5  # rain_half_sm: half-strength forecast error in training
 NOISE_BLOCK_H = 12  # one error draw per 12 h block, so successive rows see a coherent forecast error
 SEED = 42
-RAIN_ARMS: tuple[str, ...] = ("rain_noise", "rain_mos", "rain_noise_sm", "rain_pp")
+RAIN_ARMS: tuple[str, ...] = ("rain_noise", "rain_mos", "rain_noise_sm", "rain_pp", "rain_half_sm")
 
 
 # ---------------------------------------------------------------------------------------------
@@ -483,9 +484,16 @@ class Arm:
 
             med = cross_medians(hourly, target, DEFAULT_SPLITS.val_start)
             return coinc_features(hourly, target, med, index)
-        if self.name == "rain_noise_sm":  # PM order (#134): noise-aware rain together with soil moisture
+        if self.name in ("rain_noise_sm", "rain_half_sm"):  # PM order (#134): noisy rain + soil moisture
             sm = soil_features(self.soil(), index, SM_LIVE_LAG_H)
-            return Arm("rain_noise").extra(hourly, target, index, training).join(sm)
+            rain = Arm("rain_noise").extra(hourly, target, index, training)
+            if training and self.name == "rain_half_sm":  # half-strength error: obs + 0.5 (noisy - obs)
+                from analysis import rain_experiment as RE
+
+                rain_obs = hourly[hourly["gauge"] == RE.RAIN_KEY].set_index("ts_utc")["rain_mm"]
+                o = RE.observed_future_rain(rain_obs).reindex(index)
+                rain = o + HALF_NOISE * (rain - o)
+            return rain.join(sm)
         if self.name in ("rain_noise", "rain_mos", "rain_pp"):
             from analysis import rain_experiment as RE
 
@@ -666,7 +674,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     f.add_argument("--refresh", action="store_true")
     t = sub.add_parser("train")
     t.add_argument(
-        "--arm", required=True, choices=["sm_now", "sm_lag7d", "coinc", "rain_noise", "rain_noise_sm"]
+        "--arm",
+        required=True,
+        choices=["sm_now", "sm_lag7d", "coinc", "rain_noise", "rain_noise_sm", "rain_half_sm"],
     )
     t.add_argument("--targets", nargs="+", default=list(TARGETS))
     t.add_argument("--lofo", action="store_true", help="leave-one-flood-out models for the pre-test events")
