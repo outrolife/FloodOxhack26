@@ -46,7 +46,7 @@ export function SpreadPanel({
   /** In a card rather than a map corner: no width cap. */
   wide?: boolean;
 }) {
-  const box = wide ? { ...S.box, maxWidth: "none", maxHeight: "none", padding: 0 } : S.box;
+  const box = wide ? { ...S.box, maxWidth: "none", maxHeight: "none", overflowY: "visible" as const, padding: 0 } : S.box;
   if (!manifest) {
     if (hideWhenMissing) return null;
     return (
@@ -157,7 +157,7 @@ export function GradientLegend({ runs }: { runs: number }) {
   return (
     <div style={{ marginTop: 6 }} aria-label="Flood spread legend">
       <div style={{ fontWeight: 600 }}>{legendTitle(runs)}</div>
-      <div style={{ margin: "0 10px 0 8px" }}>
+      <div style={{ margin: "0 16px 0 10px" }}>
         <div style={{ ...S.bar, background: legendGradient() }} />
       </div>
       <div style={S.ticks}>
@@ -215,7 +215,7 @@ const S = {
   },
   leadOn: { background: "#184f95", borderColor: "#184f95", color: "#fff" },
   bar: { height: 10, marginTop: 4, borderRadius: 2, border: "1px solid rgba(11,11,11,0.25)" },
-  ticks: { position: "relative", height: 14, margin: "2px 10px 0 8px", color: "#52514e" },
+  ticks: { position: "relative", height: 14, margin: "2px 16px 0 10px", color: "#52514e" },
   tick: { position: "absolute", top: 0, transform: "translateX(-50%)", whiteSpace: "nowrap" },
   iou: { margin: "6px 0 0" },
   note: { margin: "6px 0 0", color: "#52514e" },
