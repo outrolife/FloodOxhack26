@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: working
 - **issue**: #11
-- **task**: Proof metrics module (pinball, coverage, Brier, events, bootstrap)
-- **next**: PR metrics.py, then proof.json after #39 merges
+- **task**: PR #49 metrics open; drafting model/proof.py on top of #39 branch
+- **next**: rebase proof.py onto main once #39 merges, run all events
 - **needs**: 
 - **notes**: 
 - **branch**: model/proof-metrics
-- **head**: 95074a0 Merge pull request #45 from outrolife/story/readme-devpost
+- **head**: 6c6bd4c Add proof metrics module: pinball skill, coverage, Brier, even
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:40:25Z
+- **updated**: 2026-10-24T16:44:37Z
