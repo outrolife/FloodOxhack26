@@ -1,14 +1,14 @@
 # alfredo-data
 
 - **role**: Data
-- **state**: reviewing
+- **state**: working
 - **issue**: #38
-- **task**: PR #44: fixtures refreshed post-#30 (values only)
-- **next**: Waiting for review/merge; then next task from alfredo
+- **task**: Contract PR for #38: observed, officialOutcome, officialIssuedAt, ci90 doc, low p*
+- **next**: SPEC 9 + contracts.ts + fixtures + validators, then web checks
 - **needs**: 
 - **notes**: 
-- **branch**: app/fixtures-retarget
-- **head**: d13215f Refresh contract fixtures for the post-#30 gauge setup
-- **unpushed**: 0
+- **branch**: integration/contracts-38
+- **head**: a65087b Merge pull request #49 from outrolife/model/proof-metrics
+- **unpushed**: no upstream
 - **dirty**: 0
-- **updated**: 2026-10-24T16:35:11Z
+- **updated**: 2026-10-24T16:46:53Z
