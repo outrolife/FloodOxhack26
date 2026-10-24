@@ -16,6 +16,8 @@ Commands
                             update your status and push it
   heartbeat                 refresh auto fields (branch, commit, time) and push; used by the Stop hook
   init                      create the status branch on origin if it does not exist
+  progress                  how close we are: weighted % of core issues, milestones vs SPEC §13
+  retire NAME [NAME ...]    remove finished entries from the board (yourself or <you>-<suffix> only)
   feed [--since 3h] [--json]
                             read-only timeline: status changes, claims, commits on every branch,
                             PRs and issue comments, oldest first (for the Observer, see OBSERVER.md)
@@ -347,6 +349,113 @@ def cmd_heartbeat() -> None:
     stamp.write_text(sig)
 
 
+# ----------------------------------------------------------------- progress
+# How close are we? Each core issue scores done 1, PR open 0.75, claimed 0.25, todo 0,
+# weighted P0 3 / P1 2 / P2 1. Targets are SPEC §13, in UTC (clocks go back Sun 02:00 BST).
+FREEZE = datetime(2026, 10, 25, 11, 0, tzinfo=timezone.utc)
+TARGETS = {  # issue -> SPEC §13 target, UTC
+    3: "2026-10-24T20:00Z", 7: "2026-10-24T22:00Z", 8: "2026-10-25T01:00Z", 9: "2026-10-25T03:00Z",
+    11: "2026-10-25T06:00Z", 12: "2026-10-25T06:00Z", 13: "2026-10-25T07:00Z", 14: "2026-10-25T07:00Z",
+    15: "2026-10-25T08:30Z", 16: "2026-10-25T09:30Z", 17: "2026-10-25T09:30Z", 18: "2026-10-25T09:30Z",
+    19: "2026-10-25T11:00Z",
+}
+WEIGHT = {"P0": 3, "P1": 2, "P2": 1}
+STAGE_SCORE = {"done": 1.0, "review": 0.75, "claimed": 0.25, "todo": 0.0}
+
+
+def fmt_left(delta_s: float) -> str:
+    sign, s = ("-" if delta_s < 0 else ""), abs(int(delta_s))
+    return f"{sign}{s // 3600}h{(s % 3600) // 60:02d}m"
+
+
+def cmd_progress() -> None:
+    issues = gh_json("issue", "list", "--state", "all", "--limit", "200", "--json",
+                     "number,title,state,labels,assignees")
+    prs = gh_json("pr", "list", "--state", "open", "--limit", "100", "--json",
+                  "number,closingIssuesReferences")
+    if issues is None or prs is None:
+        sys.exit("GitHub unavailable: log in to `gh`")
+    in_review = {i["number"]: p["number"] for p in prs for i in p.get("closingIssuesReferences") or []}
+    now = datetime.now(timezone.utc)
+    rows, tot_w, got_w, stretch = [], 0.0, 0.0, []
+    for i in sorted(issues, key=lambda x: x["number"]):
+        labels = {lb["name"] for lb in i["labels"]}
+        pri = next((p for p in WEIGHT if p in labels), None)
+        if "stretch" in labels:
+            stretch.append(i)
+        if not pri:
+            continue
+        if i["state"] == "CLOSED":
+            stage = "done"
+        elif i["number"] in in_review:
+            stage = "review"
+        elif "in-progress" in labels:
+            stage = "claimed"
+        else:
+            stage = "todo"
+        tot_w += WEIGHT[pri]
+        got_w += WEIGHT[pri] * STAGE_SCORE[stage]
+        rows.append((i, pri, stage))
+    pct = 100 * got_w / tot_w if tot_w else 0
+    by_stage = {s: sum(1 for r in rows if r[2] == s) for s in STAGE_SCORE}
+    p0_left = [r for r in rows if r[1] == "P0" and r[2] != "done"]
+    print(f"=== River Clock progress, {now.strftime('%a %H:%M')} UTC; code freeze in "
+          f"{fmt_left((FREEZE - now).total_seconds())} ===")
+    print(f"Core (P0–P2): {pct:.0f}% weighted | {by_stage['done']} done, {by_stage['review']} in review, "
+          f"{by_stage['claimed']} in progress, {by_stage['todo']} not started (of {len(rows)})")
+    print(f"Core gate (SPEC §13): {'MET' if all(r[2] == 'done' for r in rows) else 'not met'}; "
+          f"P0 left: {len(p0_left)}")
+    bar = int(pct / 5)
+    print("[" + "#" * bar + "." * (20 - bar) + "]")
+    for i, pri, stage in rows:
+        who = ",".join(a["login"] for a in i["assignees"]) or "-"
+        pr = f" PR #{in_review[i['number']]}" if stage == "review" else ""
+        due, flag = "", ""
+        if i["number"] in TARGETS and stage != "done":
+            left = (parse_ts(TARGETS[i["number"]]) - now).total_seconds()
+            due = f" due {fmt_left(left)}"
+            flag = "  !! LATE" if left < 0 else ("  ! <1h" if left < 3600 else "")
+        print(f"  {pri} #{i['number']:<3} {stage:<7}{pr:<9} {i['title'][:56]:<56} ({who}){due}{flag}")
+    if stretch:
+        done = sum(1 for i in stretch if i["state"] == "CLOSED")
+        print(f"Stretch S1–S4: {done}/{len(stretch)} done (only after the core gate)")
+    print("=== end progress ===")
+
+
+def cmd_retire(args: List[str]) -> None:
+    """Remove finished entries from the board: your own, or your subagents' (<you>-<suffix>)."""
+    me, _ = identity()
+    if not me or not args:
+        sys.exit("usage: status.py retire NAME [NAME ...]   (yourself or <you>-<suffix> only)")
+    for name in args:
+        if name != me and not name.startswith(me + "-"):
+            sys.exit(f"'{name}' isn't yours: you may retire '{me}' or '{me}-<suffix>' only")
+    index = git_path("status-board-index")
+    for attempt in range(4):
+        fetch_status()
+        if not ref_exists(REMOTE_REF):
+            sys.exit("no status branch")
+        env = {"GIT_INDEX_FILE": str(index)}
+        index.unlink(missing_ok=True)
+        git("read-tree", REMOTE_REF, env=env)
+        for name in args:
+            git("update-index", "--force-remove", f"status/{name}.md", env=env)
+        tree = git("write-tree", env=env)
+        index.unlink(missing_ok=True)
+        if git("rev-parse", f"{REMOTE_REF}^{{tree}}") == tree:
+            print("nothing to retire")
+            return
+        commit = git("commit-tree", tree, "-p", REMOTE_REF, "-m", f"status: retire {' '.join(args)}")
+        r = subprocess.run(["git", "push", "--quiet", REMOTE, f"{commit}:refs/heads/{BRANCH}"],
+                           capture_output=True, text=True, cwd=ROOT, timeout=20)
+        if r.returncode == 0:
+            git("update-ref", REMOTE_REF, commit)
+            print(f"retired: {' '.join(args)}")
+            return
+        time.sleep(0.5 + attempt)
+    raise RuntimeError("could not push status after 4 attempts")
+
+
 def cmd_init() -> None:
     fetch_status()
     if ref_exists(REMOTE_REF):
@@ -547,6 +656,10 @@ def main() -> None:
             cmd_init()
         elif cmd == "feed":
             cmd_feed(rest)
+        elif cmd == "retire":
+            cmd_retire(rest)
+        elif cmd == "progress":
+            cmd_progress()
         else:
             print(__doc__)
             sys.exit(2)
