@@ -2,7 +2,7 @@
 // rises and flows, the upstream chain as schematic links whose dashes move at
 // the real travel time (pulses; words on hover), and small identical spot
 // markers (SpotDots, shared placement rule). Everything is read from the data at time t.
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
 import type { FeatureCollection } from "geojson";
 import type { Path, PathOptions } from "leaflet";
 import { GeoJSON, Polyline, Tooltip } from "react-leaflet";
@@ -11,7 +11,7 @@ import type { Point } from "../components/shared/series";
 import { BaseMap, useBaseMap, type FitPadding } from "../ui/BaseMap";
 import { clocksFor } from "../ui/clockData";
 import { gaugeName } from "../lib/plain";
-import { FLOW_LOOK, PULSE_DASH, PULSE_PATH_LENGTH, bucketFor, chainLinks, flowBounds, levelFraction, linesByGauge, linkWords, type Bucket } from "./flow";
+import { FLOW_LOOK, PULSE_DASH, PULSE_PATH_LENGTH, bucketFor, chainLinks, flowBounds, levelFraction, linesByGauge, linkWords, riverWalk, type Bucket, type ChainLink } from "./flow";
 import { spotDots, type DotBadge } from "./markers";
 import { SpotDots } from "./SpotDots";
 import { GaugeLayer } from "./GaugeLayer";
@@ -36,27 +36,30 @@ const NO_READING = "#b7c3cc";
 
 const baseWeight = (kind: unknown) => (kind === "river" ? 4 : 2.2);
 
-function Water({ fc, bucket, known }: { fc: FeatureCollection; bucket: Bucket; known: boolean }) {
+/** How a link is drawn: as usual, bright on the selected spot's river walk, or dimmed off it. */
+type LinkMode = "normal" | "walk" | "dim";
+
+function Water({ fc, bucket, known, dim = false }: { fc: FeatureCollection; bucket: Bucket; known: boolean; dim?: boolean }) {
   const look = FLOW_LOOK[bucket];
   const solid = useMemo(
     () => (f?: { properties?: { kind?: unknown } | null }): PathOptions => ({
       color: known ? look.colour : NO_READING,
       weight: baseWeight(f?.properties?.kind) * (known ? look.widthX : 1),
-      opacity: 1,
+      opacity: dim ? 0.35 : 1,
       lineCap: "round",
     }),
-    [known, look],
+    [known, look, dim],
   );
   const dashes = useMemo(
     () => (f?: { properties?: { kind?: unknown } | null }): PathOptions => ({
       color: "#ffffff",
       weight: Math.max(1, baseWeight(f?.properties?.kind) * look.widthX * 0.35),
-      opacity: 0.75,
+      opacity: dim ? 0.3 : 0.75,
       dashArray: "5 13",
       lineCap: "round",
       className: `rc-flow rc-flow-b${bucket}`,
     }),
-    [look, bucket],
+    [look, bucket, dim],
   );
   return (
     <>
@@ -152,53 +155,54 @@ export function FlowMap({
     return out;
   }, [links, spots, byKey]);
 
-  return (
-    <BaseMap bounds={bounds} className="rc-flowmap" fitPadding={fitPadding()}>
-      {Object.entries(groups).map(([g, fc]) => {
-        const { bucket, known } = bucketOf(g);
-        return <Water key={`${g}|${oxfordKey}`} fc={fc} bucket={bucket} known={known} />;
-      })}
+  // The river walk (#118): the selected spot's upstream path is drawn bright, the rest dimmed.
+  const spotGauge = spots.find((s) => s.key === selected)?.gauge ?? null;
+  const walk = useMemo(() => (spotGauge ? riverWalk(spotGauge, pairs) : { gauges: new Set<string>(), links: [] }), [spotGauge, pairs]);
+  const walking = walk.links.length > 0;
+  const shownLinks: { link: ChainLink; mode: LinkMode }[] = walking
+    ? [
+        ...links.filter((l) => !walk.gauges.has(l.up)).map((link) => ({ link, mode: "dim" as const })),
+        ...walk.links.map((link) => ({ link, mode: "walk" as const })),
+      ]
+    : links.map((link) => ({ link, mode: "normal" as const }));
 
-      {links.map((l) => {
-        const up = byKey.get(l.up);
-        const down = byKey.get(l.down);
-        if (!up || !down) return null;
-        const { bucket, known } = bucketOf(l.up);
-        const look = FLOW_LOOK[bucket];
-        const pts: [number, number][] = [
-          [up.lat, up.lon],
-          [down.lat, down.lon],
-        ];
-        // Low confidence (few past rises): dashed and grey. Otherwise the water's own colour.
-        const colour = l.lowConfidence || !known ? NO_READING : look.colour;
-        return (
+  /** One link: the line (words on hover) and, while its upstream gauge has a reading, the pulses. */
+  const linkLayers = (l: ChainLink, mode: LinkMode) => {
+    const up = byKey.get(l.up);
+    const down = byKey.get(l.down);
+    if (!up || !down) return null;
+    const { bucket, known } = bucketOf(l.up);
+    const look = FLOW_LOOK[bucket];
+    const pts: [number, number][] = [
+      [up.lat, up.lon],
+      [down.lat, down.lon],
+    ];
+    // Low confidence (few past rises): dashed and grey. Otherwise the water's own colour.
+    const colour = l.lowConfidence || !known ? NO_READING : look.colour;
+    const k = `${l.up}>${l.down}|${mode}`;
+    return (
+      <Fragment key={k}>
+        <Polyline
+          positions={pts}
+          pathOptions={{
+            color: colour,
+            weight: (mode === "walk" ? 3.5 : 2.5) * look.widthX,
+            opacity: mode === "dim" ? 0.3 : mode === "walk" ? 1 : 0.9,
+            dashArray: l.lowConfidence ? "3 6" : undefined,
+          }}
+        >
+          {/* No permanent label: the words appear on hover. */}
+          <Tooltip sticky direction="top" className="rc-link-label" opacity={1}>
+            {linkWords(l, shortGauge(up.name), shortGauge(down.name))}
+          </Tooltip>
+        </Polyline>
+        {known && mode !== "dim" && (
           <Polyline
-            key={`${l.up}-solid`}
             positions={pts}
-            pathOptions={{ color: colour, weight: 2.5 * look.widthX, opacity: 0.9, dashArray: l.lowConfidence ? "3 6" : undefined }}
-          >
-            {/* No permanent label: the words appear on hover. */}
-            <Tooltip sticky direction="top" className="rc-link-label" opacity={1}>
-              {linkWords(l, shortGauge(up.name), shortGauge(down.name))}
-            </Tooltip>
-          </Polyline>
-        );
-      })}
-      {links.map((l) => {
-        const up = byKey.get(l.up);
-        const down = byKey.get(l.down);
-        if (!up || !down || !bucketOf(l.up).known) return null;
-        return (
-          <Polyline
-            key={`${l.up}-pulse`}
-            positions={[
-              [up.lat, up.lon],
-              [down.lat, down.lon],
-            ]}
             interactive={false}
             pathOptions={{
               color: "#ffffff",
-              weight: 6,
+              weight: mode === "walk" ? 7 : 6,
               opacity: l.lowConfidence ? 0.55 : 0.95,
               lineCap: "round",
               dashArray: PULSE_DASH,
@@ -215,9 +219,28 @@ export function FlowMap({
               },
             }}
           />
-        );
+        )}
+      </Fragment>
+    );
+  };
+
+  return (
+    <BaseMap bounds={bounds} className={`rc-flowmap${walking ? " rc-walking" : ""}`} fitPadding={fitPadding()}>
+      {Object.entries(groups).map(([g, fc]) => {
+        const { bucket, known } = bucketOf(g);
+        return <Water key={`${g}|${oxfordKey}`} fc={fc} bucket={bucket} known={known} dim={walking && !walk.gauges.has(g)} />;
       })}
-      <GaugeLayer stations={stations} looks={looks} observed={observed} t={t} lagH={lagH} reaches={reaches} />
+
+      {shownLinks.map(({ link, mode }) => linkLayers(link, mode))}
+      <GaugeLayer
+        stations={stations}
+        looks={looks}
+        observed={observed}
+        t={t}
+        lagH={lagH}
+        reaches={reaches}
+        emphasised={walking ? walk.gauges : undefined}
+      />
 
       <SpotDots dots={dots} selected={selected} onSelect={onSelect} />
     </BaseMap>

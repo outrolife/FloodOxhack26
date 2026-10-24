@@ -89,6 +89,10 @@ describe("App smoke test (jsdom)", () => {
       // Every gauge in stations.json is a small gauge icon (upstream, live_only and Oxford targets alike).
       const stations = JSON.parse(readFileSync(DATA + "stations.json", "utf8")) as unknown[];
       await waitFor(() => expect(document.querySelectorAll(".rc-hero .rc-gauge-icon")).toHaveLength(stations.length), { timeout: WAIT_MS });
+      // The selected spot's river walk: its upstream gauges stand out (Botley Road has measured travel times).
+      if (existsSync(DATA + "travel_times.json")) {
+        await waitFor(() => expect(document.querySelectorAll(".rc-hero .rc-gauge-icon.emph").length).toBeGreaterThan(1), { timeout: WAIT_MS });
+      }
     }
     expect(errors).toEqual([]);
   }, TEST_MS);
