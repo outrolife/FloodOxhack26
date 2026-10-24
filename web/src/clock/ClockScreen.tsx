@@ -3,8 +3,9 @@
 // two-line Scoreboard for the selected spot on it, the Timeline underneath at
 // full width (#135), and a one-line proof footer. "Now" reads the live forecast; a past flood loads only its own
 // replay, on demand (useClockEvent, shared with the Timeline, so one fetch).
-import { useCallback, useMemo, useState } from "react";
+import { Suspense, lazy, useCallback, useMemo, useState } from "react";
 import type { EventsFile, Forecast, Spot, StationsFile, TravelTimesFile } from "../contracts";
+import { mapFlavour } from "./flowgl";
 import { useData } from "../data";
 import { formatDateTime, formatDateTimeYear } from "../time";
 import { usePickKeys } from "../ui/presenter";
@@ -20,12 +21,18 @@ import { eaBadge, justWarned } from "./markers";
 import { replayFactsFor } from "../screens/replay/facts";
 import "./shell.css";
 
+/** Map v3 (#152, MapLibre + deck.gl): its own chunk, loaded only with ?map=gl (or once it is the default). */
+const FlowMapGL = lazy(() => import("./FlowMapGL"));
+
 /** Readings are known an hour after they happen (#93), as in the Timeline. */
 const REPLAY_LAG_H = 1;
 
 /** Stable empty lists while stations.json / spots.json load, so memos keyed on them don't re-run. */
 const NONE_STATIONS: StationsFile = [];
 const NONE_SPOTS: Spot[] = [];
+const NONE_PAIRS: TravelTimesFile = [];
+const NONE_STALE: string[] = [];
+const NONE_FORECASTS: Forecast[] = [];
 
 /** The switch: choices on it, and the rest under "More". Keys 1–5 pick the ones on it, in order. */
 export const SWITCH = EVENT_CHOICES.filter((c) => !c.more);
@@ -83,6 +90,8 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
   const stations = useData<StationsFile>("stations.json");
   const travel = useData<TravelTimesFile>("travel_times.json");
   const [spot, setSpot] = useState(DEFAULT_SPOT);
+  // ?map=gl draws map v3; ?map=leaflet (or nothing, for now) the Leaflet map.
+  const [gl] = useState(() => typeof window !== "undefined" && mapFlavour(window.location.search) === "gl");
   const data = useClockEvent(event, spot);
 
   const [time, setTime] = useState<{ event: string; t: number } | null>(null);
@@ -130,6 +139,23 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
     levels = gaugeLevelsAt({ stations: stationList, observed, t, lagH: REPLAY_LAG_H });
   }
 
+  const mapProps = {
+    spots: spotList,
+    stations: stationList,
+    pairs: travel.status === "ready" ? travel.data : NONE_PAIRS,
+    levels,
+    forecast,
+    observed,
+    stale: forecast?.stale ?? NONE_STALE,
+    selected: spot,
+    onSelect: setSpot,
+    marks,
+    t,
+    lagH: replay ? REPLAY_LAG_H : 0,
+  };
+  // Map v3 only: every forecast in the view decides which spots have data to show (#152).
+  const viewForecasts = useMemo(() => (live ? [live] : (replay?.forecasts ?? NONE_FORECASTS)), [live, replay]);
+
   const label = event === "now" ? "Now" : (names[event] ?? event);
   const spotName = spotList.find((s) => s.key === spot)?.name.split(" / ")[0].trim() ?? null;
   const note =
@@ -150,20 +176,13 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
       </div>
 
       <div className="rc-hero">
-        <FlowMap
-          spots={spotList}
-          stations={stationList}
-          pairs={travel.status === "ready" ? travel.data : []}
-          levels={levels}
-          forecast={forecast}
-          observed={observed}
-          stale={forecast?.stale ?? []}
-          selected={spot}
-          onSelect={setSpot}
-          marks={marks}
-          t={t}
-          lagH={replay ? REPLAY_LAG_H : 0}
-        />
+        {gl ? (
+          <Suspense fallback={<div className="ui-basemap rc-flowmap rc-gl" aria-busy="true" />}>
+            <FlowMapGL {...mapProps} viewForecasts={viewForecasts} />
+          </Suspense>
+        ) : (
+          <FlowMap {...mapProps} />
+        )}
         <div className="rc-badge" aria-live="polite">
           <strong>{label}</strong>
           {t != null && <span> · {event === "now" ? formatDateTime(t) : formatDateTimeYear(t)}</span>}

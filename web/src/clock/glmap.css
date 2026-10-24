@@ -1,0 +1,38 @@
+/* Map v3 (#152): the MapLibre flow map. Loaded with its own chunk (?map=gl). */
+.rc-gl { background: #f2f1ed; overflow: hidden; }
+.rc-gl .maplibregl-map { font: inherit; }
+.rc-gl .maplibregl-ctrl-group { box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15); }
+/* MapLibre's "use ⌘ + scroll to zoom" hint, in our type. */
+.rc-gl .maplibregl-cooperative-gesture-screen { font: inherit; font-size: 1.05rem; }
+
+/* Hover words on a river path. */
+.rc-gl-tip {
+  position: absolute; z-index: 800; transform: translate(-50%, calc(-100% - 12px)); pointer-events: none;
+  background: rgba(252, 252, 251, 0.97); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  padding: 3px 9px; font-size: 0.82rem; color: var(--ink); max-width: 300px; width: max-content;
+}
+.rc-gl-note {
+  position: absolute; z-index: 600; right: 10px; bottom: 30px; background: rgba(255, 255, 255, 0.92);
+  padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.72rem; color: var(--ink-2);
+}
+
+/* Gauge icons: the same discreet 14 x 18 px level gauges as the Leaflet map. */
+.rc-gl .rc-gauge-icon {
+  position: relative; display: block; width: 14px; height: 18px; padding: 0; margin: 0; border: 0; background: none;
+  cursor: pointer; line-height: 0;
+}
+.rc-gl .rc-gauge-icon svg { display: block; filter: drop-shadow(0 0 1px #fff); }
+.rc-gl .rc-gauge-icon:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.rc-gl .rc-gauge-icon .rc-gauge-name { line-height: 1.2; }
+.rc-gl .rc-gauge-icon.dim { opacity: 0.4; }
+.rc-gl .rc-gauge-icon.emph svg { transform: scale(1.2); transition: filter 0.4s; }
+.rc-gl .rc-gauge-icon.emph.rc-gauge-above svg { filter: drop-shadow(0 0 3px #2a78d6) drop-shadow(0 0 1px #fff); }
+.rc-gl .rc-gauge-icon.emph.rc-gauge-high svg { filter: drop-shadow(0 0 5px #0d366b) drop-shadow(0 0 2px #2a78d6); }
+.rc-gl .rc-gauge-popup .maplibregl-popup-content {
+  padding: 0.5rem 0.7rem; font-size: 0.82rem; line-height: 1.35; color: var(--ink); border-radius: 8px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.18);
+}
+.rc-gl .rc-gauge-popup .maplibregl-popup-close-button { font-size: 1.1rem; padding: 0 5px; }
+
+/* Spot rings sit above the gauges; their own styles are shared with the Leaflet map (shell.css). */
+.rc-gl .maplibregl-marker { line-height: normal; }
