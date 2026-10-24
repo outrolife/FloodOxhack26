@@ -3,12 +3,12 @@
 - **role**: PM
 - **state**: working
 - **issue**: 
-- **task**: PM: Vultr dropped (#18 closed, SPEC #53); merged #52 static JSON; 4 agents running
-- **next**: Check-in 17:50 BST; #11 phase 2 when #39 merges
+- **task**: PM: merged #54 contracts, #55 data test; audit done; agents on #56-#59
+- **next**: Check-in 18:20 BST; #11 proof.json when #39 merges
 - **needs**: 
-- **notes**: Core 77%, P0 left: #8 (alfredo). #38 decided. Data: make fetch-data
+- **notes**: Training is fast: ~3 min/target, LOFO ~15-25 min. #54 + #47 merged. Core 77%
 - **branch**: main
-- **head**: 7b6a847 Merge pull request #53 from outrolife/integration/drop-vultr
+- **head**: bdf5ca0 Merge pull request #55 from outrolife/integration/public-data-
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:52:40Z
+- **updated**: 2026-10-24T17:03:22Z
