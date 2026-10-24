@@ -3,12 +3,12 @@
 - **role**: App
 - **state**: working
 - **issue**: #118
-- **task**: Gauge icons + hover card, catchment bounds (live_only)
-- **next**: Then replay EA badges + warn pulse on spot markers
+- **task**: Replay EA badges + warn pulse on spot markers; river walk
+- **next**: PR for item 6, then river walk
 - **needs**: 
 - **notes**: 
-- **branch**: app/ux-map-markers
-- **head**: c22df14 Small identical spot markers, full-width map, pulses on upstre
+- **branch**: app/ux-gauges
+- **head**: 11fb8fd Gauge icons with hover cards; fit the map to the whole catchme
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T21:40:27Z
+- **updated**: 2026-10-24T21:45:13Z
