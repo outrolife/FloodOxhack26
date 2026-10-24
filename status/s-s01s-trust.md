@@ -3,12 +3,12 @@
 - **role**: App
 - **state**: reviewing
 - **issue**: #123
-- **task**: PR #128: How good is it? screen
-- **next**: address review; re-check numbers after #94 regen
+- **task**: PR #128: How good is it? (rebased on #94, fair EA side-by-side)
+- **next**: address review
 - **needs**: 
 - **notes**: 
 - **branch**: app/v2-trust
-- **head**: f766d0b Build the How good is it? screen: three tiles from proof.json,
+- **head**: e1bca9c Show the fair side-by-side with the official warning on tile 3
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T19:00:39Z
+- **updated**: 2026-10-24T19:04:21Z
