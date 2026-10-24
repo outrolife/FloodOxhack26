@@ -9,13 +9,16 @@ Issue #8.
 2. Issue a forecast every hour across the event window for every spot (SPEC §7.5).
 3. Write ``web/public/data/replays/<event>.json`` (SPEC §9 ``Replay``).
 
-No look-ahead: ``forecasts_at`` builds features with ``model.features`` (row t uses only data labelled
-<= t) and reads ``level_now``, ``dataAsOf`` and ``stale`` from data <= t. ``tests/test_backtest.py``
-checks that a forecast computed from ``hourly[ts_utc <= t]`` is identical to the one from the full
-record, and that perturbing everything after t changes nothing.
+No look-ahead: an hourly row labelled L (hour start) holds the readings from L to L + 45 min, so it is
+complete only at L + 1 h (#93). A forecast issued at t therefore uses rows labelled <= t - 1 h: features
+(``model.features``), ``level_now``, ``dataAsOf`` and ``stale`` all come from those rows, i.e. only from
+readings taken before t. ``tests/test_backtest.py`` checks that a forecast computed from
+``hourly[ts_utc < t]`` is identical to the one from the full record, that perturbing every row from t on
+(including the one labelled t) changes nothing, and the 09:45 case from #93 on 15-min readings.
 
-Conventions: an hourly row labelled t (hour start) is treated as the level at t, so ``issuedAt = t``.
-Crossings use ``level_mean`` (the quantity the model forecasts).
+Conventions: the model forecasts ``level_mean`` of the row labelled (t - 1 h) + h, the hour ending at
+t + h; the replay shows it as lead h from ``issuedAt = t``. ``dataAsOf`` is the label (hour start) of the
+latest row used. Crossings use ``level_mean`` and hour-start labels (the quantity the model forecasts).
 """
 
 from __future__ import annotations
@@ -48,6 +51,7 @@ from model.train import (
 log = logging.getLogger(__name__)
 
 STALE_H = 3  # SPEC §10.1: a gauge whose latest reading is > 3 h old is stale
+ROW_LAG = pd.Timedelta(hours=1)  # a forecast issued at t uses hourly rows labelled <= t - 1 h (#93)
 LOFO_MARGIN = pd.Timedelta(days=7)
 WARNINGS_PATH = DATA_DIR / "processed" / "warnings.parquet"
 
@@ -208,30 +212,35 @@ def forecasts_at(
     issue_times: Sequence[pd.Timestamp] | pd.DatetimeIndex,
     leads: Sequence[int] = HORIZONS_H,
 ) -> list[dict[str, Any]]:
-    """One SPEC §9 ``Forecast`` per issue time, using only rows of ``hourly`` with ``ts_utc <= t``.
+    """One SPEC §9 ``Forecast`` per issue time t, using only rows of ``hourly`` with ``ts_utc <= t - 1 h``.
 
-    ``models`` maps target gauge -> trained model. Spots on gauges without a model get
-    ``leads: []`` (timing_only); spots whose gauge has never been observed by t are left out.
+    The row labelled t - 1 h is the last whole hour before t (its readings end at t - 15 min), so no
+    reading at or after t is used (#93). ``models`` maps target gauge -> trained model. Spots on gauges
+    without a model get ``leads: []`` (timing_only); spots whose gauge has never been observed by t are
+    left out.
     """
     from model import features
 
     times = pd.DatetimeIndex([_utc(t) for t in issue_times])
+    rows = times - ROW_LAG  # the last complete hourly row at each issue time
     used = {g for m in models.values() for g in [m.target, *m.medians]} | {s["gauge"] for s in spots}
     wide = _levels_wide(hourly, sorted(used))
-    last_val, last_t = _last_obs(wide, times)
+    last_val, last_t = _last_obs(wide, rows)
 
     preds: dict[str, dict[int, np.ndarray]] = {}
     lnow: dict[str, np.ndarray] = {}
     for g, m in models.items():
-        X = features.build_features(hourly, g, m.medians, m.lags).reindex(times)
+        X = features.build_features(hourly, g, m.medians, m.lags).reindex(rows)
         preds[g] = m.predict(X)
         lnow[g] = X["level_now"].to_numpy(dtype=float)
 
     out = []
     for i, t in enumerate(times):
         as_of = {g: _iso(last_t.iloc[i][g]) for g in last_t.columns if pd.notna(last_t.iloc[i][g])}
+        # Age of the latest row, measured from the last complete row (same rule as before #93).
+        row = rows[i]
         stale = sorted(
-            g for g in used if g not in as_of or (t - pd.Timestamp(as_of[g])) > pd.Timedelta(hours=STALE_H)
+            g for g in used if g not in as_of or (row - pd.Timestamp(as_of[g])) > pd.Timedelta(hours=STALE_H)
         )
         spot_out = []
         for s in spots:
