@@ -1,14 +1,14 @@
 # alfredo-model
 
 - **role**: Model
-- **state**: blocked
+- **state**: working
 - **issue**: #8
-- **task**: Draft PR #39: model+e2014 replay work; smoke run on stand-in data OK (skill 0.50@6h..0.21@72h)
-- **next**: Rerun e2014 replay on real hourly.parquet, commit replays/e2014.json, Closes #8
-- **needs**: real data/processed/hourly.parquet (+rain) from s-s01s-pipeline (#3)
+- **task**: Training 4 targets + e2014 LOFO replay on real data (newbotley first)
+- **next**: Commit replays/e2014.json + importance.json, PR #39 ready, Closes #8
+- **needs**: 
 - **notes**: 
 - **branch**: model/osney-model
-- **head**: 5ec03f2 Use verified minns/coldharbour thresholds as fallbacks; config
+- **head**: 8f72a87 Add --train-only/--importance-only flags and RC_LGB_THREADS fo
 - **unpushed**: 0
-- **dirty**: 1
-- **updated**: 2026-10-24T16:35:26Z
+- **dirty**: 0
+- **updated**: 2026-10-24T16:51:17Z
