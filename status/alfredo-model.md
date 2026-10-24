@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: working
 - **issue**: #8
-- **task**: Training 4 targets + e2014 LOFO replay on real data (newbotley first)
-- **next**: Commit replays/e2014.json + importance.json, PR #39 ready, Closes #8
+- **task**: e2014 replay (newbotley) committed; training kingsmill/minns/coldharbour
+- **next**: Regenerate replay with all 4 targets, PR #39 ready, Closes #8
 - **needs**: 
 - **notes**: 
 - **branch**: model/osney-model
-- **head**: 8f72a87 Add --train-only/--importance-only flags and RC_LGB_THREADS fo
+- **head**: b241caf Add e2014 leave-one-flood-out replay (newbotley) and importanc
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:51:17Z
+- **updated**: 2026-10-24T17:02:08Z
