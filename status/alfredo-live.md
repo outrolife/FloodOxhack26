@@ -3,12 +3,12 @@
 - **role**: App
 - **state**: working
 - **issue**: #125
-- **task**: Live backend hardening: DST + EA failure modes + data gaps
-- **next**: Audit ingest_live/ea_client/forecast_live, write tests
+- **task**: Live hardening: EA timeouts/breaker, bad bodies, last-complete-hour anchor, data-gap note
+- **next**: Implement + tests on data/live-hardening, then real make live in scratch dir
 - **needs**: 
 - **notes**: 
-- **branch**: worktree-agent-a36ee4ab65d86fc6e
+- **branch**: data/live-hardening
 - **head**: e37a40d Merge pull request #131 from outrolife/app/v2-replay
-- **unpushed**: no upstream
+- **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T20:15:31Z
+- **updated**: 2026-10-24T20:22:12Z
