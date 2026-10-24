@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import type { SpotForecast } from "../../contracts";
 import { HOUR, formatAxis, formatDateTime, zoneAt } from "../../time";
+import { yDomain } from "./yDomain";
 
 type Point = { t: string; level: number };
 type Row = {
@@ -102,16 +103,14 @@ export function FanChart({
   }
 
   const data = [...rows.values()].sort((a, b) => a.t - b.t);
-  const values: number[] = [amber];
-  if (threshold != null) values.push(threshold);
-  for (const r of data) {
-    if (r.obs != null) values.push(r.obs);
-    if (r.obsFaint != null) values.push(r.obsFaint);
-    if (r.band90) values.push(...r.band90);
-  }
-  for (const p of observed) values.push(p.level); // stable y-axis while playing
-  const yMin = Math.floor((Math.min(...values) - 0.1) * 10) / 10;
-  const yMax = Math.ceil((Math.max(...values) + 0.1) * 10) / 10;
+  // Only what is on screen sets the axis: never observations past the slider (#59).
+  const [yMin, yMax] = yDomain({
+    observedSoFar: data.flatMap((r) => (r.obs != null ? [r.obs] : [])),
+    revealed: data.flatMap((r) => (r.obsFaint != null ? [r.obsFaint] : [])),
+    band: data.flatMap((r) => r.band90 ?? []),
+    threshold,
+    amber,
+  });
 
   return (
     <div style={{ width: "100%" }}>
