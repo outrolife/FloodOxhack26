@@ -3,12 +3,12 @@
 - **role**: Floater
 - **state**: working
 - **issue**: 
-- **task**: Agents: S3 compute+UI (#22), S4 draft (#23), demo dry run (#19), a11y/projector (#101), About diagram (#102)
-- **next**: S3 PRs (compute + #95) ready -> PM merge; S4 after S3
+- **task**: S3 restyle to pixel heatmap (#106 frames, #95 UI); S4 draft (#23); a11y (#101)
+- **next**: Merge #95+#106 together after restyle (~45 min); #101 early for #103
 - **needs**: 
 - **notes**: S4 is draft only until S3 merges (PM can veto on #23)
 - **branch**: main
 - **head**: 4e5779b Merge pull request #105 from outrolife/app/judge-number-fixes
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:25:13Z
+- **updated**: 2026-10-24T18:26:26Z
