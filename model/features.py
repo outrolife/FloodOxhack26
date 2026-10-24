@@ -115,20 +115,60 @@ UPSTREAM_CHANGE_H: tuple[int, ...] = (3, 24)
 RAIN_SUM_H: tuple[int, ...] = (6, 24, 72, 168, MAX_WINDOW_H)
 TRAVEL_LAG_KEYS: tuple[str, ...] = ("lag_lo", "lag_main", "lag_hi")
 
-# Upstream gauges for each trained target gauge (SPEC §4.1 flow paths, §4.1.1, §6.2 pairs; PR #30).
-# Thames: farmoor, eynsham (u/s series), cassington -> newbotley (Bulstake Stream, primary),
-#         minns (Minns Estate 1635TH, Seacourt Stream), coldharbour (Cold Harbour 1675TH, Hinksey Stream).
-# Cherwell: enslow, islip -> kingsmill.
+# The river walk (SPEC §4.1 flow paths, §7.2; #125 A): for each trained target, every gauge the water
+# passes walking upstream from it: first the near gauges, then the ones further up. The single source
+# is the ``flow_paths:`` section of config/stations.yaml. FALLBACK_UPSTREAMS is an identical copy, used
+# only when that file or section is missing or malformed (tests, fixtures). Keep the two in sync.
+#   newbotley, minns: farmoor, eynsham (u/s series), cassington (Evenlode), then shifford and
+#     hannington (Thames above Eynsham), worsham (Windrush), shipton (Evenlode above Cassington).
+#     Adopted for these two targets on #125 (experiment A). The order is experiment A's column order.
+#   coldharbour: farmoor, eynsham, cassington only (the further gauges lowered its 72 h skill in A).
+#   kingsmill: enslow, islip only (same reason).
 # The main-channel locks godstow, osney, iffley have no downstream-stage history: they are live only
 # (LIVE_ONLY), never trained targets and never upstream features.
-# config/stations.yaml does not exist yet; if it gains a `flow_paths:` section, keep this in sync.
+STATIONS_YAML = Path(__file__).resolve().parent.parent / "config" / "stations.yaml"
 _THAMES_UP: tuple[str, ...] = ("farmoor", "eynsham", "cassington")
-UPSTREAMS: dict[str, tuple[str, ...]] = {
-    "newbotley": _THAMES_UP,
-    "minns": _THAMES_UP,
+_THAMES_WALK: tuple[str, ...] = (*_THAMES_UP, "shifford", "hannington", "worsham", "shipton")
+FALLBACK_UPSTREAMS: dict[str, tuple[str, ...]] = {
+    "newbotley": _THAMES_WALK,
+    "minns": _THAMES_WALK,
     "coldharbour": _THAMES_UP,
     "kingsmill": ("enslow", "islip"),
 }
+
+
+def load_flow_paths(path: Path | str = STATIONS_YAML) -> dict[str, tuple[str, ...]]:
+    """Target -> upstream gauges (the river walk) from the ``flow_paths:`` section of stations.yaml.
+
+    The section is ``{basin: {target: [gauge, ...]}}``. Basins only group the targets, so the result
+    is flat, with targets in file order. Falls back to ``FALLBACK_UPSTREAMS`` if the file or section is
+    missing or malformed (a list that is not all strings, a gauge listed twice, a target listed twice).
+    """
+    path = Path(path)
+    raw: Any = None
+    try:
+        import yaml
+
+        if path.exists():
+            raw = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except Exception as exc:  # unreadable or bad yaml: never take the model down over config
+        log.warning("could not read %s (%s); using FALLBACK_UPSTREAMS", path, exc)
+    paths = raw.get("flow_paths") if isinstance(raw, dict) else None
+    out: dict[str, tuple[str, ...]] = {}
+    for basin in paths.values() if isinstance(paths, dict) else ():
+        for target, ups in basin.items() if isinstance(basin, dict) else ():
+            ok = isinstance(ups, list) and all(isinstance(u, str) for u in ups)
+            if not ok or len(set(ups)) != len(ups) or target in out:
+                log.warning("flow_paths entry for %s is malformed; using FALLBACK_UPSTREAMS", target)
+                return dict(FALLBACK_UPSTREAMS)
+            out[str(target)] = tuple(ups)
+    if not out:
+        log.warning("%s has no usable flow_paths; using FALLBACK_UPSTREAMS", path)
+        return dict(FALLBACK_UPSTREAMS)
+    return out
+
+
+UPSTREAMS: dict[str, tuple[str, ...]] = load_flow_paths()
 TARGETS: tuple[str, ...] = tuple(UPSTREAMS)  # newbotley first: the primary target
 LIVE_ONLY: tuple[str, ...] = ("godstow", "osney", "iffley")
 
@@ -301,12 +341,21 @@ def _bad_target(target: str) -> str:
     return f"unknown target gauge {target!r}; expected one of {TARGETS}"
 
 
-def feature_columns(target: str, lags: LagsArg = None) -> list[str]:
-    """Feature column names, in order, that ``build_features`` returns for ``target``."""
-    if target not in UPSTREAMS:
+def upstreams_for(target: str, upstreams: Iterable[str] | None = None) -> tuple[str, ...]:
+    """``target``'s upstream gauges: ``upstreams`` if given (a saved model's own list), else the
+    configured river walk ``UPSTREAMS[target]``."""
+    if target not in UPSTREAMS and upstreams is None:
         raise ValueError(_bad_target(target))
+    return tuple(UPSTREAMS[target] if upstreams is None else upstreams)
+
+
+def feature_columns(
+    target: str, lags: LagsArg = None, upstreams: Iterable[str] | None = None
+) -> list[str]:
+    """Feature column names, in order, that ``build_features`` returns for ``target``."""
+    ups = upstreams_for(target, upstreams)
     cols = ["level_now", *[f"level_change_{k}h" for k in TARGET_CHANGE_H], "level_mean_21d"]
-    for up in UPSTREAMS[target]:
+    for up in ups:
         cols += [f"{up}_anom_lag{k}h" for k in upstream_lags_h(up, target, lags)]
         cols += [f"{up}_change_{k}h" for k in UPSTREAM_CHANGE_H]
     cols += [f"rain_sum_{k}h" if k != MAX_WINDOW_H else "rain_sum_21d" for k in RAIN_SUM_H]
@@ -319,6 +368,7 @@ def build_features(
     target: str,
     medians: Mapping[str, float],
     lags: LagsArg = None,
+    upstreams: Iterable[str] | None = None,
 ) -> pd.DataFrame:
     """Feature frame for one target gauge (SPEC §7.2). Row t uses only data labelled <= t.
 
@@ -329,15 +379,17 @@ def build_features(
             cutoff. Must contain every upstream gauge of ``target`` (value may be NaN).
         lags: travel-time lags from ``load_lags`` (or the raw lags.json dict); pairs not given use
             only the fixed lags {0, 6, 12, 24}.
+        upstreams: the upstream gauges to use, in order. Default: the configured river walk
+            ``UPSTREAMS[target]``. Live mode and replays pass the list a saved model was trained
+            with (``GaugeModel.upstreams``), so a model keeps working after the config changes.
 
     Returns:
         DataFrame indexed by a complete hourly UTC ``ts_utc`` range (spanning all level and rain rows),
         columns ``feature_columns(target, lags)``, all float. Upstream gauges or rain absent from
         ``hourly`` give all-NaN columns, so the schema is stable.
     """
-    if target not in UPSTREAMS:
-        raise ValueError(_bad_target(target))
-    missing = [g for g in UPSTREAMS[target] if g not in medians]
+    ups = upstreams_for(target, upstreams)
+    missing = [g for g in ups if g not in medians]
     if missing:
         raise KeyError(f"medians missing for upstream gauges {missing}; use compute_gauge_medians()")
     lags = _normalise_lags(lags)
@@ -364,7 +416,7 @@ def build_features(
     feats["level_mean_21d"] = _rolling(level, MAX_WINDOW_H, "mean")
 
     # Upstream gauges: anomaly vs their own training-period median, never raw stage.
-    for up in UPSTREAMS[target]:
+    for up in ups:
         up_level = levels[up] if up in levels.columns else pd.Series(np.nan, index=index)
         anom = up_level - medians[up]
         for k in upstream_lags_h(up, target, lags):
@@ -383,7 +435,7 @@ def build_features(
     feats["doy_cos"] = pd.Series(np.cos(2 * np.pi * doy), index=index)
 
     out = pd.DataFrame(feats, index=index)
-    return out[feature_columns(target, lags)].astype(float)
+    return out[feature_columns(target, lags, ups)].astype(float)
 
 
 # ---------------------------------------------------------------------------------------------

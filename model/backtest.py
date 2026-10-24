@@ -230,7 +230,7 @@ def forecasts_at(
     preds: dict[str, dict[int, np.ndarray]] = {}
     lnow: dict[str, np.ndarray] = {}
     for g, m in models.items():
-        X = features.build_features(hourly, g, m.medians, m.lags).reindex(rows)
+        X = features.build_features(hourly, g, m.medians, m.lags, m.upstreams).reindex(rows)
         preds[g] = m.predict(X)
         lnow[g] = X["level_now"].to_numpy(dtype=float)
 

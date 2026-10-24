@@ -527,12 +527,22 @@ rain_gauges:
     earliest: "1991-03-18T09:15:00Z"   # 15-min series checked dense from 2000
     notes: "Low-coverage years: 2006 (319 days), 2013 (277)."
 
-# Flow paths (SPEC §4.1, as amended in §4.1.1): upstream gauges for each trained target.
-# The main-channel locks (godstow, osney, iffley) are live only and have no pairs.
+# Flow paths = the river walk (SPEC §4.1, §4.1.1, §7.2; #125 A). For each trained target, every gauge
+# the water passes walking upstream from it. Each gauge enters the model as its anomaly vs its own
+# median, shifted by its measured travel time (lags.json). This section is the single source for
+# model/features.py and analysis/travel_times.py (each keeps an identical fallback copy for tests).
+# Basins only group the targets; each list is flat, in model column order: the near gauges first,
+# then the further ones.
+#   farmoor, eynsham    Thames above Oxford            shifford, hannington   Thames further up
+#   cassington          Evenlode (just above Thames)   shipton                Evenlode further up
+#   worsham             Windrush (joins at Newbridge)
+# The further gauges are used for newbotley and minns only: they lowered coldharbour's and kingsmill's
+# 72 h skill in experiment A (#125), so those two keep their near gauges. The main-channel locks
+# (godstow, osney, iffley) are live only and have no pairs.
 flow_paths:
   thames:
-    newbotley: [farmoor, eynsham, cassington]
-    minns: [farmoor, eynsham, cassington]
+    newbotley: [farmoor, eynsham, cassington, shifford, hannington, worsham, shipton]
+    minns: [farmoor, eynsham, cassington, shifford, hannington, worsham, shipton]
     coldharbour: [farmoor, eynsham, cassington]
   cherwell:
     kingsmill: [enslow, islip]

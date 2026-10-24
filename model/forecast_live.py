@@ -266,7 +266,11 @@ class TrainedForecaster:
         from model import features
 
         self.models = dict(models)
-        self.upstreams: dict[str, list[str]] = {g: list(features.UPSTREAMS[g]) for g in self.models}
+        # Each model's own upstream list (the river walk it was trained with), so a spot depends on
+        # exactly the gauges its model reads, even if config/stations.yaml has changed since.
+        self.upstreams: dict[str, list[str]] = {
+            g: list(getattr(m, "upstreams", None) or features.UPSTREAMS[g]) for g, m in self.models.items()
+        }
 
     def features_at(self, hourly: pd.DataFrame, gauge: str, issued_at: datetime) -> pd.DataFrame | None:
         """The one-row feature frame at the anchor hour, or None (no model, or no fresh level there).
@@ -295,7 +299,8 @@ class TrainedForecaster:
         if row.empty:
             log.info("%s: no own reading in the anchor hour %s; no model forecast", gauge, anchor)
             return None
-        X = features.build_features(h, gauge, m.medians, m.lags).reindex([anchor])
+        X = features.build_features(h, gauge, m.medians, m.lags, self.upstreams[gauge])
+        X = X.reindex([anchor])
         if X["level_now"].isna().iloc[0]:
             return None
         n_nan = int(X.isna().sum(axis=1).iloc[0])

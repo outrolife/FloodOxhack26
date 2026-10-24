@@ -166,11 +166,15 @@ def build_xy(
     medians: Mapping[str, float],
     lags: Mapping[str, Mapping[str, int]] | None,
     horizons: Sequence[int] = HORIZONS_H,
+    upstreams: Sequence[str] | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Adapter onto ``model.features`` (#6): features X and targets Y (``y_{h}h``) on one hourly index."""
+    """Adapter onto ``model.features`` (#6): features X and targets Y (``y_{h}h``) on one hourly index.
+
+    ``upstreams`` defaults to the configured river walk; pass ``GaugeModel.upstreams`` for a saved model.
+    """
     from model import features
 
-    X = features.build_features(hourly, target, medians, lags)
+    X = features.build_features(hourly, target, medians, lags, upstreams)
     Y = features.build_targets(hourly, target, horizons).reindex(X.index)
     return X, Y
 
@@ -291,6 +295,20 @@ class GaugeModel:
     @property
     def horizons(self) -> list[int]:
         return sorted(self.boosters)
+
+    @property
+    def upstreams(self) -> list[str]:
+        """The upstream gauges this model was trained with, in column order (read from its columns).
+
+        Live mode and replays build features with this list, not the current config, so a model
+        trained before a ``flow_paths`` change still gets exactly the columns it expects.
+        """
+        out: list[str] = []
+        for col in self.feature_cols:
+            up, sep, _ = col.partition("_anom_lag")
+            if sep and up not in out:
+                out.append(up)
+        return out
 
     def predict_raw(self, X: pd.DataFrame) -> dict[int, np.ndarray]:
         """Sorted, uncalibrated level-change quantiles ``{h: (n, 7)}``."""
@@ -540,7 +558,7 @@ def recalibrate_saved(models_dir: Path | None = None) -> None:
     hourly = load_hourly()
     for d in sorted(p for p in models_dir.iterdir() if (p / "meta.json").exists()):
         m = GaugeModel.load(d)
-        X, Y = build_xy(hourly, m.target, m.medians, m.lags, m.horizons)
+        X, Y = build_xy(hourly, m.target, m.medians, m.lags, m.horizons, m.upstreams)
         lv = hourly[hourly["gauge"] == m.target].set_index("ts_utc")["level_max"].reindex(X.index)
         ev = event_mask(lv.fillna(X["level_now"]), m.amber)
         raw = m.predict_raw(X)
