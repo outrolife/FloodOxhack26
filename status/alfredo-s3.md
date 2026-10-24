@@ -1,14 +1,14 @@
 # alfredo-s3
 
 - **role**: Model
-- **state**: working
+- **state**: reviewing
 - **issue**: #22
-- **task**: S3 spread: real e2014+live frames pushed (IoU 0.68)
-- **next**: tests/test_s3_spread.py, then PR (Part of #22)
+- **task**: S3 compute PR #106 open (IoU 0.68, e2014+live)
+- **next**: add e2024a replay frames to the same branch
 - **needs**: 
 - **notes**: 
 - **branch**: stretch/s3-spread
-- **head**: 7c6f918 Add S3 flood-spread ensemble (experimental): e2014 and live fr
+- **head**: 087491d Regenerate S3 frames: model-based live.json, river seeds unpai
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:14:51Z
+- **updated**: 2026-10-24T18:24:33Z
