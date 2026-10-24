@@ -3,12 +3,12 @@
 - **role**: Data
 - **state**: working
 - **issue**: #125
-- **task**: Data side of exp A: 6 upstream/live_only gauges in stations.yaml, ingest, data-hourly-v2
-- **next**: stations.yaml entries, push data/upstream-gauges
+- **task**: Data side of exp A: stations.yaml entries pushed (data/upstream-gauges); now ingest + clean into data/scratch_v2
+- **next**: verify vs v1, publish data-hourly-v2, open PR
 - **needs**: 
 - **notes**: 
 - **branch**: data/upstream-gauges
-- **head**: 85e2229 Merge pull request #142 from outrolife/model/warn-at
+- **head**: 68e3b3b Add six further-upstream gauges from #125 A to stations.yaml a
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T21:45:24Z
+- **updated**: 2026-10-24T21:49:35Z
