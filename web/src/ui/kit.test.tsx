@@ -2,8 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Headline, Screen, ShowTheWorking, SpotClock, StatTile, countdownText, stateFor } from ".";
-import { keyAction, routeFromHash } from "./presenter";
-import { START_BUTTONS } from "./StartHere";
+import { keyAction, viewFromHash } from "./presenter";
 
 describe("SpotClock", () => {
   it("maps a chance to a state", () => {
@@ -54,22 +53,25 @@ describe("Screen and friends", () => {
 });
 
 describe("presenter", () => {
-  it("routes, including old tab hashes", () => {
-    expect(routeFromHash("#/replay")).toBe("replay");
-    expect(routeFromHash("#/working/proof")).toBe("working");
-    expect(routeFromHash("#time-machine")).toBe("replay");
-    expect(routeFromHash("")).toBe("now");
+  it("reads the hash: an event, the drawer, and old screen hashes", () => {
+    expect(viewFromHash("")).toEqual({ event: null, working: null });
+    expect(viewFromHash("#/now")).toEqual({ event: "now", working: null });
+    expect(viewFromHash("#/e2014")).toEqual({ event: "e2014", working: null });
+    expect(viewFromHash("#/working/proof")).toEqual({ event: null, working: "proof" });
+    expect(viewFromHash("#/working")).toEqual({ event: null, working: "" });
+    expect(viewFromHash("#/replay")).toEqual({ event: "e2014", working: null });
+    expect(viewFromHash("#/protect")).toEqual({ event: null, working: "protect" });
   });
   it("maps keys to actions", () => {
-    expect(keyAction("2", false, "now")).toEqual({ kind: "route", route: "replay" });
-    expect(keyAction("p", false, "now")).toEqual({ kind: "presenter" });
-    expect(keyAction(" ", false, "replay")).toEqual({ kind: "playpause" });
-    expect(keyAction("ArrowRight", true, "replay")).toEqual({ kind: "step", delta: 6 });
-    expect(keyAction("ArrowLeft", false, "replay")).toEqual({ kind: "step", delta: -1 });
-    // The old Time Machine under Show the working keeps its own keys.
-    expect(keyAction(" ", false, "working")).toBeNull();
-  });
-  it("Start here offers Now, Replay and Protect", () => {
-    expect(START_BUTTONS.map((b) => b.route)).toEqual(["now", "replay", "protect"]);
+    expect(keyAction("2", false, false)).toEqual({ kind: "pick", n: 2 });
+    expect(keyAction("5", false, false)).toEqual({ kind: "pick", n: 5 });
+    expect(keyAction("p", false, false)).toEqual({ kind: "presenter" });
+    expect(keyAction(" ", false, false)).toEqual({ kind: "playpause" });
+    expect(keyAction("ArrowRight", true, false)).toEqual({ kind: "step", delta: 6 });
+    expect(keyAction("ArrowLeft", false, false)).toEqual({ kind: "step", delta: -1 });
+    // With the drawer open the old Time Machine keeps its own keys; P still works.
+    expect(keyAction(" ", false, true)).toBeNull();
+    expect(keyAction("1", false, true)).toBeNull();
+    expect(keyAction("P", false, true)).toEqual({ kind: "presenter" });
   });
 });

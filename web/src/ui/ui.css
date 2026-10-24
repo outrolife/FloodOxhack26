@@ -11,7 +11,7 @@
   --ui-stat: 3rem;
 }
 html.presenter { font-size: 125%; }
-html.presenter .ui-nav, html.presenter .ui-presenter-toggle .ui-key { display: none; }
+html.presenter .ui-tagline, html.presenter .ui-header-link, html.presenter .ui-presenter-toggle .ui-key { display: none; }
 html.presenter .ui-header { min-height: 40px; }
 
 body { background: var(--page); }
@@ -24,7 +24,8 @@ body { background: var(--page); }
   min-height: var(--ui-header-h); padding: 0.3rem 1.2rem; background: #0d366b; color: #fff;
 }
 .ui-brand { color: #fff; font-weight: 750; font-size: 1.2rem; text-decoration: none; letter-spacing: 0.01em; }
-.ui-nav { display: flex; gap: 0.25rem; flex-wrap: wrap; margin-left: auto; }
+.ui-tagline { color: rgba(255, 255, 255, 0.85); font-size: 0.95rem; }
+.ui-header-link { margin-left: auto; color: #fff; font-size: 0.9rem; text-underline-offset: 3px; }
 .ui-nav-item, .ui-presenter-toggle {
   display: inline-flex; align-items: center; gap: 0.35rem;
   background: transparent; color: #fff; border: 1px solid transparent; border-radius: 6px;
@@ -117,23 +118,6 @@ main.ui-main { flex: 1; max-width: none; margin: 0; padding: var(--ui-gap) 1.2re
   padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; color: var(--ink-2);
 }
 
-/* Start here landing */
-.ui-start { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2rem; padding: 2rem 1.2rem; text-align: center; }
-.ui-start-title { max-width: 46rem; font-size: 2rem; line-height: 1.25; margin: 0; }
-.ui-start-buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; width: min(100%, 56rem); }
-.ui-start-button {
-  display: grid; justify-items: center; gap: 0.35rem; padding: 1.4rem 1rem; font: inherit; cursor: pointer;
-  background: var(--surface); border: 2px solid var(--border); border-radius: 14px;
-}
-.ui-start-button:hover, .ui-start-button:focus-visible { border-color: var(--accent); outline: none; }
-.ui-start-n {
-  display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%;
-  background: var(--accent); color: #fff; font-weight: 750;
-}
-.ui-start-name { font-size: 1.6rem; font-weight: 750; color: var(--accent); }
-.ui-start-text { color: var(--ink-2); }
-.ui-start-skip { font: inherit; background: none; border: 0; color: var(--ink-2); text-decoration: underline; cursor: pointer; }
-
 /* MapClocks: an empty Leaflet marker at each spot, the clock portalled into it,
    nudged by the shared placement rule with a leader line back to the dot. */
 .leaflet-marker-icon.ui-mapclock-marker { background: none; border: 0; overflow: visible; }
@@ -151,3 +135,8 @@ main.ui-main { flex: 1; max-width: none; margin: 0; padding: var(--ui-gap) 1.2re
 }
 .ui-mapclock-box.selected { border-color: var(--ink); }
 .ui-mapclock-note { font-size: 0.75rem; color: var(--ink-2); max-width: 9.5rem; text-align: center; line-height: 1.2; }
+
+/* Keyboard hint (KeyHint): one muted line, hidden in presenter mode. */
+.ui-keyhint { margin: 0.25rem 0 0; font-size: 0.8rem; color: var(--ink-2); }
+.ui-keyhint .ui-key { margin-right: 0.1rem; }
+html.presenter .ui-keyhint { display: none; }
