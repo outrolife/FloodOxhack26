@@ -13,7 +13,10 @@ Definitions (used in the UI and by judges):
   over the seven levels. **Skill** = 1 - model / persistence (above 0 = better than persistence).
 - **Coverage** of the 50/80/90% intervals (q25-q75, q10-q90, q05-q95): fraction of observations inside,
   bounds included.
-- **Brier score** = ``mean((p - o)^2)`` with o = 1 if the level at t + h is at or above the line.
+- **Brier score** = ``mean((p - o)^2)``. The app's ``pFlood_h`` is non-decreasing in h (SPEC §7.5
+  step 4), i.e. "over the line **by** t + h", so o = 1 if the level is at or above the line at any hour
+  in (t, t + h] (#91). Issue times when the river is already at or above the line are left out: the
+  flood is here, so they are not forecasts of a crossing (the same rule as the triggers below).
   **Reliability**: 10 equal-width bins of p; per bin the mean forecast (pPred), the observed frequency
   (pObs) and the count (n). Empty bins are left out, because the §9 contract has ``pObs: number``.
 - **Trigger** at p*: an issue time whose forecast flood probability (max over leads) is >= p*, while
@@ -174,6 +177,37 @@ def exceedance_outcome(y_level: np.ndarray, line: float) -> np.ndarray:
     """1.0 where the observed level is at or above ``line``, 0.0 below, NaN where missing."""
     y = np.asarray(y_level, dtype=float)
     return np.where(np.isfinite(y), (y >= line).astype(float), np.nan)
+
+
+def max_level_ahead(level: pd.Series, index: pd.DatetimeIndex, h: int) -> np.ndarray:
+    """Per time t in ``index``: the highest hourly ``level`` in (t, t + h] (missing hours skipped).
+
+    ``level`` is an hourly series on a UTC index. NaN when no hour in (t, t + h] was observed.
+    """
+    s = level.sort_index()
+    s = s[~s.index.duplicated()]
+    idx = pd.DatetimeIndex(index)
+    lo = min(s.index.min(), idx.min())
+    hi = max(s.index.max(), idx.max()) + pd.Timedelta(hours=h)
+    full = s.reindex(pd.date_range(lo, hi, freq="h"))
+    # The rolling window ending at t + h covers t + 1 ... t + h; shifting by -h puts it at t.
+    ahead = full.rolling(h, min_periods=1).max().shift(-h)
+    return ahead.reindex(idx).to_numpy(dtype=float)
+
+
+def exceedance_by_outcome(
+    level_now: np.ndarray, level_at_h: np.ndarray, max_ahead: np.ndarray, line: float
+) -> np.ndarray:
+    """1.0 if the level reaches ``line`` at any hour in (t, t + h], 0.0 if not, NaN if unscored.
+
+    NaN where the level at t + h is missing (the row is not scored, as for pinball loss) or where
+    ``level_now`` is already at or above the line (the flood is here; not a forecast of a crossing).
+    """
+    now = np.asarray(level_now, dtype=float)
+    at_h = np.asarray(level_at_h, dtype=float)
+    peak = np.fmax(np.asarray(max_ahead, dtype=float), at_h)
+    o = (peak >= line).astype(float)
+    return np.where(np.isfinite(at_h) & np.isfinite(now) & (now < line), o, np.nan)
 
 
 def reliability_entry(

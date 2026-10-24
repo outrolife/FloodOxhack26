@@ -96,6 +96,35 @@ def test_exceedance_outcome_and_reliability_entry():
     assert sum(b["n"] for b in e["bins"]) == 3
 
 
+def test_max_level_ahead_covers_t_plus_1_to_t_plus_h_only():
+    # Hourly levels 0, 1, ..., 9 at T0 + 0 h ... T0 + 9 h, with hour 5 missing.
+    lv = series({h: float(h) for h in range(10) if h != 5})
+    idx = pd.DatetimeIndex(hrs(0, 3, 4, 8, 9))
+    # (t, t + 2]: t=0 -> max(1, 2); t=3 -> max(4, [5 missing]) = 4; t=4 -> max([5], 6) = 6;
+    # t=8 -> 9 (hour 10 not observed); t=9 -> nothing observed after it.
+    out = m.max_level_ahead(lv, idx, 2)
+    assert out[:4].tolist() == [2.0, 4.0, 6.0, 9.0] and np.isnan(out[4])
+    # The level at t itself never counts (that is level_now).
+    assert m.max_level_ahead(series({0: 5.0, 1: 1.0, 2: 1.0}), pd.DatetimeIndex(hrs(0)), 2)[0] == 1.0
+
+
+def test_reliability_outcome_is_by_t_plus_h_and_skips_already_flooded():
+    """#91: pFlood_h is non-decreasing in h ("over the line by t + h"), so a flood that peaks at
+    t + 6 h and has gone down by t + 72 h is an outcome of 1 at 72 h, not 0. Hours already over the
+    line are left out, as in the event scores."""
+    line = 2.0
+    level_now = np.array([1.5, 2.1, 1.5, 1.5])
+    at_72 = np.array([1.6, 1.0, 1.6, np.nan])  # all back below the line at t + 72 h (last unobserved)
+    peak = np.array([2.5, 2.5, 1.9, 2.5])  # row 0 peaked over the line in between; row 2 never did
+    o = m.exceedance_by_outcome(level_now, at_72, peak, line)
+    assert o[0] == 1.0 and o[2] == 0.0
+    assert np.isnan(o[1]) and np.isnan(o[3])  # already flooded; level at t + h missing
+    # The old "at t + h" outcome scored row 0 as 0: a p of 1 looked like an over-confident miss.
+    assert m.exceedance_outcome(at_72[:1], line)[0] == 0.0
+    e = m.reliability_entry(72, np.array([1.0, 1.0, 0.0, 1.0]), np.array([0.5] * 4), o)
+    assert e["brier"] == 0.0 and sum(b["n"] for b in e["bins"]) == 2
+
+
 # --------------------------------------------------------------------------- triggers, episodes, outcomes
 
 

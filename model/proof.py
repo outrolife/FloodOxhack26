@@ -64,14 +64,16 @@ CONTRACTS_TS = WEB_DATA.parent.parent / "src" / "contracts.ts"
 REPLAY_EVERY_H: dict[str, int] = {"e2014": 2}
 
 TEST_PERIOD_NOTE = (
-    "Skill, interval coverage and reliability are scored on the strict time-split test period "
-    "(issue times from {test_start}), which no model saw in training or calibration; they pool the "
-    "trained gauges {gauges}. Hits, misses, false alarms, lead times and arrival errors come from the "
-    "event replays: each event is forecast by models retrained without that event (+- 7 days), "
-    "so those models may have learned from floods that happened after the replayed one. Events in the "
-    "test period ({test_events}) use the time-split models directly. Repeat crossings within 72 h "
-    "count as one flood. Arrival error uses the forecast issued 24 h before the first crossing and is "
-    "blank when that forecast did not reach 50%. Few events, so intervals are wide."
+    "Skill, interval coverage and reliability are scored on the strict time-split test period (issue "
+    "times from {test_start}), which no model saw in training or calibration; they pool the trained "
+    "gauges {gauges}. Reliability and Brier scores ask whether the level reached the line at any time "
+    "up to t + h (what the flood probability means) and leave out hours when it was already over. Hits,"
+    " misses, false alarms, lead times and arrival errors come from the event replays: each event is "
+    "forecast by models retrained without that event (+- 7 days), so those models may have learned from"
+    " floods that happened after the replayed one. Events in the test period ({test_events}) use the "
+    "time-split models directly. Repeat crossings within 72 h count as one flood. Arrival error uses "
+    "the forecast issued 24 h before the first crossing and is blank when that forecast did not reach "
+    "50%. Few events, so intervals are wide."
 )
 
 
@@ -206,6 +208,8 @@ def test_period_scores(
             pooled_model[h].append(q_model[h])
             pooled_pers[h].append(q_pers[h])
             pooled_y[h].append(Y[f"y_{h}h"].to_numpy(dtype=float))
+        level = hourly[hourly["gauge"] == g].set_index("ts_utc")["level_mean"]
+        ahead = {h: metrics.max_level_ahead(level, X.index, h) for h in HORIZONS_H}
         for s in spots:
             if s["gauge"] != g or s.get("mode") != "probability" or s.get("threshold") is None:
                 continue
@@ -217,7 +221,9 @@ def test_period_scores(
             pp = exceedance(level_now[:, None, None], qp, thr)
             rows = []
             for i, h in enumerate(HORIZONS_H):
-                o = metrics.exceedance_outcome(level_now + Y[f"y_{h}h"].to_numpy(dtype=float), thr)
+                # "Over the line by t + h", as pFlood_h means; hours already over the line are left out (#91)
+                at_h = level_now + Y[f"y_{h}h"].to_numpy(dtype=float)
+                o = metrics.exceedance_by_outcome(level_now, at_h, ahead[h], thr)
                 rows.append(metrics.reliability_entry(h, pm[:, i], pp[:, i], o))
             reliability[s["key"]] = rows
     cat = {
