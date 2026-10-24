@@ -2,9 +2,35 @@
 
 > **Decision-support prototype, not an official warning. Check [gov.uk/check-flooding](https://www.gov.uk/check-flooding).**
 
+<!-- Every number is read from committed JSON on main (src comments). Re-check them if `make train backtest` runs again. -->
+
 ## River Clock in 30 seconds
 
-Oxford floods from the river, slowly: the water that floods Botley Road is already upstream a day or more before. We measured how long it takes to arrive. From **Cassington to New Botley the rise takes about 9.5 h (median over 24 past floods)**. From **Enslow to Kings Mill it takes about 18.6 h (15–23 h, 6 floods)**. <!-- src: web/public/data/travel_times.json --> One LightGBM model uses those travel times to give five Oxford trouble spots a **chance of flooding and an arrival time, hour by hour, for the next 72 h**. A cost–loss rule then says when acting is worth it. Every score is against a "nothing changes" baseline.
+Oxford floods from the river, slowly: the water that floods Botley Road is upstream a day or more before it arrives. We measured how long it takes. On the Cherwell, a rise at **Enslow reaches Kings Mill in about 18.6 h (15–23 h, over 6 floods)**. <!-- src: web/public/data/travel_times.json enslow->kingsmill tHalf median 18.6, p10 15.0, p90 22.8, n 6 --> One LightGBM model uses those travel times to make a **prediction for five Oxford trouble spots: the chance of flooding and the arrival time, hour by hour, for the next 72 h**. A cost–loss rule turns that into a **decision**: is it worth acting yet? Every score is against a "nothing changes" baseline.
+
+## What you'll see: four screens
+
+| Screen | The question | What it looks like |
+|---|---|---|
+| **Now** | Where is the water, and when does it get here? | An Oxford map with a **clock face for each spot** that fills as the flood chance rises, with a countdown. Down the left edge, the river as a chain of gauges, with a pulse travelling down it and the measured travel time on each link. |
+| **Replay** (the hero) | Would it have worked in a real flood? | January 2014 plays itself: the clocks fill on the map, the forecast range sweeps forward on the chart, and a **scoreboard fills in** as each moment arrives (our call, the EA warning, the difference, the crossing, the peak). Thumbnails for all seven events. |
+| **Protect** | Where would 500 sandbags do the most good, and by when? | A zoomed Osney and Botley map: a flood-spread heat map from 200 terrain runs, and the five most exposed buildings as numbered pins, each with a deploy-by time and the checks a person must make. "Screening, not instructions." |
+| **How good is it?** | Should you trust it? | Three big tiles: beats "nothing changes", honest odds, early without crying wolf. "Show the working" opens every chart and table behind them. |
+
+Presenter keys: **1–4** switch screens, **Space** plays the replay, **← / →** step it, **P** presenter mode.
+
+## The headline: January 2014, Botley Road (times GMT)
+
+River Clock first said **more likely than not at 12:00 on Sat 4 Jan**: **7 h before the EA's Flood Warning** (19:03) and **37 h before** New Botley crossed 2.76 m (01:00, Mon 6 Jan). The peak, **3.03 m** on 9 Jan, was **inside the 2.62–3.15 m range** it gave 72 h before. That's one flood: averaged over all floods at Botley, the EA's warning was earlier than ours. <!-- src: web/public/data/replays/e2014.json (botley first pFlood >= 0.5 at 2014-01-04T12:00Z; official warning 2014-01-04T19:03:30Z; crossing 2014-01-06T01:00Z; newbotley peak 3.027 m at 2014-01-09T09:00Z; forecast 2014-01-06T08:00Z h72 q05 2.622, q95 3.152); proof.json perEvent e2014 botley leadVsOfficialH 7.06; tradeoff botley pStar 0.5 meanLeadVsOfficialH -5.92 -->
+
+## How good is it? (the final numbers)
+
+- **More accurate than the simple guess** ("the river stays where it is"): **+39% at 6 h, +27% at 24 h, +11% at 72 h**, pooled over our four gauges, on forecasts from Oct 2021 on that no model saw. <!-- src: web/public/data/proof.json skillByLead (0.3915, 0.2664, 0.1079); testPeriodNote -->
+- **Floods caught at a 1-in-2 trigger:** **30 of 30**, across four spots, with **5 false alarms**. The EA's own warnings, scored the same way: **24 of 30, with 1 false alarm**. <!-- src: proof.json tradeoff pStar 0.5 (hits 7+8+8+7, misses 0, falseAlarms 2+3+0+0); officialOutcome (hits 5+8+8+3, falseAlarms 0+0+0+1) -->
+- **Timing against the EA is mixed:** on average we're ahead at **Osney (+2.1 h)** and the **Cherwell (+8.2 h)**, and behind at **Botley (−5.9 h)** and **Abingdon Road (−14.6 h)**. A 1-in-5 trigger is earlier everywhere, at the cost of more false alarms. <!-- src: proof.json tradeoff pStar 0.5 meanLeadVsOfficialH 2.13, 8.16, -5.92, -14.58; pStar 0.2 16.63, 18.26, 48.25, 37.75 -->
+- **Typical warning before the river crossed:** about 19 h at a 1-in-2 trigger (8 h at the Cherwell to 27 h at Botley). <!-- src: proof.json tradeoff pStar 0.5 meanLeadH weighted by hits: (7*16.86 + 8*27.12 + 8*22.38 + 7*8.29) / 30 = 19.1 -->
+- **The 2026 near miss:** the river stayed high for weeks and came within 11 cm of Botley's line; our highest chance was **28%**, so a 1-in-2 trigger raised **no false alarm**. <!-- src: replays/e2026.json botley max pFlood 0.2767, newbotley peak 2.647 m vs threshold 2.76 -->
+- **Ranges:** too wide over all hours (the 90% range holds 94–97%), close to right in floods (86–91%). <!-- src: proof.json coverage nominal 0.9; testPeriodNote -->
 
 ## How it works
 
@@ -12,61 +38,43 @@ Oxford floods from the river, slowly: the water that floods Botley Road is alrea
  EA Hydrology API (15-min history)      EA flood-monitoring API (live, every 15 min)
             |                                         |
             v                                         v
- hourly.parquet: 3.29M rows, 21 series, 2006-2026  live_hourly.parquet ----> Tiger Data mirror
-            |                                                                (SQL copy, 35 MB)
+ hourly.parquet: 3.29M rows, 21 series, 2006-2026  live readings ----> Tiger Data mirror (SQL, 35 MB)
             v
  Travel times: half-rise and peak matching per gauge pair (n >= 3 floods, else cross-correlation)
-            |  p10 / p50 / p90 lags
             v
  Features: each gauge vs its OWN median, at those lags; past rain; season (no future data)
             v
- LightGBM quantile models: per gauge x lead (6-72 h) x quantile (5-95%)
+ LightGBM quantile models: per gauge x lead (6-72 h) x quantile (5-95%), conformal calibration
             v
- Conformal calibration on held-out floods (so a "90% range" holds ~90%)
-            v
- Probability of passing each spot's EA threshold + arrival window (10/50/90%)
+ Chance of passing each spot's EA threshold + arrival window  ->  cost-loss decision
             v
  Leave-one-flood-out replays + proof metrics  ->  replays/*.json, proof.json
             v
- App (offline, committed JSON): River . Time Machine . Decide . Proof . About
+ App (offline, committed JSON): Now . Replay . Protect . How good is it?
 ```
 <!-- src: SPEC.md §5-§8; row counts from docs/tiger-data.md -->
 
 ## Why you can trust it
 
-- **We checked the data before the model.** In the first hour we found that the public history for the Osney, Godstow and Iffley lock gauges holds only the *upstream* side. The weir holds that side almost flat in a flood (Osney read 0.19 m at the 2014 peak). Their flood side has 0.7% coverage: 55 days of an archive. So we re-targeted to four gauges whose history matches their thresholds: New Botley, Minns Estate, Cold Harbour and Kings Mill (91.2–99.8% coverage for the gauges with history). <!-- src: SPEC.md §4.1.1; web/public/data/quality.json -->
-- **Leave-one-flood-out.** Each past flood is replayed with a model trained without it (±7 days), issuing a forecast every hour.
-- **A strong baseline.** Persistence ("the level stays where it is") scores every forecast. If we lose to it, the Proof tab says so.
-- **Calibration is measured.** We report interval coverage against nominal and reliability diagrams, and the app flags gaps over 10 points.
-- **Leakage tests.** Tests change future data and check that no input and no replay forecast changes (`tests/test_features.py`, `tests/test_backtest.py`).
-- **Honest counts.** Nine of eleven travel-time pairs rest on at least 3 floods. The other two are labelled "cross-correlation only". Event-level numbers carry 90% bootstrap intervals.
-- **Checked thresholds.** Each spot's threshold is checked against dated news, council and residents' reports (`config/spots.yaml`).
-
-**The 2014 replay (Botley Road, times GMT):** River Clock first reached 50% at 12:00 on 4 Jan, **about 7 h before the EA's Flood Warning** (19:03) and 37 h before New Botley crossed 2.76 m (01:00, 6 Jan). The peak was inside the 5–95% band at every lead from 6 to 72 h. The EA's lower-level Flood Alert (23 Dec) came before our first 10%. <!-- src: web/public/data/replays/e2014.json -->
-
-**Over all seven events:**
-- **Skill vs persistence** is positive at every lead, from +0.39 at 6 h to +0.11 at 72 h (forecasts from Oct 2021 on, which no model saw).
-- **Ranges are too wide:** the 90% range holds 94–97%.
-- **Floods caught at a 50% trigger:** every flood at all four forecast spots, with 0–3 false alarms per spot.
-- **Versus the EA's warning, mixed:** earlier at Osney (+2.9 h) and the Cherwell (+9.2 h), later at Botley (−5.1 h) and Abingdon Road (−13.8 h).
-- **2026 near miss:** our highest flood chance was 28%, so there were no false alarms at triggers of 30% or more. <!-- src: web/public/data/proof.json; replays/e2026.json -->
+- **Data before the model.** In the first hour we found the Osney, Godstow and Iffley lock gauges have no public history on their flood side (0.7% coverage). We switched to four gauges whose history matches their thresholds and said so on screen. <!-- src: web/public/data/quality.json -->
+- **No look-ahead.** Tests change future data and check that no input and no replay forecast changes. A forecast at t uses rows only up to t − 1 h.
+- **A strong baseline** scores every forecast, and **the EA's own warnings are scored with our rules**, on the same floods.
+- **We report what didn't work:** the rain-forecast test, the per-spot timing losses, the wide ranges.
 
 ## What it can't do
 
-- **Few floods:** seven named events since 2007, one a near miss. Uncertainty is wide.
-- **Not always better:** at Abingdon Road the probability forecast is slightly worse than persistence from 24 h on (Brier score), and at long leads near-certain forecasts are too confident.
+- **Few floods:** seven events since 2007, one a near miss; 30 spot-level floods from about 7 storms.
+- **Leave-one-flood-out can see later floods:** the 2014 replay's model has seen 2024. The accuracy scores use a strict time split instead.
 - **No future rain:** it sees water already in the river and rain already fallen.
-- **Stand-ins:** Osney Island uses Minns Estate, about 1.2 km west. Abingdon Road uses Cold Harbour. Wolvercote has no forecast (no gauge history).
-- **Leave-one-flood-out can see later floods:** the 2014 replay's model has seen 2024. Strict time-split results are reported separately.
-- **River flooding only:** no surface water or groundwater. Kings Mill has sent no live data since 13 Oct.
-- **Not a warning:** it does not replace the EA.
+- **Substitute gauges:** Osney Island uses Minns Estate, about 1.2 km west; Abingdon Road uses Cold Harbour. **Wolvercote has no forecast** (no gauge history). **Kings Mill has sent no live data since 13 Oct**, so the Cherwell shows "no forecast" live.
+- **River flooding only.** Not a warning, and it does not replace the EA.
+
+## What's next: rain forecasts (tested, not switched on)
+
+With real archived ECMWF rain forecasts (2024 on), 72 h accuracy against the simple guess rose from **+11% to +28%**, but it added **3 false alarms**, Botley's flood odds scored worse, and the test window holds only one flood. It fails our own adoption rule, so it stays off. <!-- src: issue #100 results comment (branch model/rain-features) -->
 
 ## Sponsor tech: Tiger Data
 
-A one-way SQL mirror of all our river data on a Tiger Data (Timescale) service. It holds a `readings_hourly` hypertable (**3,287,615 history rows**, 2006–2026, plus live readings), a `gauges` table (normal range and flood threshold for each gauge) and a `readings_daily` continuous aggregate. Compression took it from **434 MB to 35 MB (12.4×)**, and re-runs are idempotent. <!-- src: docs/tiger-data.md -->
+A one-way SQL mirror of all our river data on a Tiger Data (Timescale) service: a `readings_hourly` hypertable (**3,287,615 history rows**, 2006–2026, plus live readings), a `gauges` table and a `readings_daily` continuous aggregate. Compression took it from **434 MB to 35 MB (12.4×)**; re-runs are idempotent. One query shows the clock: in Jan 2014, **Cassington peaked 84 h and Farmoor 28 h before New Botley**. The app doesn't need it, so the demo runs offline. <!-- src: docs/tiger-data.md -->
 
-*One query:* when did each upstream gauge peak before New Botley in Jan 2014? **Cassington 84 h, Farmoor 28 h, Eynsham 9 h** before New Botley's 3.032 m peak (09:00 GMT, 9 Jan). That's the clock, straight from SQL.
-
-Also measured: a live refresh of the EA (17 requests) went from 199.8 s to 28.5 s. <!-- src: PR #62 -->
-
-More: `README.md` · `docs/tiger-data.md` · `SPEC.md` · github.com/outrolife/FloodOxhack26
+Team: **s-s01s, alfredo, adi**. More: `README.md` · `docs/tiger-data.md` · `SPEC.md` · github.com/outrolife/FloodOxhack26
