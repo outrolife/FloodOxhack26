@@ -70,7 +70,7 @@ export function RiverStrip({
                       )}
                     </div>
                   </div>
-                  <Sparkline points={pts} amber={st.amber} until={until} width={96} height={28} />
+                  {pts && pts.length > 1 && <Sparkline points={pts} amber={st.amber} until={until} width={96} height={28} />}
                 </div>
                 {label ? <div className="strip-link">{label}</div> : !isLast && <div className="strip-link" />}
               </div>

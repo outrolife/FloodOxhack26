@@ -220,7 +220,7 @@ export function Tradeoff({ proof, spots }: { proof: Proof; spots: Spot[] }) {
                 return [v == null ? "–" : `${Number(v).toFixed(1)} h`, `${String(n)} (p* ${p != null ? Math.round(p * 100) : "?"}%)`];
               }}
             />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
+            <Legend verticalAlign="top" wrapperStyle={{ fontSize: 12, paddingBottom: 6 }} />
             <ReferenceLine y={0} stroke="#6250d6" strokeDasharray="5 3" label={{ value: "Official warning", position: "insideBottomRight", fill: "#6250d6", fontSize: 11 }} />
             <Line dataKey="meanLeadH" name="Mean lead before flooding" stroke={SERIES[0]} strokeWidth={2} dot={{ r: 4 }} isAnimationActive={false} connectNulls />
             <Line dataKey="meanLeadVsOfficialH" name="Mean lead vs official warning" stroke={SERIES[1]} strokeWidth={2} dot={{ r: 4 }} isAnimationActive={false} connectNulls />

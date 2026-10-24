@@ -10,6 +10,8 @@ const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
+  // One bundle on purpose: tabs switch instantly during the demo, offline.
+  build: { chunkSizeWarningLimit: 1200 },
   server: {
     port: 5173,
     fs: { allow: [repoRoot] },

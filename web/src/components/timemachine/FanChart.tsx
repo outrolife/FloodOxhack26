@@ -27,8 +27,16 @@ type Row = {
 
 export type Marker = { t: string; label: string; colour: string };
 
+/** One tick per day (UTC midnight; labels are converted to UK time). */
+function dayTicks([a, b]: [number, number]): number[] {
+  const day = 24 * HOUR;
+  const out: number[] = [];
+  for (let t = Math.ceil(a / day) * day; t <= b; t += day) out.push(t);
+  return out;
+}
+
 // Stagger marker labels so nearby markers don't overprint each other.
-const MARKER_POS = ["insideTopRight", "insideTopLeft", "insideBottomRight", "insideBottomLeft"] as const;
+const MARKER_POS = ["insideTopLeft", "insideBottomLeft", "insideTopRight", "insideBottomRight"] as const;
 
 export function FanChart({
   observed,
@@ -95,7 +103,8 @@ export function FanChart({
   const yMax = Math.ceil((Math.max(...values) + 0.1) * 10) / 10;
 
   return (
-    <div style={{ width: "100%", height: 360 }}>
+    <div style={{ width: "100%" }}>
+      <div style={{ width: "100%", height: 360 }}>
       <ResponsiveContainer>
         <ComposedChart data={data} margin={{ top: 16, right: 16, bottom: 8, left: 0 }}>
           <CartesianGrid stroke="#e1e0d9" vertical={false} />
@@ -104,6 +113,7 @@ export function FanChart({
             type="number"
             scale="time"
             domain={domain}
+            ticks={dayTicks(domain)}
             allowDataOverflow
             tickFormatter={(t: number) => formatAxis(t)}
             stroke="#c3c2b7"
@@ -144,10 +154,13 @@ export function FanChart({
               label={{ value: m.label, position: MARKER_POS[i % MARKER_POS.length], fill: m.colour, fontSize: 11 }}
             />
           ))}
-          <ReferenceLine x={now} stroke="#52514e" strokeWidth={1} label={{ value: "now", position: "top", fill: "#52514e", fontSize: 11 }} />
+          <ReferenceLine x={now} stroke="#52514e" strokeWidth={2} />
         </ComposedChart>
       </ResponsiveContainer>
-      <div className="small muted">Times in UK time ({zoneAt(sliderT)} at the slider).</div>
+      </div>
+      <div className="small muted">
+        Times in UK time ({zoneAt(sliderT)} at the slider). Dark vertical line: forecast issue time.
+      </div>
     </div>
   );
 }

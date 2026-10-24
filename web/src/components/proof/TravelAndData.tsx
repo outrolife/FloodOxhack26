@@ -166,7 +166,7 @@ export function PerEventTable({ proof, events, spots }: { proof: Proof; events: 
               <tr key={`${r.eventId}-${r.spot}`}>
                 <td>{ev(r.eventId)}</td>
                 <td>{sp(r.spot)}</td>
-                <td>{r.crossed ? "Yes" : "No (near miss)"}</td>
+                <td>{r.crossed ? "Yes" : "No"}</td>
                 <td className="num">{r.peakObs.toFixed(2)} m</td>
                 <td className="num">{h(r.arrivalErrH)}</td>
                 <td className="num">{h(r.leadVsOfficialH)}</td>

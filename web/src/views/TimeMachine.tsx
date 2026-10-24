@@ -94,7 +94,11 @@ function ReplayPlayer({
   const [spotKey, setSpotKey] = useState<string>(
     () => (spotKeys.find((s) => s.key === "osney") ?? spotKeys[0])?.key ?? "",
   );
-  const [idx, setIdx] = useState(0);
+  // ?step=N in the URL opens the replay at forecast N (handy for demos and screenshots).
+  const [idx, setIdx] = useState(() => {
+    const step = Number(new URLSearchParams(window.location.search).get("step")) || 0;
+    return Math.min(Math.max(step, 0), Math.max(forecasts.length - 1, 0));
+  });
   const [seenIdx, setSeenIdx] = useState(0);
   const [playing, setPlaying] = useState(false);
 
@@ -132,16 +136,27 @@ function ReplayPlayer({
   const officialAlert = officials.find((o) => o.type === "alert");
   const crossing = replay.crossings.find((c) => c.spot === spot.key);
 
+  // Markers appear only once the slider has reached them, so playing the
+  // replay tells the story in order (SPEC §17.2).
+  const revealed = (t: string | undefined) => t != null && Date.parse(t) <= Date.parse(seenT);
   const markers: Marker[] = [];
-  if (first50) markers.push({ t: first50.issuedAt, label: "River Clock ≥ 50%", colour: "#184f95" });
-  if (officialWarning) markers.push({ t: officialWarning.issuedAt, label: `EA ${officialWarning.type}`, colour: "#6250d6" });
-  if (crossing) markers.push({ t: crossing.t, label: "Threshold crossed", colour: "#d03b3b" });
+  if (first50 && revealed(first50.issuedAt))
+    markers.push({ t: first50.issuedAt, label: "River Clock ≥ 50%", colour: "#184f95" });
+  if (officialWarning && revealed(officialWarning.issuedAt))
+    markers.push({ t: officialWarning.issuedAt, label: `EA ${officialWarning.type}`, colour: "#6250d6" });
+  if (crossing && revealed(crossing.t)) markers.push({ t: crossing.t, label: "Threshold crossed", colour: "#d03b3b" });
 
   const lastF = Date.parse(forecasts[forecasts.length - 1].issuedAt);
   const domain: [number, number] = [Date.parse(replay.start), Math.max(Date.parse(replay.end), lastF + 72 * HOUR)];
 
   let leadSentence: string | null = null;
-  if (first50 && officialWarning) {
+  const lastEvent = Math.max(
+    first50 ? Date.parse(first50.issuedAt) : 0,
+    officialWarning ? Date.parse(officialWarning.issuedAt) : 0,
+  );
+  if (lastEvent > Date.parse(seenT)) {
+    leadSentence = null; // not there yet
+  } else if (first50 && officialWarning) {
     const d = hoursBetween(first50.issuedAt, officialWarning.issuedAt);
     const datePrec = officialWarning.precision === "date" ? " (official time known to the day only)" : "";
     leadSentence =
@@ -149,7 +164,7 @@ function ReplayPlayer({
         ? `River Clock reached 50% ${d.toFixed(0)} h before the official ${officialWarning.type}${datePrec}.`
         : `River Clock reached 50% ${(-d).toFixed(0)} h after the official ${officialWarning.type}${datePrec}.`;
   } else if (first50) {
-    leadSentence = "River Clock reached 50%; no official flood warning for this spot in this event.";
+    leadSentence = "River Clock reached 50%; no official flood warning for this spot so far.";
   } else if (officialWarning) {
     leadSentence = `River Clock never reached 50% for this spot; the EA issued a ${officialWarning.type}.`;
   }
@@ -206,7 +221,7 @@ function ReplayPlayer({
         />
         <div className="timeline-note">
           {leadSentence && <p><strong>{leadSentence}</strong></p>}
-          {officialAlert && <p>EA flood alert for the area issued {formatDateTime(officialAlert.issuedAt)}.</p>}
+          {officialAlert && revealed(officialAlert.issuedAt) && <p>EA flood alert for the area issued {formatDateTime(officialAlert.issuedAt)}.</p>}
           <p className="muted">
             Grey line: what actually happened, shown only for times the slider has already passed. The
             model never sees data after its forecast time.
