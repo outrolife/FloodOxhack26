@@ -12,6 +12,10 @@ Arms (same LightGBM quantile model, SPEC §7.3 params, splits, weights, early st
   columns are built but not used by these models).
 - ``routed``: baseline + branch signals, each gauge shifted by its own travel time (the PR candidate).
 - ``front``: baseline + branch signals aligned to the branch's fastest gauge (lag 0) instead.
+- ``araw``: #125 A's raw columns (about 9 per new gauge), retrained here so every arm shares one
+  baseline and one data snapshot.
+- ``<arm>_s<seed>`` (e.g. ``baseline_s7``, ``ff05_s7``): the same arm with another LightGBM seed, to
+  see how much of a difference is seed noise.
 - ``ff05``: #125 A's raw columns with ``feature_fraction`` 0.5 (the research note's cheap check of
   the "too many correlated columns" explanation). Not a candidate (it departs from the §7.3 params).
 
@@ -45,7 +49,7 @@ from model.train import MODELS_DIR, GaugeModel
 log = logging.getLogger(__name__)
 
 TARGETS: tuple[str, ...] = ("coldharbour", "kingsmill")
-ARMS: tuple[str, ...] = ("routed", "ff05", "front")
+ARMS: tuple[str, ...] = ("routed", "ff05", "front", "araw")
 OUT_DIR = MODELS_DIR / "exp134b"
 OUT_PATH = Path(os.environ.get("RC_DATA_DIR", Path(__file__).resolve().parent.parent / "data"))
 OUT_PATH = OUT_PATH / "processed" / "exp134b_branch.json"
@@ -59,15 +63,19 @@ def arm(name: str) -> Iterator[dict[str, Any]]:
 
     saved = (features.BRANCHES, features.BRANCH_ALIGN, features.UPSTREAMS)
     kw: dict[str, Any] = {}
+    name, _, seed = name.partition("_s")  # "<arm>_s<seed>": the same arm with another LightGBM seed
     try:
+        if seed:
+            kw["params"] = {"seed": int(seed)}
         if name == "baseline":
             features.BRANCHES = {}
         elif name in ("routed", "front"):
             features.BRANCH_ALIGN = name
-        elif name == "ff05":
+        elif name in ("araw", "ff05"):
             features.BRANCHES = {}
             features.UPSTREAMS = {k: tuple(v) for k, v in ue.extended_map().items()}
-            kw["params"] = {"feature_fraction": 0.5}
+            if name == "ff05":
+                kw["params"] = {**kw.get("params", {}), "feature_fraction": 0.5}
         else:
             raise ValueError(name)
         yield kw
@@ -140,7 +148,7 @@ def evaluate(arms: Sequence[str]) -> dict[str, Any]:
     hourly = ue.load_hourly_ext()
     spots = [s for s in backtest.load_spots() if s["gauge"] in TARGETS]
     base_dir = OUT_DIR / "baseline"
-    variants = {"baseline": {t: GaugeModel.load(base_dir / t) for t in TARGETS}}
+    variants = {"baseline": {t: GaugeModel.load(base_dir / t) for t in TARGETS}}  # make train models
     for a in arms:
         variants[a] = {
             t: GaugeModel.load(OUT_DIR / a / t) for t in TARGETS if (OUT_DIR / a / t / "meta.json").exists()
@@ -168,7 +176,7 @@ def evaluate(arms: Sequence[str]) -> dict[str, Any]:
                 res[f"events@{p_star}"] = ue.event_variant(name, models, hourly, spots, ev_ids, ups)
         prefixes = (
             ["br_"]
-            if name in ("routed", "front")
+            if name.split("_s")[0] in ("routed", "front", "baseline")
             else [f"{g}_" for gs in ue.new_pairs().values() for g in gs]
         )
         res["importance"] = {g: importance_branch(m, prefixes) for g, m in models.items()}
