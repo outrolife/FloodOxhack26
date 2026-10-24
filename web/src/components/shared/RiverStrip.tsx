@@ -2,6 +2,7 @@
 // system, each link labelled with the median half-rise travel time T½.
 import type { Station, TravelPair } from "../../contracts";
 import { Sparkline } from "./Sparkline";
+import { countAtOrBefore } from "./series";
 
 type Point = { t: string; level: number };
 
@@ -13,13 +14,20 @@ const BRANCHES: { title: string; gauges: string[] }[] = [
   { title: "Thames main channel (live only)", gauges: ["godstow", "osney", "iffley"] },
 ];
 
-// When a gauge feeds several targets, label the link to the primary one.
+// When a gauge feeds several targets, label the best-measured link: pairs
+// matched on >= 3 events beat cross-correlation-only ones, then more events
+// beat fewer (a steadier median), then the primary target wins ties.
 const TARGET_PREFERENCE = ["newbotley", "kingsmill", "minns", "coldharbour", "osney", "godstow", "iffley"];
 
-function linkLabel(key: string, pairs: TravelPair[], stations: Station[]): string | null {
-  const from = pairs
+export function bestPair(key: string, pairs: TravelPair[]): TravelPair | undefined {
+  return pairs
     .filter((p) => p.up === key)
-    .sort((a, b) => rank(a.down) - rank(b.down));
+    .sort((a, b) => Number(a.n < 3) - Number(b.n < 3) || b.n - a.n || rank(a.down) - rank(b.down))[0];
+}
+
+function linkLabel(key: string, pairs: TravelPair[], stations: Station[]): string | null {
+  const best = bestPair(key, pairs);
+  const from = best ? [best] : [];
   if (from.length === 0) return null;
   const p = from[0];
   const down = stations.find((s) => s.key === p.down)?.name ?? p.down;
@@ -34,10 +42,8 @@ function rank(gauge: string): number {
 
 function lastAtOrBefore(points: Point[] | undefined, until?: string): Point | undefined {
   if (!points) return undefined;
-  const cut = until ? Date.parse(until) : Infinity;
-  let best: Point | undefined;
-  for (const p of points) if (Date.parse(p.t) <= cut) best = p;
-  return best;
+  const k = countAtOrBefore(points, until ? Date.parse(until) : Infinity);
+  return k > 0 ? points[k - 1] : undefined;
 }
 
 export function RiverStrip({
@@ -56,14 +62,17 @@ export function RiverStrip({
   /** Latest level per gauge when no series is available. */
   levelNow?: Record<string, number>;
 }) {
+  // Time Machine: a gauge with no replay data (e.g. the live-only main channel)
+  // would only say "no reading", so leave it out.
+  const shown = (g: string) => stations.some((s) => s.key === g) && (!until || (series?.[g]?.length ?? 0) > 0);
   return (
     <div className="strip">
-      {BRANCHES.filter((b) => b.gauges.some((g) => stations.some((s) => s.key === g))).map((b) => (
+      {BRANCHES.filter((b) => b.gauges.some(shown)).map((b) => (
         <div className="strip-branch" key={b.title}>
           <h3>{b.title}</h3>
           {b.gauges.map((g, i) => {
             const st = stations.find((s) => s.key === g);
-            if (!st) return null;
+            if (!st || !shown(g)) return null;
             const pts = series?.[g];
             const now = lastAtOrBefore(pts, until)?.level ?? levelNow?.[g];
             const label = linkLabel(g, pairs, stations);

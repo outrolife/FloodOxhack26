@@ -8,6 +8,7 @@ import {
   Legend,
   Line,
   LineChart,
+  ReferenceDot,
   ReferenceLine,
   ResponsiveContainer,
   Scatter,
@@ -119,6 +120,9 @@ export function Coverage({ proof }: { proof: Proof }) {
   );
 }
 
+/** Brier scores on rare floods are tiny (0.001): show two significant figures, not three decimals. */
+const brierFmt = (v: number): string => (v > 0 && v < 0.01 ? v.toPrecision(2) : v.toFixed(3));
+
 export function Reliability({ proof, spots }: { proof: Proof; spots: Spot[] }) {
   const spotKeys = Object.keys(proof.reliability);
   const [spot, setSpot] = useState(spotKeys.includes("osney") ? "osney" : (spotKeys[0] ?? ""));
@@ -174,8 +178,9 @@ export function Reliability({ proof, spots }: { proof: Proof; spots: Spot[] }) {
             </ResponsiveContainer>
           </div>
           <p className="small">
-            Brier score {entry.brier.toFixed(3)} (persistence {entry.brierPersistence.toFixed(3)}); Brier skill{" "}
-            <strong>{(1 - entry.brier / entry.brierPersistence).toFixed(2)}</strong>. Dot size = number of forecasts.
+            Brier score {brierFmt(entry.brier)} (persistence {brierFmt(entry.brierPersistence)}); Brier skill{" "}
+            <strong>{entry.brierPersistence > 0 ? (1 - entry.brier / entry.brierPersistence).toFixed(2) : "–"}</strong>. Dot
+            size = number of forecasts.
           </p>
         </>
       )}
@@ -206,6 +211,7 @@ export function Tradeoff({
           : undefined,
     }));
   const anyCi = rows.some((r) => r.ci90);
+  const official = proof.officialOutcome?.[spot];
   const name = (k: string) => spots.find((s) => s.key === k)?.name ?? k;
   return (
     <div className="card">
@@ -213,6 +219,7 @@ export function Tradeoff({
       <p className="sub">
         Each point is a trigger probability p*. Lower p* gives earlier warning but more false alarms.
         The dashed zero line is the official EA warning time.
+        {official?.meanLeadH != null && " The purple dot is the official EA Flood Warnings themselves, scored the same way."}
         {anyCi && " Whiskers: 90% bootstrap interval over events."}
       </p>
       {dateOnlySpots.has(spot) && (
@@ -253,6 +260,18 @@ export function Tradeoff({
               {anyCi && <ErrorBar dataKey="leadErr" direction="y" width={6} stroke={SERIES[0]} strokeWidth={1.5} isAnimationActive={false} />}
             </Line>
             <Line dataKey="meanLeadVsOfficialH" name="Mean lead vs official warning" stroke={SERIES[1]} strokeWidth={2} dot={{ r: 4 }} isAnimationActive={false} connectNulls />
+            {official?.meanLeadH != null && (
+              <ReferenceDot
+                x={official.falseAlarms}
+                y={official.meanLeadH}
+                r={6}
+                fill="#6250d6"
+                stroke="#fcfcfb"
+                strokeWidth={2}
+                ifOverflow="extendDomain"
+                label={{ value: "EA warnings", position: "right", fill: "#6250d6", fontSize: 11, fontWeight: 600 }}
+              />
+            )}
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -281,6 +300,17 @@ export function Tradeoff({
                 <td className="num">{r.ci90 ? `${r.ci90[0].toFixed(1)} to ${r.ci90[1].toFixed(1)} h` : "–"}</td>
               </tr>
             ))}
+            {official && (
+              <tr style={{ color: "#6250d6", fontWeight: 600 }}>
+                <td>EA warnings</td>
+                <td className="num">{official.hits}</td>
+                <td className="num">{official.misses}</td>
+                <td className="num">{official.falseAlarms}</td>
+                <td className="num">{official.meanLeadH == null ? "–" : `${official.meanLeadH.toFixed(1)} h`}</td>
+                <td className="num">–</td>
+                <td className="num">–</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

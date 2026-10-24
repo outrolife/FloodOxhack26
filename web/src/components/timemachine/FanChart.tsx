@@ -13,7 +13,8 @@ import {
   YAxis,
 } from "recharts";
 import type { SpotForecast } from "../../contracts";
-import { HOUR, formatAxis, formatDateTime, zoneAt } from "../../time";
+import { HOUR, formatDateTimeYear, formatDayMonth, zoneAt } from "../../time";
+import { countAtOrBefore, timesOf } from "../shared/series";
 import { yDomain } from "./yDomain";
 
 type Point = { t: string; level: number };
@@ -28,11 +29,16 @@ type Row = {
 
 export type Marker = { t: string; label: string; colour: string };
 
-/** One tick per day (UTC midnight; labels are converted to UK time). */
+/**
+ * Day ticks at UTC noon (so the UK date label is right in GMT and BST),
+ * thinned to every 2nd/7th day on long windows.
+ */
 function dayTicks([a, b]: [number, number]): number[] {
   const day = 24 * HOUR;
+  const days = (b - a) / day;
+  const step = days > 40 ? 7 : days > 16 ? 2 : 1;
   const out: number[] = [];
-  for (let t = Math.ceil(a / day) * day; t <= b; t += day) out.push(t);
+  for (let t = Math.ceil((a - day / 2) / day) * day + day / 2; t <= b; t += step * day) if (t >= a) out.push(t);
   return out;
 }
 
@@ -81,10 +87,16 @@ export function FanChart({
     return r;
   };
 
-  for (const p of observed) {
-    const t = Date.parse(p.t);
-    if (t <= now) row(t).obs = p.level;
-    if (t >= now && t <= seen && seen > now) row(t).obsFaint = p.level;
+  // Only observations inside the visible window (and never past what the
+  // slider has reached) become chart rows: fewer points, faster scrubbing.
+  const ts = timesOf(observed);
+  const from = countAtOrBefore(observed, domain[0] - 1);
+  const to = countAtOrBefore(observed, Math.min(Math.max(now, seen), domain[1]));
+  for (let k = from; k < to; k++) {
+    const t = ts[k];
+    const level = observed[k].level;
+    if (t <= now) row(t).obs = level;
+    if (t >= now && t <= seen && seen > now) row(t).obsFaint = level;
   }
 
   if (forecast && forecast.leads.length > 0) {
@@ -125,7 +137,7 @@ export function FanChart({
             domain={domain}
             ticks={dayTicks(domain)}
             allowDataOverflow
-            tickFormatter={(t: number) => formatAxis(t)}
+            tickFormatter={(t: number) => formatDayMonth(t)}
             stroke="#c3c2b7"
             tick={{ fill: "#52514e", fontSize: 11 }}
             minTickGap={40}
@@ -139,7 +151,7 @@ export function FanChart({
             label={{ value: "m (gauge datum)", angle: -90, position: "insideLeft", fill: "#898781", fontSize: 11 }}
           />
           <Tooltip
-            labelFormatter={(t) => formatDateTime(Number(t))}
+            labelFormatter={(t) => formatDateTimeYear(Number(t))}
             formatter={(v, name) => {
               const fmt = (x: unknown) => (typeof x === "number" ? x.toFixed(2) : String(x));
               const txt = Array.isArray(v) ? `${fmt(v[0])} – ${fmt(v[1])} m` : `${fmt(v)} m`;

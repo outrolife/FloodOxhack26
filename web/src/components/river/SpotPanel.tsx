@@ -62,7 +62,7 @@ export function SpotPanel({
       <h3 style={{ marginTop: "0.8rem" }}>Next 72 hours</h3>
       <ProbBars sf={sf} />
       <p style={{ marginTop: "0.6rem" }}>
-        <strong>{arrivalSentence(sf, stale)}</strong>
+        <strong>{arrivalSentence(sf, stale, spot.threshold)}</strong>
       </p>
 
       <p className="small muted">

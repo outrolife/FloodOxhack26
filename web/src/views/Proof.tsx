@@ -51,7 +51,7 @@ export default function Proof() {
       ) : (
         missing("Proof metrics (proof.json)")
       )}
-      {travel.status === "ready" ? <TravelFinding pairs={travel.data} stations={stations.data} /> : missing("Travel times")}
+      {travel.status === "ready" ? <TravelFinding pairs={travel.data} stations={stations.data} events={events.data} /> : missing("Travel times")}
       {importance.status === "ready" ? (
         <FeatureImportance importance={importance.data} stations={stations.data} />
       ) : (

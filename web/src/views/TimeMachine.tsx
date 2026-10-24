@@ -2,11 +2,17 @@
 // saw at each forecast time. The whole replay file is preloaded, so moving the
 // slider never loads anything.
 import { useEffect, useMemo, useState } from "react";
-import type { EventsFile, Replay, SpotsFile, StationsFile, TravelTimesFile } from "../contracts";
+import type { EventsFile, Forecast, Replay, SpotsFile, StationsFile, TravelTimesFile } from "../contracts";
 import { useData } from "../data";
-import { HOUR, formatDateTime, hoursBetween } from "../time";
+import { HOUR, formatDateTimeYear, hoursBetween } from "../time";
 import { FanChart, type Marker } from "../components/timemachine/FanChart";
-import { compareSentence, firstOfficials, formatOfficial, officialLabel } from "../components/timemachine/timeline";
+import {
+  compareSentence,
+  firstOfficials,
+  focusWindow,
+  formatOfficial,
+  officialLabel,
+} from "../components/timemachine/timeline";
 import { FixtureNotice, Pending } from "../components/shared/DataNotice";
 import { ProbBars } from "../components/shared/ProbBars";
 import { RiverStrip } from "../components/shared/RiverStrip";
@@ -14,6 +20,19 @@ import { arrivalSentence, pFloodMax } from "../components/shared/forecast";
 
 const SIM_HOURS_PER_2S = 12; // SPEC §10.2: one simulated 12 h per 2 s (speed 1×)
 const SPEEDS = [0.5, 1, 2, 4] as const;
+
+// First forecast with P(flood within 72 h) >= 50%, per spot; cached per
+// replay so the slider doesn't rescan 1,489 forecasts on every step.
+const first50Cache = new WeakMap<Forecast[], Map<string, Forecast | undefined>>();
+function first50For(forecasts: Forecast[], spot: string): Forecast | undefined {
+  let bySpot = first50Cache.get(forecasts);
+  if (!bySpot) first50Cache.set(forecasts, (bySpot = new Map()));
+  if (!bySpot.has(spot)) {
+    bySpot.set(spot, forecasts.find((fc) => (pFloodMax(fc.spots.find((s) => s.spot === spot)) ?? 0) >= 0.5));
+  }
+  return bySpot.get(spot);
+}
+
 
 /** Keys typed into these elements belong to them, not to the player. */
 function ownsKeys(el: EventTarget | null, key: string): boolean {
@@ -115,6 +134,9 @@ function ReplayPlayer({
   const [seenIdx, setSeenIdx] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<number>(1);
+  // "focus": a window that follows the slider, so the 72 h fan is readable;
+  // "event": the whole event (up to two months) at once.
+  const [zoom, setZoom] = useState<"focus" | "event">("focus");
   const last = forecasts.length - 1;
 
   useEffect(() => setSeenIdx((s) => Math.max(s, idx)), [idx]);
@@ -173,7 +195,7 @@ function ReplayPlayer({
   const observed = replay.observed[spot.gauge] ?? [];
 
   // Timeline markers.
-  const first50 = forecasts.find((fc) => (pFloodMax(fc.spots.find((s) => s.spot === spot.key)) ?? 0) >= 0.5);
+  const first50 = first50For(forecasts, spot.key);
   const { alert: officialAlert, warning: officialWarning } = firstOfficials(replay, spot.key);
   const crossing = replay.crossings.find((c) => c.spot === spot.key);
 
@@ -190,7 +212,8 @@ function ReplayPlayer({
   if (crossing && revealed(crossing.t)) markers.push({ t: crossing.t, label: "Threshold crossed", colour: "#d03b3b" });
 
   const lastF = Date.parse(forecasts[forecasts.length - 1].issuedAt);
-  const domain: [number, number] = [Date.parse(replay.start), Math.max(Date.parse(replay.end), lastF + 72 * HOUR)];
+  const eventDomain: [number, number] = [Date.parse(replay.start), Math.max(Date.parse(replay.end), lastF + 72 * HOUR)];
+  const domain = zoom === "event" ? eventDomain : focusWindow(Date.parse(sliderT), eventDomain);
 
   const warningSentence = compareSentence(first50?.issuedAt, officialWarning, "warning", revealed);
   const alertSentence = compareSentence(first50?.issuedAt, officialAlert, "alert", revealed);
@@ -219,8 +242,16 @@ function ReplayPlayer({
               </button>
             ))}
           </span>
+          <span className="speed" role="group" aria-label="Chart range">
+            <button className="btn" aria-pressed={zoom === "focus"} onClick={() => setZoom("focus")}>
+              10 days
+            </button>
+            <button className="btn" aria-pressed={zoom === "event"} onClick={() => setZoom("event")}>
+              Whole event
+            </button>
+          </span>
           <span className="small">
-            Forecast issued <strong>{formatDateTime(sliderT)}</strong>
+            Forecast issued <strong>{formatDateTimeYear(sliderT)}</strong>
           </span>
         </div>
         <input
@@ -234,7 +265,7 @@ function ReplayPlayer({
             setIdx(Number(e.target.value));
           }}
           aria-label="Forecast time"
-          aria-valuetext={formatDateTime(sliderT)}
+          aria-valuetext={formatDateTimeYear(sliderT)}
         />
         <div className="small muted">
           Keys: Space play/pause · ← → step one forecast (Shift: 6) · Home/End jump to start/end
@@ -274,10 +305,10 @@ function ReplayPlayer({
       <aside>
         <div className="card">
           <h2>{spot.name}</h2>
-          <p className="sub">At {formatDateTime(sliderT)}</p>
+          <p className="sub">At {formatDateTimeYear(sliderT)}</p>
           <ProbBars sf={sf} />
           <p style={{ marginTop: "0.6rem" }}>
-            <strong>{arrivalSentence(sf, f.stale.includes(spot.gauge))}</strong>
+            <strong>{arrivalSentence(sf, f.stale.includes(spot.gauge), spot.threshold)}</strong>
           </p>
         </div>
         <div className="card">

@@ -45,9 +45,13 @@ export function spotLevel(f: Forecast | null, spot: Spot): Level {
 }
 
 /** One-sentence arrival window, e.g. "50% chance by Tue 18:00 GMT". */
-export function arrivalSentence(sf: SpotForecast | undefined, stale = false): string {
+export function arrivalSentence(sf: SpotForecast | undefined, stale = false, threshold?: number): string {
   if (!sf) return "No forecast for this spot.";
   if (sf.leads.length === 0) return stale ? "No forecast: gauge data is stale." : "No forecast: no gauge history.";
+  // Already flooding: arrival is the issue time (SPEC §7.5), so "by <now>" would read oddly.
+  if (threshold != null && sf.mode === "probability" && sf.levelNow >= threshold) {
+    return `Already above the flood threshold (${sf.levelNow.toFixed(2)} m vs ${threshold.toFixed(2)} m).`;
+  }
   const a = sf.arrival;
   if (sf.mode === "timing_only") {
     if (!a?.p50) return "Median forecast stays below the normal range for the next 72 h.";

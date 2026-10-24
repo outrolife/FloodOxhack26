@@ -60,6 +60,24 @@ export const formatDate = (t: string | number | Date): string => fmtDate.format(
 /** Compact chart-axis label, "9 Jan, 18" (zone given in the axis title). */
 export const formatAxis = (t: string | number | Date): string => fmtAxis.format(toDate(t));
 
+const fmtDayTimeYear = new Intl.DateTimeFormat("en-GB", {
+  timeZone: TZ,
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+const fmtDayMonth = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, day: "numeric", month: "short" });
+
+/** "Thu 9 Jan 2014, 18:00 GMT": for past events (Time Machine), where the year matters. */
+export const formatDateTimeYear = (t: string | number | Date): string =>
+  // With a year, en-GB puts a comma after the weekday ("Thu, 9 Jan 2014"); drop it to match formatDateTime.
+  `${fmtDayTimeYear.format(toDate(t)).replace(/^(\w+),/, "$1")} ${zoneAt(t)}`;
+/** Day-tick axis label, "9 Jan". */
+export const formatDayMonth = (t: string | number | Date): string => fmtDayMonth.format(toDate(t));
+
 /** Minutes Europe/London is ahead of UTC at time t (0 in GMT, 60 in BST). */
 export function londonOffsetMinutes(t: string | number | Date): number {
   const d = toDate(t);
