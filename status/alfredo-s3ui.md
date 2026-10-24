@@ -1,14 +1,14 @@
 # alfredo-s3ui
 
 - **role**: App
-- **state**: reviewing
+- **state**: working
 - **issue**: #22
-- **task**: S3 UI PR #95 ready (S3 files only, verified with real s3-spread frames)
-- **next**: Merge #95 and alfredo-s3's data PR (either order); hide via SHOW_S3 if needed
+- **task**: S3 UI: pixelated heatmap styling for #95
+- **next**: Gradient legend, crisp overlay, dark tiles; then real frames from #106
 - **needs**: 
 - **notes**: 
 - **branch**: stretch/s3-ui
 - **head**: a511c9f Use only real S3 runs in the app; add no-spread note and compa
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:25:10Z
+- **updated**: 2026-10-24T18:26:20Z
