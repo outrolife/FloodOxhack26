@@ -119,3 +119,26 @@ def test_train_wrap_and_score_end_to_end(tmp_path):
     assert "botley" in res["scores"][0]["brier"]
     text = fe.report(res)
     assert "Pinball skill" in text and "Gain share" in text
+
+
+def test_checkpointed_training_matches_and_resumes(tmp_path, monkeypatch):
+    import shutil
+
+    import model.train as mt
+
+    hourly = normalise_hourly(make_hourly(years=4.0, seed=1))
+    fast = {"n_estimators": 20, "early_stopping_rounds": 5, "params": {"num_threads": 2}}
+    whole = fe.train_arm_gauge(hourly, "newbotley", {}, "features", **fast)
+    ck = fe.train_checkpointed(hourly, "newbotley", {}, "features", tmp_path, horizons=(6, 72), **fast)
+    assert ck.horizons == [6, 72] and (tmp_path / "newbotley" / "meta.json").exists()
+    X = fe.build_variant_xy(hourly, "newbotley", whole.medians, {})[0].iloc[-300:]
+    np.testing.assert_allclose(ck.predict(X)[72], whole.predict(X)[72])
+    assert ck.cqr[72] == whole.cqr[72] and ck.info["extraFeatures"] == whole.info["extraFeatures"]
+
+    calls = []
+    real = mt.fit_gauge
+    monkeypatch.setattr(mt, "fit_gauge", lambda *a, **k: calls.append(k["horizons"]) or real(*a, **k))
+    shutil.rmtree(tmp_path / "newbotley" / "_parts" / "h72")
+    again = fe.train_checkpointed(hourly, "newbotley", {}, "features", tmp_path, horizons=(6, 72), **fast)
+    assert calls == [(72,)]  # h=6 was loaded from its saved part
+    np.testing.assert_allclose(again.predict(X)[6], ck.predict(X)[6])

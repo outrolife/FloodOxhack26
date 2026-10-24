@@ -259,36 +259,111 @@ def wrap_arm(hourly: pd.DataFrame, models: Mapping[str, GaugeModel]) -> dict[str
 # ---------------------------------------------------------------------------------------------
 
 
+def prepare_arm(
+    hourly: pd.DataFrame, target: str, lags: Any, arm: str, drop: Sequence[str] = ()
+) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, Any]]:
+    """X, Y and the ``fit_gauge`` keywords, exactly as ``model.train.train_gauge`` prepares them.
+
+    ``arm == "features"`` joins the candidate columns; ``"baseline"`` is today's columns only.
+    """
+    from model.calibrate import event_mask
+    from model.train import build_xy, choose_splits, fit_medians, gauge_lines
+
+    lines = gauge_lines(target)
+    lv = hourly[hourly["gauge"] == target]
+    if lv.empty:
+        raise ValueError(f"no rows for target gauge {target!r}")
+    ts = lv.loc[lv["level_mean"].notna(), "ts_utc"]
+    splits = choose_splits(ts.min(), ts.max())
+    medians = fit_medians(hourly, target, splits.val_start)
+    if arm == "baseline":
+        X, Y = build_xy(hourly, target, medians, lags)
+    else:
+        X, Y = build_variant_xy(hourly, target, medians, lags, drop)
+    lmax = lv.set_index("ts_utc")["level_max"].reindex(X.index)
+    events = event_mask(lmax.fillna(X["level_now"]), lines["amber"])
+    kw = {
+        "target": target,
+        "amber": lines["amber"],
+        "threshold": lines["threshold"],
+        "splits": splits,
+        "medians": medians,
+        "lags": lags,
+        "events": events,
+    }
+    return X, Y, kw
+
+
+def _mark_extra(m: GaugeModel, target: str, lags: Any, arm: str, drop: Sequence[str]) -> GaugeModel:
+    if arm != "baseline":
+        m.info["extraFeatures"] = {"columns": extra_columns(target, lags, drop), "drop": list(drop)}
+    return m
+
+
 def train_arm_gauge(
     hourly: pd.DataFrame, target: str, lags: Any, arm: str, drop: Sequence[str] = (), **fit_kwargs: Any
 ) -> GaugeModel:
     """``model.train.train_gauge`` with (``arm == "features"``) the candidate columns added."""
-    from model.calibrate import event_mask
-    from model.train import choose_splits, fit_gauge, fit_medians, gauge_lines, train_gauge
+    from model.train import fit_gauge
 
-    if arm == "baseline":
-        return train_gauge(hourly, target, lags=lags, **fit_kwargs)
-    lines = gauge_lines(target)
-    lv = hourly[hourly["gauge"] == target]
-    ts = lv.loc[lv["level_mean"].notna(), "ts_utc"]
-    splits = choose_splits(ts.min(), ts.max())
-    medians = fit_medians(hourly, target, splits.val_start)
-    X, Y = build_variant_xy(hourly, target, medians, lags, drop)
-    lmax = lv.set_index("ts_utc")["level_max"].reindex(X.index)
-    events = event_mask(lmax.fillna(X["level_now"]), lines["amber"])
-    m = fit_gauge(
-        X,
-        Y,
-        target=target,
-        amber=lines["amber"],
-        threshold=lines["threshold"],
-        splits=splits,
-        medians=medians,
-        lags=lags,
-        events=events,
-        **fit_kwargs,
-    )
-    m.info["extraFeatures"] = {"columns": extra_columns(target, lags, drop), "drop": list(drop)}
+    X, Y, kw = prepare_arm(hourly, target, lags, arm, drop)
+    return _mark_extra(fit_gauge(X, Y, **kw, **fit_kwargs), target, lags, arm, drop)
+
+
+def merge_parts(parts: Sequence[GaugeModel]) -> GaugeModel:
+    """One GaugeModel from single-lead fits (leads are fitted independently in ``fit_gauge``)."""
+    m = parts[0]
+    leads: dict[str, Any] = {}
+    for p in parts[1:]:
+        m.boosters.update(p.boosters)
+        m.cqr.update(p.cqr)
+        m.persistence_eps.update(p.persistence_eps)
+    for p in parts:
+        leads.update(p.info.get("leads", {}))
+    m.boosters = dict(sorted(m.boosters.items()))
+    m.info["leads"] = dict(sorted(leads.items(), key=lambda kv: int(kv[0])))
+    return m
+
+
+def train_checkpointed(
+    hourly: pd.DataFrame,
+    target: str,
+    lags: Any,
+    arm: str,
+    out_dir: Path,
+    drop: Sequence[str] = (),
+    horizons: Sequence[int] | None = None,
+    **fit_kwargs: Any,
+) -> GaugeModel:
+    """Train one gauge lead by lead, saving each lead to ``out_dir/<g>/_parts/h<h>`` as it finishes.
+
+    Leads already saved are loaded, not retrained, so a killed run resumes where it stopped. When all
+    leads exist they are merged and saved to ``out_dir/<g>`` (meta.json last, so its presence means done).
+    """
+    from model.probability import HORIZONS_H
+    from model.train import fit_gauge
+
+    horizons = list(horizons or HORIZONS_H)
+    parts_dir = out_dir / target / "_parts"
+    X = Y = kw = None
+    parts = []
+    for h in horizons:
+        d = parts_dir / f"h{h}"
+        if (d / "meta.json").exists():
+            log.info("%s %s h=%d: loading saved part", arm, target, h)
+            parts.append(GaugeModel.load(d))
+            continue
+        if X is None:
+            X, Y, kw = prepare_arm(hourly, target, lags, arm, drop)
+        t0 = time.time()
+        p = fit_gauge(X, Y, **kw, horizons=(h,), **fit_kwargs)
+        p.save(d)
+        log.info("%s %s h=%d: fitted and saved in %.0f s", arm, target, h, time.time() - t0)
+        parts.append(p)
+    m = _mark_extra(merge_parts(parts), target, lags, arm, drop)
+    m.info["exp125"] = {"arm": arm, "drop": list(drop), "commit": _git_sha(), "checkpointed": True}
+    m.info["trainedAt"] = pd.Timestamp.now(tz="UTC").strftime("%Y-%m-%dT%H:%M:%SZ")
+    m.save(out_dir / target)
     return m
 
 
@@ -696,7 +771,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     t.add_argument("--targets", nargs="+", default=list(TARGETS))
     t.add_argument("--drop", nargs="*", default=[], choices=GROUPS, help="ablation: leave out groups")
     t.add_argument("--out-dir", default=None, help="default data/models/exp125/<arm>")
-    t.add_argument("--skip-existing", action="store_true")
+    t.add_argument("--force", action="store_true", help="re-merge gauges already saved (parts are reused)")
     e = sub.add_parser("evaluate")
     e.add_argument("--arms", nargs="+", default=["baseline", "features"], help="arm names or model dirs")
     e.add_argument("--out", default=str(OUT_PATH))
@@ -709,13 +784,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         out_dir = Path(args.out_dir) if args.out_dir else ARM_DIRS[args.arm]
         hourly, lags = load_hourly(), load_lags()
         for g in args.targets:
-            if args.skip_existing and (out_dir / g / "meta.json").exists():
-                log.info("skip %s (exists)", g)
+            if (out_dir / g / "meta.json").exists() and not args.force:
+                log.info("skip %s (already saved in %s)", g, out_dir / g)
                 continue
             t0 = time.time()
-            m = train_arm_gauge(hourly, g, lags, args.arm, args.drop)
-            m.info["exp125"] = {"arm": args.arm, "drop": list(args.drop), "commit": _git_sha()}
-            m.save(out_dir / g)
+            m = train_checkpointed(hourly, g, lags, args.arm, out_dir, args.drop)
             log.info("saved %s %s in %.0f s; cqr=%s", args.arm, g, time.time() - t0, m.cqr)
         if args.arm == "baseline" and args.out_dir is None:
             log.info("DONE marker: %s", write_done(out_dir))
