@@ -142,9 +142,14 @@ NEW_GAUGES: dict[str, dict[str, str]] = {
 THAMES_TARGETS: tuple[str, ...] = ("newbotley", "minns", "coldharbour")
 THAMES_NEW: tuple[str, ...] = ("shifford", "buscot", "hannington", "worsham", "shipton")
 CHERWELL_NEW: tuple[str, ...] = ("banbury", "heyford", "lowerarncott")
-# Gauges actually added to the model (chosen after the travel-time step; see choose()).
+# Gauges actually added to the model, chosen after the travel-time step (24 Oct 2026, §6 matching):
+# T_half median to newbotley / kingsmill (n valid events): shifford 17 h (20), hannington 18 h (24),
+# worsham 9 h (17), shipton 19 h (17); banbury 37 h (7), lowerarncott 39 h (5). For comparison the
+# shipped upstreams: farmoor 5 h, eynsham 1 h, cassington 10 h; enslow 19 h. Not chosen: buscot (u/s
+# weir head, muted: n=5, 7 h, shorter than shifford downstream of it) and heyford (34 h, between
+# banbury and enslow, so mostly redundant).
 CHOSEN: dict[str, tuple[str, ...]] = {
-    "thames": ("shifford", "buscot", "worsham", "shipton"),
+    "thames": ("shifford", "hannington", "worsham", "shipton"),
     "cherwell": ("banbury", "lowerarncott"),
 }
 
