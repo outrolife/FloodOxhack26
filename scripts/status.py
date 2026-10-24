@@ -10,7 +10,7 @@ The `status` branch is written with git plumbing, so this never touches your
 working tree, your index, or the branch you are working on.
 
 Commands
-  whoami NAME ROLE          set this checkout's identity (stored in .claude/agent.json, gitignored)
+  whoami NAME ROLE [--force] set this checkout's identity (stored in .claude/agent.json, gitignored)
   board                     fetch origin and print the team board (used by hooks)
   set [--state S] [--issue N] [--task T] [--next T] [--needs T] [--notes T]
                             update your status and push it
@@ -228,8 +228,8 @@ def cmd_board() -> None:
     p = print
     p(f"=== River Clock team board (status branch, {'fetched' if ok else 'OFFLINE, cached'} {now}) ===")
     if not name:
-        p("!! This checkout has no status identity. Ask the human for their name and role "
-          "(Data/Model/App/Story), then run:  python3 scripts/status.py whoami <name> <role>")
+        p("!! NEW SESSION, NO IDENTITY: before doing anything else, follow ONBOARDING.md "
+          "(ask the human their first name and role, then run: python3 scripts/status.py whoami <name> <role>)")
     else:
         p(f"You are '{name}' ({role or 'role unset'}). Keep your entry current: "
           "python3 scripts/status.py set --state ... --issue ... --task \"...\" --next \"...\"")
@@ -275,7 +275,21 @@ def cmd_board() -> None:
 def cmd_whoami(args: List[str]) -> None:
     if len(args) < 2:
         sys.exit("usage: status.py whoami <name> <role>")
+    force = "--force" in args
+    args = [a for a in args if a != "--force"]
+    if len(args) < 2:
+        sys.exit("usage: status.py whoami <name> <role> [--force]")
     name, role = slug(args[0]), " ".join(args[1:])
+    if not name:
+        sys.exit("name must contain letters or digits")
+    current, _ = identity()
+    fetch_status()
+    taken = read_all().get(name)
+    if taken and current != name and not force:
+        sys.exit(f"name '{name}' is already on the board ({taken.get('role','?')}, branch "
+                 f"{taken.get('branch','?')}, updated {taken.get('updated','?')}).\n"
+                 f"If that entry is this same person on another machine, rerun with --force. "
+                 f"Otherwise pick a different name, e.g. '{name}-2'.")
     cfg = ROOT / ".claude" / "agent.json"
     cfg.parent.mkdir(exist_ok=True)
     cfg.write_text(json.dumps({"name": name, "role": role}, indent=2) + "\n")
