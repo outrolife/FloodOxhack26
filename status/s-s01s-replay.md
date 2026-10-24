@@ -1,14 +1,14 @@
 # s-s01s-replay
 
 - **role**: App
-- **state**: working
+- **state**: reviewing
 - **issue**: #120
-- **task**: UI v2 Replay screen: scoreboard, badges, headline, map+fan
-- **next**: Pure functions + tests in web/src/screens/replay/
+- **task**: PR #131 UI v2: Replay screen
+- **next**: Address review; check layout at 1440x900
 - **needs**: 
 - **notes**: 
 - **branch**: app/v2-replay
-- **head**: 443ed8f Merge pull request #111 from outrolife/stretch/s4-sandbags
+- **head**: 0afb765 Replay: use the kit's MapClock and clockFor, reveal readings 1
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:51:07Z
+- **updated**: 2026-10-24T19:05:44Z
