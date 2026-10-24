@@ -3,12 +3,12 @@
 - **role**: App
 - **state**: working
 - **issue**: #5
-- **task**: Scaffold pushed (shell, 5 tabs, About); building River/TM/Proof on contracts
-- **next**: Merge app/contracts-fixtures, build River + Time Machine first pass
+- **task**: Scaffold: River + Time Machine pushed on fixtures
+- **next**: Proof tab first pass, then visual check and PR
 - **needs**: 
 - **notes**: 
 - **branch**: app/web-scaffold
-- **head**: e773d49 Add app shell with five tabs, disclaimer banner, About text an
+- **head**: 716d969 Add Time Machine tab: event picker, slider, play, forecast fan
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:08:06Z
+- **updated**: 2026-10-24T16:12:17Z
