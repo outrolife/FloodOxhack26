@@ -34,8 +34,9 @@ Definitions (used in the UI and by judges):
   line) is never a false alarm; if it started too late, the crossing is already counted as a miss.
 - **Official warnings as a trigger**: an EA Flood Warning is one message, not an hourly forecast, so
   it counts as in force from its issue time until 24 h after the last Update to it (before the next
-  fresh warning), capped at the event end (#92). Its in-force hours on our issue-time grid (hours
-  below the line only, as for our trigger) are then scored with the same hit/miss/false-alarm rules.
+  fresh warning), capped at the event end (#92). Its in-force times on our issue-time grid plus its own
+  issue time, leaving out times when the river is already over the line (as for our trigger), are then
+  scored with the same hit/miss/false-alarm rules.
 - **Arrival error**: the forecast issued 24 h (or 48 h) before a crossing gives a 50% arrival time;
   error = that time - the actual crossing, in hours (negative = predicted too early).
 - **Bootstrap**: resample events with replacement (1,000 times, seed 42) and recompute the statistic;

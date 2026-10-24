@@ -147,6 +147,24 @@ def test_official_outcome_holds_warning_until_updates() -> None:
     assert out["officialOutcome"]["botley"] == {"hits": 1, "misses": 0, "falseAlarms": 0, "meanLeadH": 72.0}
 
 
+def test_official_warning_between_hourly_issue_times_still_counts() -> None:
+    """e2024a Cherwell: Flood Warning 20:43, crossing 21:00. On the hourly grid alone the first in-force
+    hour is 21:00, the crossing itself (a miss); the warning's own issue time keeps it a hit. A warning
+    issued while the river is already over the line is neither a hit nor a false alarm."""
+    r = replay("e1", 0, lambda h: 0.0, [50], [])
+    for fc in r["forecasts"]:
+        if pd.Timestamp(fc["issuedAt"]) >= T0 + pd.Timedelta(hours=50):
+            fc["spots"][0]["levelNow"] = 2.5  # over the 2.0 line from the crossing on
+    events = {"e1": {"start": iso(0), "end": iso(99)}}
+    hourly = pd.DataFrame({"gauge": "g", "ts_utc": [T0 + pd.Timedelta(hours=50)], "level_mean": [2.5]})
+    early = _warnings((49 + 43 / 60, "Flood Warning"))
+    out = proof.event_scores({"e1": r}, events, [SPOT], hourly, early)
+    assert out["officialOutcome"]["botley"] == {"hits": 1, "misses": 0, "falseAlarms": 0, "meanLeadH": 0.28}
+    late = _warnings((60, "Flood Warning"))
+    out = proof.event_scores({"e1": r}, events, [SPOT], hourly, late)
+    assert out["officialOutcome"]["botley"] == {"hits": 0, "misses": 1, "falseAlarms": 0, "meanLeadH": None}
+
+
 def test_lead_vs_official_paired_within_first_flood() -> None:
     """#90/#92: floods at 10 h and 90 h; the EA warned for the first, we only triggered for the second.
     Without onsets the lead was 5 - 80 = -75 h (our second-flood trigger vs their first-flood warning)."""

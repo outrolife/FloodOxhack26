@@ -298,11 +298,34 @@ def official_messages(
 
 
 def official_triggers(
-    messages: Sequence[tuple[pd.Timestamp, bool]], p: pd.Series, end: pd.Timestamp
+    messages: Sequence[tuple[pd.Timestamp, bool]],
+    replay: Mapping[str, Any],
+    spot: str,
+    threshold: float,
+    end: pd.Timestamp,
 ) -> pd.DatetimeIndex:
-    """Issue times at which the official warning is in force, on the hours our own trigger could fire
-    (``p`` not NaN: a probability spot below the line), so both are scored on the same grid (#92)."""
-    return metrics.in_force_times(messages, p.index[p.notna()], end=end)
+    """Times at which the official warning counts as a trigger (#92).
+
+    The grid is the replay's issue times plus each warning's own issue time (a warning at 20:43 before
+    a 21:00 crossing is a hit, as it was before). As for our trigger, times when the river is already
+    at or above the line (the latest replay ``levelNow`` at or before t) are left out: the flood is
+    here. Unlike ours, hours with stale gauge data still count, because the EA's warning doesn't
+    depend on our data.
+    """
+    level = pd.Series(
+        {
+            pd.Timestamp(fc["issuedAt"]): sf["levelNow"]
+            for fc in replay["forecasts"]
+            for sf in fc["spots"]
+            if sf["spot"] == spot
+        },
+        dtype=float,
+    ).sort_index()
+    fresh = pd.DatetimeIndex([t for t, is_update in messages if not is_update])
+    grid = level.index.union(fresh)
+    now = level.reindex(grid, method="ffill") if len(level) else pd.Series(np.nan, index=grid)
+    below = grid[~(now.to_numpy(dtype=float) >= threshold)]  # unknown level counts as below
+    return metrics.in_force_times(messages, below, end=end)
 
 
 def peak_observed(hourly: pd.DataFrame, gauge: str, event: Mapping[str, Any]) -> float | None:
@@ -363,7 +386,9 @@ def event_scores(
             {
                 eid: official_triggers(
                     official_messages(warnings, r, key, areas.get(key, ()), windows[eid]),
-                    p_by_event[eid],
+                    r,
+                    key,
+                    float(s["threshold"]),
                     windows[eid][1],
                 )
                 for eid, r in replays.items()
