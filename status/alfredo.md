@@ -8,7 +8,7 @@
 - **needs**: 
 - **notes**: live.json refresh with models: s-s01s-live2 (#79). All alfredo core PRs merged
 - **branch**: main
-- **head**: b7fbbc5 Merge pull request #96 from outrolife/story/poster
+- **head**: cfdc6ab Merge pull request #97 from outrolife/app/tm-official-pairing
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:04:01Z
+- **updated**: 2026-10-24T18:06:03Z
