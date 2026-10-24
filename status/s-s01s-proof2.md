@@ -2,13 +2,13 @@
 
 - **role**: Model
 - **state**: working
-- **issue**: #81
-- **task**: Make make train/backtest regenerate committed proof.json + replays
-- **next**: fetch-data into temp RC_DATA_DIR; Makefile + proof.py changes
+- **issue**: #81 #91 #92
+- **task**: #81 PR open (regen running); fixing #91 reliability by-h outcome
+- **next**: #92 official in-force + wire #90 onsets
 - **needs**: 
 - **notes**: 
 - **branch**: model/proof-reproducible
-- **head**: c1db381 Merge pull request #78 from outrolife/story/team-names
+- **head**: fbeece9 Make train/backtest regenerate all committed model outputs
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:54:18Z
+- **updated**: 2026-10-24T17:58:43Z
