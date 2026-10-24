@@ -1,14 +1,14 @@
 # alfredo-upstream
 
 - **role**: Model
-- **state**: working
+- **state**: idle
 - **issue**: #125
-- **task**: Exp A: all 4 variant models trained; full evaluation vs exp125 baseline running
-- **next**: post results table + verdict on #125
+- **task**: Exp A results posted on #125: NOT adopted (pooled 72h flat, +1 Botley near-miss FA); Botley 36-48h skill +.04/+.03
+- **next**: 
 - **needs**: 
-- **notes**: new: shifford hannington worsham shipton (Thames), banbury lowerarncott (Cherwell); lags in data/processed/exp125_upstream_lags.json
+- **notes**: branch model/exp-upstream @ 2c13e6a; models data/models/exp125/upstream
 - **branch**: model/exp-upstream
-- **head**: 22ad5b5 Record false-alarm episodes with the observed peak in the expe
+- **head**: 2c13e6a Record #125 A upstream-gauge results: not adopted
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T21:16:08Z
+- **updated**: 2026-10-24T21:23:10Z
