@@ -3,6 +3,7 @@
 // loaded only when its tab opens. Hash #/working/<tab>; Esc or × closes it.
 import { Suspense, lazy, useEffect, useRef } from "react";
 import { Disclaimer } from "../components/shared/Disclaimer";
+import { useHiddenSpots } from "./hiddenSpots";
 
 export const WORKING_TABS = [
   { id: "trust", label: "How good is it?", View: lazy(() => import("../screens/Trust")) },
@@ -31,6 +32,7 @@ export function Drawer({ tab, onTab, onClose }: { tab: WorkingId; onTab: (id: Wo
   }, [onClose]);
   const current = WORKING_TABS.find((t) => t.id === tab) ?? WORKING_TABS[0];
   const View = current.View;
+  const hidden = useHiddenSpots();
   return (
     <div className="rc-drawer-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <aside className="rc-drawer" role="dialog" aria-modal="true" aria-label="Show the working">
@@ -48,6 +50,19 @@ export function Drawer({ tab, onTab, onClose }: { tab: WorkingId; onTab: (id: Wo
           </button>
         </header>
         <div className="rc-drawer-body">
+          {/* Map v3 (#152) shows only spots with data in the view; the rest are named here. */}
+          {hidden.length > 0 && (
+            <p className="rc-drawer-hidden">
+              <strong>Not on the map right now:</strong>{" "}
+              {hidden.map((h, i) => (
+                <span key={h.key}>
+                  {i > 0 && "; "}
+                  {h.name} ({h.why})
+                </span>
+              ))}
+              .
+            </p>
+          )}
           <Suspense fallback={<p className="muted">Loading…</p>}>
             <View />
           </Suspense>

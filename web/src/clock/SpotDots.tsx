@@ -101,52 +101,70 @@ export function SpotDots({ dots, selected, onSelect }: { dots: SpotDot[]; select
 
   return (
     <>
-      {dots.map((d, i) => {
-        const { x: dx, y: dy } = offsets[i] ?? { x: 0, y: 0 };
-        const isSel = d.key === selected;
-        const quiet = d.note != null;
-        const words = (quiet ? `${d.label}: ${d.note}` : chanceLabel(d.label, d.prob)) + (d.badge ? `. River Clock: ${d.badge.text}` : "");
-        const clickable = onSelect != null && !quiet;
-        return (
-          <PortalMarker key={d.key} position={[d.lat, d.lon]} z={isSel ? 1000 : 0}>
-            <div className="rc-dot-anchor">
-              {needsLeader({ x: dx, y: dy }) && (
-                <svg className="rc-dot-leader" aria-hidden="true" focusable="false">
-                  <line x1={0} y1={0} x2={dx} y2={dy} />
-                  <circle cx={0} cy={0} r={2.5} />
-                </svg>
-              )}
-              <div
-                className={`rc-dot rc-dot-${labelSide(dx)}${isSel ? " selected" : ""}${quiet ? " quiet" : ""}`}
-                style={{ transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))` }}
-                data-state={d.state}
-              >
-                {clickable ? (
-                  <button type="button" className="rc-dot-btn" aria-label={words} aria-pressed={isSel} title={words} onClick={() => onSelect?.(d.key)}>
-                    <Dot dot={d} selected={isSel} />
-                  </button>
-                ) : (
-                  <span className="rc-dot-btn" role="img" aria-label={words} title={words}>
-                    <Dot dot={d} selected={isSel} />
-                  </span>
-                )}
-                {/* A ring that ripples out when River Clock's warning fires (replays). */}
-                {d.pulse && <span className="rc-dot-pulse" aria-hidden="true" />}
-                <span className="rc-dot-name" aria-hidden="true">
-                  {d.label}
-                </span>
-                {/* River Clock vs the EA, once both have happened: words and a shape, not colour alone. */}
-                {d.badge && (
-                  <span className={`rc-dot-badge tone-${d.badge.tone}`} aria-hidden="true">
-                    {d.badge.tone === "good" ? "✓ " : d.badge.tone === "bad" ? "✕ " : ""}
-                    {d.badge.text}
-                  </span>
-                )}
-              </div>
-            </div>
-          </PortalMarker>
-        );
-      })}
+      {dots.map((d, i) => (
+        <PortalMarker key={d.key} position={[d.lat, d.lon]} z={d.key === selected ? 1000 : 0}>
+          <DotBody dot={d} offset={offsets[i] ?? { x: 0, y: 0 }} selected={d.key === selected} onSelect={onSelect} />
+        </PortalMarker>
+      ))}
     </>
+  );
+}
+
+/**
+ * One spot marker as drawn on either map (Leaflet here, MapLibre in
+ * FlowMapGL): the ring, its name beside it, the River Clock vs EA badge and
+ * the warning ripple, nudged by `offset` (px) with a leader line back to the spot.
+ */
+export function DotBody({
+  dot: d,
+  offset,
+  selected: isSel,
+  onSelect,
+}: {
+  dot: SpotDot;
+  offset: { x: number; y: number };
+  selected: boolean;
+  onSelect?: (key: string) => void;
+}) {
+  const { x: dx, y: dy } = offset;
+  const quiet = d.note != null;
+  const words = (quiet ? `${d.label}: ${d.note}` : chanceLabel(d.label, d.prob)) + (d.badge ? `. River Clock: ${d.badge.text}` : "");
+  const clickable = onSelect != null && !quiet;
+  return (
+    <div className="rc-dot-anchor">
+      {needsLeader({ x: dx, y: dy }) && (
+        <svg className="rc-dot-leader" aria-hidden="true" focusable="false">
+          <line x1={0} y1={0} x2={dx} y2={dy} />
+          <circle cx={0} cy={0} r={2.5} />
+        </svg>
+      )}
+      <div
+        className={`rc-dot rc-dot-${labelSide(dx)}${isSel ? " selected" : ""}${quiet ? " quiet" : ""}`}
+        style={{ transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))` }}
+        data-state={d.state}
+      >
+        {clickable ? (
+          <button type="button" className="rc-dot-btn" aria-label={words} aria-pressed={isSel} title={words} onClick={() => onSelect?.(d.key)}>
+            <Dot dot={d} selected={isSel} />
+          </button>
+        ) : (
+          <span className="rc-dot-btn" role="img" aria-label={words} title={words}>
+            <Dot dot={d} selected={isSel} />
+          </span>
+        )}
+        {/* A ring that ripples out when River Clock's warning fires (replays). */}
+        {d.pulse && <span className="rc-dot-pulse" aria-hidden="true" />}
+        <span className="rc-dot-name" aria-hidden="true">
+          {d.label}
+        </span>
+        {/* River Clock vs the EA, once both have happened: words and a shape, not colour alone. */}
+        {d.badge && (
+          <span className={`rc-dot-badge tone-${d.badge.tone}`} aria-hidden="true">
+            {d.badge.tone === "good" ? "✓ " : d.badge.tone === "bad" ? "✕ " : ""}
+            {d.badge.text}
+          </span>
+        )}
+      </div>
+    </div>
   );
 }

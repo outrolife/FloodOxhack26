@@ -157,4 +157,5 @@ span.rc-dot-btn { cursor: help; }
 }
 .rc-drawer-close:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .rc-drawer-body { flex: 1; overflow-y: auto; padding: 1rem; }
+.rc-drawer-hidden { margin: 0 0 0.8rem; font-size: 0.85rem; color: var(--ink-2); }
 .rc-drawer > .disclaimer { border-top: 1px solid #f0d58a; font-size: 0.8rem; padding: 0.3rem 1rem; }
