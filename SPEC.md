@@ -109,17 +109,17 @@ Flow paths (for travel times and features):
 - Cherwell: enslow, islip → kingsmill.
 
 ### 4.2 Trouble spots (`config/spots.yaml`)
-Coordinates approximate; verify on a map.
+Coordinates verified with point-in-polygon against each EA warning area (#10; see `config/spots.yaml` for the evidence). Thresholds: minns and coldharbour confirmed against dated flood reports; cherwell stays on `probability` (EA operational level, history from 1998), although no property flooding is confirmed there.
 
 | key | Name | EA warning area | Gauge | Threshold (m) | lat, lon |
 |---|---|---|---|---|---|
-| osney | Osney Island / Binsey | 061FWF23BnsyOsny | minns | 2.90 | 51.7505, -1.2725 |
+| osney | Osney Island / Binsey | 061FWF23BnsyOsny | minns | 2.90 | 51.7503, -1.2735 |
 | botley | Botley Road / New Botley / Hinksey | 061FWF23NwBotley | newbotley | 2.76 | 51.7525, -1.2790 |
-| abingdonrd | Abingdon Road / Grandpont | 061FWF23NwBotley | coldharbour | 2.44 | 51.7425, -1.2560 |
-| wolvercote | Wolvercote / Port Meadow | 061FWF23Wlvrcote | godstow | 3.07 | 51.7770, -1.2800 |
-| cherwell | Cherwell (Kings Mill) | 061FWF14CherOxfd | kingsmill | 2.60 | 51.7600, -1.2390 |
+| abingdonrd | Abingdon Road / Grandpont | 061FWF23NwBotley | coldharbour | 2.44 | 51.7330, -1.2493 |
+| wolvercote | Wolvercote / Port Meadow | 061FWF23Wlvrcote | godstow | 3.07 | 51.7790, -1.2950 |
+| cherwell | Cherwell (Kings Mill) | 061FWF14CherOxfd | kingsmill | 2.60 | 51.7575, -1.2395 |
 
-Gauge changes (§4.1.1): osney and abingdonrd use the nearest single-trace gauges with history, minns and coldharbour, as substitutes. Their thresholds (2.90 and 2.44 m) come from the GOV.UK station pages (#2); Story confirms them against flood evidence (Minns crosses 2.90 in e2007, e2012, e2014 and e2024a; Cold Harbour crosses 2.44 in every event except e2026). **If either can't be verified by Sat 20:00 UK, that spot becomes `timing_only`.** wolvercote stays on godstow, which is live only: its mode is `timing_only` with `leads: []` and `arrival: null`, and the UI shows the live level against 3.07 m with the note "no forecast: no gauge history".
+Gauge changes (§4.1.1): osney and abingdonrd use the nearest single-trace gauges with history, minns and coldharbour, as substitutes. Their thresholds (2.90 and 2.44 m) come from the GOV.UK station pages (#2); Story confirmed both against dated flood reports (#10): Minns crosses 2.90 in e2007, e2014 and e2024a (Osney homes and streets flooded); Cold Harbour crossed 2.44 about 23 h before Abingdon Road closed on 5 Jan 2024. Both spots are `probability`. In the demo, say that osney uses a substitute gauge (Minns Estate, about 1.2 km west). wolvercote stays on godstow, which is live only: its mode is `timing_only` with `leads: []` and `arrival: null`, and the UI shows the live level against 3.07 m with the note "no forecast: no gauge history".
 
 Each spot has:
 - `amber` = gauge normal-range top (`typicalRangeHigh`).
@@ -131,11 +131,12 @@ Windows are approximate (UTC); refine from data.
 | id | Name | Window | Notes |
 |---|---|---|---|
 | e2007 | July 2007 | 2007-07-18 → 2007-08-02 | Summer event |
-| e2012 | Nov–Dec 2012 | 2012-11-20 → 2013-01-05 | Cherwell record |
+| e2012 | Nov–Dec 2012 | 2012-11-20 → 2013-01-05 | Kings Mill 2.722 m on 27 Nov (not a record) |
 | e2014 | Jan–Feb 2014 | 2013-12-20 → 2014-02-20 | **Headline replay** on newbotley; Osney d/s 3.97 m on 9 Jan (context only, §4.1.1); Minns 3.09 m, 9 Jan |
+| e2021 | Jan–Feb 2021 | 2021-01-20 → 2021-02-20 | Three trained gauges crossed; minns touched 2.903 m (no homes flooded) |
 | e2024a | Jan 2024 (Storm Henk) | 2023-12-28 → 2024-01-15 | Abingdon Road closed ~21:30 5 Jan |
-| e2024b | Nov 2024 (Storm Bert) | 2024-11-20 → 2024-12-05 | Kings Mill record 27 Nov |
-| e2026 | Feb–Mar 2026 | 2026-02-18 → 2026-03-10 | Osney d/s peaked 3.41 m (below 3.79): false-alarm test on the trained gauges |
+| e2024b | Nov 2024 (Storm Bert) | 2024-11-20 → 2024-12-05 | Kings Mill record 2.785 m, 27 Nov |
+| e2026 | Jan–Mar 2026 | 2026-01-15 → 2026-03-10 | Osney d/s peaked about 3.54 m on 16 Feb (below 3.79); no trained gauge crossed its threshold: false-alarm test |
 
 Additional events are auto-detected (§6.1) and added to the backtest set.
 
@@ -474,7 +475,7 @@ The app must support this 4–5 minute walkthrough without network access:
 - EA Hydrology API: https://environment.data.gov.uk/hydrology/doc/reference · https://api.gov.uk/ea/hydrology/
 - Oxford gauges and warning areas: https://check-for-flooding.service.gov.uk/river-and-sea-levels/target-area/061WAF23Oxford
 - Kings Mill station metadata (mirror): https://dsp.agrimetrics.co.uk/flood-monitoring/id/stations/1491TH.html
-- EA Oxford Flood Alleviation Scheme hydrology report (48–72 h response; rating issues): https://consult.environment-agency.gov.uk/thames/ofas-updates/user_uploads/fra-appendix-d-hydrology_report.pdf
+- EA Oxford Flood Alleviation Scheme hydrology report (48–72 h response; rating issues): https://consult.environment-agency.gov.uk/thames/ofas-updates/user_uploads/fra-appendix-d-hydrology_report.pdf (dead link as of 24 Oct 2026; don't cite)
 - Historic Flood Warnings: https://www.data.gov.uk/dataset/d4fb2591-f4dd-4e7f-9aaf-49af94437b36/historic-flood-warnings2
 - Recorded Flood Outlines: https://environment.data.gov.uk/dataset/8c75e700-d465-11e4-8b5b-f0def148f590
 - RoFRS: https://environment.data.gov.uk/dataset/96ab4342-82c1-4095-87f1-0082e8d84ef1 · RoFSW: https://environment.data.gov.uk/dataset/b5aaa28d-6eb9-460e-8d6f-43caa71fbe0e
@@ -484,5 +485,5 @@ The app must support this 4–5 minute walkthrough without network access:
 - Reach routing / travel time from matched hydrograph features (USACE): https://www.hec.usace.army.mil/confluence/hmsdocs/hmsguides/applying-reach-routing-methods-within-hec-hms/applying-the-muskingum-routing-method
 - Flood defence guidance (sandbag limits): https://assets.publishing.service.gov.uk/media/60549b2e8fa8f545dca2c57a/FDG_chapter_9_-_Floodwalls_and_flood_embankments.pdf
 - Boosted quantile models in streamflow forecasting (Water Supply Forecast Rodeo winners): https://blog.drivendata.org/blog/water-supply-forecast-and-final-winners
-- Event evidence: Jan 2024 https://www.highwaysmagazine.co.uk/news/local-road-network/freeze-adds-counties-flooding-woes · Nov 2024 https://www.oxford.gov.uk/news/article/1591/flood-warnings-issued-for-oxford-as-river-levels-continue-to-rise · Feb–Mar 2026 https://www.floodradar.co.uk/flood-event/flood-alert-river-thames-and-tributaries-in-the-oxford-area-2026-02-25
+- Event evidence: Jan 2024 https://www.highwaysmagazine.co.uk/news/local-road-network/freeze-adds-counties-flooding-woes · Nov 2024 http://web.archive.org/web/20251015053110/https://www.oxford.gov.uk/news/article/1591/flood-warnings-issued-for-oxford-as-river-levels-continue-to-rise (original is 404) · Feb–Mar 2026 https://www.floodradar.co.uk/flood-event/flood-alert-river-thames-and-tributaries-in-the-oxford-area-2026-02-25
 - Botley Road reopening: https://letstalk.oxfordshire.gov.uk/provider-engagement/news_feed/botley-road-to-reopen-on-20-september
