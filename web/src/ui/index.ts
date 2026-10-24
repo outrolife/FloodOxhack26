@@ -20,4 +20,6 @@ export {
 } from "./presenter";
 export { pctPlain, chanceWords, hoursWords, gaugeName } from "../lib/plain";
 export { clockFor, clocksFor, shortSpotName, type ClockProps } from "./clockData";
-// MapClock (a SpotClock pinned on a BaseMap) also needs Leaflet: import it from "../ui/MapClock".
+// MapClocks (spot clocks on a BaseMap) also needs Leaflet: import it from "../ui/MapClocks".
+// Its placement rule is pure and tested: ui/placement.ts.
+export { CLOCK_BOX, spreadApart, needsLeader } from "./placement";

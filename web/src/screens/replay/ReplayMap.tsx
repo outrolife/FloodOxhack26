@@ -1,22 +1,13 @@
 // Replay map (#120): the offline Oxford basemap with each trouble spot's clock
 // filling as the wave arrives, read from the forecast at the playhead with the
-// kit's clockFor, and drawn with the kit's MapClock so Now and Replay match.
-// The spots sit a few hundred metres apart, so each clock sits to one side of
-// its spot. Clicking a forecast spot's clock selects it.
+// kit's clockFor, and drawn with the kit's MapClocks so Now and Replay place
+// clocks by the same rule (ui/placement.ts). Clicking a forecast spot's clock
+// selects it.
 import { useMemo } from "react";
 import type { Forecast, Spot } from "../../contracts";
 import { BaseMap } from "../../ui/BaseMap";
-import { MapClock } from "../../ui/MapClock";
+import { MapClocks } from "../../ui/MapClocks";
 import { clocksFor } from "../../ui/clockData";
-
-/** Which side of its spot each clock sits on, so neighbours don't overlap. */
-const SIDE: Record<string, "top" | "bottom" | "left" | "right"> = {
-  wolvercote: "top",
-  botley: "left",
-  osney: "bottom",
-  abingdonrd: "right",
-  cherwell: "top",
-};
 
 export function ReplayMap({
   spots,
@@ -42,24 +33,14 @@ export function ReplayMap({
 
   return (
     <BaseMap bounds={bounds} className="rp-map">
-      {clocksFor(forecast ?? null, spots).map((c) => {
-        const isSel = c.key === selected;
-        return (
-          <MapClock
-            key={c.key}
-            lat={c.lat}
-            lon={c.lon}
-            label={c.label}
-            prob={c.prob}
-            countdownH={c.countdownH}
-            state={c.state}
-            size={isSel ? "md" : "sm"}
-            selected={isSel}
-            direction={SIDE[c.key] ?? "top"}
-            onClick={mode.get(c.key) === "probability" ? () => onSelect(c.key) : undefined}
-          />
-        );
-      })}
+      <MapClocks
+        clocks={clocksFor(forecast ?? null, spots).map((c) => ({
+          ...c,
+          size: c.key === selected ? "md" : "sm",
+          selected: c.key === selected,
+          onClick: mode.get(c.key) === "probability" ? () => onSelect(c.key) : undefined,
+        }))}
+      />
     </BaseMap>
   );
 }
