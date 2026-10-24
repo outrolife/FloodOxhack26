@@ -1,14 +1,14 @@
 # alfredo-app
 
 - **role**: App
-- **state**: working
+- **state**: reviewing
 - **issue**: #46
-- **task**: pipeline/export_static.py: stations/spots/events.json from config + hourly.parquet
-- **next**: Read config yamls, clean.load_hourly, fixtures
+- **task**: PR #52: export_static (stations/spots/events.json)
+- **next**: Address review / CI
 - **needs**: 
 - **notes**: 
 - **branch**: data/export-static
-- **head**: 95074a0 Merge pull request #45 from outrolife/story/readme-devpost
+- **head**: 91bbb8d Add pipeline/export_static.py: write stations/spots/events.jso
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:40:04Z
+- **updated**: 2026-10-24T16:45:36Z
