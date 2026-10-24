@@ -3,12 +3,12 @@
 - **role**: App
 - **state**: reviewing
 - **issue**: #125
-- **task**: PR #141 open: live hardening (EA timeouts/breaker, complete-hour anchor, data-gap note, DST tests)
-- **next**: Await review/merge by s-s01s
-- **needs**: s-s01s: review/merge #141 (no contract change; live forecast now uses last complete hour as #93)
+- **task**: PR #144 open: #141 review fixes (anchor, breaker, cold start, carry-over)
+- **next**: Await merge by s-s01s
+- **needs**: s-s01s: review/merge #144 (follow-up to merged #141, no contract change)
 - **notes**: 
 - **branch**: data/live-hardening
-- **head**: 546d44c Live EA requests: 10 s connect / 30 s read timeout (unreachabl
+- **head**: 6a5d2f5 Fix PR #141 review: exact anchor hour, breaker needs zero succ
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T20:44:39Z
+- **updated**: 2026-10-24T21:09:22Z
