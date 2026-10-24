@@ -6,12 +6,23 @@ import type { EventsFile, Replay, SpotsFile, StationsFile, TravelTimesFile } fro
 import { useData } from "../data";
 import { HOUR, formatDateTime, hoursBetween } from "../time";
 import { FanChart, type Marker } from "../components/timemachine/FanChart";
+import { compareSentence, firstOfficials, formatOfficial, officialLabel } from "../components/timemachine/timeline";
 import { FixtureNotice, Pending } from "../components/shared/DataNotice";
 import { ProbBars } from "../components/shared/ProbBars";
 import { RiverStrip } from "../components/shared/RiverStrip";
 import { arrivalSentence, pFloodMax } from "../components/shared/forecast";
 
-const SIM_HOURS_PER_2S = 12; // SPEC §10.2: one simulated 12 h per 2 s
+const SIM_HOURS_PER_2S = 12; // SPEC §10.2: one simulated 12 h per 2 s (speed 1×)
+const SPEEDS = [0.5, 1, 2, 4] as const;
+
+/** Keys typed into these elements belong to them, not to the player. */
+function ownsKeys(el: EventTarget | null, key: string): boolean {
+  if (!(el instanceof HTMLElement)) return false;
+  if (el.isContentEditable || el.tagName === "SELECT" || el.tagName === "TEXTAREA") return true;
+  if (el.tagName === "BUTTON" || el.tagName === "A") return key === " " || key === "Enter";
+  if (el instanceof HTMLInputElement) return el.type !== "range" || key !== " "; // range: arrows are native
+  return false;
+}
 
 export default function TimeMachine() {
   const events = useData<EventsFile>("events.json");
@@ -102,20 +113,52 @@ function ReplayPlayer({
   });
   const [seenIdx, setSeenIdx] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [speed, setSpeed] = useState<number>(1);
+  const last = forecasts.length - 1;
 
   useEffect(() => setSeenIdx((s) => Math.max(s, idx)), [idx]);
 
-  // Play: advance one forecast step at a rate of 12 simulated hours per 2 s.
+  // Play: advance one forecast step at 12 simulated hours per 2 s (times speed).
   useEffect(() => {
     if (!playing) return;
-    if (idx >= forecasts.length - 1) {
+    if (idx >= last) {
       setPlaying(false);
       return;
     }
     const stepH = Math.max(hoursBetween(forecasts[idx].issuedAt, forecasts[idx + 1].issuedAt), 0.25);
-    const timer = setTimeout(() => setIdx((i) => Math.min(i + 1, forecasts.length - 1)), (2000 * stepH) / SIM_HOURS_PER_2S);
+    const delay = (2000 * stepH) / (SIM_HOURS_PER_2S * speed);
+    const timer = setTimeout(() => setIdx((i) => Math.min(i + 1, last)), delay);
     return () => clearTimeout(timer);
-  }, [playing, idx, forecasts]);
+  }, [playing, idx, forecasts, speed, last]);
+
+  const togglePlay = () => {
+    if (!playing && idx >= last) setIdx(0);
+    setPlaying((p) => !p);
+  };
+
+  // Keyboard: Space plays/pauses, arrows step (Shift = 6 steps), Home/End jump.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || ownsKeys(e.target, e.key)) return;
+      const step = e.shiftKey ? 6 : 1;
+      let next: number | null = null;
+      if (e.key === " ") {
+        e.preventDefault();
+        togglePlay();
+        return;
+      }
+      if (e.key === "ArrowRight") next = idx + step;
+      else if (e.key === "ArrowLeft") next = idx - step;
+      else if (e.key === "Home") next = 0;
+      else if (e.key === "End") next = last;
+      if (next == null) return;
+      e.preventDefault();
+      setPlaying(false);
+      setIdx(Math.min(Math.max(next, 0), last));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   if (forecasts.length === 0) return <div className="notice warn">This replay has no forecasts.</div>;
 
@@ -130,45 +173,26 @@ function ReplayPlayer({
 
   // Timeline markers.
   const first50 = forecasts.find((fc) => (pFloodMax(fc.spots.find((s) => s.spot === spot.key)) ?? 0) >= 0.5);
-  const officials = replay.official
-    .filter((o) => o.spot === spot.key)
-    .sort((a, b) => Date.parse(a.issuedAt) - Date.parse(b.issuedAt));
-  const officialWarning = officials.find((o) => o.type !== "alert");
-  const officialAlert = officials.find((o) => o.type === "alert");
+  const { alert: officialAlert, warning: officialWarning } = firstOfficials(replay, spot.key);
   const crossing = replay.crossings.find((c) => c.spot === spot.key);
 
   // Markers appear only once the slider has reached them, so playing the
   // replay tells the story in order (SPEC §17.2).
-  const revealed = (t: string | undefined) => t != null && Date.parse(t) <= Date.parse(seenT);
+  const revealed = (t: string) => Date.parse(t) <= Date.parse(seenT);
   const markers: Marker[] = [];
   if (first50 && revealed(first50.issuedAt))
     markers.push({ t: first50.issuedAt, label: "River Clock ≥ 50%", colour: "#184f95" });
+  if (officialAlert && revealed(officialAlert.issuedAt))
+    markers.push({ t: officialAlert.issuedAt, label: `EA ${officialLabel(officialAlert)}`, colour: "#a8336a" });
   if (officialWarning && revealed(officialWarning.issuedAt))
-    markers.push({ t: officialWarning.issuedAt, label: `EA ${officialWarning.type}`, colour: "#6250d6" });
+    markers.push({ t: officialWarning.issuedAt, label: `EA ${officialLabel(officialWarning)}`, colour: "#6250d6" });
   if (crossing && revealed(crossing.t)) markers.push({ t: crossing.t, label: "Threshold crossed", colour: "#d03b3b" });
 
   const lastF = Date.parse(forecasts[forecasts.length - 1].issuedAt);
   const domain: [number, number] = [Date.parse(replay.start), Math.max(Date.parse(replay.end), lastF + 72 * HOUR)];
 
-  let leadSentence: string | null = null;
-  const lastEvent = Math.max(
-    first50 ? Date.parse(first50.issuedAt) : 0,
-    officialWarning ? Date.parse(officialWarning.issuedAt) : 0,
-  );
-  if (lastEvent > Date.parse(seenT)) {
-    leadSentence = null; // not there yet
-  } else if (first50 && officialWarning) {
-    const d = hoursBetween(first50.issuedAt, officialWarning.issuedAt);
-    const datePrec = officialWarning.precision === "date" ? " (official time known to the day only)" : "";
-    leadSentence =
-      d >= 0
-        ? `River Clock reached 50% ${d.toFixed(0)} h before the official ${officialWarning.type}${datePrec}.`
-        : `River Clock reached 50% ${(-d).toFixed(0)} h after the official ${officialWarning.type}${datePrec}.`;
-  } else if (first50) {
-    leadSentence = "River Clock reached 50%; no official flood warning for this spot so far.";
-  } else if (officialWarning) {
-    leadSentence = `River Clock never reached 50% for this spot; the EA issued a ${officialWarning.type}.`;
-  }
+  const warningSentence = compareSentence(first50?.issuedAt, officialWarning, "warning", revealed);
+  const alertSentence = compareSentence(first50?.issuedAt, officialAlert, "alert", revealed);
 
   return (
     <div className="grid-2">
@@ -184,15 +208,16 @@ function ReplayPlayer({
               ))}
             </select>
           </label>
-          <button
-            className="btn primary"
-            onClick={() => {
-              if (idx >= forecasts.length - 1) setIdx(0);
-              setPlaying((p) => !p);
-            }}
-          >
+          <button className="btn primary" onClick={togglePlay} aria-keyshortcuts="Space">
             {playing ? "Pause" : "Play"}
           </button>
+          <span className="speed" role="group" aria-label="Playback speed">
+            {SPEEDS.map((s) => (
+              <button key={s} className="btn" aria-pressed={speed === s} onClick={() => setSpeed(s)}>
+                {s}×
+              </button>
+            ))}
+          </span>
           <span className="small">
             Forecast issued <strong>{formatDateTime(sliderT)}</strong>
           </span>
@@ -208,7 +233,11 @@ function ReplayPlayer({
             setIdx(Number(e.target.value));
           }}
           aria-label="Forecast time"
+          aria-valuetext={formatDateTime(sliderT)}
         />
+        <div className="small muted">
+          Keys: Space play/pause · ← → step one forecast (Shift: 6) · Home/End jump to start/end
+        </div>
         <FanChart
           observed={observed}
           sliderT={sliderT}
@@ -221,8 +250,20 @@ function ReplayPlayer({
           markers={markers}
         />
         <div className="timeline-note">
-          {leadSentence && <p><strong>{leadSentence}</strong></p>}
-          {officialAlert && revealed(officialAlert.issuedAt) && <p>EA flood alert for the area issued {formatDateTime(officialAlert.issuedAt)}.</p>}
+          {warningSentence && (
+            <p>
+              <strong>{warningSentence}</strong>
+              {officialWarning && revealed(officialWarning.issuedAt) && (
+                <> Issued {formatOfficial(officialWarning)}.</>
+              )}
+            </p>
+          )}
+          {alertSentence && (
+            <p>
+              {alertSentence}
+              {officialAlert && revealed(officialAlert.issuedAt) && <> Issued {formatOfficial(officialAlert)}.</>}
+            </p>
+          )}
           <p className="muted">
             Grey line: what actually happened, shown only for times the slider has already passed. The
             model never sees data after its forecast time.
