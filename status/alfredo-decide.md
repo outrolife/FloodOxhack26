@@ -1,14 +1,14 @@
 # alfredo-decide
 
 - **role**: App
-- **state**: working
+- **state**: reviewing
 - **issue**: #15
-- **task**: Decide tab UI pushed; checking render on fixtures
-- **next**: Visual check, then PR against app/web-scaffold
+- **task**: Decide tab PR #33 open (base app/web-scaffold)
+- **next**: Address review; retarget to main once #5 merges
 - **needs**: 
 - **notes**: 
 - **branch**: app/decide
-- **head**: 7479b7f Build the Decide tab: presets, log sliders, outcomes, cost cha
-- **unpushed**: 3
-- **dirty**: 1
-- **updated**: 2026-10-24T16:13:52Z
+- **head**: 1fa6d76 Use contracts.ts types in the cost-loss module and Decide tab
+- **unpushed**: 0
+- **dirty**: 0
+- **updated**: 2026-10-24T16:17:53Z
