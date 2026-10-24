@@ -25,12 +25,17 @@ data: setup
 	$(PY) -m pipeline.quality_report
 	$(PY) -m pipeline.export_static
 
-# Skip the long download: fetch the cleaned hourly.parquet + provenance.parquet from a GitHub
-# release asset (not in git). Override the tag with `make fetch-data DATA_RELEASE=data-hourly-v2`.
+# Skip the long download: fetch the cleaned hourly.parquet, provenance.parquet, clean_log.json and
+# warnings.parquet (+ warnings_provenance.json) from GitHub release assets (not in git). Override
+# the tag with `make fetch-data DATA_RELEASE=data-hourly-v2`. If the release has no warnings.parquet,
+# build it with pipeline.ingest_warnings (about 15 s, one ZIP download, cached in data/raw/).
 fetch-data:
 	@command -v gh >/dev/null || { echo "gh not found: brew install gh"; exit 1; }
 	mkdir -p $(DATA_DIR)/processed
 	gh release download $(DATA_RELEASE) -D $(DATA_DIR)/processed --clobber
+	@test -f $(DATA_DIR)/processed/warnings.parquet || { \
+	  echo "$(DATA_RELEASE) has no warnings.parquet: running pipeline.ingest_warnings"; \
+	  $(MAKE) setup && RC_DATA_DIR=$(DATA_DIR) $(PY) -m pipeline.ingest_warnings; }
 
 # Travel-time finding (SPEC §6)
 travel: setup
