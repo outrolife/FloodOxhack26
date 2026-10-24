@@ -49,7 +49,9 @@ export function arrivalSentence(sf: SpotForecast | undefined, stale = false, thr
   if (!sf) return "No forecast for this spot.";
   if (sf.leads.length === 0) {
     if (stale) return "No forecast: gauge data is stale.";
-    return sf.mode === "timing_only" ? "No forecast for this timing-only spot." : "No forecast: no gauge history.";
+    return sf.mode === "timing_only"
+      ? "No forecast for this timing-only spot."
+      : "No forecast at this time: not enough recent gauge data.";
   }
   // Already flooding: arrival is the issue time (SPEC §7.5), so "by <now>" would read oddly.
   if (threshold != null && sf.mode === "probability" && sf.levelNow >= threshold) {

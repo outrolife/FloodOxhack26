@@ -44,8 +44,18 @@ function dayTicks([a, b]: [number, number]): number[] {
 
 // Marker labels sit in their own row at the top of the plot (one row per
 // marker), with a white halo, so nearby markers never overprint each other.
-function markerLabel(text: string, colour: string, row: number) {
-  return (props: { viewBox?: { x?: number; y?: number } }) => {
+// Renderers are cached: a new function on every slider step makes Recharts
+// re-register the reference line and redo its layout (~50 ms per step).
+type LabelRenderer = (props: { viewBox?: { x?: number; y?: number } }) => React.ReactElement;
+const labelCache = new Map<string, LabelRenderer>();
+function markerLabel(text: string, colour: string, row: number): LabelRenderer {
+  const key = `${text}|${colour}|${row}`;
+  let fn = labelCache.get(key);
+  if (!fn) labelCache.set(key, (fn = makeMarkerLabel(text, colour, row)));
+  return fn;
+}
+function makeMarkerLabel(text: string, colour: string, row: number): LabelRenderer {
+  return (props) => {
     const x = (props.viewBox?.x ?? 0) + 4;
     const y = (props.viewBox?.y ?? 0) + 12 + row * 14;
     return (
