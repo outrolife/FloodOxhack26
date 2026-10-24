@@ -1,7 +1,7 @@
 # River Clock: Devpost draft
 
 <!-- Draft for the Devpost submission (deadline Sun 25 Oct 2026, 12:00 GMT). Paste section by section.
-     Fill every RESULTS / TODO marker from web/public/data/proof.json (PR #66) and replays/e2014.json (PR #39) before submitting. Don't round up. -->
+     Fill every RESULTS / TODO marker from web/public/data/proof.json (PR #66) before submitting (the e2014 replay lines are already filled from replays/e2014.json). Don't round up. -->
 
 **Tagline (max ~200 characters):** Water upstream is Oxford's future. We read it as a clock. River Clock forecasts when, and how likely, five Oxford flood spots will flood in the next 72 hours.
 
