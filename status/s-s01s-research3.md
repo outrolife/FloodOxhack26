@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: working
 - **issue**: #134
-- **task**: Accuracy research: more gauges, older history, features, training tweaks
-- **next**: Read #125/#134/#100, count pre-2006 floods
+- **task**: Accuracy research: river walk, older history (counted), features, tweaks
+- **next**: Write docs/research/accuracy.md, comment on #134, open docs PR
 - **needs**: 
 - **notes**: 
-- **branch**: worktree-agent-a483d5a00045ff026
-- **head**: ad506c6 Ignore internal observer tooling
-- **unpushed**: no upstream
+- **branch**: docs/accuracy-research
+- **head**: 85e2229 Merge pull request #142 from outrolife/model/warn-at
+- **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T21:38:37Z
+- **updated**: 2026-10-24T21:51:51Z
