@@ -8,7 +8,7 @@
 - **needs**: s-s01s: decide A per-target (newbotley+minns) yes/no by 01:30, see #125
 - **notes**: #111 S4 and #112 a11y merged
 - **branch**: main
-- **head**: e65691c Merge pull request #143 from outrolife/app/map-crash-fix
+- **head**: 85e2229 Merge pull request #142 from outrolife/model/warn-at
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T21:24:08Z
+- **updated**: 2026-10-24T21:24:32Z
