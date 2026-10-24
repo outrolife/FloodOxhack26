@@ -14,7 +14,7 @@ PY   := $(BIN)/python$(EXE)
 DATA_DIR     := $(if $(RC_DATA_DIR),$(RC_DATA_DIR),data)
 DATA_RELEASE ?= data-hourly-v1
 
-.PHONY: setup data fetch-data travel train backtest live api web test lint mirror
+.PHONY: setup data fetch-data travel train backtest live live-web api web test lint mirror
 
 setup: $(VENV)/.installed
 
@@ -62,6 +62,12 @@ backtest: setup
 live: setup
 	$(PY) -m pipeline.ingest_live
 	$(PY) -m model.forecast_live
+
+# Refresh the committed offline snapshot web/public/data/live.json (needs network; one EA poll,
+# cached 15 min) and check it against SPEC §9. Commit the result via a PR (docs/demo-backup.md).
+live-web: setup
+	$(PY) -m model.forecast_live --write-web
+	$(PY) -m pytest -q tests/test_public_data.py -k live
 
 api: setup
 	$(BIN)/uvicorn$(EXE) api.main:app --reload --port 8000

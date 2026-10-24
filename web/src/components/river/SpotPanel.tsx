@@ -42,7 +42,7 @@ export function SpotPanel({
 
       {sf && (
         <p className="small">
-          Now <strong>{sf.levelNow.toFixed(2)} m</strong>:{" "}
+          {stale ? "Last reading" : "Now"} <strong>{sf.levelNow.toFixed(2)} m</strong>:{" "}
           {sf.levelNow >= spot.threshold
             ? `${(sf.levelNow - spot.threshold).toFixed(2)} m above`
             : `${(spot.threshold - sf.levelNow).toFixed(2)} m below`}{" "}

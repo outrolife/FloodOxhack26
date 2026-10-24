@@ -1,6 +1,7 @@
 // River strip: the gauge chain from upstream to Oxford, one branch per river
 // system, each link labelled with the median half-rise travel time T½.
 import type { Station, TravelPair } from "../../contracts";
+import { formatDateTime } from "../../time";
 import { Sparkline } from "./Sparkline";
 import { countAtOrBefore } from "./series";
 
@@ -52,6 +53,8 @@ export function RiverStrip({
   series,
   until,
   levelNow,
+  stale,
+  dataAsOf,
 }: {
   stations: Station[];
   pairs: TravelPair[];
@@ -61,6 +64,9 @@ export function RiverStrip({
   until?: string;
   /** Latest level per gauge when no series is available. */
   levelNow?: Record<string, number>;
+  /** Live: gauges whose latest reading is > 3 h old (Forecast.stale), and when each was last read. */
+  stale?: string[];
+  dataAsOf?: Record<string, string>;
 }) {
   // Time Machine: a gauge with no replay data (e.g. the live-only main channel)
   // would only say "no reading", so leave it out.
@@ -78,6 +84,8 @@ export function RiverStrip({
             const label = linkLabel(g, pairs, stations);
             const isLast = i === visible.length - 1;
             const vsAmber = now != null ? now - st.amber : null;
+            const isStale = stale?.includes(g) ?? false;
+            const asOf = dataAsOf?.[g];
             return (
               <div key={g}>
                 <div className={`strip-node ${st.role === "target" ? "target" : ""}`}>
@@ -85,8 +93,13 @@ export function RiverStrip({
                     <div className="name">{st.name}</div>
                     <div className="meta">
                       {st.river} · {now != null ? `${now.toFixed(2)} m` : "no reading"}
-                      {vsAmber != null && (
-                        <> · {vsAmber >= 0 ? `${vsAmber.toFixed(2)} m above` : `${(-vsAmber).toFixed(2)} m below`} normal top</>
+                      {isStale ? (
+                        // An old level must not read as today's (e.g. a gauge outage).
+                        <> · stale: last reading {asOf ? formatDateTime(asOf) : "unknown"}</>
+                      ) : (
+                        vsAmber != null && (
+                          <> · {vsAmber >= 0 ? `${vsAmber.toFixed(2)} m above` : `${(-vsAmber).toFixed(2)} m below`} normal top</>
+                        )
                       )}
                     </div>
                   </div>
