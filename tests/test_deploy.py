@@ -1,5 +1,6 @@
-"""Single-container serving (issue #18): the API also serves the built web app when
-RIVER_CLOCK_STATIC_DIR is set. No network; the "build" is a temp dir.
+"""Single-container deploy (issue #18): the API also serves the built web app when
+RIVER_CLOCK_STATIC_DIR is set, and can refresh live data in the background.
+No network; the "build" is a temp dir and the live compute is a fake.
 """
 
 from __future__ import annotations
@@ -8,6 +9,9 @@ import json
 import os
 import subprocess
 import sys
+import threading
+import time
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -15,6 +19,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from api import main as api_main
+from model import forecast_live as fl
 
 ROOT = Path(__file__).resolve().parent.parent
 INDEX = "<!doctype html><title>River Clock</title><div id=root></div>"
@@ -72,6 +77,54 @@ def test_api_routes_win_over_static(client: TestClient) -> None:
 def test_mount_needs_a_build(tmp_path: Path) -> None:
     with pytest.raises(RuntimeError, match="index.html"):
         api_main.mount_static(FastAPI(), tmp_path)
+
+
+# ---------------------------------------------------------------------------------------------
+# Background live refresh (RIVER_CLOCK_LIVE_BACKGROUND=1 in the container)
+# ---------------------------------------------------------------------------------------------
+
+T0 = datetime(2026, 10, 25, 2, 30, tzinfo=UTC)
+
+
+def test_background_mode_never_computes_in_a_request() -> None:
+    calls: list[datetime] = []
+
+    def compute(now: datetime) -> dict:
+        calls.append(now)
+        return {"issuedAt": now.isoformat()}
+
+    cache = api_main.LiveCache(compute)
+    cache.background = True
+    with pytest.raises(fl.LiveDataUnavailable):
+        cache.get(T0)  # not refreshed yet: 503, not a minute-long EA poll
+    cache.refresh(T0)
+    # Long past the TTL, a request still gets the cached forecast; only the thread recomputes.
+    assert cache.get(T0 + timedelta(hours=2)) == {"issuedAt": T0.isoformat()}
+    assert calls == [T0]
+
+
+def test_start_background_refreshes_and_survives_failures() -> None:
+    ran = threading.Event()
+    attempts = 0
+
+    def compute(now: datetime) -> dict:
+        nonlocal attempts
+        attempts += 1
+        ran.set()
+        return {"ok": True}
+
+    cache = api_main.LiveCache(compute, ttl=timedelta(milliseconds=10))
+    thread = cache.start_background()
+    assert ran.wait(2) and thread.daemon
+    assert cache.get() == {"ok": True}
+
+    def boom(now: datetime) -> dict:
+        raise ConnectionError("EA down")
+
+    cache.compute = boom
+    time.sleep(0.05)  # several failed refreshes
+    assert thread.is_alive() and cache.get() == {"ok": True}
+    cache.ttl = timedelta(hours=1)  # park the daemon thread for the rest of the test run
 
 
 def test_env_var_mounts_on_import(dist: Path) -> None:

@@ -6,7 +6,7 @@
 # Stage 1 builds web/dist with Node. Stage 2 is Python 3.11 slim running uvicorn on :8000:
 #   /          built SPA (unknown page paths fall back to index.html)
 #   /data/*    the committed JSON in web/public/data/ (Vite copies it into dist/)
-#   /api/*     FastAPI (api/main.py); /api/live polls the EA at most every 15 min
+#   /api/*     FastAPI (api/main.py); a background thread refreshes /api/live from the EA every 15 min
 # Live data and the EA response cache go to /data (a volume). If live fails, the app still runs
 # offline from the committed JSON and the fixtures bundled into the build.
 
@@ -54,7 +54,8 @@ USER app
 
 ENV RC_DATA_DIR=/data \
     RIVER_CLOCK_STATIC_DIR=/app/web/dist \
-    RIVER_CLOCK_LIVE_FETCH=1
+    RIVER_CLOCK_LIVE_FETCH=1 \
+    RIVER_CLOCK_LIVE_BACKGROUND=1
 VOLUME ["/data"]
 EXPOSE 8000
 
