@@ -14,12 +14,18 @@ What it does
    the output does not depend on which request finishes first. HTTP goes through
    ``pipeline.ea_client.http_get`` (retries with backoff on network errors, 429 and 5xx).
 2. Keeps ``observed_at`` (the reading's own time) and ``received_at`` (when we downloaded it).
-3. Resamples to the same long hourly union schema as ``hourly.parquet``:
+3. Cleans the readings (``clean_readings``): drops values the EA flags as suspect/rejected/missing and
+   values outside the gauge's plausible band (below), so one junk reading such as the -52.477 m at
+   Osney d/s on 2026-10-22 06:45Z (#80) never reaches the hourly means, ``live_meta.json`` or the model.
+4. Resamples with the shared ``pipeline/clean.py`` steps, exactly as for history (SPEC §5.2): hourly
+   mean/max, rain sum (>= 3 of 4 quarter-hours), forward-fill level gaps <= 2 h, flag longer gaps,
+   NaN out spikes (> 0.5 m jump that falls back at least halfway within 3 h). Same long hourly union
+   schema as ``hourly.parquet``:
    ``gauge`` (config key for level gauges, EA ref such as ``256230TP`` for rain gauges, plus derived
    ``rain_catchment`` = mean of the available rain gauges per hour), ``ts_utc`` (UTC hour start),
    ``kind`` ("level" | "rain"), ``level_mean``, ``level_max`` (NaN for rain), ``rain_mm`` (NaN for
    level), ``filled``, ``flagged``. Writes ``<data>/processed/live_hourly.parquet``.
-4. Writes ``<data>/processed/live_meta.json``: per gauge the latest ``observed_at``, ``received_at``,
+5. Writes ``<data>/processed/live_meta.json``: per gauge the latest ``observed_at``, ``received_at``,
    level and the EA measure used, and the rain gauges used. ``model/forecast_live.py`` uses it for
    ``dataAsOf`` and the stale rule.
 
@@ -30,11 +36,18 @@ Placeholders
 - ``_cached_get_json`` keeps its own small cache file format (it stores ``received_at`` in the file and
   falls back to the cached copy when the EA is down, which ``ea_client.cached_get`` does not do);
   the HTTP itself is ``ea_client.http_get``.
-- ``to_hourly`` is a minimal version of the ``pipeline/clean.py`` steps (hourly mean/max, rain sum,
-  forward-fill gaps <= 2 h, flag longer gaps). It does NOT remove spikes yet. Replace it with the
-  shared cleaning function from ``pipeline/clean.py`` once #3 merges, so live and history match.
 - Gauge -> measure ids are from SPEC §4.1, with bracketed RLOI ids resolved against the API on
   2026-10-24. Move to ``config/stations.yaml`` once it exists.
+
+Plausible band (physically impossible readings, #80)
+-----------------------------------------------------
+A level reading is kept only if ``amber - 4 m <= value <= record + 2 m``, with ``amber`` (top of the
+normal range) and ``record`` (highest level on record) from ``config/stations.yaml`` for that gauge's
+trace. No gauge in the history moves more than about 1.5 m below its top of normal range, and a new
+record 2 m above the old one would be far beyond anything seen, so a real flood is never dropped. The
+spike rule alone is not enough: it works on hourly means, where one -52 m reading becomes a -11 m hour
+that still distorts the hours around it, and it cannot catch a junk value in the latest hour.
+Rain readings below 0 mm are dropped. Gauges without amber in the config are not range-checked.
 
 All times are UTC.
 """
@@ -42,6 +55,7 @@ All times are UTC.
 from __future__ import annotations
 
 import argparse
+import functools
 import hashlib
 import json
 import logging
@@ -56,7 +70,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from pipeline import ea_client
+from pipeline import clean, ea_client, stations
 
 log = logging.getLogger(__name__)
 
@@ -71,8 +85,9 @@ LIVE_DAYS = 28
 CACHE_TTL_S = 15 * 60  # poll EA at most every 15 minutes
 MAX_WORKERS = 4  # concurrent EA requests per poll (bounded, polite)
 HTTP_TIMEOUT_S = 30
-MAX_FFILL_H = 2  # SPEC §5.2 step 3
-RAIN_KEY = "rain_catchment"
+RAIN_KEY = clean.RAIN_CATCHMENT  # "rain_catchment"
+PLAUSIBLE_BELOW_AMBER_M = 4.0  # plausible band: amber - 4 m ...
+PLAUSIBLE_ABOVE_RECORD_M = 2.0  # ... to record + 2 m (module docstring)
 
 # Gauge key -> flood-monitoring measure id, following SPEC §4.1 / §4.1.1 (PM decision, PR #30):
 # - live-only main-channel locks godstow, osney, iffley: the downstream stage (d/s), shown in the River
@@ -175,15 +190,21 @@ def _to_float(value: Any) -> float:
 
 
 def parse_readings(body: Any, received_at: datetime) -> pd.DataFrame:
-    """API body -> ``observed_at`` (UTC), ``value``, ``received_at``; sorted, deduplicated, no NaN."""
+    """API body -> ``observed_at`` (UTC), ``value``, ``quality``, ``received_at``; sorted, deduplicated.
+
+    Rows without a value are dropped. ``quality`` is the EA quality flag if the reading has one (the
+    flood-monitoring readings usually don't), else "".
+    """
     items = (body or {}).get("items", [])
     df = pd.DataFrame(
         {
             "observed_at": pd.to_datetime([i.get("dateTime") for i in items], utc=True),
             "value": [_to_float(i.get("value")) for i in items],
+            "quality": [str(i.get("quality") or "") for i in items],
         }
     )
-    df = df.dropna().drop_duplicates("observed_at").sort_values("observed_at").reset_index(drop=True)
+    df = df.dropna(subset=["observed_at", "value"])
+    df = df.drop_duplicates("observed_at").sort_values("observed_at").reset_index(drop=True)
     df["received_at"] = pd.Timestamp(received_at).tz_convert("UTC")
     return df
 
@@ -225,65 +246,86 @@ def fetch_live_readings(
 
 
 # ---------------------------------------------------------------------------------------------
-# Hourly (PLACEHOLDER: minimal clean.py steps; swap for the shared clean.py function from #3)
+# Cleaning and hourly resampling (the shared pipeline/clean.py steps, SPEC §5.2)
 # ---------------------------------------------------------------------------------------------
 
 
-def _hourly_one(gauge: str, readings: pd.DataFrame, is_rain: bool) -> pd.DataFrame:
-    """One gauge's readings -> complete hourly rows (label = hour start, UTC)."""
-    s = readings.set_index("observed_at")["value"]
-    hours = s.index.floor("h")
-    grouped = s.groupby(hours)
-    full = pd.date_range(hours.min(), hours.max(), freq="h", tz="UTC")
-    if is_rain:
-        rain = grouped.sum().reindex(full)
-        df = pd.DataFrame({"rain_mm": rain, "level_mean": np.nan, "level_max": np.nan}, index=full)
-        missing = rain.isna()
-    else:
-        mean, mx = grouped.mean().reindex(full), grouped.max().reindex(full)
-        missing = mean.isna()
-        df = pd.DataFrame(
-            {
-                "level_mean": mean.ffill(limit=MAX_FFILL_H),
-                "level_max": mx.ffill(limit=MAX_FFILL_H),
-                "rain_mm": np.nan,
-            },
-            index=full,
-        )
-    value_col = "rain_mm" if is_rain else "level_mean"
-    df["filled"] = missing & df[value_col].notna()
-    df["flagged"] = df[value_col].isna()
-    df["gauge"] = gauge
-    df["kind"] = "rain" if is_rain else "level"
-    return df.rename_axis("ts_utc").reset_index()
+@functools.lru_cache(maxsize=1)
+def plausible_bands() -> dict[str, tuple[float, float]]:
+    """``{gauge: (low, high)}`` from config/stations.yaml: ``(amber - 4 m, record + 2 m)``."""
+    levels, _ = stations.load_gauges()
+    out = {}
+    for g in levels:
+        if g.key in LEVEL_MEASURES and g.amber is not None:
+            top = max(g.amber, g.record if g.record is not None else g.amber)
+            out[g.key] = (g.amber - PLAUSIBLE_BELOW_AMBER_M, top + PLAUSIBLE_ABOVE_RECORD_M)
+    return out
+
+
+def clean_readings(
+    readings: dict[str, pd.DataFrame], bands: dict[str, tuple[float, float]] | None = None
+) -> dict[str, pd.DataFrame]:
+    """Drop EA-flagged readings and physically impossible values (module docstring), per gauge."""
+    bands = plausible_bands() if bands is None else bands
+    out = {}
+    for g, r in readings.items():
+        quality = r["quality"] if "quality" in r else pd.Series("", index=r.index)
+        bad = quality.astype(str).str.strip().str.lower().isin(clean.BAD_QUALITY)
+        if g in RAIN_MEASURES:
+            bad |= r["value"] < 0
+        elif g in bands:
+            low, high = bands[g]
+            bad |= (r["value"] < low) | (r["value"] > high)
+        if bad.any():
+            dropped = r.loc[bad, ["observed_at", "value"]]
+            log.warning(
+                "%s: dropped %d flagged or implausible reading(s), e.g. %s = %s",
+                g,
+                int(bad.sum()),
+                dropped["observed_at"].iloc[0].strftime("%Y-%m-%dT%H:%M:%SZ"),
+                dropped["value"].iloc[0],
+            )
+        out[g] = r.loc[~bad].reset_index(drop=True)
+    return out
+
+
+def _hourly_one(gauge: str, readings: pd.DataFrame, kind: str) -> pd.DataFrame:
+    """One gauge's readings -> ``clean.clean_series`` (quality drop, hourly, gaps, spikes)."""
+    raw = pd.DataFrame(
+        {
+            "gauge": gauge,
+            "ts_utc": readings["observed_at"],
+            "value": readings["value"].astype(float),
+            "quality": readings["quality"] if "quality" in readings else "",
+            "source": "fm_live",
+        }
+    )
+    hourly, st = clean.clean_series(raw, kind)
+    if st["spikes_removed"]:
+        log.warning("%s: removed %d spike(s) from the live readings", gauge, st["spikes_removed"])
+    return hourly
 
 
 def to_hourly(readings: dict[str, pd.DataFrame]) -> pd.DataFrame:
-    """Readings per gauge -> long hourly frame in the hourly.parquet union schema, plus ``rain_catchment``."""
-    parts = [_hourly_one(g, r, False) for g, r in readings.items() if not r.empty and g in LEVEL_MEASURES]
-    rain_parts = [_hourly_one(g, r, True) for g, r in readings.items() if not r.empty and g in RAIN_MEASURES]
+    """Readings per gauge -> long hourly frame in the hourly.parquet union schema, plus ``rain_catchment``.
+
+    Uses the same ``pipeline/clean.py`` functions as the history (SPEC §5.2), so live features are built
+    from data cleaned the same way as the training data.
+    """
+    parts = [_hourly_one(g, r, "level") for g, r in readings.items() if not r.empty and g in LEVEL_MEASURES]
+    rain_parts = [
+        _hourly_one(g, r, "rain") for g, r in readings.items() if not r.empty and g in RAIN_MEASURES
+    ]
+    rain_parts = [p for p in rain_parts if not p.empty]
     if rain_parts:
-        wide = pd.concat(rain_parts).pivot(index="ts_utc", columns="gauge", values="rain_mm")
-        catchment = wide.mean(axis=1, skipna=True)  # mean of available gauges per hour (SPEC §4.1)
-        parts += rain_parts
-        parts.append(
-            pd.DataFrame(
-                {
-                    "gauge": RAIN_KEY,
-                    "kind": "rain",
-                    "ts_utc": catchment.index,
-                    "level_mean": np.nan,
-                    "level_max": np.nan,
-                    "rain_mm": catchment.to_numpy(),
-                    "filled": False,
-                    "flagged": catchment.isna().to_numpy(),
-                }
-            )
-        )
+        catchment, _ = clean.rain_catchment(pd.concat(rain_parts, ignore_index=True))
+        parts += [*rain_parts, catchment]  # catchment = mean of available gauges per hour (SPEC §4.1)
+    parts = [p for p in parts if not p.empty]
     if not parts:
         return pd.DataFrame(columns=HOURLY_COLUMNS)
     out = pd.concat(parts, ignore_index=True)[HOURLY_COLUMNS]
     out[["filled", "flagged"]] = out[["filled", "flagged"]].astype(bool)
+    out[["level_mean", "level_max", "rain_mm"]] = out[["level_mean", "level_max", "rain_mm"]].astype(float)
     out["ts_utc"] = pd.to_datetime(out["ts_utc"], utc=True).astype("datetime64[ns, UTC]")
     return out.sort_values(["gauge", "ts_utc"]).reset_index(drop=True)
 
@@ -314,8 +356,9 @@ def ingest_live(
     fetch: Fetcher = _http_get_json,
     max_workers: int = MAX_WORKERS,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
-    """Fetch (cached), resample and write ``live_hourly.parquet`` and ``live_meta.json``."""
+    """Fetch (cached), clean, resample and write ``live_hourly.parquet`` and ``live_meta.json``."""
     readings = fetch_live_readings(now, cache_dir=cache_dir, fetch=fetch, max_workers=max_workers)
+    readings = clean_readings(readings)  # before live_meta too: a junk latest reading is not levelNow
     hourly = to_hourly(readings)
     meta = live_meta(readings)
     out_hourly.parent.mkdir(parents=True, exist_ok=True)
