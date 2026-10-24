@@ -1,14 +1,14 @@
 # s-s01s-warnat
 
 - **role**: Model
-- **state**: working
+- **state**: reviewing
 - **issue**: #134
-- **task**: Per-spot warn-at levels chosen on validation floods
-- **next**: Regenerate proof.json after make train, open PR
+- **task**: PR #142: per-spot warn-at levels (proof.warnAt)
+- **next**: Verify replays byte-identical with make backtest --rebuild
 - **needs**: 
 - **notes**: 
 - **branch**: model/warn-at
-- **head**: 35f7733 Add per-spot warn-at levels chosen on validation floods (proof
+- **head**: c8f8af0 Regenerate proof.json with warnAt and the Abingdon Rd warning-
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T20:46:05Z
+- **updated**: 2026-10-24T21:01:54Z
