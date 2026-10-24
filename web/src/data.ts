@@ -60,6 +60,9 @@ async function fetchJson(url: string, timeoutMs = 8000): Promise<unknown> {
 
 const cache = new Map<string, Promise<Loaded<unknown>>>();
 
+// Files whose top level is an array (contracts.ts "File shapes"); all others are objects.
+const LIST_FILES = new Set(["stations.json", "spots.json", "events.json", "travel_times.json"]);
+
 /** Load /data/<file> (e.g. "stations.json" or "replays/e2014.json"). */
 export function loadData<T>(file: string): Promise<Loaded<T>> {
   let p = cache.get(file);
@@ -67,8 +70,13 @@ export function loadData<T>(file: string): Promise<Loaded<T>> {
     p = (async (): Promise<Loaded<unknown>> => {
       try {
         const value = await fetchJson(`${import.meta.env.BASE_URL}data/${file}`);
+        // Cheap shape guard so a half-written or wrong-shaped file can't blank a tab.
+        if (LIST_FILES.has(file) !== Array.isArray(value) || typeof value !== "object" || value === null) {
+          throw new Error(`${file}: unexpected top-level shape`);
+        }
         return { value, source: "data", file };
-      } catch {
+      } catch (e) {
+        if (e instanceof Error && e.message.includes("unexpected top-level shape")) console.warn(e.message);
         for (const c of fixtureCandidates(file)) {
           const load = fixtures[c];
           if (load) return { value: await load(), source: "fixture", file: c };

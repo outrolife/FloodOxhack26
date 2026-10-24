@@ -8,6 +8,7 @@ import { SpotPanel } from "../components/river/SpotPanel";
 import { FixtureNotice, Pending } from "../components/shared/DataNotice";
 import { RiverStrip } from "../components/shared/RiverStrip";
 import { useLive } from "../components/shared/useLive";
+import { liveObserved } from "../components/shared/observed";
 
 export default function River() {
   const stations = useData<StationsFile>("stations.json");
@@ -17,11 +18,14 @@ export default function River() {
   // Default to Botley (newbotley is the primary target, SPEC §4.1.1).
   const [selected, setSelected] = useState<string | null>("botley");
 
-  if (stations.status !== "ready" || spots.status !== "ready" || travel.status !== "ready") {
-    return <Pending states={[stations, spots, travel]} />;
+  // Travel times are optional here: the map and spot panel work without them.
+  if (stations.status !== "ready" || spots.status !== "ready") {
+    return <Pending states={[stations, spots]} />;
   }
+  const pairs = travel.status === "ready" ? travel.data : [];
 
   const forecast = live.status === "ready" ? live.forecast : null;
+  const observed = liveObserved(forecast); // optional 7-day history (#38)
   const spot = spots.data.find((s) => s.key === selected) ?? spots.data[0];
   const levelNow: Record<string, number> = {};
   for (const sf of forecast?.spots ?? []) {
@@ -43,7 +47,7 @@ export default function River() {
           <strong>Live data unavailable.</strong> No saved forecast either.
         </div>
       )}
-      <FixtureNotice sources={[stations.source, spots.source, travel.source]} />
+      <FixtureNotice sources={[stations.source, spots.source, travel.status === "ready" ? travel.source : undefined]} />
 
       <div className="grid-2">
         <section>
@@ -61,7 +65,7 @@ export default function River() {
               spot={spot}
               station={stations.data.find((s) => s.key === spot.gauge)}
               forecast={forecast}
-              history={undefined}
+              history={observed?.[spot.gauge]}
             />
           )}
         </aside>
@@ -73,7 +77,11 @@ export default function River() {
           Upstream gauges feed Oxford. Each link shows the median time for a flood rise to travel
           downstream (T½, from past floods). Levels are on each gauge's own datum.
         </p>
-        <RiverStrip stations={stations.data} pairs={travel.data} levelNow={levelNow} />
+        <RiverStrip stations={stations.data} pairs={pairs} series={observed ?? undefined} levelNow={levelNow} />
+        {!observed && (
+          <p className="small muted">7-day history unavailable: the live forecast carries no observed levels yet.</p>
+        )}
+        {travel.status === "error" && <p className="small muted">Travel times not available yet.</p>}
       </section>
     </>
   );

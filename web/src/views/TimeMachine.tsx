@@ -40,9 +40,10 @@ export default function TimeMachine() {
 
   const replay = useData<Replay>(eventId ? `replays/${eventId}.json` : null);
 
-  const ready =
-    events.status === "ready" && spots.status === "ready" && stations.status === "ready" && travel.status === "ready";
-  if (!ready) return <Pending states={[events, spots, stations, travel]} />;
+  // Travel times only label the river strip, so they are optional here.
+  const ready = events.status === "ready" && spots.status === "ready" && stations.status === "ready";
+  if (!ready) return <Pending states={[events, spots, stations]} />;
+  const pairs = travel.status === "ready" ? travel.data : [];
 
   return (
     <>
@@ -76,7 +77,7 @@ export default function TimeMachine() {
             replay={replay.data}
             spots={spots.data}
             stations={stations.data}
-            travel={travel.data}
+            travel={pairs}
           />
         </>
       )}
