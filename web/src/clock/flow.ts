@@ -151,6 +151,22 @@ export type ChainLink = {
 
 export const SECONDS_PER_HOUR = 0.25;
 
+/**
+ * Pulses on a link: the SVG path is given pathLength 100, so the dash pattern
+ * is a share of the link at any zoom. "0 50" with round caps = two dots, half
+ * a link apart; the rc-pulse animation moves them one whole link (100) per
+ * `seconds`, from the upstream gauge towards Oxford.
+ */
+export const PULSE_PATH_LENGTH = 100;
+export const PULSE_DASH = "0 50";
+
+/** Hover words for a link: "Water passing Islip reaches Kings Mill about 31 h later (from 7 past rises)". */
+export function linkWords(l: Pick<ChainLink, "tHalfH" | "n" | "lowConfidence">, upName: string, downName: string): string {
+  const h = Math.round(l.tHalfH);
+  const from = `from ${l.n} past rise${l.n === 1 ? "" : "s"}`;
+  return `Water passing ${upName} reaches ${downName} about ${h} h later (${l.lowConfidence ? `only ${from}, so a rough guide` : from})`;
+}
+
 /** One schematic link per upstream gauge, to its best-measured Oxford gauge. */
 export function chainLinks(stations: Pick<Station, "key" | "role">[], pairs: TravelPair[]): ChainLink[] {
   const targets = new Set(stations.filter((s) => s.role !== "upstream").map((s) => s.key));

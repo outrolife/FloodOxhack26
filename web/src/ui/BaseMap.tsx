@@ -70,7 +70,11 @@ export function useBaseMap(): Base {
  * invalidateSize() whenever the container changes size, and re-fits the
  * bounds the first time it gets a real size.
  */
-function MapSizer({ bounds }: { bounds: Bounds }) {
+/** Room (px) kept clear when fitting the bounds, e.g. under a panel drawn over the map. */
+export type FitPadding = { topLeft: [number, number]; bottomRight: [number, number] };
+const DEFAULT_PAD: FitPadding = { topLeft: [24, 24], bottomRight: [24, 24] };
+
+function MapSizer({ bounds, pad = DEFAULT_PAD }: { bounds: Bounds; pad?: FitPadding }) {
   const map = useMap();
   const key = bounds.flat().join(",");
   useEffect(() => {
@@ -80,7 +84,9 @@ function MapSizer({ bounds }: { bounds: Bounds }) {
       map.invalidateSize();
       if (fitted || el.clientWidth === 0 || el.clientHeight === 0) return;
       try {
-        map.fitBounds(bounds, { padding: [24, 24] });
+        // Padding wider than the map would leave no room: fall back to the default.
+        const p = pad.topLeft[0] + pad.bottomRight[0] < el.clientWidth - 80 && pad.topLeft[1] + pad.bottomRight[1] < el.clientHeight - 80 ? pad : DEFAULT_PAD;
+        map.fitBounds(bounds, { paddingTopLeft: p.topLeft, paddingBottomRight: p.bottomRight });
         fitted = true;
       } catch {
         // Not laid out yet; the next resize tries again.
@@ -123,6 +129,7 @@ export function BaseMap({
   className,
   tiles: tilesDefault = false,
   interactive = true,
+  fitPadding,
 }: {
   bounds?: [[number, number], [number, number]];
   children?: ReactNode;
@@ -131,6 +138,8 @@ export function BaseMap({
   tiles?: boolean;
   /** Allow pan and zoom (default true; scroll-wheel zoom is always off). */
   interactive?: boolean;
+  /** Room to keep clear when fitting the bounds (default 24 px all round). */
+  fitPadding?: FitPadding;
 }) {
   const base = useBaseMap();
   const online = typeof navigator === "undefined" ? false : navigator.onLine;
@@ -172,7 +181,7 @@ export function BaseMap({
               />
             ) : null,
           )}
-        <MapSizer bounds={fit} />
+        <MapSizer bounds={fit} pad={fitPadding} />
         {children}
       </MapContainer>
       </MapErrorBoundary>
