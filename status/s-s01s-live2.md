@@ -3,12 +3,12 @@
 - **role**: Data
 - **state**: working
 - **issue**: #79 #80
-- **task**: Live mode: load trained models (#79) and clean live readings (#80)
-- **next**: Adapter in forecast_live.py, clean.py in ingest_live, tests
+- **task**: Live mode: trained models + clean live readings (code done, tests pass)
+- **next**: Train 4 targets, run live forecast, commit live.json, open PR
 - **needs**: 
 - **notes**: 
 - **branch**: data/live-models-clean
-- **head**: c1db381 Merge pull request #78 from outrolife/story/team-names
+- **head**: 927d013 Use the trained GaugeModels in live mode, as in the backtest
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:52:33Z
+- **updated**: 2026-10-24T18:01:34Z
