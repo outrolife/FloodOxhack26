@@ -8,7 +8,7 @@
 - **needs**: 
 - **notes**: S4 is draft only until S3 merges (PM can veto on #23)
 - **branch**: main
-- **head**: b958dd2 Merge pull request #98 from outrolife/data/live-models-clean
+- **head**: a714e4f Merge pull request #104 from outrolife/app/about-diagram
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:21:15Z
+- **updated**: 2026-10-24T18:22:04Z
