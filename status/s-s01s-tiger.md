@@ -1,14 +1,14 @@
 # s-s01s-tiger
 
 - **role**: Data
-- **state**: working
+- **state**: reviewing
 - **issue**: #17
-- **task**: Tiger mirror code+tests pushed (data/tiger-mirror)
-- **next**: Run mirror against real Tiger service, write docs/tiger-data.md
+- **task**: PR #63 open: Tiger mirror, live on team service (3.29M rows, 12x compressed)
+- **next**: Await review/merge of #63
 - **needs**: 
 - **notes**: 
 - **branch**: data/tiger-mirror
-- **head**: 2e0aa42 Add make mirror target, mirror extra and .env fallback for the
+- **head**: 197f4b3 Skip unchanged rows before upsert, add --columnstore, document
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:41:40Z
+- **updated**: 2026-10-24T17:08:13Z
