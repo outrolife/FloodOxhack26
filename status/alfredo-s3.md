@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: working
 - **issue**: #22
-- **task**: S3 spread: LiDAR WCS OK, e2014 run works (IoU 0.68), fixing palette/size
-- **next**: push first real manifest+PNGs to stretch/s3-spread (~15 min), then tests+PR
+- **task**: S3 spread: real e2014+live frames pushed (IoU 0.68)
+- **next**: tests/test_s3_spread.py, then PR (Part of #22)
 - **needs**: 
 - **notes**: 
 - **branch**: stretch/s3-spread
-- **head**: c1db381 Merge pull request #78 from outrolife/story/team-names
+- **head**: 7c6f918 Add S3 flood-spread ensemble (experimental): e2014 and live fr
 - **unpushed**: 0
-- **dirty**: 3
-- **updated**: 2026-10-24T18:05:11Z
+- **dirty**: 0
+- **updated**: 2026-10-24T18:14:51Z
