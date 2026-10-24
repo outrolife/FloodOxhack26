@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: reviewing
 - **issue**: #22
-- **task**: S3 compute PR #106 open (IoU 0.68, e2014+live)
-- **next**: add e2024a replay frames to the same branch
+- **task**: S3 heatmap PR #115 open; e2024a frames next
+- **next**: e2024a replay frames on stretch/s3-heatmap
 - **needs**: 
 - **notes**: 
-- **branch**: stretch/s3-spread
-- **head**: 087491d Regenerate S3 frames: model-based live.json, river seeds unpai
+- **branch**: stretch/s3-heatmap
+- **head**: b6be9fe Render S3 spread frames as a 25 m pixel heatmap
 - **unpushed**: 0
-- **dirty**: 0
-- **updated**: 2026-10-24T18:24:33Z
+- **dirty**: 1
+- **updated**: 2026-10-24T18:34:02Z
