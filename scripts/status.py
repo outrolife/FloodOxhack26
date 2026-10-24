@@ -639,6 +639,10 @@ def cmd_feed(args: List[str]) -> None:
 
 
 def main() -> None:
+    # Windows consoles default to cp1252; never let a status character crash the board hook.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     if len(sys.argv) < 2:
         print(__doc__)
         return
