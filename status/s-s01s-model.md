@@ -1,14 +1,14 @@
 # s-s01s-model
 
 - **role**: Model
-- **state**: working
+- **state**: reviewing
 - **issue**: #16
-- **task**: Live mode: ingest_live, forecast_live, /api/live
-- **next**: Write ingest_live with 15-min cache; #6 draft on model/features-draft-s01s
+- **task**: PR #29 live mode open for review
+- **next**: Await review; Forecast gained optional method/note (SPEC 9)
 - **needs**: 
 - **notes**: 
 - **branch**: data/live-mode
-- **head**: 6e8694d Merge pull request #25 from outrolife/integration/scaffold
+- **head**: ae1f6a8 Add live mode: ingest_live, forecast_live and /api/live
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:05:01Z
+- **updated**: 2026-10-24T16:13:01Z
