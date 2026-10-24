@@ -214,3 +214,15 @@ def test_consistent_arrivals() -> None:
     assert out["forecasts"][0]["spots"][0]["arrival"] == {"p10": iso(0), "p50": iso(0), "p90": iso(0)}
     # below the line: p reaches 0.1 exactly at the 72 h lead, interpolated from p = 0 at issue time
     assert out["forecasts"][1]["spots"][0]["arrival"] == {"p10": iso(73), "p50": None, "p90": None}
+
+
+def test_flood_coverage_range_and_note() -> None:
+    rows = [{"h": h, "nominal": 0.9, "actual": a} for h, a in ((6, 0.907), (24, 0.868), (72, 0.862))]
+    rows.append({"h": 6, "nominal": 0.8, "actual": 0.82})
+    assert proof.coverage_range(rows, 0.9) == "0.86–0.91"
+    assert proof.coverage_range(rows, 0.5) == "n/a"
+    note = proof.TEST_PERIOD_NOTE.format(
+        flood90="0.86–0.91", flood80="0.76–0.82", test_start="2021-10-01", gauges="g", test_events="e"
+    )
+    assert "inside flood windows the 90% interval covers 0.86–0.91" in note
+    assert "some time in (t, t + h]" in note and "already over the line" in note

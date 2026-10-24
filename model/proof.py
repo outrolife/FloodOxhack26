@@ -38,6 +38,7 @@ import numpy as np
 import pandas as pd
 
 from model import backtest, metrics, official
+from model.calibrate import event_mask
 from model.probability import HORIZONS_H, arrival_window, exceedance
 from model.train import (
     DEFAULT_SPLITS,
@@ -66,16 +67,18 @@ REPLAY_EVERY_H: dict[str, int] = {"e2014": 2}
 TEST_PERIOD_NOTE = (
     "Skill, interval coverage and reliability are scored on the strict time-split test period (issue "
     "times from {test_start}), which no model saw in training or calibration; they pool the trained "
-    "gauges {gauges}. Reliability and Brier scores ask whether the level reached the line at any time "
-    "up to t + h (what the flood probability means) and leave out hours when it was already over. Hits,"
-    " misses, false alarms, lead times and arrival errors come from the event replays: each event is "
-    "forecast by models retrained without that event (+- 7 days), so those models may have learned from"
-    " floods that happened after the replayed one. Events in the test period ({test_events}) use the "
-    "time-split models directly. Repeat crossings within 72 h count as one flood. An EA Flood Warning "
-    "counts as in force from its issue time until 24 h after its last Update, and is scored on the same"
-    " hours and rules as our trigger. Lead versus the EA compares first messages within the same flood."
-    " Arrival error uses the forecast issued 24 h before the first crossing and is blank when that "
-    "forecast did not reach 50%. Few events, so intervals are wide."
+    "gauges {gauges}. Coverage pools quiet and flood rows; inside flood windows the 90% interval covers"
+    " {flood90} and the 80% interval {flood80} across leads. Reliability and Brier scores ask whether "
+    "the level reached the line at some time in (t, t + h], which is what the flood probability for "
+    "lead h means (it never falls with lead), and leave out hours when the river was already over the "
+    "line, as the event scores do. Hits, misses, false alarms, lead times and arrival errors come from "
+    "the event replays: each event is forecast by models retrained without that event (+- 7 days), so "
+    "those models may have learned from floods that happened after the replayed one. Events in the test"
+    " period ({test_events}) use the time-split models directly. Repeat crossings within 72 h count as "
+    "one flood. An EA Flood Warning counts as in force from its issue time until 24 h after its last "
+    "Update, and is scored on the same hours and rules as our trigger. Lead versus the EA compares "
+    "first messages within the same flood. Arrival error uses the forecast issued 24 h before the first"
+    " crossing and is blank when that forecast did not reach 50%. Few events, so intervals are wide."
 )
 
 
@@ -190,19 +193,26 @@ def ensure_replays(
 
 def test_period_scores(
     hourly: pd.DataFrame, models: Mapping[str, GaugeModel], spots: Sequence[Mapping[str, Any]]
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, list[dict[str, Any]]]]:
-    """``skillByLead``, ``coverage`` and ``reliability`` on the test period (rows the models never saw)."""
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, list[dict[str, Any]]], list[dict[str, Any]]]:
+    """``skillByLead``, ``coverage`` and ``reliability`` on the test period (rows the models never saw).
+
+    The 4th value is interval coverage on the test rows inside flood windows only (the windows the
+    intervals are calibrated on, SPEC §7.4); it is reported in ``testPeriodNote`` (#85).
+    """
     pooled_model: dict[int, list[np.ndarray]] = {h: [] for h in HORIZONS_H}
     pooled_pers: dict[int, list[np.ndarray]] = {h: [] for h in HORIZONS_H}
     pooled_y: dict[int, list[np.ndarray]] = {h: [] for h in HORIZONS_H}
+    flood_rows: list[np.ndarray] = []
     reliability: dict[str, list[dict[str, Any]]] = {}
     for g, m in models.items():
         X, Y = build_xy(hourly, g, m.medians, m.lags, HORIZONS_H)
+        in_flood = event_mask(X["level_now"], m.amber).to_numpy()
         test = X.index >= m.splits.test_start
-        X, Y = X[test], Y[test]
+        X, Y, in_flood = X[test], Y[test], in_flood[test]
         level_now = X["level_now"].to_numpy(dtype=float)
         ok_now = np.isfinite(level_now)
         X, Y, level_now = X[ok_now], Y[ok_now], level_now[ok_now]
+        flood_rows.append(in_flood[ok_now])
         q_model = m.predict(X)
         q_pers = m.persistence(len(X))
         log.info("%s: %d test rows from %s", g, len(X), m.splits.test_start.date())
@@ -234,7 +244,17 @@ def test_period_scores(
     }
     skill = metrics.skill_by_lead(cat["m"], cat["p"], cat["y"])
     coverage = metrics.coverage_by_lead(cat["m"], cat["y"])
-    return skill, coverage, reliability
+    fl = np.concatenate(flood_rows)
+    flood_coverage = metrics.coverage_by_lead(
+        {h: q[fl] for h, q in cat["m"].items()}, {h: y[fl] for h, y in cat["y"].items()}
+    )
+    return skill, coverage, reliability, flood_coverage
+
+
+def coverage_range(rows: Sequence[Mapping[str, Any]], nominal: float) -> str:
+    """'0.86-0.91': lowest to highest actual coverage over leads for one nominal level."""
+    vals = [r["actual"] for r in rows if np.isclose(r["nominal"], nominal) and np.isfinite(r["actual"])]
+    return f"{min(vals):.2f}–{max(vals):.2f}" if vals else "n/a"
 
 
 # --------------------------------------------------------------------------- event scores
@@ -473,12 +493,14 @@ def main(argv: Sequence[str] | None = None) -> None:
     hourly = load_hourly()
     lags = load_lags()
     models = main_models(hourly, args.targets, lags, **fit_kwargs)
-    skill, coverage, reliability = test_period_scores(hourly, models, spots)
+    skill, coverage, reliability, flood_coverage = test_period_scores(hourly, models, spots)
     log.info("test-period scores done (%.0f s)", time.time() - t0)
     replays = ensure_replays(events, args.targets, args.rebuild, args.jobs, fit_kwargs)
     ev = event_scores(replays, events, spots, hourly, load_warnings())
     test_start = DEFAULT_SPLITS.test_start
     note = TEST_PERIOD_NOTE.format(
+        flood90=coverage_range(flood_coverage, 0.9),
+        flood80=coverage_range(flood_coverage, 0.8),
         test_start=test_start.strftime("%Y-%m-%d"),
         gauges=", ".join(args.targets),
         test_events=", ".join(e for e in events if in_test_period(events[e])) or "none",
