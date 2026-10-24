@@ -2,13 +2,13 @@
 
 - **role**: Model
 - **state**: working
-- **issue**: #81 #91 #92
-- **task**: #81 PR open (regen running); fixing #91 reliability by-h outcome
-- **next**: #92 official in-force + wire #90 onsets
+- **issue**: #81 #91 #92 #93
+- **task**: Code for #81/#91/#92/#93 on PR #94; training models for the one combined regen
+- **next**: Regenerate replays+proof.json, before/after table
 - **needs**: 
 - **notes**: 
 - **branch**: model/proof-reproducible
-- **head**: fbeece9 Make train/backtest regenerate all committed model outputs
-- **unpushed**: 0
+- **head**: f654e44 Issue replay forecasts only from complete hourly rows
+- **unpushed**: 19
 - **dirty**: 0
-- **updated**: 2026-10-24T17:58:43Z
+- **updated**: 2026-10-24T18:05:42Z
