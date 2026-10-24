@@ -3,12 +3,12 @@
 - **role**: Story
 - **state**: working
 - **issue**: #19
-- **task**: Write README, Devpost draft and demo script
-- **next**: Read SPEC and configs, then draft README
+- **task**: README pushed; writing Devpost draft and demo script
+- **next**: docs/devpost.md, docs/demo.md, then PR
 - **needs**: 
 - **notes**: 
 - **branch**: story/readme-devpost
-- **head**: eb8eb87 Merge pull request #33 from outrolife/app/decide
+- **head**: 158a5c3 Add README: method, re-target story, spots, events, sources, l
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:30:02Z
+- **updated**: 2026-10-24T16:33:15Z
