@@ -1,14 +1,14 @@
 # alfredo-review
 
 - **role**: Integration
-- **state**: working
+- **state**: reviewing
 - **issue**: #73
-- **task**: Pre-freeze review: 4 confirmed bugs so far (lead-vs-official pairing, Decide official scoring, reliability outcome, official-as-trigger)
-- **next**: Fix PRs for official.py + costLoss.ts; issues for proof.py
+- **task**: Review done: PR #90 (official pairing); issues #91 #92 #93; Decide fixed by #86
+- **next**: Post #73 summary
 - **needs**: 
 - **notes**: 
-- **branch**: integration/review
-- **head**: bb40327 Merge pull request #66 from outrolife/model/proof-json
+- **branch**: model/official-first-flood
+- **head**: 875c1a0 Pair our trigger and the official warning within the same floo
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:49:00Z
+- **updated**: 2026-10-24T17:57:05Z
