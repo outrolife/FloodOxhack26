@@ -430,7 +430,8 @@ def test_load_trained_models(models_dir: Path) -> None:
     fc = fl.load_model_forecaster(models_dir)
     assert isinstance(fc, fl.TrainedForecaster)
     assert list(fc.models) == ["newbotley"]  # lofo/ and stray files skipped
-    assert fc.upstreams == {"newbotley": ["farmoor", "eynsham", "cassington"]}
+    walk = ["farmoor", "eynsham", "cassington", "shifford", "hannington", "worsham", "shipton"]
+    assert fc.upstreams == {"newbotley": walk}  # the model's own list (from its columns)
 
 
 def test_model_forecast_is_the_backtest_forecast(models_dir: Path, tmp_path: Path) -> None:

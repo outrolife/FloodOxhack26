@@ -13,6 +13,7 @@ import pandas as pd
 import pytest
 
 from model.features import (
+    FALLBACK_UPSTREAMS,
     LIVE_ONLY,
     MAX_WINDOW_H,
     RAIN_KEY,
@@ -24,6 +25,7 @@ from model.features import (
     catchment_rain,
     compute_gauge_medians,
     feature_columns,
+    load_flow_paths,
     load_lags,
     pivot_hourly,
     upstream_lags_h,
@@ -32,6 +34,8 @@ from model.features import (
 START = pd.Timestamp("2026-09-01 00:00", tz="UTC")
 N_HOURS = 40 * 24  # longer than the 21-day window
 LEVEL_GAUGES = ["farmoor", "eynsham", "cassington", "newbotley", "minns", "coldharbour"]
+# The further-upstream river-walk gauges (#125 A), appended so the gauges above keep their values.
+LEVEL_GAUGES += ["shifford", "hannington", "worsham", "shipton"]
 RAIN_GAUGES = ["256230TP", "254336TP", "261021TP"]
 TEST_LAGS = {"farmoor->newbotley": {"lag_lo": 30, "lag_main": 40, "lag_hi": 55}}
 
@@ -332,10 +336,15 @@ def test_final_format_uses_rain_catchment_alone() -> None:
 
 
 def test_targets_and_flow_paths_follow_pr_30() -> None:
-    """SPEC §4.1.1 (PR #30): four trained targets; the main-channel locks are live only."""
+    """SPEC §4.1.1 (PR #30): four trained targets; the main-channel locks are live only.
+
+    River walk (#125 A): newbotley and minns also get the further-upstream Thames, Windrush and
+    Evenlode gauges; coldharbour and kingsmill keep their near gauges.
+    """
     assert TARGETS == ("newbotley", "minns", "coldharbour", "kingsmill")
-    for target in ("newbotley", "minns", "coldharbour"):
-        assert UPSTREAMS[target] == ("farmoor", "eynsham", "cassington")
+    walk = ("farmoor", "eynsham", "cassington", "shifford", "hannington", "worsham", "shipton")
+    assert UPSTREAMS["newbotley"] == UPSTREAMS["minns"] == walk
+    assert UPSTREAMS["coldharbour"] == ("farmoor", "eynsham", "cassington")
     assert UPSTREAMS["kingsmill"] == ("enslow", "islip")
     for lock in LIVE_ONLY:
         assert lock not in TARGETS
@@ -346,13 +355,76 @@ def test_targets_and_flow_paths_follow_pr_30() -> None:
         feature_columns("nowhere")
 
 
+def test_flow_paths_come_from_stations_yaml_with_identical_fallback(tmp_path) -> None:
+    """The river walk is read from config/stations.yaml; the hard-coded fallback is the same map."""
+    from model.features import STATIONS_YAML
+
+    assert STATIONS_YAML.exists()
+    assert load_flow_paths(STATIONS_YAML) == FALLBACK_UPSTREAMS == UPSTREAMS
+    assert list(UPSTREAMS) == list(TARGETS)  # newbotley (primary) first, file order kept
+    assert load_flow_paths(tmp_path / "missing.yaml") == FALLBACK_UPSTREAMS
+    bad = tmp_path / "bad.yaml"
+    bad.write_text("flow_paths:\n  thames:\n    newbotley: [farmoor, farmoor]\n", encoding="utf-8")
+    assert load_flow_paths(bad) == FALLBACK_UPSTREAMS  # duplicate gauge: malformed
+    other = tmp_path / "other.yaml"
+    other.write_text("flow_paths:\n  a:\n    newbotley: [x, y]\n  b:\n    kingsmill: [z]\n", encoding="utf-8")
+    assert load_flow_paths(other) == {"newbotley": ("x", "y"), "kingsmill": ("z",)}
+
+
+def test_explicit_upstreams_rebuild_an_older_models_columns() -> None:
+    """A model saved with the three near gauges still gets exactly its own columns after the walk grew."""
+    hourly = make_hourly(seed=21, drop_frac=0.0, fmt="final")
+    old = ("farmoor", "eynsham", "cassington")
+    medians = compute_gauge_medians(hourly, START + pd.Timedelta(days=15), gauges=old)
+    feats = build_features(hourly, "newbotley", medians, TEST_LAGS, upstreams=old)
+    assert list(feats.columns) == feature_columns("newbotley", TEST_LAGS, old)
+    assert not any(c.startswith(("shifford", "hannington", "worsham", "shipton")) for c in feats.columns)
+    with pytest.raises(KeyError, match="medians missing"):
+        build_features(hourly, "newbotley", medians, TEST_LAGS)  # the walk needs all seven medians
+
+
+@pytest.mark.parametrize("target", ["newbotley", "minns"])
+def test_river_walk_columns_do_not_see_the_future(target: str) -> None:
+    """The further-upstream columns at t (with their long travel lags) are unchanged by data after t."""
+    lags = {
+        f"{up}->{target}": {"lag_lo": lo, "lag_main": main, "lag_hi": hi}
+        for up, (lo, main, hi) in {
+            "shifford": (2, 17, 45), "hannington": (3, 18, 64), "worsham": (2, 9, 27), "shipton": (7, 19, 51)
+        }.items()
+    }
+    hourly = make_hourly(seed=5, drop_frac=0.0, fmt="final")
+    new = [c for c in feature_columns(target, lags) if c.startswith(("shifford", "hannington", "worsham", "shipton"))]
+    assert len(new) == 4 * 2 + sum(len(upstream_lags_h(u, target, lags)) for u in lags_ups(lags))
+    for i, cut in enumerate(START + pd.Timedelta(hours=h) for h in (300, 555, 800)):
+        base = build_features(hourly, target, compute_gauge_medians(hourly, cut), lags)[new]
+        changed = perturb_after(hourly, cut, seed=200 + i)
+        feats = build_features(changed, target, compute_gauge_medians(changed, cut), lags)[new]
+        assert_same(base.loc[:cut], feats.loc[:cut])
+        truncated = hourly[hourly["ts_utc"] <= cut]
+        trunc = build_features(truncated, target, compute_gauge_medians(truncated, cut), lags)[new]
+        assert_same(base.loc[:cut], trunc.loc[:cut])
+        assert base.loc[cut].notna().all()  # real values, not a vacuous all-NaN comparison
+        assert not base.loc[cut:].iloc[1:].equals(feats.loc[cut:].iloc[1:])
+    # The lag-64 h Hannington anomaly at t is the reading 64 h earlier, minus its own median.
+    t = START + pd.Timedelta(hours=700)
+    med = compute_gauge_medians(hourly, t)
+    levels = pivot_hourly(hourly[hourly["kind"] == "level"])
+    got = build_features(hourly, target, med, lags).loc[t, "hannington_anom_lag64h"]
+    exp = levels.loc[t - pd.Timedelta(hours=64), "hannington"] - med["hannington"]
+    np.testing.assert_equal(got, exp)
+
+
+def lags_ups(lags: dict[str, dict[str, int]]) -> list[str]:
+    return [pair.split("->")[0] for pair in lags]
+
+
 @pytest.mark.parametrize("target", ["minns", "coldharbour"])
 def test_new_targets_build_features_and_targets(target: str) -> None:
     hourly = make_hourly(seed=14, drop_frac=0.0, fmt="final")
     medians = compute_gauge_medians(hourly, START + pd.Timedelta(days=15))
     feats = build_features(hourly, target, medians, TEST_LAGS)
     assert list(feats.columns) == feature_columns(target, TEST_LAGS)
-    assert len(feats.columns) == 6 + 3 * 6 + 7  # no godstow columns
+    assert len(feats.columns) == 6 + len(UPSTREAMS[target]) * 6 + 7  # no godstow columns
     assert not any(c.startswith(("godstow", "osney", "iffley")) for c in feats.columns)
     levels = pivot_hourly(hourly[hourly["kind"] == "level"])
     t = START + pd.Timedelta(hours=700)

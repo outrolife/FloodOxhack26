@@ -237,12 +237,18 @@ def test_fixture_matches_shape_if_present(fixtures_dir: Path) -> None:
 
 
 def test_pairs_cover_spec_flow_paths() -> None:
-    """SPEC §4.1 after PR #30: Thames upstreams -> newbotley (primary), minns, coldharbour; Cherwell."""
+    """SPEC §4.1 after PR #30: Thames upstreams -> newbotley (primary), minns, coldharbour; Cherwell.
+
+    River walk (#125 A): newbotley and minns also pair with shifford, hannington, worsham, shipton.
+    """
     pairs = tt.all_pairs()
     assert pairs[:3] == [("farmoor", "newbotley"), ("eynsham", "newbotley"), ("cassington", "newbotley")]
-    for target in ("minns", "coldharbour"):
-        assert {up for up, down in pairs if down == target} == {"farmoor", "eynsham", "cassington"}
+    near = {"farmoor", "eynsham", "cassington"}
+    walk = near | {"shifford", "hannington", "worsham", "shipton"}
+    for target, ups in (("newbotley", walk), ("minns", walk), ("coldharbour", near)):
+        assert {up for up, down in pairs if down == target} == ups
+    assert tt.UPSTREAMS == tt.FALLBACK_UPSTREAMS  # read from stations.yaml, same as the fallback
     assert ("enslow", "kingsmill") in pairs and ("islip", "kingsmill") in pairs
     # main-channel locks are live only (§4.1.1): no pairs
     assert not {g for pair in pairs for g in pair} & {"godstow", "osney", "iffley"}
-    assert len(pairs) == 11
+    assert len(pairs) == 19
