@@ -421,7 +421,8 @@ Stretch items are owned by whoever is free first, agreed at a team check-in.
 | P1 | All 5 spots, all events, full `proof.json`, Proof tab | Metrics render with intervals | Sun 06:00 |
 | P1 | Official-warning comparison and trade-off curve | Markers in Time Machine | Sun 07:00 |
 | P2 | Decide tab | Expected-cost chart works | Sun 08:30 |
-| P2 | Live mode (`/api/live`); Tiger Data mirror; Vultr deploy | Live data shows | Sun 09:30 |
+| P2 | Live mode (`/api/live`); Tiger Data mirror | Live data shows | Sun 09:30 |
+| — | ~~Vultr deploy~~ dropped 24 Oct (no MLH credit); the `deploy/` kit works on any Docker host | | |
 | **Core gate** | All P0–P2 merged; demo runs end-to-end offline | | |
 | S1–S4 | Stretch backlog (§11), in order | Each works end-to-end | Stop new stretch work 09:00 |
 | — | **Code freeze 11:00**; submission by 12:00 | | |
