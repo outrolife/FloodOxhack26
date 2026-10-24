@@ -3,12 +3,12 @@
 - **role**: Data
 - **state**: working
 - **issue**: #146
-- **task**: Catchment live_only gauges for the map + Kings Mill/Wolvercote replacement research
-- **next**: Query EA stations within 35 km, verify live readings
+- **task**: PR #154 open (catchment ring); writing Kings Mill/Wolvercote findings
+- **next**: Findings comment on #146 by 00:30 GMT
 - **needs**: 
 - **notes**: 
 - **branch**: data/catchment-gauges
-- **head**: 85e2229 Merge pull request #142 from outrolife/model/warn-at
+- **head**: 7719255 Move catchment_gauges to the end of stations.yaml and drop Gre
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T21:35:05Z
+- **updated**: 2026-10-24T22:07:33Z
