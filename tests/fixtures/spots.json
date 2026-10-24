@@ -1,0 +1,57 @@
+[
+ {
+  "key": "osney",
+  "name": "Osney Island / Binsey",
+  "gauge": "osney",
+  "threshold": 3.79,
+  "amber": 3.18,
+  "lat": 51.7505,
+  "lon": -1.2725,
+  "warningArea": "061FWF23BnsyOsny",
+  "mode": "probability"
+ },
+ {
+  "key": "botley",
+  "name": "Botley Road / New Botley / Hinksey",
+  "gauge": "newbotley",
+  "threshold": 2.76,
+  "amber": 2.01,
+  "lat": 51.7525,
+  "lon": -1.279,
+  "warningArea": "061FWF23NwBotley",
+  "mode": "probability"
+ },
+ {
+  "key": "abingdonrd",
+  "name": "Abingdon Road / Grandpont",
+  "gauge": "iffley",
+  "threshold": 3.25,
+  "amber": 2.72,
+  "lat": 51.7425,
+  "lon": -1.256,
+  "warningArea": "061FWF23NwBotley",
+  "mode": "probability"
+ },
+ {
+  "key": "wolvercote",
+  "name": "Wolvercote / Port Meadow",
+  "gauge": "godstow",
+  "threshold": 3.07,
+  "amber": 2.57,
+  "lat": 51.777,
+  "lon": -1.28,
+  "warningArea": "061FWF23Wlvrcote",
+  "mode": "probability"
+ },
+ {
+  "key": "cherwell",
+  "name": "Cherwell (Kings Mill)",
+  "gauge": "kingsmill",
+  "threshold": 2.6,
+  "amber": 2.4,
+  "lat": 51.76,
+  "lon": -1.239,
+  "warningArea": "Cherwell Oxford area (code TBC)",
+  "mode": "timing_only"
+ }
+]

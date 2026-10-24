@@ -1,0 +1,53 @@
+{
+ "bounds": [
+  [
+   51.745,
+   -1.29
+  ],
+  [
+   51.758,
+   -1.265
+  ]
+ ],
+ "runs": 200,
+ "frames": [
+  {
+   "tau": 6,
+   "issuedAt": "2014-01-07T00:00:00Z",
+   "png": "spread/e2014/tau06.png"
+  },
+  {
+   "tau": 12,
+   "issuedAt": "2014-01-07T00:00:00Z",
+   "png": "spread/e2014/tau12.png"
+  },
+  {
+   "tau": 24,
+   "issuedAt": "2014-01-07T00:00:00Z",
+   "png": "spread/e2014/tau24.png"
+  },
+  {
+   "tau": 36,
+   "issuedAt": "2014-01-07T00:00:00Z",
+   "png": "spread/e2014/tau36.png"
+  },
+  {
+   "tau": 48,
+   "issuedAt": "2014-01-07T00:00:00Z",
+   "png": "spread/e2014/tau48.png"
+  },
+  {
+   "tau": 72,
+   "issuedAt": "2014-01-07T00:00:00Z",
+   "png": "spread/e2014/tau72.png"
+  }
+ ],
+ "validation": {
+  "eventId": "e2014",
+  "iou": 0.62
+ },
+ "caveats": [
+  "Experimental. A simple terrain fill: ignores channel flow, walls, drains, pumps and defences.",
+  "Ensemble frequency, not a verified flood probability."
+ ]
+}

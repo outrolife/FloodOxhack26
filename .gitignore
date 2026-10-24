@@ -30,3 +30,9 @@ web/dist/
 .claude/settings.local.json
 .claude/agent.json
 .claude/worktrees/
+
+# Observer: local scripts and notes (OBSERVER.md)
+.observer/
+
+# We install with `uv pip install -r pyproject.toml`; no lockfile
+uv.lock
