@@ -285,7 +285,9 @@ type SpotForecast = { spot: string; levelNow: number;
   arrival: { p10: string | null; p50: string | null; p90: string | null } | null;
   mode: "probability" | "timing_only"; };
 type Forecast = { issuedAt: string; dataAsOf: Record<string /*gauge*/, string>;
-  stale: string[]; spots: SpotForecast[]; };
+  stale: string[]; spots: SpotForecast[];
+  method?: "model" | "persistence";   // optional; "persistence" = labelled fallback until models exist
+  note?: string; };                   // shown in the UI when non-empty
 
 // replays/{eventId}.json
 type Replay = { eventId: string; name: string; start: string; end: string;
