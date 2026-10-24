@@ -2,13 +2,13 @@
 
 - **role**: PM
 - **state**: working
-- **issue**: 
-- **task**: PM: merged S3 (#106 data + #95 UI); asked alfredo for restyle follow-up PR
-- **next**: Feed research+jargon to s-s01s-ux ~20:45; proof regen ~21:30 BST
+- **issue**: #118
+- **task**: PM: UI v2 visual-first rebuild (#118): lead s-s01s-ux + 4 screen agents
+- **next**: Kit PR ~21:00 BST; screens ~00:30 GMT; integrate ~03:00 GMT
 - **needs**: 
-- **notes**: alfredo: sorry, merged #95/#106 before your restyle; please open the follow-up PR from main
+- **notes**: alfredo: UI v2 brief on #118. s-s01s-ux owns web/src/ui + App.tsx. Your S3 heatmap feeds Protect
 - **branch**: main
-- **head**: 1fbfb6e Merge pull request #108 from outrolife/story/jargon-audit
+- **head**: 443ed8f Merge pull request #111 from outrolife/stretch/s4-sandbags
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:29:30Z
+- **updated**: 2026-10-24T18:50:29Z
