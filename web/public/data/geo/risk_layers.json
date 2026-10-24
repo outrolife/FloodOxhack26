@@ -1,0 +1,63 @@
+{
+ "layers": [
+  {
+   "id": "rofrs",
+   "name": "Official river risk",
+   "type": "wms",
+   "url": "https://environment.data.gov.uk/spatialdata/nafra2-risk-of-flooding-from-rivers-and-sea/wms?layers=rofrs_4band",
+   "attribution": "\u00a9 Environment Agency copyright and/or database right 2025. Open Government Licence v3.0",
+   "legend": [
+    {
+     "label": "High (3.3% or more a year)",
+     "colour": "#555B9D"
+    },
+    {
+     "label": "Medium (1% to 3.3% a year)",
+     "colour": "#9A9FDE"
+    },
+    {
+     "label": "Low (0.1% to 1% a year)",
+     "colour": "#C3E0FF"
+    },
+    {
+     "label": "Very low (under 0.1% a year)",
+     "colour": "#C8F7FF"
+    }
+   ]
+  },
+  {
+   "id": "rofsw",
+   "name": "Official surface-water risk",
+   "type": "wms",
+   "url": "https://environment.data.gov.uk/spatialdata/nafra2-risk-of-flooding-from-surface-water/wms?layers=rofsw",
+   "attribution": "\u00a9 Environment Agency copyright and/or database right 2025. Open Government Licence v3.0",
+   "legend": [
+    {
+     "label": "High (3.3% or more a year)",
+     "colour": "#555B9D"
+    },
+    {
+     "label": "Medium (1% to 3.3% a year)",
+     "colour": "#9A9FDE"
+    },
+    {
+     "label": "Low (0.1% to 1% a year)",
+     "colour": "#C3E0FF"
+    }
+   ]
+  },
+  {
+   "id": "recorded",
+   "name": "Recorded flood outlines",
+   "type": "geojson",
+   "url": "geo/recorded_outlines.json",
+   "attribution": "\u00a9 Environment Agency copyright and/or database right 2025. Open Government Licence v3.0",
+   "legend": [
+    {
+     "label": "Recorded flood extent (darker = flooded more often)",
+     "colour": "#D95F02"
+    }
+   ]
+  }
+ ]
+}
