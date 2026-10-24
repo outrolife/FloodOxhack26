@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Headline, Screen, ShowTheWorking, SpotClock, StatTile, countdownText, stateFor } from ".";
 import { keyAction, routeFromHash } from "./presenter";
-import { START_BUTTONS } from "./StartHere";
+import { START_BUTTONS, START_TRUST, StartHere } from "./StartHere";
+import { KeyHint } from "./KeyHint";
 
 describe("SpotClock", () => {
   it("maps a chance to a state", () => {
@@ -71,5 +72,18 @@ describe("presenter", () => {
   });
   it("Start here offers Now, Replay and Protect", () => {
     expect(START_BUTTONS.map((b) => b.route)).toEqual(["now", "replay", "protect"]);
+  });
+  it("Start here has a small fourth link to How good is it?, keyed 4", () => {
+    expect(START_TRUST.route).toBe("trust");
+    const html = renderToStaticMarkup(<StartHere onDone={() => {}} />);
+    expect((html.match(/class="ui-start-button"/g) ?? []).length).toBe(3);
+    expect(html).toContain('class="ui-start-trust"');
+    expect(html).toContain('aria-keyshortcuts="4"');
+    expect(html).toContain("How good is it?");
+  });
+  it("KeyHint names each key once, in the shared style", () => {
+    const html = renderToStaticMarkup(<KeyHint keys={[["Space", "play"], ["← →", "one step"]]} />);
+    expect(html).toContain('<p class="ui-keyhint">');
+    expect((html.match(/<kbd class="ui-key">/g) ?? []).length).toBe(2);
   });
 });

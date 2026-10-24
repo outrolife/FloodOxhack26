@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import type { EventsFile, Proof, Replay as ReplayData, Spot, SpotsFile, StationsFile, TravelTimesFile } from "../contracts";
 import { loadData, useData } from "../data";
 import { HOUR, formatDateTimeYear, formatShort } from "../time";
-import { Headline, Screen, SpotClock, clockFor, usePlayerKeys } from "../ui";
+import { Headline, KeyHint, Screen, SpotClock, clockFor, usePlayerKeys } from "../ui";
 import { Pending } from "../components/shared/DataNotice";
 import { ProbBars } from "../components/shared/ProbBars";
 import { RiverStrip } from "../components/shared/RiverStrip";
@@ -346,7 +346,7 @@ function Player({
                   aria-valuetext={formatDateTimeYear(f.issuedAt)}
                 />
               </div>
-              <div className="small muted">Space: play or pause · ← →: step (Shift: 6 steps)</div>
+              <KeyHint keys={[["Space", play.on ? "pause" : "play"], ["← →", "one step"], ["Shift ← →", "6 steps"]]} />
             </div>
           </div>
           {picker}

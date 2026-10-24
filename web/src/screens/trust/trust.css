@@ -86,3 +86,10 @@
   .trust-diverge li { grid-template-columns: 6rem minmax(0, 1fr); }
   .trust-diverge .trust-spot-value { grid-column: 1 / -1; text-align: left; }
 }
+
+/* Presenter keys (←/→): the highlighted tile. */
+.trust-tile { border-radius: var(--ui-radius, 10px); }
+.trust-tiles[data-active="0"] > .trust-tile:nth-child(1),
+.trust-tiles[data-active="1"] > .trust-tile:nth-child(2),
+.trust-tiles[data-active="2"] > .trust-tile:nth-child(3) { outline: 3px solid var(--accent); outline-offset: 8px; }
+.trust-tiles > .ui-keyhint { grid-column: 1 / -1; }

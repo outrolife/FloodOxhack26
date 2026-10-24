@@ -114,22 +114,31 @@ main.ui-main { flex: 1; max-width: none; margin: 0; padding: var(--ui-gap) 1.2re
   padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; color: var(--ink-2);
 }
 
-/* Start here landing */
-.ui-start { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2rem; padding: 2rem 1.2rem; text-align: center; }
-.ui-start-title { max-width: 46rem; font-size: 2rem; line-height: 1.25; margin: 0; }
+/* Start here landing: question, one sentence, three big buttons, a small fourth link. */
+.ui-start { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6rem; padding: 2rem 1.2rem; text-align: center; }
+.ui-start-head { max-width: 46rem; }
+.ui-start-title { font-size: 2.4rem; line-height: 1.15; margin: 0; }
+.ui-start-lead { font-size: 1.25rem; line-height: 1.4; color: var(--ink-2); margin: 0.6rem 0 0; }
 .ui-start-buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; width: min(100%, 56rem); }
 .ui-start-button {
   display: grid; justify-items: center; gap: 0.35rem; padding: 1.4rem 1rem; font: inherit; cursor: pointer;
   background: var(--surface); border: 2px solid var(--border); border-radius: 14px;
 }
-.ui-start-button:hover, .ui-start-button:focus-visible { border-color: var(--accent); outline: none; }
+.ui-start-button:hover { border-color: var(--accent); }
+.ui-start-button:focus-visible, .ui-start-trust:focus-visible, .ui-start-skip:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .ui-start-n {
   display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%;
   background: var(--accent); color: #fff; font-weight: 750;
 }
 .ui-start-name { font-size: 1.6rem; font-weight: 750; color: var(--accent); }
-.ui-start-text { color: var(--ink-2); }
-.ui-start-skip { font: inherit; background: none; border: 0; color: var(--ink-2); text-decoration: underline; cursor: pointer; }
+.ui-start-text { color: var(--ink-2); font-size: 1.05rem; }
+.ui-start-trust {
+  font: inherit; font-size: 1rem; background: none; border: 0; padding: 0.3rem 0.6rem; border-radius: 6px;
+  color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+}
+.ui-start-trust strong { margin-right: 0.2rem; }
+.ui-start-keys { margin: 0; font-size: 0.85rem; color: var(--ink-2); }
+.ui-start-skip { font: inherit; background: none; border: 0; padding: 0; color: var(--ink-2); text-decoration: underline; cursor: pointer; }
 
 /* MapClock: a SpotClock in a permanent Leaflet tooltip, without the tooltip chrome. */
 .leaflet-tooltip.ui-map-clock {
@@ -138,3 +147,8 @@ main.ui-main { flex: 1; max-width: none; margin: 0; padding: var(--ui-gap) 1.2re
 }
 .leaflet-tooltip.ui-map-clock::before { display: none; }
 .leaflet-tooltip.ui-map-clock.selected { border-color: var(--ink); z-index: 1000; }
+
+/* Keyboard hint (KeyHint): one muted line, hidden in presenter mode. */
+.ui-keyhint { margin: 0.25rem 0 0; font-size: 0.8rem; color: var(--ink-2); }
+.ui-keyhint .ui-key { margin-right: 0.1rem; }
+html.presenter .ui-keyhint { display: none; }

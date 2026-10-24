@@ -1,6 +1,11 @@
 // Presenter mode and routes (#118). Hash routes #/now, #/replay, #/protect,
 // #/trust, #/working. Keys: 1–4 screens, Space play/pause, ←/→ step
-// (Shift: 6 steps), P presenter mode. Screens listen for the custom events.
+// (Shift: 6 steps), P presenter mode. Screens listen for the custom events
+// through usePlayerKeys, and each says what Space and the arrows do there:
+//   Now      ← → next/previous spot card · Space: tour the spots
+//   Replay   ← → one forecast step · Space: play/pause the replay
+//   Protect  ← → one hour frame · Space: "Play the hours"
+//   Trust    ← → next/previous tile · Space: open/close "Show the working"
 import { useEffect, useState } from "react";
 
 export const ROUTES = ["now", "replay", "protect", "trust", "working"] as const;
@@ -35,8 +40,13 @@ export function routeFromHash(hash: string = window.location.hash): Route {
   return LEGACY[h] ?? "now";
 }
 
+/** Fired on every navigate(), even to the current screen (the hash may not change), so the
+ *  "Start here" landing can close when a key or button picks a screen. */
+export const NAVIGATE_EVENT = "rc:navigate";
+
 export function navigate(route: Route): void {
   window.location.hash = `/${route}`;
+  window.dispatchEvent(new CustomEvent<Route>(NAVIGATE_EVENT, { detail: route }));
 }
 
 /** Current route, following hash changes. */

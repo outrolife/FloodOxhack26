@@ -7,7 +7,7 @@ import liveData from "../../../../tests/fixtures/live.json";
 import spotsData from "../../../../tests/fixtures/spots.json";
 import stationsData from "../../../../tests/fixtures/stations.json";
 import travelData from "../../../../tests/fixtures/travel_times.json";
-import { NowView, type MapSlot } from "./NowView";
+import { NowView, stepSpot, type MapSlot } from "./NowView";
 import { RiverPulse } from "./RiverPulse";
 import { riverLinks } from "./logic";
 
@@ -94,5 +94,20 @@ describe("river pulse", () => {
     const low = chains.flatMap((c) => c.links).filter((l) => l.lowConfidence).length;
     expect((html.match(/class="now-link low"/g) ?? []).length).toBe(low);
     expect((html.match(/low confidence<\/span>/g) ?? []).length).toBe(low);
+  });
+});
+
+describe("Now presenter keys", () => {
+  it("←/→ step through the spots in map order, wrapping round", () => {
+    const keys = ["a", "b", "c"];
+    expect(stepSpot(keys, "a", 1)).toBe("b");
+    expect(stepSpot(keys, "c", 1)).toBe("a");
+    expect(stepSpot(keys, "a", -1)).toBe("c");
+    expect(stepSpot(keys, null, 1)).toBe("a");
+    expect(stepSpot(keys, null, -1)).toBe("c");
+    expect(stepSpot([], "a", 1)).toBeNull();
+  });
+  it("says what the keys do", () => {
+    expect(render()).toContain("tour the spots");
   });
 });

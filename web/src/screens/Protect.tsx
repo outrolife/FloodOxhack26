@@ -34,6 +34,7 @@ export default function Protect() {
     (delta: number) => {
       const list = tausKey ? tausKey.split(",").map(Number) : [];
       if (list.length === 0) return;
+      setPlaying(false); // stepping pauses, as on Replay
       setTau((cur) => {
         const i = list.findIndex((t) => t >= cur);
         const at = i < 0 ? list.length - 1 : i;
@@ -42,7 +43,6 @@ export default function Protect() {
     },
     [tausKey],
   );
-  usePlayerKeys(() => setPlaying((p) => !p), step);
 
   // "Play the hours": step through the frames, stopping at the last one.
   useEffect(() => {
@@ -65,6 +65,8 @@ export default function Protect() {
     if (on && taus.length && tau >= taus[taus.length - 1]) setTau(taus[0]);
     setPlaying(on);
   };
+  // Space is the same as the "Play the hours" button (rc:playpause); ←/→ step one frame (rc:step).
+  usePlayerKeys(() => play(!playing), step);
 
   if (manifestState.status === "loading" || bagsState.status === "loading") {
     return <Screen headline={<Headline>Loading the flood-spread run…</Headline>} hero={<div className="ui-placeholder">Loading…</div>} />;

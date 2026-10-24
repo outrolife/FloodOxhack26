@@ -7,7 +7,7 @@ import { GradientLegend } from "../../components/spread/SpreadPanel";
 import { SANDBAG_NOTE, SANDBAG_SOURCES, SCORE_LABEL } from "../../components/spread/SandbagList";
 import { SPREAD_LIMITATIONS, frameUrl } from "../../components/spread/frames";
 import { formatDateTime, formatShort } from "../../time";
-import { Headline, Screen, StatTile } from "../../ui";
+import { Headline, KeyHint, Screen, StatTile } from "../../ui";
 import {
   DEPLOY_HOURS,
   type OutlineFeature,
@@ -192,6 +192,7 @@ export function ProtectView({
         <button type="button" className="protect-play" onClick={() => onPlay(!playing)} disabled={frames.length < 2}>
           {playing ? "Pause" : "Play the hours"}
         </button>
+        <KeyHint keys={[["Space", playing ? "pause" : "play the hours"], ["← →", "one frame"]]} />
 
         <label className="protect-slider">
           <span>
