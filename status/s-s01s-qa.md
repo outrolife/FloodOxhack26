@@ -3,12 +3,12 @@
 - **role**: Integration
 - **state**: working
 - **issue**: #50
-- **task**: Acceptance audit vs SPEC §15 from a fresh clone
-- **next**: Clone, make setup/test/lint, fetch-data, travel
+- **task**: Audit: clean clone + offline web OK; PR #55 data test; filing gaps
+- **next**: Post §15 checklist on #50
 - **needs**: 
 - **notes**: 
-- **branch**: worktree-agent-a9cb7fb622e3a5b6c
-- **head**: ad506c6 Ignore internal observer tooling
-- **unpushed**: no upstream
+- **branch**: integration/public-data-test
+- **head**: 30f3e95 Validate committed web data against contracts
+- **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:45:31Z
+- **updated**: 2026-10-24T16:53:11Z
