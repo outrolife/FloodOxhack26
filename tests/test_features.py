@@ -393,7 +393,8 @@ def test_river_walk_columns_do_not_see_the_future(target: str) -> None:
         }.items()
     }
     hourly = make_hourly(seed=5, drop_frac=0.0, fmt="final")
-    new = [c for c in feature_columns(target, lags) if c.startswith(("shifford", "hannington", "worsham", "shipton"))]
+    walk_new = ("shifford", "hannington", "worsham", "shipton")
+    new = [c for c in feature_columns(target, lags) if c.startswith(walk_new)]
     assert len(new) == 4 * 2 + sum(len(upstream_lags_h(u, target, lags)) for u in lags_ups(lags))
     for i, cut in enumerate(START + pd.Timedelta(hours=h) for h in (300, 555, 800)):
         base = build_features(hourly, target, compute_gauge_medians(hourly, cut), lags)[new]

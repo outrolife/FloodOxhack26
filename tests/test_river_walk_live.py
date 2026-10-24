@@ -52,7 +52,9 @@ def test_models_read_the_walk_and_spots_depend_on_it(forecaster: fl.TrainedForec
     assert not set(WALK_NEW) & set(forecaster.upstreams["kingsmill"])
 
 
-def test_fresh_walk_gives_model_forecasts_with_no_gap(tmp_path: Path, forecaster: fl.TrainedForecaster) -> None:
+def test_fresh_walk_gives_model_forecasts_with_no_gap(
+    tmp_path: Path, forecaster: fl.TrainedForecaster
+) -> None:
     hourly, meta = ingest(tmp_path, FakeEA(T0 - timedelta(minutes=15), hours=24 * 28), T0)
     fc = fl.build_forecast(hourly, meta, T0, forecaster=forecaster)
     check_contract(fc)
@@ -72,7 +74,9 @@ def test_stale_shifford_sends_botley_and_minns_to_persistence_only(
     fresh = fl.build_forecast(fresh_h, fresh_m, T0, forecaster=forecaster)
 
     if how == "old":
-        ea = OddEA(T0 - timedelta(minutes=15), {"shifford": FakeEA(T0 - timedelta(hours=5), hours=24 * 28)}, 24 * 28)
+        ea = OddEA(
+            T0 - timedelta(minutes=15), {"shifford": FakeEA(T0 - timedelta(hours=5), hours=24 * 28)}, 24 * 28
+        )
     else:
         ea = FakeEA(T0 - timedelta(minutes=15), hours=24 * 28, missing={il.LEVEL_MEASURES["shifford"]})
     hourly, meta = ingest(tmp_path / "stale", ea, T0)
@@ -89,7 +93,10 @@ def test_stale_shifford_sends_botley_and_minns_to_persistence_only(
         assert spot["leads"][0]["q"]["50"] == pytest.approx(base + deltas[6]["50"], abs=1e-3)
         assert spot["leads"] != _spot(fresh, SPOT_OF[target])["leads"]
     for name in ("Botley Road / New Botley / Hinksey", "Osney Island / Binsey"):
-        assert f"Persistence fallback for {name}: no reading for over 3 hours from Shifford upstream" in fc["note"]
+        assert (
+            f"Persistence fallback for {name}: no reading for over 3 hours from Shifford upstream"
+            in fc["note"]
+        )
     for target in ("coldharbour", "kingsmill"):
         assert _spot(fc, SPOT_OF[target]) == _spot(fresh, SPOT_OF[target])  # unaffected
     assert "Abingdon" not in fc["note"] and "Cherwell" not in fc["note"]
@@ -97,7 +104,9 @@ def test_stale_shifford_sends_botley_and_minns_to_persistence_only(
 
 def test_stale_target_gauge_still_blanks_its_spot(tmp_path: Path, forecaster: fl.TrainedForecaster) -> None:
     """The spot's own gauge stale: no forecast at all (SPEC §10.1), even with the upstreams fresh."""
-    ea = OddEA(T0 - timedelta(minutes=15), {"newbotley": FakeEA(T0 - timedelta(hours=5), hours=24 * 28)}, 24 * 28)
+    ea = OddEA(
+        T0 - timedelta(minutes=15), {"newbotley": FakeEA(T0 - timedelta(hours=5), hours=24 * 28)}, 24 * 28
+    )
     hourly, meta = ingest(tmp_path, ea, T0)
     fc = fl.build_forecast(hourly, meta, T0, forecaster=forecaster)
     assert fc["stale"] == ["newbotley"]
@@ -105,7 +114,9 @@ def test_stale_target_gauge_still_blanks_its_spot(tmp_path: Path, forecaster: fl
     assert _spot(fc, "osney")["leads"]
 
 
-def test_walk_features_at_t_ignore_live_data_after_t(tmp_path: Path, forecaster: fl.TrainedForecaster) -> None:
+def test_walk_features_at_t_ignore_live_data_after_t(
+    tmp_path: Path, forecaster: fl.TrainedForecaster
+) -> None:
     """Live rows after the anchor hour (later readings of the new gauges) never change the forecast."""
     hourly, meta = ingest(tmp_path, FakeEA(T0 - timedelta(minutes=15), hours=24 * 28), T0)
     anchor = fl.last_complete_hour(T0)

@@ -2367,6 +2367,3120 @@
   "slopeHoursPerMetre": -43.48
  },
  {
+  "up": "shifford",
+  "down": "newbotley",
+  "n": 20,
+  "tHalf": {
+   "p10": 1.9,
+   "median": 16.6,
+   "p90": 44.7
+  },
+  "tPeak": {
+   "p10": 7.6,
+   "median": 28.5,
+   "p90": 53.4
+  },
+  "events": [
+   {
+    "eventId": "auto-20061126",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.399,
+    "excluded": "ambiguous: second peak at shifford with 74% of the main peak's prominence (0.18 m vs 0.24 m)"
+   },
+   {
+    "eventId": "auto-20070101",
+    "tHalf": 11.8,
+    "tPeak": 26.0,
+    "rise": 0.588
+   },
+   {
+    "eventId": "auto-20070225",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.448,
+    "excluded": "ambiguous: second peak at shifford with 54% of the main peak's prominence (0.26 m vs 0.48 m)"
+   },
+   {
+    "eventId": "e2007",
+    "tHalf": 2.4,
+    "tPeak": 46.0,
+    "rise": 0.594
+   },
+   {
+    "eventId": "auto-20080113",
+    "tHalf": 36.0,
+    "tPeak": 44.0,
+    "rise": 0.519
+   },
+   {
+    "eventId": "auto-20080316",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.495,
+    "excluded": "ambiguous: second peak at shifford with 55% of the main peak's prominence (0.25 m vs 0.45 m)"
+   },
+   {
+    "eventId": "auto-20080603",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.362,
+    "excluded": "ambiguous: second peak at shifford with 63% of the main peak's prominence (0.39 m vs 0.62 m)"
+   },
+   {
+    "eventId": "auto-20081215",
+    "tHalf": 3.0,
+    "tPeak": 9.0,
+    "rise": 0.484
+   },
+   {
+    "eventId": "auto-20090210",
+    "tHalf": 1.7,
+    "tPeak": 41.0,
+    "rise": 0.586
+   },
+   {
+    "eventId": "auto-20100117",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.458,
+    "excluded": "ambiguous: second peak at shifford with 122% of the main peak's prominence (0.32 m vs 0.26 m)"
+   },
+   {
+    "eventId": "auto-20120501",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at shifford (82% of window missing)"
+   },
+   {
+    "eventId": "auto-20121122",
+    "tHalf": 10.8,
+    "tPeak": null,
+    "rise": 0.708,
+    "excluded": "T_peak = 0.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.586,
+    "excluded": "ambiguous: second peak at shifford with 80% of the main peak's prominence (0.27 m vs 0.34 m)"
+   },
+   {
+    "eventId": "auto-20130127",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.564,
+    "excluded": "ambiguous: second peak at shifford with 78% of the main peak's prominence (0.32 m vs 0.42 m)"
+   },
+   {
+    "eventId": "auto-20130317",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.107,
+    "excluded": "ambiguous: second peak at shifford with 97% of the main peak's prominence (0.43 m vs 0.45 m)"
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": 25.4,
+    "tPeak": 53.0,
+    "rise": 0.579
+   },
+   {
+    "eventId": "auto-20150116",
+    "tHalf": 13.4,
+    "tPeak": 28.0,
+    "rise": 0.431
+   },
+   {
+    "eventId": "auto-20160102",
+    "tHalf": 35.1,
+    "tPeak": null,
+    "rise": 0.418,
+    "excluded": "T_peak = -9.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20160208",
+    "tHalf": null,
+    "tPeak": 14.0,
+    "rise": 0.487,
+    "excluded": "T_half = -14.8 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20160310",
+    "tHalf": 1.9,
+    "tPeak": 19.0,
+    "rise": 0.378
+   },
+   {
+    "eventId": "auto-20180123",
+    "tHalf": 0.8,
+    "tPeak": 25.0,
+    "rise": 0.477
+   },
+   {
+    "eventId": "auto-20180331",
+    "tHalf": 2.0,
+    "tPeak": 4.0,
+    "rise": 0.494
+   },
+   {
+    "eventId": "auto-20191108",
+    "tHalf": 154.2,
+    "tPeak": 95.0,
+    "rise": 0.379
+   },
+   {
+    "eventId": "auto-20191214",
+    "tHalf": 24.5,
+    "tPeak": 29.0,
+    "rise": 0.416
+   },
+   {
+    "eventId": "auto-20200115",
+    "tHalf": 111.4,
+    "tPeak": 2.0,
+    "rise": 0.498
+   },
+   {
+    "eventId": "auto-20200215",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.539,
+    "excluded": "ambiguous: second peak at shifford with 74% of the main peak's prominence (0.19 m vs 0.25 m)"
+   },
+   {
+    "eventId": "auto-20201006",
+    "tHalf": null,
+    "tPeak": 19.0,
+    "rise": 0.376,
+    "excluded": "T_half = -23.7 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20201223",
+    "tHalf": 31.9,
+    "tPeak": null,
+    "rise": 0.426,
+    "excluded": "T_peak = -107.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": 30.3,
+    "tPeak": 43.0,
+    "rise": 0.505
+   },
+   {
+    "eventId": "auto-20230101",
+    "tHalf": 29.6,
+    "tPeak": 35.0,
+    "rise": 0.459
+   },
+   {
+    "eventId": "auto-20230401",
+    "tHalf": 8.9,
+    "tPeak": 8.0,
+    "rise": 0.261
+   },
+   {
+    "eventId": "auto-20231104",
+    "tHalf": 37.3,
+    "tPeak": 32.0,
+    "rise": 0.292
+   },
+   {
+    "eventId": "auto-20231207",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.356,
+    "excluded": "ambiguous: second peak at shifford with 55% of the main peak's prominence (0.12 m vs 0.22 m)"
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": 18.9,
+    "tPeak": null,
+    "rise": 0.454,
+    "excluded": "T_peak = -31.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20240208",
+    "tHalf": 17.6,
+    "tPeak": null,
+    "rise": 0.507,
+    "excluded": "T_peak = 281.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20240328",
+    "tHalf": 19.7,
+    "tPeak": 9.0,
+    "rise": 0.422
+   },
+   {
+    "eventId": "auto-20240925",
+    "tHalf": null,
+    "tPeak": 40.0,
+    "rise": 0.432,
+    "excluded": "T_half = -3.2 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": null,
+    "tPeak": 50.0,
+    "rise": 0.518,
+    "excluded": "T_half = -2.9 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20250107",
+    "tHalf": 6.2,
+    "tPeak": 16.0,
+    "rise": 0.381
+   },
+   {
+    "eventId": "auto-20250128",
+    "tHalf": null,
+    "tPeak": 2.0,
+    "rise": 0.333,
+    "excluded": "T_half = -1.3 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20251211",
+    "tHalf": 34.1,
+    "tPeak": null,
+    "rise": 0.309,
+    "excluded": "T_peak = -20.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": 30.0,
+    "tPeak": 57.0,
+    "rise": 0.399
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.2033
+   },
+   {
+    "lagH": 1,
+    "r": 0.1811
+   },
+   {
+    "lagH": 2,
+    "r": 0.1837
+   },
+   {
+    "lagH": 3,
+    "r": 0.1943
+   },
+   {
+    "lagH": 4,
+    "r": 0.2001
+   },
+   {
+    "lagH": 5,
+    "r": 0.2074
+   },
+   {
+    "lagH": 6,
+    "r": 0.215
+   },
+   {
+    "lagH": 7,
+    "r": 0.2217
+   },
+   {
+    "lagH": 8,
+    "r": 0.2235
+   },
+   {
+    "lagH": 9,
+    "r": 0.2248
+   },
+   {
+    "lagH": 10,
+    "r": 0.2229
+   },
+   {
+    "lagH": 11,
+    "r": 0.2194
+   },
+   {
+    "lagH": 12,
+    "r": 0.2145
+   },
+   {
+    "lagH": 13,
+    "r": 0.2089
+   },
+   {
+    "lagH": 14,
+    "r": 0.1974
+   },
+   {
+    "lagH": 15,
+    "r": 0.1872
+   },
+   {
+    "lagH": 16,
+    "r": 0.1781
+   },
+   {
+    "lagH": 17,
+    "r": 0.1705
+   },
+   {
+    "lagH": 18,
+    "r": 0.1609
+   },
+   {
+    "lagH": 19,
+    "r": 0.152
+   },
+   {
+    "lagH": 20,
+    "r": 0.1423
+   },
+   {
+    "lagH": 21,
+    "r": 0.1361
+   },
+   {
+    "lagH": 22,
+    "r": 0.129
+   },
+   {
+    "lagH": 23,
+    "r": 0.114
+   },
+   {
+    "lagH": 24,
+    "r": 0.0955
+   },
+   {
+    "lagH": 25,
+    "r": 0.0782
+   },
+   {
+    "lagH": 26,
+    "r": 0.0684
+   },
+   {
+    "lagH": 27,
+    "r": 0.0589
+   },
+   {
+    "lagH": 28,
+    "r": 0.0536
+   },
+   {
+    "lagH": 29,
+    "r": 0.0478
+   },
+   {
+    "lagH": 30,
+    "r": 0.0421
+   },
+   {
+    "lagH": 31,
+    "r": 0.0348
+   },
+   {
+    "lagH": 32,
+    "r": 0.0282
+   },
+   {
+    "lagH": 33,
+    "r": 0.0247
+   },
+   {
+    "lagH": 34,
+    "r": 0.0196
+   },
+   {
+    "lagH": 35,
+    "r": 0.0171
+   },
+   {
+    "lagH": 36,
+    "r": 0.0175
+   },
+   {
+    "lagH": 37,
+    "r": 0.0156
+   },
+   {
+    "lagH": 38,
+    "r": 0.0133
+   },
+   {
+    "lagH": 39,
+    "r": 0.0113
+   },
+   {
+    "lagH": 40,
+    "r": 0.0116
+   },
+   {
+    "lagH": 41,
+    "r": 0.0111
+   },
+   {
+    "lagH": 42,
+    "r": 0.0152
+   },
+   {
+    "lagH": 43,
+    "r": 0.0212
+   },
+   {
+    "lagH": 44,
+    "r": 0.0273
+   },
+   {
+    "lagH": 45,
+    "r": 0.0241
+   },
+   {
+    "lagH": 46,
+    "r": 0.0222
+   },
+   {
+    "lagH": 47,
+    "r": 0.0176
+   },
+   {
+    "lagH": 48,
+    "r": 0.0082
+   },
+   {
+    "lagH": 49,
+    "r": 0.0043
+   },
+   {
+    "lagH": 50,
+    "r": 0.0044
+   },
+   {
+    "lagH": 51,
+    "r": 0.0053
+   },
+   {
+    "lagH": 52,
+    "r": 0.0061
+   },
+   {
+    "lagH": 53,
+    "r": 0.0055
+   },
+   {
+    "lagH": 54,
+    "r": 0.0049
+   },
+   {
+    "lagH": 55,
+    "r": 0.0043
+   },
+   {
+    "lagH": 56,
+    "r": 0.0032
+   },
+   {
+    "lagH": 57,
+    "r": 0.0025
+   },
+   {
+    "lagH": 58,
+    "r": 0.0043
+   },
+   {
+    "lagH": 59,
+    "r": 0.003
+   },
+   {
+    "lagH": 60,
+    "r": 0.0007
+   },
+   {
+    "lagH": 61,
+    "r": 0.0002
+   },
+   {
+    "lagH": 62,
+    "r": -0.0023
+   },
+   {
+    "lagH": 63,
+    "r": -0.0054
+   },
+   {
+    "lagH": 64,
+    "r": -0.0088
+   },
+   {
+    "lagH": 65,
+    "r": -0.011
+   },
+   {
+    "lagH": 66,
+    "r": -0.0122
+   },
+   {
+    "lagH": 67,
+    "r": -0.0102
+   },
+   {
+    "lagH": 68,
+    "r": -0.0071
+   },
+   {
+    "lagH": 69,
+    "r": -0.0066
+   },
+   {
+    "lagH": 70,
+    "r": -0.0075
+   },
+   {
+    "lagH": 71,
+    "r": -0.0089
+   },
+   {
+    "lagH": 72,
+    "r": -0.0081
+   },
+   {
+    "lagH": 73,
+    "r": -0.0045
+   },
+   {
+    "lagH": 74,
+    "r": -0.0061
+   },
+   {
+    "lagH": 75,
+    "r": -0.008
+   },
+   {
+    "lagH": 76,
+    "r": -0.0096
+   },
+   {
+    "lagH": 77,
+    "r": -0.0114
+   },
+   {
+    "lagH": 78,
+    "r": -0.0133
+   },
+   {
+    "lagH": 79,
+    "r": -0.0123
+   },
+   {
+    "lagH": 80,
+    "r": -0.0118
+   },
+   {
+    "lagH": 81,
+    "r": -0.0121
+   },
+   {
+    "lagH": 82,
+    "r": -0.0103
+   },
+   {
+    "lagH": 83,
+    "r": -0.0103
+   },
+   {
+    "lagH": 84,
+    "r": -0.0122
+   },
+   {
+    "lagH": 85,
+    "r": -0.0148
+   },
+   {
+    "lagH": 86,
+    "r": -0.018
+   },
+   {
+    "lagH": 87,
+    "r": -0.0206
+   },
+   {
+    "lagH": 88,
+    "r": -0.0254
+   },
+   {
+    "lagH": 89,
+    "r": -0.0269
+   },
+   {
+    "lagH": 90,
+    "r": -0.0282
+   },
+   {
+    "lagH": 91,
+    "r": -0.0271
+   },
+   {
+    "lagH": 92,
+    "r": -0.0222
+   },
+   {
+    "lagH": 93,
+    "r": -0.0196
+   },
+   {
+    "lagH": 94,
+    "r": -0.0209
+   },
+   {
+    "lagH": 95,
+    "r": -0.0193
+   },
+   {
+    "lagH": 96,
+    "r": -0.0195
+   },
+   {
+    "lagH": 97,
+    "r": -0.0226
+   },
+   {
+    "lagH": 98,
+    "r": -0.0261
+   },
+   {
+    "lagH": 99,
+    "r": -0.0213
+   },
+   {
+    "lagH": 100,
+    "r": -0.0194
+   },
+   {
+    "lagH": 101,
+    "r": -0.0193
+   },
+   {
+    "lagH": 102,
+    "r": -0.0216
+   },
+   {
+    "lagH": 103,
+    "r": -0.0214
+   },
+   {
+    "lagH": 104,
+    "r": -0.0218
+   },
+   {
+    "lagH": 105,
+    "r": -0.023
+   },
+   {
+    "lagH": 106,
+    "r": -0.0202
+   },
+   {
+    "lagH": 107,
+    "r": -0.0178
+   },
+   {
+    "lagH": 108,
+    "r": -0.0173
+   },
+   {
+    "lagH": 109,
+    "r": -0.0192
+   },
+   {
+    "lagH": 110,
+    "r": -0.0195
+   },
+   {
+    "lagH": 111,
+    "r": -0.0193
+   },
+   {
+    "lagH": 112,
+    "r": -0.0211
+   },
+   {
+    "lagH": 113,
+    "r": -0.0232
+   },
+   {
+    "lagH": 114,
+    "r": -0.0245
+   },
+   {
+    "lagH": 115,
+    "r": -0.0203
+   },
+   {
+    "lagH": 116,
+    "r": -0.0158
+   },
+   {
+    "lagH": 117,
+    "r": -0.0151
+   },
+   {
+    "lagH": 118,
+    "r": -0.0157
+   },
+   {
+    "lagH": 119,
+    "r": -0.0135
+   },
+   {
+    "lagH": 120,
+    "r": -0.012
+   }
+  ],
+  "slopeHoursPerMetre": -63.56
+ },
+ {
+  "up": "hannington",
+  "down": "newbotley",
+  "n": 24,
+  "tHalf": {
+   "p10": 3.3,
+   "median": 17.5,
+   "p90": 63.8
+  },
+  "tPeak": {
+   "p10": 33.6,
+   "median": 48.0,
+   "p90": 97.5
+  },
+  "events": [
+   {
+    "eventId": "auto-20061126",
+    "tHalf": 4.9,
+    "tPeak": 45.0,
+    "rise": 1.029
+   },
+   {
+    "eventId": "auto-20070101",
+    "tHalf": null,
+    "tPeak": 36.0,
+    "rise": 1.308,
+    "excluded": "T_half = -19.3 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20070225",
+    "tHalf": 2.8,
+    "tPeak": 4.0,
+    "rise": 1.079
+   },
+   {
+    "eventId": "e2007",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 3.963,
+    "excluded": "T_half = -81.8 h, T_peak = -63.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080113",
+    "tHalf": null,
+    "tPeak": 77.0,
+    "rise": 1.604,
+    "excluded": "T_half = -0.1 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080316",
+    "tHalf": null,
+    "tPeak": 4.0,
+    "rise": 1.6,
+    "excluded": "T_half = -13.8 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080603",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.263,
+    "excluded": "ambiguous: second peak at newbotley with 59% of the main peak's prominence (0.69 m vs 1.16 m)"
+   },
+   {
+    "eventId": "auto-20081215",
+    "tHalf": null,
+    "tPeak": 8.0,
+    "rise": 1.292,
+    "excluded": "T_half = -8.1 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20090210",
+    "tHalf": null,
+    "tPeak": 45.0,
+    "rise": 1.196,
+    "excluded": "T_half = -11.5 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20100117",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.531,
+    "excluded": "ambiguous: second peak at hannington with 112% of the main peak's prominence (0.71 m vs 0.63 m)"
+   },
+   {
+    "eventId": "auto-20120501",
+    "tHalf": 1.9,
+    "tPeak": 25.0,
+    "rise": 2.052
+   },
+   {
+    "eventId": "auto-20121122",
+    "tHalf": null,
+    "tPeak": 26.0,
+    "rise": 1.753,
+    "excluded": "T_half = -18.6 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": null,
+    "tPeak": 46.0,
+    "rise": 1.264,
+    "excluded": "T_half = -7.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20130127",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.272,
+    "excluded": "ambiguous: second peak at hannington with 70% of the main peak's prominence (0.62 m vs 0.89 m)"
+   },
+   {
+    "eventId": "auto-20130317",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.333,
+    "excluded": "ambiguous: second peak at hannington with 106% of the main peak's prominence (0.62 m vs 0.59 m)"
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": 116.4,
+    "tPeak": null,
+    "rise": 2.075,
+    "excluded": "T_peak = 366.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20150116",
+    "tHalf": 20.5,
+    "tPeak": 38.0,
+    "rise": 0.626
+   },
+   {
+    "eventId": "auto-20160102",
+    "tHalf": 39.3,
+    "tPeak": 37.0,
+    "rise": 0.733
+   },
+   {
+    "eventId": "auto-20160208",
+    "tHalf": 22.1,
+    "tPeak": 51.0,
+    "rise": 0.973
+   },
+   {
+    "eventId": "auto-20160310",
+    "tHalf": 7.8,
+    "tPeak": 33.0,
+    "rise": 1.087
+   },
+   {
+    "eventId": "auto-20180123",
+    "tHalf": 2.8,
+    "tPeak": 35.0,
+    "rise": 1.007
+   },
+   {
+    "eventId": "auto-20180331",
+    "tHalf": 4.4,
+    "tPeak": 42.0,
+    "rise": 0.981
+   },
+   {
+    "eventId": "auto-20191108",
+    "tHalf": 161.4,
+    "tPeak": 143.0,
+    "rise": 0.508
+   },
+   {
+    "eventId": "auto-20191214",
+    "tHalf": 29.0,
+    "tPeak": 68.0,
+    "rise": 0.814
+   },
+   {
+    "eventId": "auto-20200115",
+    "tHalf": 106.1,
+    "tPeak": 59.0,
+    "rise": 0.954
+   },
+   {
+    "eventId": "auto-20200215",
+    "tHalf": 74.2,
+    "tPeak": 76.0,
+    "rise": 1.322
+   },
+   {
+    "eventId": "auto-20201006",
+    "tHalf": 14.5,
+    "tPeak": 36.0,
+    "rise": 2.071
+   },
+   {
+    "eventId": "auto-20201223",
+    "tHalf": 27.5,
+    "tPeak": null,
+    "rise": 0.813,
+    "excluded": "T_peak = -64.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.114,
+    "excluded": "ambiguous: second peak at hannington with 56% of the main peak's prominence (0.48 m vs 0.85 m)"
+   },
+   {
+    "eventId": "auto-20230101",
+    "tHalf": 28.3,
+    "tPeak": 65.0,
+    "rise": 0.836
+   },
+   {
+    "eventId": "auto-20230401",
+    "tHalf": 6.9,
+    "tPeak": 55.0,
+    "rise": 0.526
+   },
+   {
+    "eventId": "auto-20231104",
+    "tHalf": 39.6,
+    "tPeak": 74.0,
+    "rise": 0.577
+   },
+   {
+    "eventId": "auto-20231207",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.719,
+    "excluded": "ambiguous: second peak at hannington with 61% of the main peak's prominence (0.31 m vs 0.51 m)"
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": 53.2,
+    "tPeak": null,
+    "rise": 1.0,
+    "excluded": "T_peak = -6.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20240208",
+    "tHalf": 25.4,
+    "tPeak": 99.0,
+    "rise": 1.515
+   },
+   {
+    "eventId": "auto-20240328",
+    "tHalf": 23.4,
+    "tPeak": 51.0,
+    "rise": 0.996
+   },
+   {
+    "eventId": "auto-20240925",
+    "tHalf": 10.3,
+    "tPeak": 125.0,
+    "rise": 2.054
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 10.5,
+    "tPeak": 94.0,
+    "rise": 1.937
+   },
+   {
+    "eventId": "auto-20250107",
+    "tHalf": 12.6,
+    "tPeak": 38.0,
+    "rise": 1.199
+   },
+   {
+    "eventId": "auto-20250128",
+    "tHalf": 5.7,
+    "tPeak": 45.0,
+    "rise": 1.262
+   },
+   {
+    "eventId": "auto-20251211",
+    "tHalf": 31.3,
+    "tPeak": 40.0,
+    "rise": 0.485
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.7,
+    "excluded": "ambiguous: second peak at hannington with 57% of the main peak's prominence (0.42 m vs 0.73 m)"
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.3093
+   },
+   {
+    "lagH": 1,
+    "r": 0.313
+   },
+   {
+    "lagH": 2,
+    "r": 0.3126
+   },
+   {
+    "lagH": 3,
+    "r": 0.3088
+   },
+   {
+    "lagH": 4,
+    "r": 0.3038
+   },
+   {
+    "lagH": 5,
+    "r": 0.2977
+   },
+   {
+    "lagH": 6,
+    "r": 0.2923
+   },
+   {
+    "lagH": 7,
+    "r": 0.2885
+   },
+   {
+    "lagH": 8,
+    "r": 0.2882
+   },
+   {
+    "lagH": 9,
+    "r": 0.291
+   },
+   {
+    "lagH": 10,
+    "r": 0.2966
+   },
+   {
+    "lagH": 11,
+    "r": 0.3029
+   },
+   {
+    "lagH": 12,
+    "r": 0.3094
+   },
+   {
+    "lagH": 13,
+    "r": 0.3145
+   },
+   {
+    "lagH": 14,
+    "r": 0.3181
+   },
+   {
+    "lagH": 15,
+    "r": 0.3204
+   },
+   {
+    "lagH": 16,
+    "r": 0.3219
+   },
+   {
+    "lagH": 17,
+    "r": 0.3205
+   },
+   {
+    "lagH": 18,
+    "r": 0.3171
+   },
+   {
+    "lagH": 19,
+    "r": 0.3111
+   },
+   {
+    "lagH": 20,
+    "r": 0.3033
+   },
+   {
+    "lagH": 21,
+    "r": 0.2935
+   },
+   {
+    "lagH": 22,
+    "r": 0.2812
+   },
+   {
+    "lagH": 23,
+    "r": 0.2665
+   },
+   {
+    "lagH": 24,
+    "r": 0.2526
+   },
+   {
+    "lagH": 25,
+    "r": 0.2355
+   },
+   {
+    "lagH": 26,
+    "r": 0.2164
+   },
+   {
+    "lagH": 27,
+    "r": 0.1948
+   },
+   {
+    "lagH": 28,
+    "r": 0.1733
+   },
+   {
+    "lagH": 29,
+    "r": 0.1512
+   },
+   {
+    "lagH": 30,
+    "r": 0.1298
+   },
+   {
+    "lagH": 31,
+    "r": 0.1107
+   },
+   {
+    "lagH": 32,
+    "r": 0.0937
+   },
+   {
+    "lagH": 33,
+    "r": 0.0793
+   },
+   {
+    "lagH": 34,
+    "r": 0.0683
+   },
+   {
+    "lagH": 35,
+    "r": 0.059
+   },
+   {
+    "lagH": 36,
+    "r": 0.0517
+   },
+   {
+    "lagH": 37,
+    "r": 0.0451
+   },
+   {
+    "lagH": 38,
+    "r": 0.039
+   },
+   {
+    "lagH": 39,
+    "r": 0.0334
+   },
+   {
+    "lagH": 40,
+    "r": 0.0272
+   },
+   {
+    "lagH": 41,
+    "r": 0.0207
+   },
+   {
+    "lagH": 42,
+    "r": 0.0147
+   },
+   {
+    "lagH": 43,
+    "r": 0.0089
+   },
+   {
+    "lagH": 44,
+    "r": 0.0031
+   },
+   {
+    "lagH": 45,
+    "r": -0.0025
+   },
+   {
+    "lagH": 46,
+    "r": -0.0069
+   },
+   {
+    "lagH": 47,
+    "r": -0.0094
+   },
+   {
+    "lagH": 48,
+    "r": -0.0116
+   },
+   {
+    "lagH": 49,
+    "r": -0.0153
+   },
+   {
+    "lagH": 50,
+    "r": -0.0193
+   },
+   {
+    "lagH": 51,
+    "r": -0.0243
+   },
+   {
+    "lagH": 52,
+    "r": -0.03
+   },
+   {
+    "lagH": 53,
+    "r": -0.0361
+   },
+   {
+    "lagH": 54,
+    "r": -0.041
+   },
+   {
+    "lagH": 55,
+    "r": -0.0446
+   },
+   {
+    "lagH": 56,
+    "r": -0.0465
+   },
+   {
+    "lagH": 57,
+    "r": -0.0463
+   },
+   {
+    "lagH": 58,
+    "r": -0.0442
+   },
+   {
+    "lagH": 59,
+    "r": -0.0403
+   },
+   {
+    "lagH": 60,
+    "r": -0.0347
+   },
+   {
+    "lagH": 61,
+    "r": -0.029
+   },
+   {
+    "lagH": 62,
+    "r": -0.0234
+   },
+   {
+    "lagH": 63,
+    "r": -0.0187
+   },
+   {
+    "lagH": 64,
+    "r": -0.0152
+   },
+   {
+    "lagH": 65,
+    "r": -0.014
+   },
+   {
+    "lagH": 66,
+    "r": -0.014
+   },
+   {
+    "lagH": 67,
+    "r": -0.0155
+   },
+   {
+    "lagH": 68,
+    "r": -0.018
+   },
+   {
+    "lagH": 69,
+    "r": -0.0204
+   },
+   {
+    "lagH": 70,
+    "r": -0.0222
+   },
+   {
+    "lagH": 71,
+    "r": -0.024
+   },
+   {
+    "lagH": 72,
+    "r": -0.0258
+   },
+   {
+    "lagH": 73,
+    "r": -0.0284
+   },
+   {
+    "lagH": 74,
+    "r": -0.0315
+   },
+   {
+    "lagH": 75,
+    "r": -0.0361
+   },
+   {
+    "lagH": 76,
+    "r": -0.0412
+   },
+   {
+    "lagH": 77,
+    "r": -0.0464
+   },
+   {
+    "lagH": 78,
+    "r": -0.0516
+   },
+   {
+    "lagH": 79,
+    "r": -0.0561
+   },
+   {
+    "lagH": 80,
+    "r": -0.0583
+   },
+   {
+    "lagH": 81,
+    "r": -0.0589
+   },
+   {
+    "lagH": 82,
+    "r": -0.0577
+   },
+   {
+    "lagH": 83,
+    "r": -0.0552
+   },
+   {
+    "lagH": 84,
+    "r": -0.0515
+   },
+   {
+    "lagH": 85,
+    "r": -0.0474
+   },
+   {
+    "lagH": 86,
+    "r": -0.0421
+   },
+   {
+    "lagH": 87,
+    "r": -0.0377
+   },
+   {
+    "lagH": 88,
+    "r": -0.0346
+   },
+   {
+    "lagH": 89,
+    "r": -0.0323
+   },
+   {
+    "lagH": 90,
+    "r": -0.0314
+   },
+   {
+    "lagH": 91,
+    "r": -0.031
+   },
+   {
+    "lagH": 92,
+    "r": -0.0307
+   },
+   {
+    "lagH": 93,
+    "r": -0.0308
+   },
+   {
+    "lagH": 94,
+    "r": -0.0308
+   },
+   {
+    "lagH": 95,
+    "r": -0.0312
+   },
+   {
+    "lagH": 96,
+    "r": -0.0316
+   },
+   {
+    "lagH": 97,
+    "r": -0.0328
+   },
+   {
+    "lagH": 98,
+    "r": -0.0352
+   },
+   {
+    "lagH": 99,
+    "r": -0.0387
+   },
+   {
+    "lagH": 100,
+    "r": -0.0421
+   },
+   {
+    "lagH": 101,
+    "r": -0.0455
+   },
+   {
+    "lagH": 102,
+    "r": -0.0484
+   },
+   {
+    "lagH": 103,
+    "r": -0.0505
+   },
+   {
+    "lagH": 104,
+    "r": -0.0515
+   },
+   {
+    "lagH": 105,
+    "r": -0.0503
+   },
+   {
+    "lagH": 106,
+    "r": -0.0472
+   },
+   {
+    "lagH": 107,
+    "r": -0.0431
+   },
+   {
+    "lagH": 108,
+    "r": -0.0378
+   },
+   {
+    "lagH": 109,
+    "r": -0.0324
+   },
+   {
+    "lagH": 110,
+    "r": -0.027
+   },
+   {
+    "lagH": 111,
+    "r": -0.0221
+   },
+   {
+    "lagH": 112,
+    "r": -0.0183
+   },
+   {
+    "lagH": 113,
+    "r": -0.0147
+   },
+   {
+    "lagH": 114,
+    "r": -0.0118
+   },
+   {
+    "lagH": 115,
+    "r": -0.0095
+   },
+   {
+    "lagH": 116,
+    "r": -0.0076
+   },
+   {
+    "lagH": 117,
+    "r": -0.0051
+   },
+   {
+    "lagH": 118,
+    "r": -0.0047
+   },
+   {
+    "lagH": 119,
+    "r": -0.0049
+   },
+   {
+    "lagH": 120,
+    "r": -0.0048
+   }
+  ],
+  "slopeHoursPerMetre": -25.57
+ },
+ {
+  "up": "worsham",
+  "down": "newbotley",
+  "n": 17,
+  "tHalf": {
+   "p10": 2.0,
+   "median": 9.4,
+   "p90": 27.2
+  },
+  "tPeak": {
+   "p10": 27.6,
+   "median": 46.0,
+   "p90": 70.8
+  },
+  "events": [
+   {
+    "eventId": "auto-20061126",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.473,
+    "excluded": "ambiguous: second peak at worsham with 118% of the main peak's prominence (0.18 m vs 0.15 m)"
+   },
+   {
+    "eventId": "auto-20070101",
+    "tHalf": 13.2,
+    "tPeak": 57.0,
+    "rise": 0.489
+   },
+   {
+    "eventId": "auto-20070225",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.438,
+    "excluded": "ambiguous: second peak at worsham with 56% of the main peak's prominence (0.17 m vs 0.31 m)"
+   },
+   {
+    "eventId": "e2007",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at worsham (68% of window missing)"
+   },
+   {
+    "eventId": "auto-20080113",
+    "tHalf": 33.5,
+    "tPeak": 75.0,
+    "rise": 0.662
+   },
+   {
+    "eventId": "auto-20080316",
+    "tHalf": 0.7,
+    "tPeak": 27.0,
+    "rise": 0.531
+   },
+   {
+    "eventId": "auto-20080603",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.534,
+    "excluded": "ambiguous: second peak at worsham with 67% of the main peak's prominence (0.33 m vs 0.49 m)"
+   },
+   {
+    "eventId": "auto-20081215",
+    "tHalf": 9.4,
+    "tPeak": 36.0,
+    "rise": 0.448
+   },
+   {
+    "eventId": "auto-20090210",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.252,
+    "excluded": "ambiguous: second peak at worsham with 351% of the main peak's prominence (0.15 m vs 0.04 m)"
+   },
+   {
+    "eventId": "auto-20100117",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.453,
+    "excluded": "ambiguous: second peak at worsham with 89% of the main peak's prominence (0.21 m vs 0.24 m)"
+   },
+   {
+    "eventId": "auto-20120501",
+    "tHalf": null,
+    "tPeak": 69.0,
+    "rise": 0.648,
+    "excluded": "T_half = -1.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20121122",
+    "tHalf": null,
+    "tPeak": 41.0,
+    "rise": 0.811,
+    "excluded": "T_half = -10.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.598,
+    "excluded": "T_half = -1.0 h, T_peak = -65.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20130127",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.457,
+    "excluded": "ambiguous: second peak at worsham with 50% of the main peak's prominence (0.18 m vs 0.35 m)"
+   },
+   {
+    "eventId": "auto-20130317",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.264,
+    "excluded": "ambiguous: second peak at worsham with 58% of the main peak's prominence (0.13 m vs 0.22 m)"
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.944,
+    "excluded": "ambiguous: second peak at worsham with 76% of the main peak's prominence (0.44 m vs 0.58 m)"
+   },
+   {
+    "eventId": "auto-20150116",
+    "tHalf": 13.8,
+    "tPeak": 42.0,
+    "rise": 0.453
+   },
+   {
+    "eventId": "auto-20160102",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.406,
+    "excluded": "ambiguous: second peak at worsham with 59% of the main peak's prominence (0.16 m vs 0.27 m)"
+   },
+   {
+    "eventId": "auto-20160208",
+    "tHalf": 19.1,
+    "tPeak": 46.0,
+    "rise": 0.504
+   },
+   {
+    "eventId": "auto-20160310",
+    "tHalf": 6.5,
+    "tPeak": 28.0,
+    "rise": 0.47
+   },
+   {
+    "eventId": "auto-20180123",
+    "tHalf": 0.9,
+    "tPeak": 41.0,
+    "rise": 0.37
+   },
+   {
+    "eventId": "auto-20180331",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.406,
+    "excluded": "ambiguous: second peak at worsham with 64% of the main peak's prominence (0.16 m vs 0.25 m)"
+   },
+   {
+    "eventId": "auto-20191108",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.566,
+    "excluded": "ambiguous: second peak at worsham with 54% of the main peak's prominence (0.24 m vs 0.44 m)"
+   },
+   {
+    "eventId": "auto-20191214",
+    "tHalf": 25.7,
+    "tPeak": 61.0,
+    "rise": 0.38
+   },
+   {
+    "eventId": "auto-20200115",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.362,
+    "excluded": "ambiguous: second peak at worsham with 60% of the main peak's prominence (0.16 m vs 0.27 m)"
+   },
+   {
+    "eventId": "auto-20200215",
+    "tHalf": null,
+    "tPeak": 76.0,
+    "rise": 0.625,
+    "excluded": "T_half = -32.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20201006",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at worsham (30% of window missing)"
+   },
+   {
+    "eventId": "auto-20201223",
+    "tHalf": null,
+    "tPeak": 26.0,
+    "rise": 0.938,
+    "excluded": "T_half = -5.6 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": 6.6,
+    "tPeak": 68.0,
+    "rise": 0.697
+   },
+   {
+    "eventId": "auto-20230101",
+    "tHalf": 29.5,
+    "tPeak": 55.0,
+    "rise": 0.529
+   },
+   {
+    "eventId": "auto-20230401",
+    "tHalf": 10.9,
+    "tPeak": 54.0,
+    "rise": 0.551
+   },
+   {
+    "eventId": "auto-20231104",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.548,
+    "excluded": "ambiguous: second peak at worsham with 65% of the main peak's prominence (0.23 m vs 0.36 m)"
+   },
+   {
+    "eventId": "auto-20231207",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.407,
+    "excluded": "ambiguous: second peak at worsham with 56% of the main peak's prominence (0.17 m vs 0.30 m)"
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": 8.8,
+    "tPeak": 47.0,
+    "rise": 0.605
+   },
+   {
+    "eventId": "auto-20240208",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.697,
+    "excluded": "ambiguous: second peak at worsham with 73% of the main peak's prominence (0.30 m vs 0.41 m)"
+   },
+   {
+    "eventId": "auto-20240328",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.333,
+    "excluded": "ambiguous: second peak at worsham with 55% of the main peak's prominence (0.12 m vs 0.22 m)"
+   },
+   {
+    "eventId": "auto-20240925",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.866,
+    "excluded": "ambiguous: second peak at worsham with 51% of the main peak's prominence (0.14 m vs 0.28 m)"
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 5.2,
+    "tPeak": 108.0,
+    "rise": 1.148
+   },
+   {
+    "eventId": "auto-20250107",
+    "tHalf": 2.8,
+    "tPeak": 23.0,
+    "rise": 0.525
+   },
+   {
+    "eventId": "auto-20250128",
+    "tHalf": 4.0,
+    "tPeak": 34.0,
+    "rise": 0.442
+   },
+   {
+    "eventId": "auto-20251211",
+    "tHalf": 9.9,
+    "tPeak": 32.0,
+    "rise": 0.546
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.632,
+    "excluded": "T_half = -124.0 h, T_peak = -6.0 h outside (0, 168) h"
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.1923
+   },
+   {
+    "lagH": 1,
+    "r": 0.1974
+   },
+   {
+    "lagH": 2,
+    "r": 0.1984
+   },
+   {
+    "lagH": 3,
+    "r": 0.1987
+   },
+   {
+    "lagH": 4,
+    "r": 0.2021
+   },
+   {
+    "lagH": 5,
+    "r": 0.2096
+   },
+   {
+    "lagH": 6,
+    "r": 0.2173
+   },
+   {
+    "lagH": 7,
+    "r": 0.2246
+   },
+   {
+    "lagH": 8,
+    "r": 0.2316
+   },
+   {
+    "lagH": 9,
+    "r": 0.2383
+   },
+   {
+    "lagH": 10,
+    "r": 0.2459
+   },
+   {
+    "lagH": 11,
+    "r": 0.2532
+   },
+   {
+    "lagH": 12,
+    "r": 0.2582
+   },
+   {
+    "lagH": 13,
+    "r": 0.2642
+   },
+   {
+    "lagH": 14,
+    "r": 0.2665
+   },
+   {
+    "lagH": 15,
+    "r": 0.2662
+   },
+   {
+    "lagH": 16,
+    "r": 0.2639
+   },
+   {
+    "lagH": 17,
+    "r": 0.2614
+   },
+   {
+    "lagH": 18,
+    "r": 0.2559
+   },
+   {
+    "lagH": 19,
+    "r": 0.2491
+   },
+   {
+    "lagH": 20,
+    "r": 0.2429
+   },
+   {
+    "lagH": 21,
+    "r": 0.2363
+   },
+   {
+    "lagH": 22,
+    "r": 0.23
+   },
+   {
+    "lagH": 23,
+    "r": 0.2238
+   },
+   {
+    "lagH": 24,
+    "r": 0.2157
+   },
+   {
+    "lagH": 25,
+    "r": 0.206
+   },
+   {
+    "lagH": 26,
+    "r": 0.1951
+   },
+   {
+    "lagH": 27,
+    "r": 0.1847
+   },
+   {
+    "lagH": 28,
+    "r": 0.1735
+   },
+   {
+    "lagH": 29,
+    "r": 0.1634
+   },
+   {
+    "lagH": 30,
+    "r": 0.1533
+   },
+   {
+    "lagH": 31,
+    "r": 0.1447
+   },
+   {
+    "lagH": 32,
+    "r": 0.1383
+   },
+   {
+    "lagH": 33,
+    "r": 0.1303
+   },
+   {
+    "lagH": 34,
+    "r": 0.1232
+   },
+   {
+    "lagH": 35,
+    "r": 0.118
+   },
+   {
+    "lagH": 36,
+    "r": 0.1123
+   },
+   {
+    "lagH": 37,
+    "r": 0.1052
+   },
+   {
+    "lagH": 38,
+    "r": 0.0983
+   },
+   {
+    "lagH": 39,
+    "r": 0.0925
+   },
+   {
+    "lagH": 40,
+    "r": 0.0861
+   },
+   {
+    "lagH": 41,
+    "r": 0.0826
+   },
+   {
+    "lagH": 42,
+    "r": 0.0795
+   },
+   {
+    "lagH": 43,
+    "r": 0.0767
+   },
+   {
+    "lagH": 44,
+    "r": 0.0711
+   },
+   {
+    "lagH": 45,
+    "r": 0.0661
+   },
+   {
+    "lagH": 46,
+    "r": 0.063
+   },
+   {
+    "lagH": 47,
+    "r": 0.0603
+   },
+   {
+    "lagH": 48,
+    "r": 0.0564
+   },
+   {
+    "lagH": 49,
+    "r": 0.0518
+   },
+   {
+    "lagH": 50,
+    "r": 0.0476
+   },
+   {
+    "lagH": 51,
+    "r": 0.0433
+   },
+   {
+    "lagH": 52,
+    "r": 0.0388
+   },
+   {
+    "lagH": 53,
+    "r": 0.0352
+   },
+   {
+    "lagH": 54,
+    "r": 0.0311
+   },
+   {
+    "lagH": 55,
+    "r": 0.0301
+   },
+   {
+    "lagH": 56,
+    "r": 0.028
+   },
+   {
+    "lagH": 57,
+    "r": 0.0269
+   },
+   {
+    "lagH": 58,
+    "r": 0.0253
+   },
+   {
+    "lagH": 59,
+    "r": 0.0224
+   },
+   {
+    "lagH": 60,
+    "r": 0.0192
+   },
+   {
+    "lagH": 61,
+    "r": 0.0177
+   },
+   {
+    "lagH": 62,
+    "r": 0.0162
+   },
+   {
+    "lagH": 63,
+    "r": 0.0139
+   },
+   {
+    "lagH": 64,
+    "r": 0.0103
+   },
+   {
+    "lagH": 65,
+    "r": 0.0061
+   },
+   {
+    "lagH": 66,
+    "r": 0.0009
+   },
+   {
+    "lagH": 67,
+    "r": -0.004
+   },
+   {
+    "lagH": 68,
+    "r": -0.006
+   },
+   {
+    "lagH": 69,
+    "r": -0.0065
+   },
+   {
+    "lagH": 70,
+    "r": -0.0072
+   },
+   {
+    "lagH": 71,
+    "r": -0.0076
+   },
+   {
+    "lagH": 72,
+    "r": -0.008
+   },
+   {
+    "lagH": 73,
+    "r": -0.0083
+   },
+   {
+    "lagH": 74,
+    "r": -0.0082
+   },
+   {
+    "lagH": 75,
+    "r": -0.0081
+   },
+   {
+    "lagH": 76,
+    "r": -0.0085
+   },
+   {
+    "lagH": 77,
+    "r": -0.0085
+   },
+   {
+    "lagH": 78,
+    "r": -0.0079
+   },
+   {
+    "lagH": 79,
+    "r": -0.0072
+   },
+   {
+    "lagH": 80,
+    "r": -0.0068
+   },
+   {
+    "lagH": 81,
+    "r": -0.0077
+   },
+   {
+    "lagH": 82,
+    "r": -0.009
+   },
+   {
+    "lagH": 83,
+    "r": -0.0105
+   },
+   {
+    "lagH": 84,
+    "r": -0.0129
+   },
+   {
+    "lagH": 85,
+    "r": -0.0125
+   },
+   {
+    "lagH": 86,
+    "r": -0.013
+   },
+   {
+    "lagH": 87,
+    "r": -0.0144
+   },
+   {
+    "lagH": 88,
+    "r": -0.0155
+   },
+   {
+    "lagH": 89,
+    "r": -0.0167
+   },
+   {
+    "lagH": 90,
+    "r": -0.0162
+   },
+   {
+    "lagH": 91,
+    "r": -0.018
+   },
+   {
+    "lagH": 92,
+    "r": -0.0189
+   },
+   {
+    "lagH": 93,
+    "r": -0.0185
+   },
+   {
+    "lagH": 94,
+    "r": -0.0186
+   },
+   {
+    "lagH": 95,
+    "r": -0.0182
+   },
+   {
+    "lagH": 96,
+    "r": -0.0151
+   },
+   {
+    "lagH": 97,
+    "r": -0.0121
+   },
+   {
+    "lagH": 98,
+    "r": -0.0116
+   },
+   {
+    "lagH": 99,
+    "r": -0.0115
+   },
+   {
+    "lagH": 100,
+    "r": -0.012
+   },
+   {
+    "lagH": 101,
+    "r": -0.0121
+   },
+   {
+    "lagH": 102,
+    "r": -0.0142
+   },
+   {
+    "lagH": 103,
+    "r": -0.0166
+   },
+   {
+    "lagH": 104,
+    "r": -0.0206
+   },
+   {
+    "lagH": 105,
+    "r": -0.0225
+   },
+   {
+    "lagH": 106,
+    "r": -0.0247
+   },
+   {
+    "lagH": 107,
+    "r": -0.0242
+   },
+   {
+    "lagH": 108,
+    "r": -0.024
+   },
+   {
+    "lagH": 109,
+    "r": -0.0239
+   },
+   {
+    "lagH": 110,
+    "r": -0.0252
+   },
+   {
+    "lagH": 111,
+    "r": -0.0273
+   },
+   {
+    "lagH": 112,
+    "r": -0.0266
+   },
+   {
+    "lagH": 113,
+    "r": -0.0249
+   },
+   {
+    "lagH": 114,
+    "r": -0.0254
+   },
+   {
+    "lagH": 115,
+    "r": -0.0269
+   },
+   {
+    "lagH": 116,
+    "r": -0.028
+   },
+   {
+    "lagH": 117,
+    "r": -0.0261
+   },
+   {
+    "lagH": 118,
+    "r": -0.0223
+   },
+   {
+    "lagH": 119,
+    "r": -0.0204
+   },
+   {
+    "lagH": 120,
+    "r": -0.0192
+   }
+  ],
+  "slopeHoursPerMetre": -3.75
+ },
+ {
+  "up": "shipton",
+  "down": "newbotley",
+  "n": 17,
+  "tHalf": {
+   "p10": 6.9,
+   "median": 18.6,
+   "p90": 50.7
+  },
+  "tPeak": {
+   "p10": 43.2,
+   "median": 56.0,
+   "p90": 111.2
+  },
+  "events": [
+   {
+    "eventId": "auto-20061126",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.229,
+    "excluded": "ambiguous: second peak at shipton with 76% of the main peak's prominence (0.77 m vs 1.01 m)"
+   },
+   {
+    "eventId": "auto-20070101",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.346,
+    "excluded": "ambiguous: second peak at shipton with 89% of the main peak's prominence (1.10 m vs 1.24 m)"
+   },
+   {
+    "eventId": "auto-20070225",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.266,
+    "excluded": "ambiguous: second peak at shipton with 81% of the main peak's prominence (1.06 m vs 1.31 m)"
+   },
+   {
+    "eventId": "e2007",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at shipton (72% of window missing)"
+   },
+   {
+    "eventId": "auto-20080113",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at shipton (65% of window missing)"
+   },
+   {
+    "eventId": "auto-20080316",
+    "tHalf": 6.1,
+    "tPeak": 42.0,
+    "rise": 1.678
+   },
+   {
+    "eventId": "auto-20080603",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at shipton (100% of window missing)"
+   },
+   {
+    "eventId": "auto-20081215",
+    "tHalf": 15.8,
+    "tPeak": 51.0,
+    "rise": 1.593
+   },
+   {
+    "eventId": "auto-20090210",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.195,
+    "excluded": "ambiguous: second peak at shipton with 54% of the main peak's prominence (0.55 m vs 1.02 m)"
+   },
+   {
+    "eventId": "auto-20100117",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.645,
+    "excluded": "ambiguous: second peak at shipton with 65% of the main peak's prominence (0.94 m vs 1.46 m)"
+   },
+   {
+    "eventId": "auto-20120501",
+    "tHalf": 45.3,
+    "tPeak": 66.0,
+    "rise": 1.537
+   },
+   {
+    "eventId": "auto-20121122",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.916,
+    "excluded": "ambiguous: second peak at shipton with 77% of the main peak's prominence (1.18 m vs 1.54 m)"
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": 152.3,
+    "tPeak": 106.0,
+    "rise": 1.223
+   },
+   {
+    "eventId": "auto-20130127",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.543,
+    "excluded": "ambiguous: second peak at shipton with 69% of the main peak's prominence (1.02 m vs 1.48 m)"
+   },
+   {
+    "eventId": "auto-20130317",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.061,
+    "excluded": "ambiguous: second peak at shipton with 69% of the main peak's prominence (0.66 m vs 0.96 m)"
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.946,
+    "excluded": "ambiguous: second peak at shipton with 76% of the main peak's prominence (1.29 m vs 1.70 m)"
+   },
+   {
+    "eventId": "auto-20150116",
+    "tHalf": 20.8,
+    "tPeak": 50.0,
+    "rise": 1.331
+   },
+   {
+    "eventId": "auto-20160102",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.59,
+    "excluded": "ambiguous: second peak at shipton with 76% of the main peak's prominence (0.73 m vs 0.95 m)"
+   },
+   {
+    "eventId": "auto-20160208",
+    "tHalf": 27.8,
+    "tPeak": 93.0,
+    "rise": 1.445
+   },
+   {
+    "eventId": "auto-20160310",
+    "tHalf": 12.4,
+    "tPeak": 44.0,
+    "rise": 1.788
+   },
+   {
+    "eventId": "auto-20180123",
+    "tHalf": 7.5,
+    "tPeak": 56.0,
+    "rise": 1.129
+   },
+   {
+    "eventId": "auto-20180331",
+    "tHalf": 26.0,
+    "tPeak": 91.0,
+    "rise": 1.36
+   },
+   {
+    "eventId": "auto-20191108",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.582,
+    "excluded": "ambiguous: second peak at shipton with 52% of the main peak's prominence (0.84 m vs 1.64 m)"
+   },
+   {
+    "eventId": "auto-20191214",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.247,
+    "excluded": "ambiguous: second peak at shipton with 66% of the main peak's prominence (0.84 m vs 1.27 m)"
+   },
+   {
+    "eventId": "auto-20200115",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.262,
+    "excluded": "ambiguous: second peak at shipton with 59% of the main peak's prominence (0.74 m vs 1.26 m)"
+   },
+   {
+    "eventId": "auto-20200215",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.571,
+    "excluded": "ambiguous: second peak at shipton with 65% of the main peak's prominence (0.97 m vs 1.50 m)"
+   },
+   {
+    "eventId": "auto-20201006",
+    "tHalf": 18.6,
+    "tPeak": 50.0,
+    "rise": 1.836
+   },
+   {
+    "eventId": "auto-20201223",
+    "tHalf": 4.2,
+    "tPeak": 36.0,
+    "rise": 1.845
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.206,
+    "excluded": "ambiguous: second peak at shipton with 75% of the main peak's prominence (1.01 m vs 1.35 m)"
+   },
+   {
+    "eventId": "auto-20230101",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at shipton (96% of window missing)"
+   },
+   {
+    "eventId": "auto-20230401",
+    "tHalf": 17.3,
+    "tPeak": 76.0,
+    "rise": 1.215
+   },
+   {
+    "eventId": "auto-20231104",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.909,
+    "excluded": "ambiguous: second peak at shipton with 73% of the main peak's prominence (0.74 m vs 1.00 m)"
+   },
+   {
+    "eventId": "auto-20231207",
+    "tHalf": 45.6,
+    "tPeak": 124.0,
+    "rise": 1.081
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": 58.3,
+    "tPeak": 67.0,
+    "rise": 1.42
+   },
+   {
+    "eventId": "auto-20240208",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.558,
+    "excluded": "ambiguous: second peak at shipton with 72% of the main peak's prominence (1.04 m vs 1.44 m)"
+   },
+   {
+    "eventId": "auto-20240328",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.147,
+    "excluded": "ambiguous: second peak at shipton with 77% of the main peak's prominence (0.78 m vs 1.01 m)"
+   },
+   {
+    "eventId": "auto-20240925",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 2.029,
+    "excluded": "ambiguous: second peak at shipton with 65% of the main peak's prominence (0.96 m vs 1.47 m)"
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 19.7,
+    "tPeak": 119.0,
+    "rise": 2.64
+   },
+   {
+    "eventId": "auto-20250107",
+    "tHalf": 14.7,
+    "tPeak": 48.0,
+    "rise": 1.495
+   },
+   {
+    "eventId": "auto-20250128",
+    "tHalf": 12.1,
+    "tPeak": 53.0,
+    "rise": 1.392
+   },
+   {
+    "eventId": "auto-20251211",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.096,
+    "excluded": "ambiguous: second peak at shipton with 63% of the main peak's prominence (0.75 m vs 1.20 m)"
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.984,
+    "excluded": "ambiguous: second peak at shipton with 80% of the main peak's prominence (0.90 m vs 1.13 m)"
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.1541
+   },
+   {
+    "lagH": 1,
+    "r": 0.1643
+   },
+   {
+    "lagH": 2,
+    "r": 0.1723
+   },
+   {
+    "lagH": 3,
+    "r": 0.18
+   },
+   {
+    "lagH": 4,
+    "r": 0.1881
+   },
+   {
+    "lagH": 5,
+    "r": 0.1915
+   },
+   {
+    "lagH": 6,
+    "r": 0.1943
+   },
+   {
+    "lagH": 7,
+    "r": 0.1936
+   },
+   {
+    "lagH": 8,
+    "r": 0.186
+   },
+   {
+    "lagH": 9,
+    "r": 0.1755
+   },
+   {
+    "lagH": 10,
+    "r": 0.168
+   },
+   {
+    "lagH": 11,
+    "r": 0.1656
+   },
+   {
+    "lagH": 12,
+    "r": 0.1677
+   },
+   {
+    "lagH": 13,
+    "r": 0.1738
+   },
+   {
+    "lagH": 14,
+    "r": 0.1821
+   },
+   {
+    "lagH": 15,
+    "r": 0.1873
+   },
+   {
+    "lagH": 16,
+    "r": 0.1922
+   },
+   {
+    "lagH": 17,
+    "r": 0.1952
+   },
+   {
+    "lagH": 18,
+    "r": 0.1946
+   },
+   {
+    "lagH": 19,
+    "r": 0.1952
+   },
+   {
+    "lagH": 20,
+    "r": 0.1918
+   },
+   {
+    "lagH": 21,
+    "r": 0.1896
+   },
+   {
+    "lagH": 22,
+    "r": 0.1903
+   },
+   {
+    "lagH": 23,
+    "r": 0.1855
+   },
+   {
+    "lagH": 24,
+    "r": 0.1792
+   },
+   {
+    "lagH": 25,
+    "r": 0.1709
+   },
+   {
+    "lagH": 26,
+    "r": 0.1628
+   },
+   {
+    "lagH": 27,
+    "r": 0.1548
+   },
+   {
+    "lagH": 28,
+    "r": 0.1462
+   },
+   {
+    "lagH": 29,
+    "r": 0.1374
+   },
+   {
+    "lagH": 30,
+    "r": 0.1301
+   },
+   {
+    "lagH": 31,
+    "r": 0.1228
+   },
+   {
+    "lagH": 32,
+    "r": 0.1147
+   },
+   {
+    "lagH": 33,
+    "r": 0.1081
+   },
+   {
+    "lagH": 34,
+    "r": 0.102
+   },
+   {
+    "lagH": 35,
+    "r": 0.0956
+   },
+   {
+    "lagH": 36,
+    "r": 0.0911
+   },
+   {
+    "lagH": 37,
+    "r": 0.0871
+   },
+   {
+    "lagH": 38,
+    "r": 0.0838
+   },
+   {
+    "lagH": 39,
+    "r": 0.0812
+   },
+   {
+    "lagH": 40,
+    "r": 0.0781
+   },
+   {
+    "lagH": 41,
+    "r": 0.0726
+   },
+   {
+    "lagH": 42,
+    "r": 0.0683
+   },
+   {
+    "lagH": 43,
+    "r": 0.065
+   },
+   {
+    "lagH": 44,
+    "r": 0.0608
+   },
+   {
+    "lagH": 45,
+    "r": 0.059
+   },
+   {
+    "lagH": 46,
+    "r": 0.0586
+   },
+   {
+    "lagH": 47,
+    "r": 0.0561
+   },
+   {
+    "lagH": 48,
+    "r": 0.0556
+   },
+   {
+    "lagH": 49,
+    "r": 0.055
+   },
+   {
+    "lagH": 50,
+    "r": 0.0536
+   },
+   {
+    "lagH": 51,
+    "r": 0.051
+   },
+   {
+    "lagH": 52,
+    "r": 0.0492
+   },
+   {
+    "lagH": 53,
+    "r": 0.0468
+   },
+   {
+    "lagH": 54,
+    "r": 0.0456
+   },
+   {
+    "lagH": 55,
+    "r": 0.043
+   },
+   {
+    "lagH": 56,
+    "r": 0.0393
+   },
+   {
+    "lagH": 57,
+    "r": 0.0375
+   },
+   {
+    "lagH": 58,
+    "r": 0.0372
+   },
+   {
+    "lagH": 59,
+    "r": 0.0361
+   },
+   {
+    "lagH": 60,
+    "r": 0.0364
+   },
+   {
+    "lagH": 61,
+    "r": 0.034
+   },
+   {
+    "lagH": 62,
+    "r": 0.0306
+   },
+   {
+    "lagH": 63,
+    "r": 0.0285
+   },
+   {
+    "lagH": 64,
+    "r": 0.025
+   },
+   {
+    "lagH": 65,
+    "r": 0.022
+   },
+   {
+    "lagH": 66,
+    "r": 0.0195
+   },
+   {
+    "lagH": 67,
+    "r": 0.0175
+   },
+   {
+    "lagH": 68,
+    "r": 0.0151
+   },
+   {
+    "lagH": 69,
+    "r": 0.0116
+   },
+   {
+    "lagH": 70,
+    "r": 0.0092
+   },
+   {
+    "lagH": 71,
+    "r": 0.0049
+   },
+   {
+    "lagH": 72,
+    "r": 0.0006
+   },
+   {
+    "lagH": 73,
+    "r": 0.001
+   },
+   {
+    "lagH": 74,
+    "r": 0.0005
+   },
+   {
+    "lagH": 75,
+    "r": 0.0005
+   },
+   {
+    "lagH": 76,
+    "r": -0.0013
+   },
+   {
+    "lagH": 77,
+    "r": -0.0034
+   },
+   {
+    "lagH": 78,
+    "r": -0.0045
+   },
+   {
+    "lagH": 79,
+    "r": -0.0053
+   },
+   {
+    "lagH": 80,
+    "r": -0.0063
+   },
+   {
+    "lagH": 81,
+    "r": -0.0059
+   },
+   {
+    "lagH": 82,
+    "r": -0.0061
+   },
+   {
+    "lagH": 83,
+    "r": -0.0058
+   },
+   {
+    "lagH": 84,
+    "r": -0.0048
+   },
+   {
+    "lagH": 85,
+    "r": -0.0065
+   },
+   {
+    "lagH": 86,
+    "r": -0.0055
+   },
+   {
+    "lagH": 87,
+    "r": -0.0065
+   },
+   {
+    "lagH": 88,
+    "r": -0.0077
+   },
+   {
+    "lagH": 89,
+    "r": -0.0076
+   },
+   {
+    "lagH": 90,
+    "r": -0.0077
+   },
+   {
+    "lagH": 91,
+    "r": -0.0068
+   },
+   {
+    "lagH": 92,
+    "r": -0.0067
+   },
+   {
+    "lagH": 93,
+    "r": -0.0075
+   },
+   {
+    "lagH": 94,
+    "r": -0.0073
+   },
+   {
+    "lagH": 95,
+    "r": -0.0063
+   },
+   {
+    "lagH": 96,
+    "r": -0.0078
+   },
+   {
+    "lagH": 97,
+    "r": -0.0093
+   },
+   {
+    "lagH": 98,
+    "r": -0.0113
+   },
+   {
+    "lagH": 99,
+    "r": -0.0128
+   },
+   {
+    "lagH": 100,
+    "r": -0.0124
+   },
+   {
+    "lagH": 101,
+    "r": -0.0116
+   },
+   {
+    "lagH": 102,
+    "r": -0.0107
+   },
+   {
+    "lagH": 103,
+    "r": -0.0083
+   },
+   {
+    "lagH": 104,
+    "r": -0.0071
+   },
+   {
+    "lagH": 105,
+    "r": -0.0076
+   },
+   {
+    "lagH": 106,
+    "r": -0.0082
+   },
+   {
+    "lagH": 107,
+    "r": -0.0096
+   },
+   {
+    "lagH": 108,
+    "r": -0.011
+   },
+   {
+    "lagH": 109,
+    "r": -0.0123
+   },
+   {
+    "lagH": 110,
+    "r": -0.0135
+   },
+   {
+    "lagH": 111,
+    "r": -0.0147
+   },
+   {
+    "lagH": 112,
+    "r": -0.0165
+   },
+   {
+    "lagH": 113,
+    "r": -0.0168
+   },
+   {
+    "lagH": 114,
+    "r": -0.0179
+   },
+   {
+    "lagH": 115,
+    "r": -0.0185
+   },
+   {
+    "lagH": 116,
+    "r": -0.0184
+   },
+   {
+    "lagH": 117,
+    "r": -0.0189
+   },
+   {
+    "lagH": 118,
+    "r": -0.0173
+   },
+   {
+    "lagH": 119,
+    "r": -0.0148
+   },
+   {
+    "lagH": 120,
+    "r": -0.011
+   }
+  ],
+  "slopeHoursPerMetre": -27.9
+ },
+ {
   "up": "farmoor",
   "down": "minns",
   "n": 1,
@@ -4561,6 +7675,2905 @@
    }
   ],
   "slopeHoursPerMetre": -20.63
+ },
+ {
+  "up": "shifford",
+  "down": "minns",
+  "n": 16,
+  "tHalf": {
+   "p10": 5.8,
+   "median": 31.8,
+   "p90": 52.8
+  },
+  "tPeak": {
+   "p10": 9.5,
+   "median": 29.0,
+   "p90": 49.0
+  },
+  "events": [
+   {
+    "eventId": "auto-20061127",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.399,
+    "excluded": "ambiguous: second peak at shifford with 74% of the main peak's prominence (0.18 m vs 0.24 m)"
+   },
+   {
+    "eventId": "auto-20070110",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.164,
+    "excluded": "ambiguous: second peak at shifford with 54% of the main peak's prominence (0.14 m vs 0.25 m)"
+   },
+   {
+    "eventId": "auto-20070306",
+    "tHalf": 23.3,
+    "tPeak": null,
+    "rise": 0.175,
+    "excluded": "T_peak = -13.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2007",
+    "tHalf": 25.4,
+    "tPeak": 47.0,
+    "rise": 0.594
+   },
+   {
+    "eventId": "auto-20080114",
+    "tHalf": 50.2,
+    "tPeak": 30.0,
+    "rise": 0.519
+   },
+   {
+    "eventId": "auto-20080318",
+    "tHalf": null,
+    "tPeak": 13.0,
+    "rise": 0.422,
+    "excluded": "T_half = -1.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080604",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.362,
+    "excluded": "ambiguous: second peak at shifford with 61% of the main peak's prominence (0.37 m vs 0.62 m)"
+   },
+   {
+    "eventId": "auto-20090212",
+    "tHalf": 2.3,
+    "tPeak": 46.0,
+    "rise": 0.586
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": 33.5,
+    "tPeak": null,
+    "rise": 0.708,
+    "excluded": "T_peak = -8.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20121222",
+    "tHalf": 49.1,
+    "tPeak": 25.0,
+    "rise": 0.301
+   },
+   {
+    "eventId": "auto-20130128",
+    "tHalf": 13.6,
+    "tPeak": null,
+    "rise": 0.56,
+    "excluded": "T_peak = -12.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.483,
+    "excluded": "ambiguous: second peak at minns with 55% of the main peak's prominence (0.83 m vs 1.51 m)"
+   },
+   {
+    "eventId": "auto-20160105",
+    "tHalf": 47.9,
+    "tPeak": 1.0,
+    "rise": 0.427
+   },
+   {
+    "eventId": "auto-20160208",
+    "tHalf": null,
+    "tPeak": 13.0,
+    "rise": 0.487,
+    "excluded": "T_half = -9.2 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20160311",
+    "tHalf": 6.8,
+    "tPeak": 22.0,
+    "rise": 0.378
+   },
+   {
+    "eventId": "auto-20180402",
+    "tHalf": 4.7,
+    "tPeak": 9.0,
+    "rise": 0.494
+   },
+   {
+    "eventId": "auto-20191111",
+    "tHalf": 40.5,
+    "tPeak": 93.0,
+    "rise": 0.133
+   },
+   {
+    "eventId": "auto-20191216",
+    "tHalf": 35.1,
+    "tPeak": 30.0,
+    "rise": 0.371
+   },
+   {
+    "eventId": "auto-20200116",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.505,
+    "excluded": "ambiguous: second peak at minns with 100% of the main peak's prominence (0.66 m vs 0.66 m)"
+   },
+   {
+    "eventId": "auto-20200216",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.545,
+    "excluded": "ambiguous: second peak at shifford with 143% of the main peak's prominence (0.19 m vs 0.13 m)"
+   },
+   {
+    "eventId": "auto-20201224",
+    "tHalf": 48.8,
+    "tPeak": null,
+    "rise": 0.416,
+    "excluded": "T_peak = -107.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": 57.8,
+    "tPeak": 43.0,
+    "rise": 0.505
+   },
+   {
+    "eventId": "auto-20230103",
+    "tHalf": 55.3,
+    "tPeak": 28.0,
+    "rise": 0.416
+   },
+   {
+    "eventId": "auto-20230401",
+    "tHalf": 11.3,
+    "tPeak": 10.0,
+    "rise": 0.261
+   },
+   {
+    "eventId": "auto-20231114",
+    "tHalf": 33.9,
+    "tPeak": 32.0,
+    "rise": 0.105
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": 51.3,
+    "tPeak": null,
+    "rise": 0.454,
+    "excluded": "T_peak = -30.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20240209",
+    "tHalf": 24.4,
+    "tPeak": null,
+    "rise": 0.507,
+    "excluded": "T_peak = 282.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20240329",
+    "tHalf": 29.6,
+    "tPeak": 18.0,
+    "rise": 0.422
+   },
+   {
+    "eventId": "auto-20240926",
+    "tHalf": null,
+    "tPeak": 49.0,
+    "rise": 0.432,
+    "excluded": "T_half = -16.4 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 19.8,
+    "tPeak": 51.0,
+    "rise": 0.518
+   },
+   {
+    "eventId": "auto-20250108",
+    "tHalf": 10.1,
+    "tPeak": 25.0,
+    "rise": 0.381
+   },
+   {
+    "eventId": "auto-20250129",
+    "tHalf": null,
+    "tPeak": 19.0,
+    "rise": 0.333,
+    "excluded": "T_half = -0.2 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20251219",
+    "tHalf": 16.0,
+    "tPeak": null,
+    "rise": 0.142,
+    "excluded": "T_peak = -6.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.399,
+    "excluded": "ambiguous: second peak at shifford with 51% of the main peak's prominence (0.17 m vs 0.34 m)"
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.1719
+   },
+   {
+    "lagH": 1,
+    "r": 0.1675
+   },
+   {
+    "lagH": 2,
+    "r": 0.1582
+   },
+   {
+    "lagH": 3,
+    "r": 0.1577
+   },
+   {
+    "lagH": 4,
+    "r": 0.1625
+   },
+   {
+    "lagH": 5,
+    "r": 0.1674
+   },
+   {
+    "lagH": 6,
+    "r": 0.1733
+   },
+   {
+    "lagH": 7,
+    "r": 0.1799
+   },
+   {
+    "lagH": 8,
+    "r": 0.1846
+   },
+   {
+    "lagH": 9,
+    "r": 0.1886
+   },
+   {
+    "lagH": 10,
+    "r": 0.1899
+   },
+   {
+    "lagH": 11,
+    "r": 0.1944
+   },
+   {
+    "lagH": 12,
+    "r": 0.1928
+   },
+   {
+    "lagH": 13,
+    "r": 0.1885
+   },
+   {
+    "lagH": 14,
+    "r": 0.1835
+   },
+   {
+    "lagH": 15,
+    "r": 0.1817
+   },
+   {
+    "lagH": 16,
+    "r": 0.1759
+   },
+   {
+    "lagH": 17,
+    "r": 0.1673
+   },
+   {
+    "lagH": 18,
+    "r": 0.1572
+   },
+   {
+    "lagH": 19,
+    "r": 0.15
+   },
+   {
+    "lagH": 20,
+    "r": 0.1384
+   },
+   {
+    "lagH": 21,
+    "r": 0.1309
+   },
+   {
+    "lagH": 22,
+    "r": 0.1221
+   },
+   {
+    "lagH": 23,
+    "r": 0.1107
+   },
+   {
+    "lagH": 24,
+    "r": 0.098
+   },
+   {
+    "lagH": 25,
+    "r": 0.0856
+   },
+   {
+    "lagH": 26,
+    "r": 0.0729
+   },
+   {
+    "lagH": 27,
+    "r": 0.0665
+   },
+   {
+    "lagH": 28,
+    "r": 0.06
+   },
+   {
+    "lagH": 29,
+    "r": 0.0532
+   },
+   {
+    "lagH": 30,
+    "r": 0.0496
+   },
+   {
+    "lagH": 31,
+    "r": 0.0408
+   },
+   {
+    "lagH": 32,
+    "r": 0.0334
+   },
+   {
+    "lagH": 33,
+    "r": 0.0301
+   },
+   {
+    "lagH": 34,
+    "r": 0.0266
+   },
+   {
+    "lagH": 35,
+    "r": 0.022
+   },
+   {
+    "lagH": 36,
+    "r": 0.0254
+   },
+   {
+    "lagH": 37,
+    "r": 0.0243
+   },
+   {
+    "lagH": 38,
+    "r": 0.0208
+   },
+   {
+    "lagH": 39,
+    "r": 0.0221
+   },
+   {
+    "lagH": 40,
+    "r": 0.0203
+   },
+   {
+    "lagH": 41,
+    "r": 0.0188
+   },
+   {
+    "lagH": 42,
+    "r": 0.0193
+   },
+   {
+    "lagH": 43,
+    "r": 0.0204
+   },
+   {
+    "lagH": 44,
+    "r": 0.024
+   },
+   {
+    "lagH": 45,
+    "r": 0.0274
+   },
+   {
+    "lagH": 46,
+    "r": 0.0285
+   },
+   {
+    "lagH": 47,
+    "r": 0.0211
+   },
+   {
+    "lagH": 48,
+    "r": 0.0156
+   },
+   {
+    "lagH": 49,
+    "r": 0.0119
+   },
+   {
+    "lagH": 50,
+    "r": 0.012
+   },
+   {
+    "lagH": 51,
+    "r": 0.0104
+   },
+   {
+    "lagH": 52,
+    "r": 0.0066
+   },
+   {
+    "lagH": 53,
+    "r": 0.005
+   },
+   {
+    "lagH": 54,
+    "r": 0.006
+   },
+   {
+    "lagH": 55,
+    "r": 0.0061
+   },
+   {
+    "lagH": 56,
+    "r": 0.0053
+   },
+   {
+    "lagH": 57,
+    "r": 0.0041
+   },
+   {
+    "lagH": 58,
+    "r": 0.0055
+   },
+   {
+    "lagH": 59,
+    "r": 0.0047
+   },
+   {
+    "lagH": 60,
+    "r": 0.0068
+   },
+   {
+    "lagH": 61,
+    "r": 0.0059
+   },
+   {
+    "lagH": 62,
+    "r": 0.0023
+   },
+   {
+    "lagH": 63,
+    "r": 0.001
+   },
+   {
+    "lagH": 64,
+    "r": -0.0008
+   },
+   {
+    "lagH": 65,
+    "r": -0.0033
+   },
+   {
+    "lagH": 66,
+    "r": -0.0055
+   },
+   {
+    "lagH": 67,
+    "r": -0.0051
+   },
+   {
+    "lagH": 68,
+    "r": -0.0041
+   },
+   {
+    "lagH": 69,
+    "r": -0.002
+   },
+   {
+    "lagH": 70,
+    "r": -0.0047
+   },
+   {
+    "lagH": 71,
+    "r": -0.0059
+   },
+   {
+    "lagH": 72,
+    "r": -0.0085
+   },
+   {
+    "lagH": 73,
+    "r": -0.0079
+   },
+   {
+    "lagH": 74,
+    "r": -0.0086
+   },
+   {
+    "lagH": 75,
+    "r": -0.0093
+   },
+   {
+    "lagH": 76,
+    "r": -0.0107
+   },
+   {
+    "lagH": 77,
+    "r": -0.0145
+   },
+   {
+    "lagH": 78,
+    "r": -0.0139
+   },
+   {
+    "lagH": 79,
+    "r": -0.0117
+   },
+   {
+    "lagH": 80,
+    "r": -0.0108
+   },
+   {
+    "lagH": 81,
+    "r": -0.0114
+   },
+   {
+    "lagH": 82,
+    "r": -0.0115
+   },
+   {
+    "lagH": 83,
+    "r": -0.0086
+   },
+   {
+    "lagH": 84,
+    "r": -0.0061
+   },
+   {
+    "lagH": 85,
+    "r": -0.008
+   },
+   {
+    "lagH": 86,
+    "r": -0.0099
+   },
+   {
+    "lagH": 87,
+    "r": -0.0118
+   },
+   {
+    "lagH": 88,
+    "r": -0.0167
+   },
+   {
+    "lagH": 89,
+    "r": -0.0169
+   },
+   {
+    "lagH": 90,
+    "r": -0.0192
+   },
+   {
+    "lagH": 91,
+    "r": -0.0187
+   },
+   {
+    "lagH": 92,
+    "r": -0.0161
+   },
+   {
+    "lagH": 93,
+    "r": -0.0155
+   },
+   {
+    "lagH": 94,
+    "r": -0.0203
+   },
+   {
+    "lagH": 95,
+    "r": -0.0194
+   },
+   {
+    "lagH": 96,
+    "r": -0.0182
+   },
+   {
+    "lagH": 97,
+    "r": -0.019
+   },
+   {
+    "lagH": 98,
+    "r": -0.0192
+   },
+   {
+    "lagH": 99,
+    "r": -0.0177
+   },
+   {
+    "lagH": 100,
+    "r": -0.0175
+   },
+   {
+    "lagH": 101,
+    "r": -0.0163
+   },
+   {
+    "lagH": 102,
+    "r": -0.0141
+   },
+   {
+    "lagH": 103,
+    "r": -0.0139
+   },
+   {
+    "lagH": 104,
+    "r": -0.0145
+   },
+   {
+    "lagH": 105,
+    "r": -0.0147
+   },
+   {
+    "lagH": 106,
+    "r": -0.0154
+   },
+   {
+    "lagH": 107,
+    "r": -0.0164
+   },
+   {
+    "lagH": 108,
+    "r": -0.0134
+   },
+   {
+    "lagH": 109,
+    "r": -0.0127
+   },
+   {
+    "lagH": 110,
+    "r": -0.0169
+   },
+   {
+    "lagH": 111,
+    "r": -0.0166
+   },
+   {
+    "lagH": 112,
+    "r": -0.0147
+   },
+   {
+    "lagH": 113,
+    "r": -0.0197
+   },
+   {
+    "lagH": 114,
+    "r": -0.0197
+   },
+   {
+    "lagH": 115,
+    "r": -0.0198
+   },
+   {
+    "lagH": 116,
+    "r": -0.0194
+   },
+   {
+    "lagH": 117,
+    "r": -0.0203
+   },
+   {
+    "lagH": 118,
+    "r": -0.0186
+   },
+   {
+    "lagH": 119,
+    "r": -0.0152
+   },
+   {
+    "lagH": 120,
+    "r": -0.016
+   }
+  ],
+  "slopeHoursPerMetre": -19.08
+ },
+ {
+  "up": "hannington",
+  "down": "minns",
+  "n": 20,
+  "tHalf": {
+   "p10": 7.0,
+   "median": 22.4,
+   "p90": 53.9
+  },
+  "tPeak": {
+   "p10": 34.2,
+   "median": 55.5,
+   "p90": 76.6
+  },
+  "events": [
+   {
+    "eventId": "auto-20061127",
+    "tHalf": 8.1,
+    "tPeak": 51.0,
+    "rise": 1.029
+   },
+   {
+    "eventId": "auto-20070110",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.365,
+    "excluded": "ambiguous: second peak at minns with 51% of the main peak's prominence (0.40 m vs 0.79 m)"
+   },
+   {
+    "eventId": "auto-20070306",
+    "tHalf": 7.3,
+    "tPeak": 3.0,
+    "rise": 0.537
+   },
+   {
+    "eventId": "e2007",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 3.963,
+    "excluded": "T_half = -58.7 h, T_peak = -62.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080114",
+    "tHalf": 7.5,
+    "tPeak": 63.0,
+    "rise": 1.486
+   },
+   {
+    "eventId": "auto-20080318",
+    "tHalf": null,
+    "tPeak": 8.0,
+    "rise": 1.418,
+    "excluded": "T_half = -17.8 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080604",
+    "tHalf": null,
+    "tPeak": 8.0,
+    "rise": 1.263,
+    "excluded": "T_half = -29.6 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20090212",
+    "tHalf": null,
+    "tPeak": 50.0,
+    "rise": 1.227,
+    "excluded": "T_half = -10.3 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": 4.2,
+    "tPeak": 18.0,
+    "rise": 1.753
+   },
+   {
+    "eventId": "auto-20121222",
+    "tHalf": 42.5,
+    "tPeak": 45.0,
+    "rise": 1.305
+   },
+   {
+    "eventId": "auto-20130128",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.272,
+    "excluded": "T_half = -13.0 h, T_peak = -35.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.861,
+    "excluded": "ambiguous: second peak at minns with 55% of the main peak's prominence (0.83 m vs 1.51 m)"
+   },
+   {
+    "eventId": "auto-20160105",
+    "tHalf": 51.7,
+    "tPeak": 47.0,
+    "rise": 0.733
+   },
+   {
+    "eventId": "auto-20160208",
+    "tHalf": 27.8,
+    "tPeak": 50.0,
+    "rise": 0.973
+   },
+   {
+    "eventId": "auto-20160311",
+    "tHalf": 12.7,
+    "tPeak": 36.0,
+    "rise": 1.087
+   },
+   {
+    "eventId": "auto-20180402",
+    "tHalf": 7.0,
+    "tPeak": 47.0,
+    "rise": 0.981
+   },
+   {
+    "eventId": "auto-20191111",
+    "tHalf": 37.6,
+    "tPeak": 141.0,
+    "rise": 0.152
+   },
+   {
+    "eventId": "auto-20191216",
+    "tHalf": 36.5,
+    "tPeak": 69.0,
+    "rise": 0.618
+   },
+   {
+    "eventId": "auto-20200116",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.988,
+    "excluded": "ambiguous: second peak at minns with 100% of the main peak's prominence (0.66 m vs 0.66 m)"
+   },
+   {
+    "eventId": "auto-20200216",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.329,
+    "excluded": "ambiguous: second peak at hannington with 57% of the main peak's prominence (0.28 m vs 0.50 m)"
+   },
+   {
+    "eventId": "auto-20201224",
+    "tHalf": 43.7,
+    "tPeak": null,
+    "rise": 0.786,
+    "excluded": "T_peak = -64.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": 53.3,
+    "tPeak": 73.0,
+    "rise": 1.114
+   },
+   {
+    "eventId": "auto-20230103",
+    "tHalf": 59.1,
+    "tPeak": 58.0,
+    "rise": 0.792
+   },
+   {
+    "eventId": "auto-20230401",
+    "tHalf": 9.3,
+    "tPeak": 57.0,
+    "rise": 0.526
+   },
+   {
+    "eventId": "auto-20231114",
+    "tHalf": 85.8,
+    "tPeak": 74.0,
+    "rise": 0.331
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": 85.6,
+    "tPeak": null,
+    "rise": 1.0,
+    "excluded": "T_peak = -5.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20240209",
+    "tHalf": 32.1,
+    "tPeak": 100.0,
+    "rise": 1.515
+   },
+   {
+    "eventId": "auto-20240329",
+    "tHalf": 33.2,
+    "tPeak": 60.0,
+    "rise": 0.996
+   },
+   {
+    "eventId": "auto-20240926",
+    "tHalf": null,
+    "tPeak": 134.0,
+    "rise": 2.054,
+    "excluded": "T_half = -2.8 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.942,
+    "excluded": "ambiguous: second peak at hannington with 54% of the main peak's prominence (0.56 m vs 1.03 m)"
+   },
+   {
+    "eventId": "auto-20250108",
+    "tHalf": 17.0,
+    "tPeak": 47.0,
+    "rise": 1.233
+   },
+   {
+    "eventId": "auto-20250129",
+    "tHalf": 6.8,
+    "tPeak": 62.0,
+    "rise": 1.262
+   },
+   {
+    "eventId": "auto-20251219",
+    "tHalf": 9.9,
+    "tPeak": 54.0,
+    "rise": 0.32
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.7,
+    "excluded": "ambiguous: second peak at hannington with 57% of the main peak's prominence (0.42 m vs 0.73 m)"
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.2348
+   },
+   {
+    "lagH": 1,
+    "r": 0.2384
+   },
+   {
+    "lagH": 2,
+    "r": 0.2363
+   },
+   {
+    "lagH": 3,
+    "r": 0.2353
+   },
+   {
+    "lagH": 4,
+    "r": 0.234
+   },
+   {
+    "lagH": 5,
+    "r": 0.2303
+   },
+   {
+    "lagH": 6,
+    "r": 0.2261
+   },
+   {
+    "lagH": 7,
+    "r": 0.2227
+   },
+   {
+    "lagH": 8,
+    "r": 0.2198
+   },
+   {
+    "lagH": 9,
+    "r": 0.2205
+   },
+   {
+    "lagH": 10,
+    "r": 0.2249
+   },
+   {
+    "lagH": 11,
+    "r": 0.2314
+   },
+   {
+    "lagH": 12,
+    "r": 0.2395
+   },
+   {
+    "lagH": 13,
+    "r": 0.2496
+   },
+   {
+    "lagH": 14,
+    "r": 0.2594
+   },
+   {
+    "lagH": 15,
+    "r": 0.2666
+   },
+   {
+    "lagH": 16,
+    "r": 0.2726
+   },
+   {
+    "lagH": 17,
+    "r": 0.2766
+   },
+   {
+    "lagH": 18,
+    "r": 0.2791
+   },
+   {
+    "lagH": 19,
+    "r": 0.2788
+   },
+   {
+    "lagH": 20,
+    "r": 0.2756
+   },
+   {
+    "lagH": 21,
+    "r": 0.2695
+   },
+   {
+    "lagH": 22,
+    "r": 0.2623
+   },
+   {
+    "lagH": 23,
+    "r": 0.2518
+   },
+   {
+    "lagH": 24,
+    "r": 0.2403
+   },
+   {
+    "lagH": 25,
+    "r": 0.2273
+   },
+   {
+    "lagH": 26,
+    "r": 0.2124
+   },
+   {
+    "lagH": 27,
+    "r": 0.1955
+   },
+   {
+    "lagH": 28,
+    "r": 0.1767
+   },
+   {
+    "lagH": 29,
+    "r": 0.157
+   },
+   {
+    "lagH": 30,
+    "r": 0.1365
+   },
+   {
+    "lagH": 31,
+    "r": 0.1157
+   },
+   {
+    "lagH": 32,
+    "r": 0.0976
+   },
+   {
+    "lagH": 33,
+    "r": 0.0807
+   },
+   {
+    "lagH": 34,
+    "r": 0.0686
+   },
+   {
+    "lagH": 35,
+    "r": 0.0588
+   },
+   {
+    "lagH": 36,
+    "r": 0.0515
+   },
+   {
+    "lagH": 37,
+    "r": 0.0468
+   },
+   {
+    "lagH": 38,
+    "r": 0.0421
+   },
+   {
+    "lagH": 39,
+    "r": 0.0375
+   },
+   {
+    "lagH": 40,
+    "r": 0.0329
+   },
+   {
+    "lagH": 41,
+    "r": 0.029
+   },
+   {
+    "lagH": 42,
+    "r": 0.0242
+   },
+   {
+    "lagH": 43,
+    "r": 0.0185
+   },
+   {
+    "lagH": 44,
+    "r": 0.0138
+   },
+   {
+    "lagH": 45,
+    "r": 0.0094
+   },
+   {
+    "lagH": 46,
+    "r": 0.0058
+   },
+   {
+    "lagH": 47,
+    "r": 0.0025
+   },
+   {
+    "lagH": 48,
+    "r": -0.0005
+   },
+   {
+    "lagH": 49,
+    "r": -0.0035
+   },
+   {
+    "lagH": 50,
+    "r": -0.005
+   },
+   {
+    "lagH": 51,
+    "r": -0.0092
+   },
+   {
+    "lagH": 52,
+    "r": -0.0161
+   },
+   {
+    "lagH": 53,
+    "r": -0.0223
+   },
+   {
+    "lagH": 54,
+    "r": -0.0297
+   },
+   {
+    "lagH": 55,
+    "r": -0.0361
+   },
+   {
+    "lagH": 56,
+    "r": -0.0416
+   },
+   {
+    "lagH": 57,
+    "r": -0.0453
+   },
+   {
+    "lagH": 58,
+    "r": -0.0461
+   },
+   {
+    "lagH": 59,
+    "r": -0.0445
+   },
+   {
+    "lagH": 60,
+    "r": -0.0406
+   },
+   {
+    "lagH": 61,
+    "r": -0.0353
+   },
+   {
+    "lagH": 62,
+    "r": -0.0298
+   },
+   {
+    "lagH": 63,
+    "r": -0.0242
+   },
+   {
+    "lagH": 64,
+    "r": -0.0191
+   },
+   {
+    "lagH": 65,
+    "r": -0.0154
+   },
+   {
+    "lagH": 66,
+    "r": -0.0133
+   },
+   {
+    "lagH": 67,
+    "r": -0.0127
+   },
+   {
+    "lagH": 68,
+    "r": -0.0134
+   },
+   {
+    "lagH": 69,
+    "r": -0.0138
+   },
+   {
+    "lagH": 70,
+    "r": -0.0149
+   },
+   {
+    "lagH": 71,
+    "r": -0.0158
+   },
+   {
+    "lagH": 72,
+    "r": -0.0164
+   },
+   {
+    "lagH": 73,
+    "r": -0.0177
+   },
+   {
+    "lagH": 74,
+    "r": -0.0201
+   },
+   {
+    "lagH": 75,
+    "r": -0.023
+   },
+   {
+    "lagH": 76,
+    "r": -0.0275
+   },
+   {
+    "lagH": 77,
+    "r": -0.0321
+   },
+   {
+    "lagH": 78,
+    "r": -0.0376
+   },
+   {
+    "lagH": 79,
+    "r": -0.0434
+   },
+   {
+    "lagH": 80,
+    "r": -0.0479
+   },
+   {
+    "lagH": 81,
+    "r": -0.0507
+   },
+   {
+    "lagH": 82,
+    "r": -0.0514
+   },
+   {
+    "lagH": 83,
+    "r": -0.0501
+   },
+   {
+    "lagH": 84,
+    "r": -0.0474
+   },
+   {
+    "lagH": 85,
+    "r": -0.044
+   },
+   {
+    "lagH": 86,
+    "r": -0.0395
+   },
+   {
+    "lagH": 87,
+    "r": -0.0355
+   },
+   {
+    "lagH": 88,
+    "r": -0.0321
+   },
+   {
+    "lagH": 89,
+    "r": -0.0294
+   },
+   {
+    "lagH": 90,
+    "r": -0.0275
+   },
+   {
+    "lagH": 91,
+    "r": -0.0263
+   },
+   {
+    "lagH": 92,
+    "r": -0.0258
+   },
+   {
+    "lagH": 93,
+    "r": -0.0256
+   },
+   {
+    "lagH": 94,
+    "r": -0.0252
+   },
+   {
+    "lagH": 95,
+    "r": -0.0251
+   },
+   {
+    "lagH": 96,
+    "r": -0.025
+   },
+   {
+    "lagH": 97,
+    "r": -0.025
+   },
+   {
+    "lagH": 98,
+    "r": -0.0254
+   },
+   {
+    "lagH": 99,
+    "r": -0.0265
+   },
+   {
+    "lagH": 100,
+    "r": -0.0286
+   },
+   {
+    "lagH": 101,
+    "r": -0.0312
+   },
+   {
+    "lagH": 102,
+    "r": -0.035
+   },
+   {
+    "lagH": 103,
+    "r": -0.0385
+   },
+   {
+    "lagH": 104,
+    "r": -0.0419
+   },
+   {
+    "lagH": 105,
+    "r": -0.0437
+   },
+   {
+    "lagH": 106,
+    "r": -0.0437
+   },
+   {
+    "lagH": 107,
+    "r": -0.0418
+   },
+   {
+    "lagH": 108,
+    "r": -0.0376
+   },
+   {
+    "lagH": 109,
+    "r": -0.0335
+   },
+   {
+    "lagH": 110,
+    "r": -0.0291
+   },
+   {
+    "lagH": 111,
+    "r": -0.0245
+   },
+   {
+    "lagH": 112,
+    "r": -0.0203
+   },
+   {
+    "lagH": 113,
+    "r": -0.0173
+   },
+   {
+    "lagH": 114,
+    "r": -0.0148
+   },
+   {
+    "lagH": 115,
+    "r": -0.0137
+   },
+   {
+    "lagH": 116,
+    "r": -0.0131
+   },
+   {
+    "lagH": 117,
+    "r": -0.0121
+   },
+   {
+    "lagH": 118,
+    "r": -0.0116
+   },
+   {
+    "lagH": 119,
+    "r": -0.0118
+   },
+   {
+    "lagH": 120,
+    "r": -0.0112
+   }
+  ],
+  "slopeHoursPerMetre": -17.12
+ },
+ {
+  "up": "worsham",
+  "down": "minns",
+  "n": 19,
+  "tHalf": {
+   "p10": 2.9,
+   "median": 13.3,
+   "p90": 42.5
+  },
+  "tPeak": {
+   "p10": 30.6,
+   "median": 48.0,
+   "p90": 77.8
+  },
+  "events": [
+   {
+    "eventId": "auto-20061127",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.407,
+    "excluded": "ambiguous: second peak at worsham with 66% of the main peak's prominence (0.12 m vs 0.18 m)"
+   },
+   {
+    "eventId": "auto-20070110",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.335,
+    "excluded": "ambiguous: second peak at minns with 51% of the main peak's prominence (0.40 m vs 0.79 m)"
+   },
+   {
+    "eventId": "auto-20070306",
+    "tHalf": 36.6,
+    "tPeak": 29.0,
+    "rise": 0.283
+   },
+   {
+    "eventId": "e2007",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at worsham (72% of window missing)"
+   },
+   {
+    "eventId": "auto-20080114",
+    "tHalf": 47.7,
+    "tPeak": 61.0,
+    "rise": 0.662
+   },
+   {
+    "eventId": "auto-20080318",
+    "tHalf": null,
+    "tPeak": 31.0,
+    "rise": 0.531,
+    "excluded": "T_half = -1.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20080604",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.534,
+    "excluded": "ambiguous: second peak at worsham with 57% of the main peak's prominence (0.28 m vs 0.49 m)"
+   },
+   {
+    "eventId": "auto-20090212",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.252,
+    "excluded": "ambiguous: second peak at worsham with 736% of the main peak's prominence (0.15 m vs 0.02 m)"
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": 12.8,
+    "tPeak": 33.0,
+    "rise": 0.811
+   },
+   {
+    "eventId": "auto-20121222",
+    "tHalf": 35.4,
+    "tPeak": null,
+    "rise": 0.504,
+    "excluded": "T_peak = -66.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "auto-20130128",
+    "tHalf": 0.3,
+    "tPeak": 36.0,
+    "rise": 0.457
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.944,
+    "excluded": "ambiguous: second peak at worsham with 80% of the main peak's prominence (0.44 m vs 0.54 m)"
+   },
+   {
+    "eventId": "auto-20160105",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.348,
+    "excluded": "ambiguous: second peak at worsham with 63% of the main peak's prominence (0.15 m vs 0.24 m)"
+   },
+   {
+    "eventId": "auto-20160208",
+    "tHalf": 24.8,
+    "tPeak": 45.0,
+    "rise": 0.504
+   },
+   {
+    "eventId": "auto-20160311",
+    "tHalf": 11.4,
+    "tPeak": 31.0,
+    "rise": 0.47
+   },
+   {
+    "eventId": "auto-20180402",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.406,
+    "excluded": "ambiguous: second peak at worsham with 64% of the main peak's prominence (0.16 m vs 0.25 m)"
+   },
+   {
+    "eventId": "auto-20191111",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.566,
+    "excluded": "ambiguous: second peak at worsham with 57% of the main peak's prominence (0.21 m vs 0.36 m)"
+   },
+   {
+    "eventId": "auto-20191216",
+    "tHalf": 38.4,
+    "tPeak": 62.0,
+    "rise": 0.38
+   },
+   {
+    "eventId": "auto-20200116",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.372,
+    "excluded": "ambiguous: second peak at worsham with 68% of the main peak's prominence (0.16 m vs 0.24 m)"
+   },
+   {
+    "eventId": "auto-20200216",
+    "tHalf": 0.0,
+    "tPeak": 76.0,
+    "rise": 0.481
+   },
+   {
+    "eventId": "auto-20201224",
+    "tHalf": 11.9,
+    "tPeak": 26.0,
+    "rise": 0.933
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": 34.2,
+    "tPeak": 68.0,
+    "rise": 0.697
+   },
+   {
+    "eventId": "auto-20230103",
+    "tHalf": 63.0,
+    "tPeak": 48.0,
+    "rise": 0.53
+   },
+   {
+    "eventId": "auto-20230401",
+    "tHalf": 13.3,
+    "tPeak": 56.0,
+    "rise": 0.551
+   },
+   {
+    "eventId": "auto-20231114",
+    "tHalf": 23.5,
+    "tPeak": 85.0,
+    "rise": 0.267
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": 41.2,
+    "tPeak": 48.0,
+    "rise": 0.605
+   },
+   {
+    "eventId": "auto-20240209",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.698,
+    "excluded": "ambiguous: second peak at worsham with 73% of the main peak's prominence (0.30 m vs 0.41 m)"
+   },
+   {
+    "eventId": "auto-20240329",
+    "tHalf": 12.4,
+    "tPeak": 54.0,
+    "rise": 0.333
+   },
+   {
+    "eventId": "auto-20240926",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.858,
+    "excluded": "ambiguous: second peak at worsham with 57% of the main peak's prominence (0.14 m vs 0.25 m)"
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 28.0,
+    "tPeak": 109.0,
+    "rise": 1.151
+   },
+   {
+    "eventId": "auto-20250108",
+    "tHalf": 6.7,
+    "tPeak": 32.0,
+    "rise": 0.525
+   },
+   {
+    "eventId": "auto-20250129",
+    "tHalf": 5.1,
+    "tPeak": 51.0,
+    "rise": 0.442
+   },
+   {
+    "eventId": "auto-20251219",
+    "tHalf": 3.6,
+    "tPeak": 46.0,
+    "rise": 0.432
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": 52.6,
+    "tPeak": null,
+    "rise": 0.632,
+    "excluded": "T_peak = -6.0 h outside (0, 168) h"
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.1435
+   },
+   {
+    "lagH": 1,
+    "r": 0.1404
+   },
+   {
+    "lagH": 2,
+    "r": 0.1308
+   },
+   {
+    "lagH": 3,
+    "r": 0.1301
+   },
+   {
+    "lagH": 4,
+    "r": 0.1342
+   },
+   {
+    "lagH": 5,
+    "r": 0.142
+   },
+   {
+    "lagH": 6,
+    "r": 0.1466
+   },
+   {
+    "lagH": 7,
+    "r": 0.1539
+   },
+   {
+    "lagH": 8,
+    "r": 0.1667
+   },
+   {
+    "lagH": 9,
+    "r": 0.1782
+   },
+   {
+    "lagH": 10,
+    "r": 0.1852
+   },
+   {
+    "lagH": 11,
+    "r": 0.194
+   },
+   {
+    "lagH": 12,
+    "r": 0.2062
+   },
+   {
+    "lagH": 13,
+    "r": 0.2174
+   },
+   {
+    "lagH": 14,
+    "r": 0.2267
+   },
+   {
+    "lagH": 15,
+    "r": 0.2346
+   },
+   {
+    "lagH": 16,
+    "r": 0.241
+   },
+   {
+    "lagH": 17,
+    "r": 0.2437
+   },
+   {
+    "lagH": 18,
+    "r": 0.2412
+   },
+   {
+    "lagH": 19,
+    "r": 0.2395
+   },
+   {
+    "lagH": 20,
+    "r": 0.2362
+   },
+   {
+    "lagH": 21,
+    "r": 0.2322
+   },
+   {
+    "lagH": 22,
+    "r": 0.2271
+   },
+   {
+    "lagH": 23,
+    "r": 0.223
+   },
+   {
+    "lagH": 24,
+    "r": 0.2189
+   },
+   {
+    "lagH": 25,
+    "r": 0.2129
+   },
+   {
+    "lagH": 26,
+    "r": 0.202
+   },
+   {
+    "lagH": 27,
+    "r": 0.1909
+   },
+   {
+    "lagH": 28,
+    "r": 0.1804
+   },
+   {
+    "lagH": 29,
+    "r": 0.1671
+   },
+   {
+    "lagH": 30,
+    "r": 0.1567
+   },
+   {
+    "lagH": 31,
+    "r": 0.1479
+   },
+   {
+    "lagH": 32,
+    "r": 0.1407
+   },
+   {
+    "lagH": 33,
+    "r": 0.134
+   },
+   {
+    "lagH": 34,
+    "r": 0.1287
+   },
+   {
+    "lagH": 35,
+    "r": 0.1244
+   },
+   {
+    "lagH": 36,
+    "r": 0.1201
+   },
+   {
+    "lagH": 37,
+    "r": 0.1145
+   },
+   {
+    "lagH": 38,
+    "r": 0.109
+   },
+   {
+    "lagH": 39,
+    "r": 0.1041
+   },
+   {
+    "lagH": 40,
+    "r": 0.099
+   },
+   {
+    "lagH": 41,
+    "r": 0.0965
+   },
+   {
+    "lagH": 42,
+    "r": 0.0921
+   },
+   {
+    "lagH": 43,
+    "r": 0.0869
+   },
+   {
+    "lagH": 44,
+    "r": 0.083
+   },
+   {
+    "lagH": 45,
+    "r": 0.0803
+   },
+   {
+    "lagH": 46,
+    "r": 0.0771
+   },
+   {
+    "lagH": 47,
+    "r": 0.0728
+   },
+   {
+    "lagH": 48,
+    "r": 0.067
+   },
+   {
+    "lagH": 49,
+    "r": 0.06
+   },
+   {
+    "lagH": 50,
+    "r": 0.0552
+   },
+   {
+    "lagH": 51,
+    "r": 0.0516
+   },
+   {
+    "lagH": 52,
+    "r": 0.048
+   },
+   {
+    "lagH": 53,
+    "r": 0.0433
+   },
+   {
+    "lagH": 54,
+    "r": 0.0387
+   },
+   {
+    "lagH": 55,
+    "r": 0.0368
+   },
+   {
+    "lagH": 56,
+    "r": 0.0353
+   },
+   {
+    "lagH": 57,
+    "r": 0.033
+   },
+   {
+    "lagH": 58,
+    "r": 0.0333
+   },
+   {
+    "lagH": 59,
+    "r": 0.0299
+   },
+   {
+    "lagH": 60,
+    "r": 0.0267
+   },
+   {
+    "lagH": 61,
+    "r": 0.0252
+   },
+   {
+    "lagH": 62,
+    "r": 0.0226
+   },
+   {
+    "lagH": 63,
+    "r": 0.0202
+   },
+   {
+    "lagH": 64,
+    "r": 0.0185
+   },
+   {
+    "lagH": 65,
+    "r": 0.0138
+   },
+   {
+    "lagH": 66,
+    "r": 0.0076
+   },
+   {
+    "lagH": 67,
+    "r": 0.0049
+   },
+   {
+    "lagH": 68,
+    "r": 0.0018
+   },
+   {
+    "lagH": 69,
+    "r": 0.0012
+   },
+   {
+    "lagH": 70,
+    "r": -0.0009
+   },
+   {
+    "lagH": 71,
+    "r": -0.0018
+   },
+   {
+    "lagH": 72,
+    "r": -0.0023
+   },
+   {
+    "lagH": 73,
+    "r": -0.0038
+   },
+   {
+    "lagH": 74,
+    "r": -0.0028
+   },
+   {
+    "lagH": 75,
+    "r": -0.0022
+   },
+   {
+    "lagH": 76,
+    "r": -0.0033
+   },
+   {
+    "lagH": 77,
+    "r": -0.0044
+   },
+   {
+    "lagH": 78,
+    "r": -0.0043
+   },
+   {
+    "lagH": 79,
+    "r": -0.0041
+   },
+   {
+    "lagH": 80,
+    "r": -0.0046
+   },
+   {
+    "lagH": 81,
+    "r": -0.0053
+   },
+   {
+    "lagH": 82,
+    "r": -0.0062
+   },
+   {
+    "lagH": 83,
+    "r": -0.0072
+   },
+   {
+    "lagH": 84,
+    "r": -0.0079
+   },
+   {
+    "lagH": 85,
+    "r": -0.0096
+   },
+   {
+    "lagH": 86,
+    "r": -0.0108
+   },
+   {
+    "lagH": 87,
+    "r": -0.0129
+   },
+   {
+    "lagH": 88,
+    "r": -0.0124
+   },
+   {
+    "lagH": 89,
+    "r": -0.0129
+   },
+   {
+    "lagH": 90,
+    "r": -0.0133
+   },
+   {
+    "lagH": 91,
+    "r": -0.0137
+   },
+   {
+    "lagH": 92,
+    "r": -0.013
+   },
+   {
+    "lagH": 93,
+    "r": -0.0124
+   },
+   {
+    "lagH": 94,
+    "r": -0.0116
+   },
+   {
+    "lagH": 95,
+    "r": -0.0113
+   },
+   {
+    "lagH": 96,
+    "r": -0.0095
+   },
+   {
+    "lagH": 97,
+    "r": -0.0062
+   },
+   {
+    "lagH": 98,
+    "r": -0.0046
+   },
+   {
+    "lagH": 99,
+    "r": -0.0044
+   },
+   {
+    "lagH": 100,
+    "r": -0.0034
+   },
+   {
+    "lagH": 101,
+    "r": -0.0055
+   },
+   {
+    "lagH": 102,
+    "r": -0.0072
+   },
+   {
+    "lagH": 103,
+    "r": -0.0089
+   },
+   {
+    "lagH": 104,
+    "r": -0.0122
+   },
+   {
+    "lagH": 105,
+    "r": -0.0135
+   },
+   {
+    "lagH": 106,
+    "r": -0.014
+   },
+   {
+    "lagH": 107,
+    "r": -0.0159
+   },
+   {
+    "lagH": 108,
+    "r": -0.0172
+   },
+   {
+    "lagH": 109,
+    "r": -0.0181
+   },
+   {
+    "lagH": 110,
+    "r": -0.0178
+   },
+   {
+    "lagH": 111,
+    "r": -0.0183
+   },
+   {
+    "lagH": 112,
+    "r": -0.0169
+   },
+   {
+    "lagH": 113,
+    "r": -0.0174
+   },
+   {
+    "lagH": 114,
+    "r": -0.0175
+   },
+   {
+    "lagH": 115,
+    "r": -0.0174
+   },
+   {
+    "lagH": 116,
+    "r": -0.0201
+   },
+   {
+    "lagH": 117,
+    "r": -0.0204
+   },
+   {
+    "lagH": 118,
+    "r": -0.0176
+   },
+   {
+    "lagH": 119,
+    "r": -0.0131
+   },
+   {
+    "lagH": 120,
+    "r": -0.011
+   }
+  ],
+  "slopeHoursPerMetre": 6.58
+ },
+ {
+  "up": "shipton",
+  "down": "minns",
+  "n": 14,
+  "tHalf": {
+   "p10": 14.4,
+   "median": 20.8,
+   "p90": 77.9
+  },
+  "tPeak": {
+   "p10": 41.8,
+   "median": 65.0,
+   "p90": 94.8
+  },
+  "events": [
+   {
+    "eventId": "auto-20061127",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.229,
+    "excluded": "ambiguous: second peak at shipton with 57% of the main peak's prominence (0.54 m vs 0.95 m)"
+   },
+   {
+    "eventId": "auto-20070110",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.008,
+    "excluded": "ambiguous: second peak at shipton with 52% of the main peak's prominence (0.59 m vs 1.14 m)"
+   },
+   {
+    "eventId": "auto-20070306",
+    "tHalf": 81.5,
+    "tPeak": 40.0,
+    "rise": 0.735
+   },
+   {
+    "eventId": "e2007",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at shipton (73% of window missing)"
+   },
+   {
+    "eventId": "auto-20080114",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at shipton (66% of window missing)"
+   },
+   {
+    "eventId": "auto-20080318",
+    "tHalf": 4.3,
+    "tPeak": 46.0,
+    "rise": 1.649
+   },
+   {
+    "eventId": "auto-20080604",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at shipton (100% of window missing)"
+   },
+   {
+    "eventId": "auto-20090212",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.212,
+    "excluded": "ambiguous: second peak at shipton with 58% of the main peak's prominence (0.55 m vs 0.95 m)"
+   },
+   {
+    "eventId": "e2012",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.916,
+    "excluded": "ambiguous: second peak at shipton with 77% of the main peak's prominence (1.18 m vs 1.54 m)"
+   },
+   {
+    "eventId": "auto-20121222",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.781,
+    "excluded": "ambiguous: second peak at shipton with 66% of the main peak's prominence (0.65 m vs 0.99 m)"
+   },
+   {
+    "eventId": "auto-20130128",
+    "tHalf": 19.3,
+    "tPeak": 62.0,
+    "rise": 1.552
+   },
+   {
+    "eventId": "e2014",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.693,
+    "excluded": "ambiguous: second peak at shipton with 77% of the main peak's prominence (1.29 m vs 1.66 m)"
+   },
+   {
+    "eventId": "auto-20160105",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.59,
+    "excluded": "ambiguous: second peak at shipton with 76% of the main peak's prominence (0.73 m vs 0.95 m)"
+   },
+   {
+    "eventId": "auto-20160208",
+    "tHalf": 33.4,
+    "tPeak": 92.0,
+    "rise": 1.445
+   },
+   {
+    "eventId": "auto-20160311",
+    "tHalf": 17.1,
+    "tPeak": 47.0,
+    "rise": 1.695
+   },
+   {
+    "eventId": "auto-20180402",
+    "tHalf": 28.6,
+    "tPeak": 96.0,
+    "rise": 1.36
+   },
+   {
+    "eventId": "auto-20191111",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.444,
+    "excluded": "ambiguous: second peak at shipton with 67% of the main peak's prominence (0.79 m vs 1.17 m)"
+   },
+   {
+    "eventId": "auto-20191216",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.247,
+    "excluded": "ambiguous: second peak at shipton with 68% of the main peak's prominence (0.84 m vs 1.23 m)"
+   },
+   {
+    "eventId": "auto-20200116",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.265,
+    "excluded": "ambiguous: second peak at shipton with 63% of the main peak's prominence (0.74 m vs 1.18 m)"
+   },
+   {
+    "eventId": "auto-20200216",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.161,
+    "excluded": "ambiguous: second peak at shipton with 67% of the main peak's prominence (0.97 m vs 1.45 m)"
+   },
+   {
+    "eventId": "auto-20201224",
+    "tHalf": 21.9,
+    "tPeak": 36.0,
+    "rise": 1.845
+   },
+   {
+    "eventId": "e2021",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.206,
+    "excluded": "ambiguous: second peak at shipton with 75% of the main peak's prominence (1.01 m vs 1.35 m)"
+   },
+   {
+    "eventId": "auto-20230103",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.0,
+    "excluded": "insufficient data at shipton (98% of window missing)"
+   },
+   {
+    "eventId": "auto-20230401",
+    "tHalf": 19.7,
+    "tPeak": 78.0,
+    "rise": 1.215
+   },
+   {
+    "eventId": "auto-20231114",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.57,
+    "excluded": "ambiguous: second peak at shipton with 57% of the main peak's prominence (0.47 m vs 0.83 m)"
+   },
+   {
+    "eventId": "e2024a",
+    "tHalf": 90.7,
+    "tPeak": 68.0,
+    "rise": 1.42
+   },
+   {
+    "eventId": "auto-20240209",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 1.558,
+    "excluded": "ambiguous: second peak at shipton with 72% of the main peak's prominence (1.04 m vs 1.44 m)"
+   },
+   {
+    "eventId": "auto-20240329",
+    "tHalf": 18.5,
+    "tPeak": 76.0,
+    "rise": 1.147
+   },
+   {
+    "eventId": "auto-20240926",
+    "tHalf": null,
+    "tPeak": 152.0,
+    "rise": 2.029,
+    "excluded": "T_half = -2.0 h outside (0, 168) h"
+   },
+   {
+    "eventId": "e2024b",
+    "tHalf": 42.4,
+    "tPeak": 120.0,
+    "rise": 2.639
+   },
+   {
+    "eventId": "auto-20250108",
+    "tHalf": 18.7,
+    "tPeak": 57.0,
+    "rise": 1.495
+   },
+   {
+    "eventId": "auto-20250129",
+    "tHalf": 13.2,
+    "tPeak": 70.0,
+    "rise": 1.392
+   },
+   {
+    "eventId": "auto-20251219",
+    "tHalf": 69.5,
+    "tPeak": 61.0,
+    "rise": 1.096
+   },
+   {
+    "eventId": "e2026",
+    "tHalf": null,
+    "tPeak": null,
+    "rise": 0.984,
+    "excluded": "ambiguous: second peak at shipton with 80% of the main peak's prominence (0.90 m vs 1.13 m)"
+   }
+  ],
+  "xcorr": [
+   {
+    "lagH": 0,
+    "r": 0.1118
+   },
+   {
+    "lagH": 1,
+    "r": 0.1107
+   },
+   {
+    "lagH": 2,
+    "r": 0.1124
+   },
+   {
+    "lagH": 3,
+    "r": 0.1209
+   },
+   {
+    "lagH": 4,
+    "r": 0.1283
+   },
+   {
+    "lagH": 5,
+    "r": 0.1307
+   },
+   {
+    "lagH": 6,
+    "r": 0.1341
+   },
+   {
+    "lagH": 7,
+    "r": 0.1299
+   },
+   {
+    "lagH": 8,
+    "r": 0.1205
+   },
+   {
+    "lagH": 9,
+    "r": 0.1179
+   },
+   {
+    "lagH": 10,
+    "r": 0.1128
+   },
+   {
+    "lagH": 11,
+    "r": 0.1088
+   },
+   {
+    "lagH": 12,
+    "r": 0.1097
+   },
+   {
+    "lagH": 13,
+    "r": 0.1157
+   },
+   {
+    "lagH": 14,
+    "r": 0.125
+   },
+   {
+    "lagH": 15,
+    "r": 0.1334
+   },
+   {
+    "lagH": 16,
+    "r": 0.1447
+   },
+   {
+    "lagH": 17,
+    "r": 0.154
+   },
+   {
+    "lagH": 18,
+    "r": 0.1594
+   },
+   {
+    "lagH": 19,
+    "r": 0.1622
+   },
+   {
+    "lagH": 20,
+    "r": 0.1651
+   },
+   {
+    "lagH": 21,
+    "r": 0.1675
+   },
+   {
+    "lagH": 22,
+    "r": 0.1692
+   },
+   {
+    "lagH": 23,
+    "r": 0.1706
+   },
+   {
+    "lagH": 24,
+    "r": 0.1682
+   },
+   {
+    "lagH": 25,
+    "r": 0.1614
+   },
+   {
+    "lagH": 26,
+    "r": 0.1543
+   },
+   {
+    "lagH": 27,
+    "r": 0.1485
+   },
+   {
+    "lagH": 28,
+    "r": 0.1389
+   },
+   {
+    "lagH": 29,
+    "r": 0.1307
+   },
+   {
+    "lagH": 30,
+    "r": 0.126
+   },
+   {
+    "lagH": 31,
+    "r": 0.1197
+   },
+   {
+    "lagH": 32,
+    "r": 0.1122
+   },
+   {
+    "lagH": 33,
+    "r": 0.1061
+   },
+   {
+    "lagH": 34,
+    "r": 0.1022
+   },
+   {
+    "lagH": 35,
+    "r": 0.0976
+   },
+   {
+    "lagH": 36,
+    "r": 0.0944
+   },
+   {
+    "lagH": 37,
+    "r": 0.0903
+   },
+   {
+    "lagH": 38,
+    "r": 0.085
+   },
+   {
+    "lagH": 39,
+    "r": 0.0824
+   },
+   {
+    "lagH": 40,
+    "r": 0.0804
+   },
+   {
+    "lagH": 41,
+    "r": 0.0784
+   },
+   {
+    "lagH": 42,
+    "r": 0.0764
+   },
+   {
+    "lagH": 43,
+    "r": 0.0738
+   },
+   {
+    "lagH": 44,
+    "r": 0.0712
+   },
+   {
+    "lagH": 45,
+    "r": 0.0698
+   },
+   {
+    "lagH": 46,
+    "r": 0.0692
+   },
+   {
+    "lagH": 47,
+    "r": 0.0672
+   },
+   {
+    "lagH": 48,
+    "r": 0.0662
+   },
+   {
+    "lagH": 49,
+    "r": 0.0662
+   },
+   {
+    "lagH": 50,
+    "r": 0.0655
+   },
+   {
+    "lagH": 51,
+    "r": 0.0645
+   },
+   {
+    "lagH": 52,
+    "r": 0.0612
+   },
+   {
+    "lagH": 53,
+    "r": 0.0601
+   },
+   {
+    "lagH": 54,
+    "r": 0.0587
+   },
+   {
+    "lagH": 55,
+    "r": 0.0567
+   },
+   {
+    "lagH": 56,
+    "r": 0.0535
+   },
+   {
+    "lagH": 57,
+    "r": 0.0516
+   },
+   {
+    "lagH": 58,
+    "r": 0.0504
+   },
+   {
+    "lagH": 59,
+    "r": 0.0452
+   },
+   {
+    "lagH": 60,
+    "r": 0.0417
+   },
+   {
+    "lagH": 61,
+    "r": 0.0386
+   },
+   {
+    "lagH": 62,
+    "r": 0.0349
+   },
+   {
+    "lagH": 63,
+    "r": 0.0341
+   },
+   {
+    "lagH": 64,
+    "r": 0.0318
+   },
+   {
+    "lagH": 65,
+    "r": 0.0286
+   },
+   {
+    "lagH": 66,
+    "r": 0.0264
+   },
+   {
+    "lagH": 67,
+    "r": 0.0261
+   },
+   {
+    "lagH": 68,
+    "r": 0.0235
+   },
+   {
+    "lagH": 69,
+    "r": 0.0228
+   },
+   {
+    "lagH": 70,
+    "r": 0.0199
+   },
+   {
+    "lagH": 71,
+    "r": 0.0176
+   },
+   {
+    "lagH": 72,
+    "r": 0.0162
+   },
+   {
+    "lagH": 73,
+    "r": 0.0154
+   },
+   {
+    "lagH": 74,
+    "r": 0.0135
+   },
+   {
+    "lagH": 75,
+    "r": 0.0123
+   },
+   {
+    "lagH": 76,
+    "r": 0.011
+   },
+   {
+    "lagH": 77,
+    "r": 0.0073
+   },
+   {
+    "lagH": 78,
+    "r": 0.0052
+   },
+   {
+    "lagH": 79,
+    "r": 0.0045
+   },
+   {
+    "lagH": 80,
+    "r": 0.0033
+   },
+   {
+    "lagH": 81,
+    "r": 0.0022
+   },
+   {
+    "lagH": 82,
+    "r": 0.0014
+   },
+   {
+    "lagH": 83,
+    "r": 0.001
+   },
+   {
+    "lagH": 84,
+    "r": 0.0002
+   },
+   {
+    "lagH": 85,
+    "r": -0.0007
+   },
+   {
+    "lagH": 86,
+    "r": -0.0021
+   },
+   {
+    "lagH": 87,
+    "r": -0.0036
+   },
+   {
+    "lagH": 88,
+    "r": -0.0056
+   },
+   {
+    "lagH": 89,
+    "r": -0.0067
+   },
+   {
+    "lagH": 90,
+    "r": -0.0072
+   },
+   {
+    "lagH": 91,
+    "r": -0.0075
+   },
+   {
+    "lagH": 92,
+    "r": -0.0065
+   },
+   {
+    "lagH": 93,
+    "r": -0.0058
+   },
+   {
+    "lagH": 94,
+    "r": -0.0086
+   },
+   {
+    "lagH": 95,
+    "r": -0.0061
+   },
+   {
+    "lagH": 96,
+    "r": -0.0035
+   },
+   {
+    "lagH": 97,
+    "r": -0.005
+   },
+   {
+    "lagH": 98,
+    "r": -0.008
+   },
+   {
+    "lagH": 99,
+    "r": -0.0079
+   },
+   {
+    "lagH": 100,
+    "r": -0.0073
+   },
+   {
+    "lagH": 101,
+    "r": -0.0062
+   },
+   {
+    "lagH": 102,
+    "r": -0.0065
+   },
+   {
+    "lagH": 103,
+    "r": -0.0051
+   },
+   {
+    "lagH": 104,
+    "r": -0.0018
+   },
+   {
+    "lagH": 105,
+    "r": -0.0011
+   },
+   {
+    "lagH": 106,
+    "r": -0.0018
+   },
+   {
+    "lagH": 107,
+    "r": -0.0032
+   },
+   {
+    "lagH": 108,
+    "r": -0.0037
+   },
+   {
+    "lagH": 109,
+    "r": -0.0055
+   },
+   {
+    "lagH": 110,
+    "r": -0.0066
+   },
+   {
+    "lagH": 111,
+    "r": -0.0089
+   },
+   {
+    "lagH": 112,
+    "r": -0.0108
+   },
+   {
+    "lagH": 113,
+    "r": -0.0119
+   },
+   {
+    "lagH": 114,
+    "r": -0.012
+   },
+   {
+    "lagH": 115,
+    "r": -0.0105
+   },
+   {
+    "lagH": 116,
+    "r": -0.01
+   },
+   {
+    "lagH": 117,
+    "r": -0.0111
+   },
+   {
+    "lagH": 118,
+    "r": -0.0108
+   },
+   {
+    "lagH": 119,
+    "r": -0.0091
+   },
+   {
+    "lagH": 120,
+    "r": -0.0074
+   }
+  ],
+  "slopeHoursPerMetre": -18.48
  },
  {
   "up": "farmoor",
