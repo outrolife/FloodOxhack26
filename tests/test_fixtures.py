@@ -377,9 +377,18 @@ def assert_close(a: float, b: float, tol: float, path: str) -> None:
     assert abs(a - b) <= tol, f"{path}: {a} != {b} (tol {tol})"
 
 
-def check_arrival_probability(sf: dict, issued: datetime, path: str) -> None:
+def check_arrival_probability(sf: dict, spot: dict, issued: datetime, path: str) -> None:
     """probability spot: arrival p{x} is set iff some lead reaches x, and falls
-    between issue time and the first lead that reaches x (SPEC §7.5 step 5)."""
+    between issue time and the first lead that reaches x (SPEC §7.5 step 5).
+    If the gauge is already at or above the threshold at issue time, p = 1 at
+    t = 0, so every arrival time is the issue time, even when later leads fall."""
+    if sf["levelNow"] >= spot["threshold"] - EPS:
+        for key in ("p10", "p50", "p90"):
+            value = sf["arrival"][key]
+            assert value is not None and parse_utc(value) == issued, (
+                f"{path}.arrival.{key}: level already above threshold, so arrival must be issuedAt"
+            )
+        return
     hs = [lead["h"] for lead in sf["leads"]]
     ps = [lead["pFlood"] for lead in sf["leads"]]
     for key, x in (("p10", 0.1), ("p50", 0.5), ("p90", 0.9)):
@@ -436,7 +445,7 @@ def check_spot_forecast(sf: dict, spots: dict, issued: datetime, path: str) -> N
     assert sf["arrival"] is not None, f"{path}.arrival: null although leads are present"
     if spot["mode"] == "probability":
         assert_non_decreasing([lead["pFlood"] for lead in sf["leads"]], f"{path}.leads[*].pFlood")
-        check_arrival_probability(sf, issued, path)
+        check_arrival_probability(sf, spot, issued, path)
     else:
         check_arrival_timing_only(sf, spot, issued, path)
 
