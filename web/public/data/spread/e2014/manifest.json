@@ -1,0 +1,208 @@
+{
+ "bounds": [
+  [
+   51.745,
+   -1.29
+  ],
+  [
+   51.758,
+   -1.265
+  ]
+ ],
+ "runs": 200,
+ "frames": [
+  {
+   "tau": 6,
+   "issuedAt": "2014-01-03T00:00:00Z",
+   "png": "spread/e2014/tau06_fc174df200.png"
+  },
+  {
+   "tau": 12,
+   "issuedAt": "2014-01-03T00:00:00Z",
+   "png": "spread/e2014/tau12_9af4e4c4e1.png"
+  },
+  {
+   "tau": 24,
+   "issuedAt": "2014-01-03T00:00:00Z",
+   "png": "spread/e2014/tau24_ad39cd91ce.png"
+  },
+  {
+   "tau": 36,
+   "issuedAt": "2014-01-03T00:00:00Z",
+   "png": "spread/e2014/tau36_113dbea1ff.png"
+  },
+  {
+   "tau": 48,
+   "issuedAt": "2014-01-03T00:00:00Z",
+   "png": "spread/e2014/tau48_1f1e89697d.png"
+  },
+  {
+   "tau": 72,
+   "issuedAt": "2014-01-03T00:00:00Z",
+   "png": "spread/e2014/tau72_bdc6ca7bb0.png"
+  },
+  {
+   "tau": 6,
+   "issuedAt": "2014-01-04T00:00:00Z",
+   "png": "spread/e2014/tau06_f5b3011cc5.png"
+  },
+  {
+   "tau": 12,
+   "issuedAt": "2014-01-04T00:00:00Z",
+   "png": "spread/e2014/tau12_b7430d9f7c.png"
+  },
+  {
+   "tau": 24,
+   "issuedAt": "2014-01-04T00:00:00Z",
+   "png": "spread/e2014/tau24_c114fb2f2e.png"
+  },
+  {
+   "tau": 36,
+   "issuedAt": "2014-01-04T00:00:00Z",
+   "png": "spread/e2014/tau36_5978c0dea2.png"
+  },
+  {
+   "tau": 48,
+   "issuedAt": "2014-01-04T00:00:00Z",
+   "png": "spread/e2014/tau48_2f01a348c4.png"
+  },
+  {
+   "tau": 72,
+   "issuedAt": "2014-01-04T00:00:00Z",
+   "png": "spread/e2014/tau72_b1ea2c580e.png"
+  },
+  {
+   "tau": 6,
+   "issuedAt": "2014-01-05T00:00:00Z",
+   "png": "spread/e2014/tau06_8c68407b06.png"
+  },
+  {
+   "tau": 12,
+   "issuedAt": "2014-01-05T00:00:00Z",
+   "png": "spread/e2014/tau12_cb7984cd46.png"
+  },
+  {
+   "tau": 24,
+   "issuedAt": "2014-01-05T00:00:00Z",
+   "png": "spread/e2014/tau24_eb6e6e1ed4.png"
+  },
+  {
+   "tau": 36,
+   "issuedAt": "2014-01-05T00:00:00Z",
+   "png": "spread/e2014/tau36_6759128cbe.png"
+  },
+  {
+   "tau": 48,
+   "issuedAt": "2014-01-05T00:00:00Z",
+   "png": "spread/e2014/tau48_833ec68abf.png"
+  },
+  {
+   "tau": 72,
+   "issuedAt": "2014-01-05T00:00:00Z",
+   "png": "spread/e2014/tau72_3e0d8ecdbe.png"
+  },
+  {
+   "tau": 6,
+   "issuedAt": "2014-01-05T12:00:00Z",
+   "png": "spread/e2014/tau06_bf2a849383.png"
+  },
+  {
+   "tau": 12,
+   "issuedAt": "2014-01-05T12:00:00Z",
+   "png": "spread/e2014/tau12_285ead2aee.png"
+  },
+  {
+   "tau": 24,
+   "issuedAt": "2014-01-05T12:00:00Z",
+   "png": "spread/e2014/tau24_fdceeb85ef.png"
+  },
+  {
+   "tau": 36,
+   "issuedAt": "2014-01-05T12:00:00Z",
+   "png": "spread/e2014/tau36_9f9dcda41b.png"
+  },
+  {
+   "tau": 48,
+   "issuedAt": "2014-01-05T12:00:00Z",
+   "png": "spread/e2014/tau48_0decdff177.png"
+  },
+  {
+   "tau": 72,
+   "issuedAt": "2014-01-05T12:00:00Z",
+   "png": "spread/e2014/tau72_67196c291b.png"
+  },
+  {
+   "tau": 6,
+   "issuedAt": "2014-01-08T08:00:00Z",
+   "png": "spread/e2014/tau06_56743d80b8.png"
+  },
+  {
+   "tau": 12,
+   "issuedAt": "2014-01-08T08:00:00Z",
+   "png": "spread/e2014/tau12_ca43fa2eb0.png"
+  },
+  {
+   "tau": 24,
+   "issuedAt": "2014-01-08T08:00:00Z",
+   "png": "spread/e2014/tau24_d3a64b0cb3.png"
+  },
+  {
+   "tau": 36,
+   "issuedAt": "2014-01-08T08:00:00Z",
+   "png": "spread/e2014/tau36_cd656a4df4.png"
+  },
+  {
+   "tau": 48,
+   "issuedAt": "2014-01-08T08:00:00Z",
+   "png": "spread/e2014/tau48_6e4e7c1b71.png"
+  },
+  {
+   "tau": 72,
+   "issuedAt": "2014-01-08T08:00:00Z",
+   "png": "spread/e2014/tau72_1b862caac1.png"
+  },
+  {
+   "tau": 6,
+   "issuedAt": "2014-01-09T02:00:00Z",
+   "png": "spread/e2014/tau06_e896173050.png"
+  },
+  {
+   "tau": 12,
+   "issuedAt": "2014-01-09T02:00:00Z",
+   "png": "spread/e2014/tau12_d112805029.png"
+  },
+  {
+   "tau": 24,
+   "issuedAt": "2014-01-09T02:00:00Z",
+   "png": "spread/e2014/tau24_9d5c1a0914.png"
+  },
+  {
+   "tau": 36,
+   "issuedAt": "2014-01-09T02:00:00Z",
+   "png": "spread/e2014/tau36_98ffcf4e2a.png"
+  },
+  {
+   "tau": 48,
+   "issuedAt": "2014-01-09T02:00:00Z",
+   "png": "spread/e2014/tau48_01578b6073.png"
+  },
+  {
+   "tau": 72,
+   "issuedAt": "2014-01-09T02:00:00Z",
+   "png": "spread/e2014/tau72_c7f545175d.png"
+  }
+ ],
+ "validation": {
+  "eventId": "e2014",
+  "iou": 0.681
+ },
+ "caveats": [
+  "Experimental. A simple terrain fill: ignores channel flow, walls, drains, pumps and defences. Ensemble frequency, not a verified flood probability.",
+  "One flat water level for the whole area, from the New Botley gauge (1645TH) plus its stage datum 54.00 mAOD (EA station metadata, about \u00b10.05 m); it ignores the river's slope and the drop at Osney Lock, so it overstates water east of the lock.",
+  "Terrain: EA LIDAR Composite DTM 2022 1 m (OGL v3), via the Defra DSP WCS, resampled to 5 m. River cells: EA Statutory Main River Map (OGL v3).",
+  "200 runs per frame: forecast level drawn from the River Clock quantiles; terrain perturbed by \u00b10.15 m smoothed noise for LiDAR error.",
+  "Shading: share of runs in which a cell is wet. Palest 10-25%, then 25-50%, 50-75%, darkest 75% or more.",
+  "Largest extent wet in at least half the runs, over these frames: 145 ha of the 250 ha box, not counting the mapped river centrelines.",
+  "Check against the EA Recorded Flood Outline for winter 2013/14 at the 2014-01-09 peak (forecast issued 6 h ahead, 50% ensemble extent): IoU 0.68 inside the box."
+ ]
+}
