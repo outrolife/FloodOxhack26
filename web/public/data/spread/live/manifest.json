@@ -14,32 +14,32 @@
   {
    "tau": 6,
    "issuedAt": "2026-10-24T18:07:00Z",
-   "png": "spread/live/tau06_c3266b5698.png"
+   "png": "spread/live/tau06_935bb87127.png"
   },
   {
    "tau": 12,
    "issuedAt": "2026-10-24T18:07:00Z",
-   "png": "spread/live/tau12_c44c6bc519.png"
+   "png": "spread/live/tau12_8c130217f1.png"
   },
   {
    "tau": 24,
    "issuedAt": "2026-10-24T18:07:00Z",
-   "png": "spread/live/tau24_177191cbb8.png"
+   "png": "spread/live/tau24_2aa9446384.png"
   },
   {
    "tau": 36,
    "issuedAt": "2026-10-24T18:07:00Z",
-   "png": "spread/live/tau36_56ac6094cd.png"
+   "png": "spread/live/tau36_fcbdc3dcb7.png"
   },
   {
    "tau": 48,
    "issuedAt": "2026-10-24T18:07:00Z",
-   "png": "spread/live/tau48_060cb476f2.png"
+   "png": "spread/live/tau48_14ffda5746.png"
   },
   {
    "tau": 72,
    "issuedAt": "2026-10-24T18:07:00Z",
-   "png": "spread/live/tau72_3d84007fc4.png"
+   "png": "spread/live/tau72_712761ccf6.png"
   }
  ],
  "validation": null,
@@ -48,7 +48,7 @@
   "One flat water level for the whole area, from the New Botley gauge (1645TH) plus its stage datum 54.00 mAOD (EA station metadata, about \u00b10.05 m); it ignores the river's slope and the drop at Osney Lock, so it overstates water east of the lock.",
   "Terrain: EA LIDAR Composite DTM 2022 1 m (OGL v3), via the Defra DSP WCS, resampled to 5 m. River cells: EA Statutory Main River Map (OGL v3).",
   "200 runs per frame: forecast level drawn from the River Clock quantiles; terrain perturbed by \u00b10.15 m smoothed noise for LiDAR error.",
-  "Shading: share of runs in which a cell is wet. Palest 10-25%, then 25-50%, 50-75%, darkest 75% or more.",
+  "Shading: 25 m squares coloured by the average share of runs in which their 5 m cells are wet: green from 5%, yellow at 50%, red at 100%; clear below 5%. River centreline cells are left out.",
   "Largest extent wet in at least half the runs, over these frames: 1 ha of the 250 ha box, not counting the mapped river centrelines."
  ]
 }

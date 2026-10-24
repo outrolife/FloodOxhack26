@@ -16,7 +16,7 @@ from test_fixtures import LEADS, SPREAD_MANIFEST, check, parse_utc
 
 from model.probability import ALPHAS, cdf
 from stretch.s3 import spread as s3
-from stretch.s3.png import encode_indexed_png
+from stretch.s3.png import PNG_SIGNATURE, encode_rgba_png
 
 PUBLIC = Path(__file__).resolve().parent.parent / "web" / "public" / "data"
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "stretch" / "spread" / "e2014" / "manifest.json"
@@ -107,9 +107,10 @@ def test_stratified_uniforms_cover_each_stratum() -> None:
     assert sorted(np.floor(u * 200).astype(int)) == list(range(200))
 
 
-def _decode_png(data: bytes) -> tuple[np.ndarray, bytes]:
-    assert data[:8] == b"\x89PNG\r\n\x1a\n"
-    i, idat, ihdr, trns = 8, b"", b"", b""
+def _decode_png(data: bytes) -> np.ndarray:
+    """Decode an unfiltered 8-bit RGBA PNG (what ``encode_rgba_png`` writes)."""
+    assert data[:8] == PNG_SIGNATURE
+    i, idat, ihdr = 8, b"", b""
     while i < len(data):
         n = struct.unpack(">I", data[i : i + 4])[0]
         tag, body = data[i + 4 : i + 8], data[i + 8 : i + 8 + n]
@@ -118,32 +119,42 @@ def _decode_png(data: bytes) -> tuple[np.ndarray, bytes]:
             ihdr = body
         elif tag == b"IDAT":
             idat += body
-        elif tag == b"tRNS":
-            trns = body
         i += 12 + n
     w, h, depth, ctype = struct.unpack(">IIBB", ihdr[:10])
-    assert ctype == 3
+    assert (depth, ctype) == (8, 6)
     rows = np.frombuffer(zlib.decompress(idat), np.uint8).reshape(h, -1)
     assert (rows[:, 0] == 0).all()
-    rows = rows[:, 1:]
-    if depth == 4:
-        out = np.empty((h, rows.shape[1] * 2), np.uint8)
-        out[:, 0::2], out[:, 1::2] = rows >> 4, rows & 15
-        rows = out[:, :w]
-    return rows, trns
+    return rows[:, 1:].reshape(h, w, 4)
 
 
-@pytest.mark.parametrize("w", [7, 8])
-def test_png_round_trip(w: int) -> None:
-    idx = (np.arange(5 * w).reshape(5, w) % len(s3.PALETTE)).astype(np.uint8)
-    back, trns = _decode_png(encode_indexed_png(idx, s3.PALETTE))
-    np.testing.assert_array_equal(back, idx)
-    assert trns[0] == 0, "class 0 (below 10%) is transparent"
+def test_png_round_trip() -> None:
+    rgba = np.random.default_rng(0).integers(0, 256, (5, 7, 4)).astype(np.uint8)
+    np.testing.assert_array_equal(_decode_png(encode_rgba_png(rgba)), rgba)
 
 
-def test_classify_uses_agreed_breaks() -> None:
-    freq = np.array([0.0, 0.09, 0.1, 0.24, 0.25, 0.5, 0.74, 0.75, 1.0])
-    assert s3.classify(freq).tolist() == [0, 0, 1, 1, 2, 3, 3, 4, 4]
+def test_colour_ramp_matches_agreed_stops() -> None:
+    f = np.array([np.nan, 0.0, 0.049, 0.05, 0.30, 0.50, 0.75, 1.0, 0.4])
+    c = s3.colourise(f[None, :])[0]
+    assert (c[:3] == 0).all(), "NaN and < 0.05 are fully transparent"
+    expected = ["1a9850", "91cf60", "fee08b", "fc8d59", "d73027"]
+    assert [bytes(px[:3].tolist()).hex() for px in c[3:8]] == expected
+    assert (c[3:, 3] == round(0.85 * 255)).all()
+    # 0.4 is halfway between the 0.30 and 0.50 stops
+    np.testing.assert_allclose(
+        c[8, :3], np.round((np.array([0x91, 0xCF, 0x60]) + [0xFE, 0xE0, 0x8B]) / 2), atol=1
+    )
+
+
+def test_block_mean_ignores_excluded_cells() -> None:
+    a = np.zeros((10, 10))
+    a[:5, :5] = 1.0
+    ex = np.zeros((10, 10), dtype=bool)
+    ex[:5, 5:] = True  # a whole block excluded -> NaN
+    ex[5, 5] = True
+    a[5, 5] = 100.0  # excluded, must not count
+    b = s3.block_mean(a, ex)
+    assert b.shape == (2, 2)
+    assert b[0, 0] == 1.0 and np.isnan(b[0, 1]) and b[1, 1] == 0.0
 
 
 def _manifests() -> list[Path]:
