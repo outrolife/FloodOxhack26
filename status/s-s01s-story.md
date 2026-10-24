@@ -3,12 +3,12 @@
 - **role**: Story
 - **state**: working
 - **issue**: #10
-- **task**: Verify spots/events; found Hydrology has only upstream stage at Osney/Iffley/Godstow (posted on #2)
-- **next**: Coordinates via OSM, news evidence, write spots.yaml/events.yaml
-- **needs**: PM/Data: Osney/Iffley/Godstow downstream-stage history missing from Hydrology API, see #2 comments
+- **task**: Writing spots.yaml/events.yaml with minns/coldharbour thresholds (2.90/2.44) verified
+- **next**: Commit, PR, results comment on #10
+- **needs**: 
 - **notes**: 
 - **branch**: story/verify-spots-events
-- **head**: 085cff7 Merge pull request #24 from outrolife/agent/magenta/claude-wor
+- **head**: 3130f0f Merge pull request #28 from outrolife/data/historic-warnings
 - **unpushed**: 0
-- **dirty**: 0
-- **updated**: 2026-10-24T16:05:27Z
+- **dirty**: 1
+- **updated**: 2026-10-24T16:18:52Z
