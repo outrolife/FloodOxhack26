@@ -10,11 +10,13 @@ import {
   formatPct,
   liveProbability,
   officialFromPerEvent,
+  officialFromReplays,
   officialMeanLeadH,
   optimalTrigger,
   type Costs,
   type Forecast,
   type PerEventRow,
+  type ReplayOfficial,
   type TradeoffRow,
 } from "../lib/costLoss";
 import { CostChart } from "../components/decide/CostChart";
@@ -56,6 +58,39 @@ function useLiveForecast(): LiveState {
   return state;
 }
 
+/**
+ * Replays for every event in events.json, for scoring official warnings
+ * exactly (warning issued before the crossing). Resolves to null unless every
+ * event has its own replay: the loader's fixture fallback serves the sample
+ * replay for any id, so a replay only counts if its eventId matches.
+ */
+function useAllReplays(): ReplayOfficial[] | null {
+  const [replays, setReplays] = useState<ReplayOfficial[] | null>(null);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const events = (await loadData<{ id: string }[]>("events.json")).value;
+        const loaded = await Promise.all(
+          events.map((e) =>
+            loadData<ReplayOfficial>(`replays/${e.id}.json`).then(
+              (r) => (r.value.eventId === e.id ? r.value : null),
+              () => null,
+            ),
+          ),
+        );
+        if (alive && events.length > 0 && loaded.every((r) => r !== null)) setReplays(loaded as ReplayOfficial[]);
+      } catch {
+        // No events list: stay on the proof.perEvent fallback.
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return replays;
+}
+
 function LogSlider({ label, value, range, onChange }: { label: string; value: number; range: readonly [number, number]; onChange: (v: number) => void }) {
   return (
     <label style={{ display: "grid", gridTemplateColumns: "11rem 1fr 6.5rem", gap: "0.6rem", alignItems: "center" }}>
@@ -78,6 +113,7 @@ export default function Decide() {
   const proof = useData<ProofSlice>("proof.json");
   const spots = useData<SpotSlice[]>("spots.json");
   const live = useLiveForecast();
+  const replays = useAllReplays();
 
   const [costs, setCosts] = useState<Costs>({ C: PRESETS[0].C, L: PRESETS[0].L });
   const [spotKey, setSpotKey] = useState<string | null>(null);
@@ -95,14 +131,17 @@ export default function Decide() {
   const spotName = spotList.find((s) => s.key === spot)?.name ?? spot ?? "";
 
   const pStar = optimalTrigger(costs);
+  const official = useMemo(() => {
+    if (!spot) return null;
+    const fromReplays = replays ? officialFromReplays(replays, spot) : null;
+    if (fromReplays) return { counts: fromReplays, source: "replays" as const };
+    const fromProof = proof.status === "ready" ? officialFromPerEvent(proof.data.perEvent, spot) : null;
+    return fromProof ? { counts: fromProof, source: "perEvent" as const } : null;
+  }, [replays, proof, spot]);
   const result = useMemo(() => {
     if (proof.status !== "ready" || !spot) return null;
-    return expectedCosts({
-      rows: proof.data.tradeoff[spot] ?? [],
-      costs,
-      official: officialFromPerEvent(proof.data.perEvent, spot),
-    });
-  }, [proof, spot, costs]);
+    return expectedCosts({ rows: proof.data.tradeoff[spot] ?? [], costs, official: official?.counts ?? null });
+  }, [proof, spot, costs, official]);
 
   const liveP = liveProbability(live.status === "ready" ? live.forecast : null, spot ?? "", LIVE_LEAD_H);
   const adv = advice(pStar, liveP);
@@ -232,7 +271,11 @@ export default function Decide() {
               <p>
                 Each hit or false alarm costs C; each miss costs L. <strong>River Clock</strong>: act when the forecast
                 reaches p* (outcomes interpolated from the backtest). <strong>Official warnings</strong>: act on every EA
-                Flood Warning for the spot's area (alerts don't count). <strong>Never act</strong>: every flood is a miss.{" "}
+                Flood Warning for the spot's area (alerts don't count);{" "}
+                {official?.source === "replays"
+                  ? "scored from the event replays (a warning issued after the crossing is a miss)."
+                  : "inferred from the per-event comparison, which can only see official warnings on events River Clock also triggered on."}{" "}
+                <strong>Never act</strong>: every flood is a miss.{" "}
                 <strong>Always act</strong>: act on every flood and on every false-alarm episode the most sensitive
                 trigger flagged; a lower bound, since acting literally all the time would cost more.
               </p>
