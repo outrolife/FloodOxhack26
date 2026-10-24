@@ -54,7 +54,7 @@ def git(*args: str, input: Optional[str] = None, env: Optional[dict] = None,
     full_env = dict(os.environ)
     if env:
         full_env.update(env)
-    r = subprocess.run(["git", *args], input=input, capture_output=True, text=True,
+    r = subprocess.run(["git", *args], input=input, capture_output=True, text=True, encoding="utf-8", errors="replace",
                        env=full_env, cwd=ROOT, timeout=timeout)
     if check and r.returncode != 0:
         raise RuntimeError(f"git {' '.join(args)} failed: {r.stderr.strip()}")
@@ -64,7 +64,7 @@ def git(*args: str, input: Optional[str] = None, env: Optional[dict] = None,
 def repo_root() -> Path:
     here = Path(os.environ.get("CLAUDE_PROJECT_DIR") or Path(__file__).resolve().parent.parent)
     r = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True,
-                       text=True, cwd=here)
+                       text=True, encoding="utf-8", errors="replace", cwd=here)
     return Path(r.stdout.strip()) if r.returncode == 0 else here
 
 
@@ -187,7 +187,7 @@ def push_file(name: str, content: str, msg: str) -> None:
         parents = ["-p", base] if base else []
         commit = git("commit-tree", tree, *parents, "-m", msg)
         r = subprocess.run(["git", "push", "--quiet", REMOTE, f"{commit}:refs/heads/{BRANCH}"],
-                           capture_output=True, text=True, cwd=ROOT, timeout=20)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=ROOT, timeout=20)
         index.unlink(missing_ok=True)
         if r.returncode == 0:
             git("update-ref", REMOTE_REF, commit)
@@ -207,7 +207,7 @@ def claimed_issues() -> Optional[List[dict]]:
     try:
         r = subprocess.run(["gh", "issue", "list", "--state", "open", "--label", "in-progress",
                             "--json", "number,title,assignees", "--limit", "50"],
-                           capture_output=True, text=True, cwd=ROOT, timeout=8)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=ROOT, timeout=8)
         if r.returncode != 0:
             return None
         cache.write_text(r.stdout)
@@ -447,7 +447,7 @@ def cmd_retire(args: List[str]) -> None:
             return
         commit = git("commit-tree", tree, "-p", REMOTE_REF, "-m", f"status: retire {' '.join(args)}")
         r = subprocess.run(["git", "push", "--quiet", REMOTE, f"{commit}:refs/heads/{BRANCH}"],
-                           capture_output=True, text=True, cwd=ROOT, timeout=20)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=ROOT, timeout=20)
         if r.returncode == 0:
             git("update-ref", REMOTE_REF, commit)
             print(f"retired: {' '.join(args)}")
@@ -569,7 +569,7 @@ def commit_events(since: datetime) -> List[Event]:
 
 def gh_json(*args: str) -> Optional[list]:
     try:
-        r = subprocess.run(["gh", *args], capture_output=True, text=True, cwd=ROOT, timeout=15)
+        r = subprocess.run(["gh", *args], capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=ROOT, timeout=15)
         return json.loads(r.stdout) if r.returncode == 0 else None
     except Exception:
         return None
