@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: working
 - **issue**: #125
-- **task**: Exp B: baseline training (newbotley 2/6 leads), harness pushed
-- **next**: baseline DONE ~19:55 UTC, then train features arm
+- **task**: Exp B: baseline retraining after restart (checkpointed per gauge x lead, 4 threads)
+- **next**: baseline DONE ~21:05 UTC, then features arm auto-starts
 - **needs**: 
 - **notes**: 
 - **branch**: model/exp-features
-- **head**: 36f7122 Add issue #125 B derived-feature experiment harness and leakag
+- **head**: d255870 Checkpoint #125 B training per gauge and lead so restarts resu
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T19:04:56Z
+- **updated**: 2026-10-24T20:16:52Z
