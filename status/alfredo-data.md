@@ -1,14 +1,14 @@
 # alfredo-data
 
 - **role**: Data
-- **state**: idle
-- **issue**: 
-- **task**: Stood down on #3: s-s01s-pipeline owns it (see #3 comment 16:03)
-- **next**: Waiting for alfredo to assign a different task
+- **state**: working
+- **issue**: #13
+- **task**: ingest_warnings.py (historic flood warnings, Oxford codes) + model/official.py
+- **next**: Download historic-flood-warnings2 ZIP, inspect columns/time precision
 - **needs**: 
 - **notes**: 
 - **branch**: data/historic-warnings
 - **head**: 6e8694d Merge pull request #25 from outrolife/integration/scaffold
 - **unpushed**: no upstream
 - **dirty**: 0
-- **updated**: 2026-10-24T16:04:47Z
+- **updated**: 2026-10-24T16:04:52Z
