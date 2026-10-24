@@ -7,7 +7,7 @@ export default function About() {
       <HowItWorks />
 
       <section className="card">
-        <h2>How it works</h2>
+        <h2>Step by step</h2>
         <ol>
           <li>
             <strong>Measure the clock.</strong> From past Oxford floods we measure how long the
