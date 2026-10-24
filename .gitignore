@@ -3,6 +3,9 @@
 .vscode/
 .idea/
 
+# Internal tooling and local observer scripts
+scripts/
+
 # Data and models (SPEC §2, CLAUDE.md rule 6)
 data/
 *.lgb
