@@ -221,7 +221,7 @@ For a forecast issued at t for gauge g:
 2. CDF by linear interpolation between quantiles; beyond α = 0.05 / 0.95 extrapolate linearly using the 0.05–0.25 and 0.75–0.95 slopes; clip to [0, 1].
 3. `pFlood_h = 1 − F_h(threshold)`, `pAmber_h = 1 − F_h(amber)`.
 4. Enforce non-decreasing in h: `p_h = max(p_h, p_{h−1})`.
-5. **Arrival window:** first times at which p reaches 0.1, 0.5, 0.9, linearly interpolated between leads; `null` if not reached by 72 h.
+5. **Arrival window:** first times at which p reaches 0.1, 0.5, 0.9, linearly interpolated between leads; `null` if not reached by 72 h. Interpolate from p = 0 at the issue time. If `level_now` is already at or above the threshold, p = 1 at the issue time, so all three arrival times are the issue time (the flood has arrived), even if later leads are lower.
 6. `timing_only` spots: no flood probability; report time for the median forecast to reach amber, and, if an upstream rise is currently observed, the travel-time window (`t_upstream_half + T_half p10/median/p90`).
 
 ### 7.6 Baseline: probabilistic persistence
