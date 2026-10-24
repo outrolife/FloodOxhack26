@@ -3,12 +3,12 @@
 - **role**: Integration
 - **state**: working
 - **issue**: #50
-- **task**: Re-audit #50: train 3.2 min OK, backtest running, offline walk done
-- **next**: Check make demo (#76), compare backtest vs committed, post checklist
+- **task**: Re-audit posted on #50 (17/1/0); new #81 #82
+- **next**: Wait for full model.proof regen in clean clone, post timing/diff on #81
 - **needs**: 
 - **notes**: 
 - **branch**: HEAD
 - **head**: c1db381 Merge pull request #78 from outrolife/story/team-names
 - **unpushed**: no upstream
 - **dirty**: 0
-- **updated**: 2026-10-24T17:45:29Z
+- **updated**: 2026-10-24T17:50:14Z
