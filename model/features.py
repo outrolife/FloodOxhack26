@@ -132,6 +132,56 @@ UPSTREAMS: dict[str, tuple[str, ...]] = {
 TARGETS: tuple[str, ...] = tuple(UPSTREAMS)  # newbotley first: the primary target
 LIVE_ONLY: tuple[str, ...] = ("godstow", "osney", "iffley")
 
+# Branch signals, the "river walk" (issue #134 A-branch, after #125 A). For coldharbour and kingsmill,
+# the further-upstream gauges enter as ONE timed signal per tributary branch instead of ~9 raw columns
+# per gauge (A's raw columns overfitted there: 49 high-water days at coldharbour, 4-7 matched floods
+# per gauge). For each branch b and time t:
+#   br_<b>_routed = mean over the branch's gauges g of z_g(t - lag_main(g -> target))
+#   br_<b>_max    = max over g of max z_g over [t - lag_hi, t - lag_lo]        (if BRANCH_MAX[target])
+# with z_g = (level - median_g) / BRANCH_SCALE_M[g]: each gauge's own anomaly in units of its own
+# spread, so gauges with different datums and ranges can be averaged. Every shift is >= 0: row t only
+# uses readings at or before t. The lags are the SPEC §6 matched travel times in lags.json (pairs
+# "<g>-><target>"); a missing pair falls back to lag_main 0, window [t - 24 h, t] (logged).
+# Existing columns are unchanged; the branch columns are appended after them.
+BRANCHES: dict[str, dict[str, tuple[str, ...]]] = {
+    "coldharbour": {
+        "thamesup": ("hannington", "shifford"),  # Thames above the Windrush: 0569TH, 0904TH (u/s)
+        "windrush": ("worsham",),  # 1080TH
+        "evenlode": ("shipton",),  # 1238TH (cassington, lower on the Evenlode, stays a raw input)
+    },
+    "kingsmill": {
+        "cherwellup": ("banbury",),  # 1420TH, Cherwell above Enslow
+        "ray": ("lowerarncott",),  # 1483TH, the Ray
+    },
+}
+BRANCH_MAX: dict[str, bool] = {"coldharbour": True, "kingsmill": False}
+# Spread of each branch gauge: standard deviation of its hourly level over the training period only
+# (2006-01-01 to 2018-09-30 UTC, the SPEC §7.3 train split; data-hourly-v2 / #125 A ingest). Fixed
+# here, like the medians, so live mode and replays use exactly the training numbers.
+BRANCH_SCALE_M: dict[str, float] = {
+    "hannington": 0.5815,
+    "shifford": 0.1491,
+    "worsham": 0.1931,
+    "shipton": 0.3290,
+    "banbury": 0.1624,
+    "lowerarncott": 0.5611,
+}
+# "routed" (default): each gauge shifted by its own travel time (what is arriving at the target now).
+# "front" (experiment arm only): shifts relative to the branch's fastest gauge (the wave front now).
+BRANCH_ALIGN = "routed"
+
+
+def branch_gauges(target: str) -> tuple[str, ...]:
+    """Every gauge in ``target``'s branch signals (empty for targets without branches)."""
+    return tuple(g for gs in BRANCHES.get(target, {}).values() for g in gs)
+
+
+def input_gauges(target: str) -> tuple[str, ...]:
+    """Every gauge (other than the target itself) whose level feeds ``target``'s features."""
+    ups = UPSTREAMS[target]
+    return tuple(ups) + tuple(g for g in branch_gauges(target) if g not in ups)
+
+
 LagsArg = Mapping[str, Any] | None
 
 
@@ -228,7 +278,7 @@ def compute_gauge_medians(
     if gauges is not None:
         keys = list(gauges)
     else:
-        configured = {g for ups in UPSTREAMS.values() for g in ups} | set(UPSTREAMS)
+        configured = {g for t in UPSTREAMS for g in input_gauges(t)} | set(UPSTREAMS)
         keys = sorted(set(levels["gauge"].unique()) | configured)
     return {g: float(medians.get(g, np.nan)) for g in keys}
 
@@ -311,7 +361,66 @@ def feature_columns(target: str, lags: LagsArg = None) -> list[str]:
         cols += [f"{up}_change_{k}h" for k in UPSTREAM_CHANGE_H]
     cols += [f"rain_sum_{k}h" if k != MAX_WINDOW_H else "rain_sum_21d" for k in RAIN_SUM_H]
     cols += ["doy_sin", "doy_cos"]
+    for b in BRANCHES.get(target, {}):
+        cols.append(f"br_{b}_routed")
+        if BRANCH_MAX.get(target):
+            cols.append(f"br_{b}_max")
     return cols
+
+
+def branch_travel(gauge: str, target: str, lags: LagsArg = None) -> dict[str, int]:
+    """``{"lag_lo", "lag_main", "lag_hi"}`` (h) for one branch gauge, clipped to [0, 21 days].
+
+    A missing pair (or key) falls back to lag_main 0 and the window [t - 24 h, t], with a warning.
+    """
+    pair = f"{gauge}->{target}"
+    travel = _normalise_lags(lags).get(pair, {})
+    if not all(k in travel for k in TRAVEL_LAG_KEYS):
+        log.warning("%s: no travel time in lags; branch signal uses lag 0, window 24 h", pair)
+    out = {"lag_lo": travel.get("lag_lo", 0), "lag_main": travel.get("lag_main", 0)}
+    out["lag_hi"] = travel.get("lag_hi", max(24, out["lag_main"]))
+    out = {k: min(max(int(v), 0), MAX_WINDOW_H) for k, v in out.items()}
+    out["lag_lo"] = min(out["lag_lo"], out["lag_main"])
+    out["lag_hi"] = max(out["lag_hi"], out["lag_main"])
+    return out
+
+
+def branch_shifts(target: str, branch: str, lags: LagsArg = None) -> dict[str, tuple[int, int, int]]:
+    """Per gauge ``(routed shift, window start shift, window end shift)`` in hours, all >= 0.
+
+    The window for ``br_<b>_max`` is [t - start, t - end]. "routed": the shifts are the travel times
+    (lag_main; window [t - lag_hi, t - lag_lo]). "front": every travel time minus the branch's
+    shortest lag_main, so the fastest gauge enters at lag 0 (window [t - (hi - lo), t]).
+    """
+    tr = {g: branch_travel(g, target, lags) for g in BRANCHES[target][branch]}
+    if BRANCH_ALIGN == "front":
+        base = min(v["lag_main"] for v in tr.values())
+        return {
+            g: (v["lag_main"] - base, v["lag_hi"] - v["lag_lo"] + v["lag_main"] - base, v["lag_main"] - base)
+            for g, v in tr.items()
+        }
+    return {g: (v["lag_main"], v["lag_hi"], v["lag_lo"]) for g, v in tr.items()}
+
+
+def _branch_features(
+    levels: pd.DataFrame, target: str, medians: Mapping[str, float], lags: LagsArg
+) -> dict[str, pd.Series]:
+    """The ``br_<b>_routed`` (and ``br_<b>_max``) columns for ``target``. Row t uses rows <= t only."""
+    index = levels.index
+    out: dict[str, pd.Series] = {}
+    for b in BRANCHES.get(target, {}):
+        routed, maxes = [], []
+        for g, (s_main, s_start, s_end) in branch_shifts(target, b, lags).items():
+            lv = levels[g] if g in levels.columns else pd.Series(np.nan, index=index)
+            z = (lv - medians.get(g, np.nan)) / BRANCH_SCALE_M[g]
+            routed.append(z.shift(s_main))
+            width = s_start - s_end + 1  # hours in [t - s_start, t - s_end]
+            roll = z.shift(s_end).rolling(window=width, min_periods=math.ceil(MIN_COVERAGE * width))
+            maxes.append(roll.max())
+        out[f"br_{b}_routed"] = pd.concat(routed, axis=1).mean(axis=1, skipna=True)
+        if BRANCH_MAX.get(target):
+            out[f"br_{b}_max"] = pd.concat(maxes, axis=1).max(axis=1, skipna=True)
+    return out
 
 
 def build_features(
@@ -326,7 +435,8 @@ def build_features(
         hourly: long hourly frame (see module docstring).
         target: target gauge key, one of ``TARGETS``.
         medians: per-gauge long-term median level from ``compute_gauge_medians`` with a training
-            cutoff. Must contain every upstream gauge of ``target`` (value may be NaN).
+            cutoff. Must contain every upstream gauge of ``target`` (value may be NaN); a branch gauge
+            without a median (a model trained before #134) gives NaN branch columns.
         lags: travel-time lags from ``load_lags`` (or the raw lags.json dict); pairs not given use
             only the fixed lags {0, 6, 12, 24}.
 
@@ -381,6 +491,9 @@ def build_features(
     doy = (index.day_of_year - 1 + index.hour / 24.0) / 365.25
     feats["doy_sin"] = pd.Series(np.sin(2 * np.pi * doy), index=index)
     feats["doy_cos"] = pd.Series(np.cos(2 * np.pi * doy), index=index)
+
+    # Branch signals (#134 A-branch): one timed signal per tributary branch, appended last.
+    feats.update(_branch_features(levels, target, medians, lags))
 
     out = pd.DataFrame(feats, index=index)
     return out[feature_columns(target, lags)].astype(float)

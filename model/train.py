@@ -176,11 +176,12 @@ def build_xy(
 
 
 def fit_medians(hourly: pd.DataFrame, target: str, cutoff: pd.Timestamp) -> dict[str, float]:
-    """Upstream gauges' long-term medians from data before ``cutoff`` only (no leakage)."""
+    """Input gauges' long-term medians (upstreams and branch gauges, #134) from data before ``cutoff``
+    only (no leakage)."""
     from model import features
 
     return features.compute_gauge_medians(
-        hourly, cutoff - pd.Timedelta(hours=1), gauges=features.UPSTREAMS[target]
+        hourly, cutoff - pd.Timedelta(hours=1), gauges=features.input_gauges(target)
     )
 
 

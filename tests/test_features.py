@@ -13,6 +13,7 @@ import pandas as pd
 import pytest
 
 from model.features import (
+    BRANCHES,
     LIVE_ONLY,
     MAX_WINDOW_H,
     RAIN_KEY,
@@ -24,6 +25,7 @@ from model.features import (
     catchment_rain,
     compute_gauge_medians,
     feature_columns,
+    input_gauges,
     load_lags,
     pivot_hourly,
     upstream_lags_h,
@@ -327,7 +329,7 @@ def test_final_format_uses_rain_catchment_alone() -> None:
     window = wide[RAIN_KEY].loc[t - pd.Timedelta(hours=23) : t]
     assert feats.loc[t, "rain_sum_24h"] == pytest.approx(window.sum())
     assert sorted(compute_gauge_medians(hourly, t)) == sorted(
-        set(LEVEL_GAUGES) | {g for ups in UPSTREAMS.values() for g in ups} | set(TARGETS)
+        set(LEVEL_GAUGES) | {g for t in TARGETS for g in input_gauges(t)} | set(TARGETS)
     )
 
 
@@ -352,7 +354,8 @@ def test_new_targets_build_features_and_targets(target: str) -> None:
     medians = compute_gauge_medians(hourly, START + pd.Timedelta(days=15))
     feats = build_features(hourly, target, medians, TEST_LAGS)
     assert list(feats.columns) == feature_columns(target, TEST_LAGS)
-    assert len(feats.columns) == 6 + 3 * 6 + 7  # no godstow columns
+    n_branch = 2 * len(BRANCHES.get(target, {}))  # #134 branch signals (coldharbour: 3 branches x 2)
+    assert len(feats.columns) == 6 + 3 * 6 + 7 + n_branch  # no godstow columns
     assert not any(c.startswith(("godstow", "osney", "iffley")) for c in feats.columns)
     levels = pivot_hourly(hourly[hourly["kind"] == "level"])
     t = START + pd.Timedelta(hours=700)
@@ -365,7 +368,8 @@ def test_new_targets_build_features_and_targets(target: str) -> None:
     np.testing.assert_equal(
         y.loc[t, "y_24h"], levels.loc[t + pd.Timedelta(hours=24), target] - levels.loc[t, target]
     )
-    assert feats.iloc[MAX_WINDOW_H + 30 :].notna().mean().min() > 0.9
+    own = [c for c in feats.columns if not c.startswith("br_")]  # no branch gauges in this data
+    assert feats[own].iloc[MAX_WINDOW_H + 30 :].notna().mean().min() > 0.9
 
 
 def test_nan_propagation() -> None:

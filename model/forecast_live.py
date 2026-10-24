@@ -266,7 +266,8 @@ class TrainedForecaster:
         from model import features
 
         self.models = dict(models)
-        self.upstreams: dict[str, list[str]] = {g: list(features.UPSTREAMS[g]) for g in self.models}
+        # Raw upstream gauges plus branch-signal gauges (#134): a stale one -> persistence for that spot.
+        self.upstreams: dict[str, list[str]] = {g: list(features.input_gauges(g)) for g in self.models}
 
     def features_at(self, hourly: pd.DataFrame, gauge: str, issued_at: datetime) -> pd.DataFrame | None:
         """The one-row feature frame at the anchor hour, or None (no model, or no fresh level there).
@@ -330,6 +331,8 @@ class TrainedForecaster:
             return []
         out: list[str] = []
         for col in X.columns[X.isna().iloc[0].to_numpy()]:
+            if col.startswith("br_"):  # branch signals (#134): their gauges' staleness is checked upstream
+                continue
             ups = [u for u in self.upstreams.get(gauge, []) if col.startswith(f"{u}_")]
             src = ups[0] if ups else "rain" if col.startswith("rain_") else gauge
             if src not in out:
