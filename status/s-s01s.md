@@ -8,7 +8,7 @@
 - **needs**: 
 - **notes**: alfredo: see #125 comment: one combined retrain at 02:00 GMT with #134 + #125 winners
 - **branch**: main
-- **head**: e37a40d Merge pull request #131 from outrolife/app/v2-replay
+- **head**: 539fa65 Merge pull request #136 from outrolife/app/ux-map-fix
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T20:21:16Z
+- **updated**: 2026-10-24T20:25:04Z
