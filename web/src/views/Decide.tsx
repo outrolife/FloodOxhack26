@@ -19,6 +19,7 @@ import {
 } from "../lib/costLoss";
 import type { EventMeta, Proof, Spot } from "../contracts";
 import { CostChart } from "../components/decide/CostChart";
+import { FixtureNotice } from "../components/shared/DataNotice";
 import { formatCount, formatGBP, formatHours, niceRound } from "../components/decide/format";
 
 // The slices of the §9 contracts this tab reads.
@@ -149,6 +150,10 @@ export default function Decide() {
 
   return (
     <>
+      {/* The backtest numbers and spot names come from these files: flag them when they are fixtures (#56). */}
+      <FixtureNotice
+        sources={[proof.status === "ready" ? proof.source : undefined, spots.status === "ready" ? spots.source : undefined]}
+      />
       <section className="card">
         <h2>Decide: is it worth acting?</h2>
         <p className="sub">
