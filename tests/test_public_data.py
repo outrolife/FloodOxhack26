@@ -102,7 +102,8 @@ def test_stations() -> None:
     assert_unique([s["key"] for s in data], "stations[*].key")
     for s in data:
         p = f"stations[{s['key']}]"
-        assert 51.6 < s["lat"] < 52.0 and -1.5 < s["lon"] < -1.1, f"{p}: not near Oxford"
+        # Upper Thames catchment above Oxford: #125 added Hannington (-1.75) and Banbury (52.07)
+        assert 51.6 < s["lat"] < 52.1 and -1.8 < s["lon"] < -1.1, f"{p}: not in the Oxford catchment"
         if s["threshold"] is not None:
             assert s["threshold"] > s["amber"], f"{p}: threshold must be above amber"
 
