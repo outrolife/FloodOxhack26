@@ -16,9 +16,11 @@
    "gapsFilled": 137,
    "gapsFlagged": 8,
    "spikesRemoved": 7,
-   "thresholdApi": 2.96,
-   "thresholdConfig": 2.96,
-   "notes": []
+   "thresholdApi": 0.37,
+   "thresholdConfig": 0.37,
+   "notes": [
+    "Uses the u/s series (SPEC \u00a74.1.1). SPEC \u00a74.1 originally listed the d/s amber 2.96 m."
+   ]
   },
   {
    "key": "cassington",
@@ -26,11 +28,9 @@
    "gapsFilled": 154,
    "gapsFlagged": 13,
    "spikesRemoved": 1,
-   "thresholdApi": null,
+   "thresholdApi": 0.77,
    "thresholdConfig": 0.77,
-   "notes": [
-    "No stageScale in flood-monitoring metadata; amber taken from config."
-   ]
+   "notes": []
   },
   {
    "key": "enslow",
@@ -58,33 +58,13 @@
    ]
   },
   {
-   "key": "godstow",
-   "coveragePct": 95.9,
-   "gapsFilled": 205,
-   "gapsFlagged": 6,
-   "spikesRemoved": 9,
-   "thresholdApi": 2.57,
-   "thresholdConfig": 2.57,
-   "notes": []
-  },
-  {
-   "key": "osney",
-   "coveragePct": 95.2,
-   "gapsFilled": 222,
-   "gapsFlagged": 11,
-   "spikesRemoved": 3,
-   "thresholdApi": 3.18,
-   "thresholdConfig": 3.18,
-   "notes": []
-  },
-  {
-   "key": "iffley",
-   "coveragePct": 94.5,
-   "gapsFilled": 239,
-   "gapsFlagged": 5,
-   "spikesRemoved": 10,
-   "thresholdApi": 2.72,
-   "thresholdConfig": 2.72,
+   "key": "newbotley",
+   "coveragePct": 89.0,
+   "gapsFilled": 273,
+   "gapsFlagged": 4,
+   "spikesRemoved": 11,
+   "thresholdApi": 2.01,
+   "thresholdConfig": 2.01,
    "notes": []
   },
   {
@@ -93,22 +73,70 @@
    "gapsFilled": 256,
    "gapsFlagged": 10,
    "spikesRemoved": 4,
-   "thresholdApi": 2.35,
+   "thresholdApi": 2.4,
    "thresholdConfig": 2.4,
    "notes": [
-    "Threshold mismatch: API typicalRangeHigh 2.35 m vs config 2.40 m."
+    "Live telemetry out since 2026-10-13 14:45Z; history unaffected."
    ]
   },
   {
-   "key": "newbotley",
-   "coveragePct": 89.0,
-   "gapsFilled": 273,
-   "gapsFlagged": 4,
-   "spikesRemoved": 11,
-   "thresholdApi": 2.01,
-   "thresholdConfig": 2.01,
+   "key": "minns",
+   "coveragePct": 92.8,
+   "gapsFilled": 219,
+   "gapsFlagged": 5,
+   "spikesRemoved": 3,
+   "thresholdApi": 2.13,
+   "thresholdConfig": 2.13,
    "notes": [
-    "Hydrology API gap 2013-12-24 to 2013-12-29 filled from daily archive CSVs."
+    "Substitute gauge for the osney spot (Seacourt Stream, about 1.2 km west)."
+   ]
+  },
+  {
+   "key": "coldharbour",
+   "coveragePct": 92.2,
+   "gapsFilled": 236,
+   "gapsFlagged": 6,
+   "spikesRemoved": 0,
+   "thresholdApi": 2.3,
+   "thresholdConfig": 2.3,
+   "notes": [
+    "Substitute gauge for the abingdonrd spot (Hinksey Stream)."
+   ]
+  },
+  {
+   "key": "godstow",
+   "coveragePct": 3.4,
+   "gapsFilled": 4,
+   "gapsFlagged": 1,
+   "spikesRemoved": 0,
+   "thresholdApi": 2.57,
+   "thresholdConfig": 2.57,
+   "notes": [
+    "Live only: d/s stage has no history before 2025-10-29 (SPEC \u00a74.1.1)."
+   ]
+  },
+  {
+   "key": "osney",
+   "coveragePct": 3.4,
+   "gapsFilled": 4,
+   "gapsFlagged": 1,
+   "spikesRemoved": 0,
+   "thresholdApi": 3.175,
+   "thresholdConfig": 3.175,
+   "notes": [
+    "Live only: d/s stage has no history before 2025-10-29 (SPEC \u00a74.1.1)."
+   ]
+  },
+  {
+   "key": "iffley",
+   "coveragePct": 3.4,
+   "gapsFilled": 4,
+   "gapsFlagged": 1,
+   "spikesRemoved": 0,
+   "thresholdApi": 2.72,
+   "thresholdConfig": 2.72,
+   "notes": [
+    "Live only: d/s stage has no history before 2025-10-29 (SPEC \u00a74.1.1)."
    ]
   }
  ],
@@ -138,8 +166,8 @@
    "name": "EA Historic Flood Warnings",
    "url": "https://www.data.gov.uk/dataset/d4fb2591-f4dd-4e7f-9aaf-49af94437b36/historic-flood-warnings2",
    "licence": "OGL v3.0",
-   "downloadedAt": "2026-10-24T14:40:00Z",
-   "rows": 412
+   "downloadedAt": "2026-10-24T16:05:00Z",
+   "rows": 228
   },
   {
    "name": "Open-Meteo historical weather (fallback rainfall)",
