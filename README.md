@@ -392,8 +392,8 @@ Several people and several Claude Code sessions worked in the repo at once. To k
 - **ONBOARDING.md** gets a new session from clone to a claimed issue. **OBSERVER.md** describes a read-only observer role that follows the team's progress without changing anything.
 - **Short branches and small PRs** (`data/…`, `model/…`, `app/…`, `story/…`), merged by another teammate. `main` always runs.
 
-Team members: <!-- TODO: names and roles -->
+Team: one team of three, **s-s01s** (project manager and integration), **alfredo** and **adi**, each working with several Claude Code sessions coordinated through the status board.
 
 Also built: the Tiger Data (Timescale) mirror of the hourly and live readings (#17, PR #63; see "Tiger Data mirror" above). There is no public deploy: the app runs locally and offline.
 
-<!-- TODO at code freeze (Sun 25 Oct, 11:00 GMT): fill the team names and remove anything not built. -->
+<!-- TODO at code freeze (Sun 25 Oct, 11:00 GMT): remove anything not built. -->
