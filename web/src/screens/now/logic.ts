@@ -6,6 +6,9 @@ import type { Forecast, Spot, SpotForecast, Station, TravelPair } from "../../co
 import { PRESETS, formatPct, optimalTrigger, type Preset } from "../../lib/costLoss";
 import { formatDateTime, formatShort, HOUR, formatDate } from "../../time";
 import { LOW_CONFIDENCE_N, bestPair } from "../../components/shared/RiverStrip";
+import { countdownText, stateFor, type ClockState as KitState } from "../../ui/SpotClock";
+import { pctPlain } from "../../lib/plain";
+import type { StatTone } from "../../ui/StatTile";
 
 // ---------------------------------------------------------------------------
 // Names
@@ -37,7 +40,7 @@ export type ClockKind =
   | "noforecast" // live-only / timing-only spot, or the model produced no leads
   | "nodata"; // no live forecast at all
 
-export type ClockState = {
+export type SpotClockInfo = {
   spot: string;
   name: string; // short name for the clock label
   fullName: string;
@@ -65,22 +68,34 @@ export function p72(sf: SpotForecast | undefined): number | null {
   return best;
 }
 
-/** "under 1%" below 1%, else the formatted percentage. */
+/** The chance as the clocks show it (kit pctPlain: "under 1%", "41%"). */
 export function chanceText(p: number): string {
-  return p < 0.01 ? "under 1%" : formatPct(p);
+  return pctPlain(p);
 }
 
-/** "≈ 31 h" for a positive number of hours, "now" at or below zero, "—" for null. */
+/** Kit countdown ("≈ 31 h", "≈ 2 days 6 h", "now"), or "—" when there is no 50% arrival. */
 export function formatCountdown(h: number | null): string {
-  if (h == null || !Number.isFinite(h)) return NO_COUNTDOWN;
-  if (h <= 0.5) return "now";
-  return `≈ ${Math.round(h)} h`;
+  return countdownText(h) ?? NO_COUNTDOWN;
+}
+
+/** The kit SpotClock state for a clock: shape + colour + label (#112). */
+export function kitState(c: SpotClockInfo): KitState {
+  switch (c.kind) {
+    case "flooding":
+      return "likely";
+    case "forecast":
+      return stateFor(c.p);
+    case "stale":
+      return "stale";
+    default:
+      return "noforecast";
+  }
 }
 
 /** Clock state for one spot from live.json. `now` is the wall-clock time in ms. */
-export function clockState(spot: Spot, forecast: Forecast | null, now: number): ClockState {
+export function clockState(spot: Spot, forecast: Forecast | null, now: number): SpotClockInfo {
   const base = { spot: spot.key, name: shortSpotName(spot.name), fullName: spot.name, gauge: spot.gauge };
-  const done = (kind: ClockKind, p: number | null, countdownH: number | null, status: string): ClockState => {
+  const done = (kind: ClockKind, p: number | null, countdownH: number | null, status: string): SpotClockInfo => {
     const countdown = formatCountdown(countdownH);
     const chance = p == null ? "no forecast" : `${chanceText(p)} chance of flooding in 3 days`;
     const arrives = countdownH == null ? "" : countdown === "now" ? ", flooding now" : `, likely in ${countdown.replace("≈ ", "about ")}`;
@@ -106,7 +121,7 @@ export function clockState(spot: Spot, forecast: Forecast | null, now: number): 
   return done("forecast", p, countdownH, `${chanceText(p)} in 3 days`);
 }
 
-export function clockStates(spots: Spot[], forecast: Forecast | null, now: number): ClockState[] {
+export function clockStates(spots: Spot[], forecast: Forecast | null, now: number): SpotClockInfo[] {
   return spots.map((s) => clockState(s, forecast, now));
 }
 
@@ -118,7 +133,7 @@ const join = (xs: string[]): string =>
   xs.length <= 1 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
 
 /** The one sentence at the top of the Now screen, generated from the clocks. */
-export function headline(clocks: ClockState[]): string {
+export function headline(clocks: SpotClockInfo[]): string {
   const forecastable = clocks.filter((c) => c.kind === "forecast" || c.kind === "flooding");
   if (forecastable.length === 0) return "Right now: no River Clock forecast is available. Check gov.uk/check-flooding.";
 
@@ -138,22 +153,15 @@ export function headline(clocks: ClockState[]): string {
 
   const top = [...forecastable].sort((a, b) => (b.p ?? 0) - (a.p ?? 0))[0];
   const pTop = top.p ?? 0;
-  if (pTop >= 0.1) return `Right now: flooding is possible at ${top.name} (${formatPct(pTop)} chance in the next 3 days).`;
-  if (pTop >= 0.01) {
-    return `Right now: flooding is unlikely in the next 3 days (highest chance ${formatPct(pTop)}, at ${top.name}).`;
+  if (pTop >= 0.1) return `Right now: flooding is possible at ${top.name} (${pctPlain(pTop)} chance in the next 3 days).`;
+  if (pTop >= 0.005) {
+    return `Right now: flooding is unlikely in the next 3 days (highest chance ${pctPlain(pTop)}, at ${top.name}).`;
   }
   const where =
     forecastable.length === clocks.length
       ? "anywhere in Oxford"
       : `at the ${forecastable.length} Oxford spots we can forecast`;
   return `Right now: no flooding expected ${where} in the next 3 days.`;
-}
-
-/** What the headline leaves out: spots without a forecast, in one line (null when none). */
-export function missingNote(clocks: ClockState[]): string | null {
-  const missing = clocks.filter((c) => c.kind === "stale" || c.kind === "noforecast");
-  if (missing.length === 0) return null;
-  return `No forecast for ${join(missing.map((c) => `${c.name} (${c.status})`))}.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -181,7 +189,7 @@ function firstLeadAtOrAbove(sf: SpotForecast, issuedAt: string, pStar: number): 
 }
 
 /** One plain sentence per audience for one spot, from the live probability within 72 h. */
-export function adviceLines(clock: ClockState, sf: SpotForecast | undefined, issuedAt: string | undefined): AdviceLine[] {
+export function adviceLines(clock: SpotClockInfo, sf: SpotForecast | undefined, issuedAt: string | undefined): AdviceLine[] {
   if (clock.kind !== "forecast" && clock.kind !== "flooding") {
     return [
       {
@@ -209,7 +217,7 @@ export function adviceLines(clock: ClockState, sf: SpotForecast | undefined, iss
         text: `${preset.label}: ${words.act}${when} (chance ${formatPct(p)} in 3 days; worth it from ${formatPct(pStar)}).`,
       };
     }
-    const why = p < 0.01 ? "chance under 1%" : `chance ${formatPct(p)}; worth acting from ${formatPct(pStar)}`;
+    const why = p < 0.005 ? "chance under 1%" : `chance ${formatPct(p)}; worth acting from ${formatPct(pStar)}`;
     return { id: preset.id, label: preset.label, act: false, text: `${preset.label}: ${words.wait} (${why}).` };
   });
 }
@@ -219,7 +227,7 @@ export function adviceLines(clock: ClockState, sf: SpotForecast | undefined, iss
 // ---------------------------------------------------------------------------
 
 /** "Likely arrival: Mon 14:00 GMT to Tue 03:00 GMT (10% to 90% chance), most likely by Mon 20:00 GMT." */
-export function arrivalWindow(clock: ClockState, sf: SpotForecast | undefined): string {
+export function arrivalWindow(clock: SpotClockInfo, sf: SpotForecast | undefined): string {
   if (clock.kind === "flooding") return "The river is above flood level now.";
   if (clock.kind !== "forecast" || !sf) return "No arrival time: no forecast for this spot.";
   const a = sf.arrival;
@@ -249,11 +257,11 @@ export function trend(points: { t: string; level: number }[] | undefined, hours 
   return d > 0.01 ? "rising" : d < -0.01 ? "falling" : "steady";
 }
 
-export type Stat = { label: string; value: string; note?: string };
+export type Stat = { value: string; label: string; sub?: string; tone: StatTone };
 
-/** Up to three stats for the top strip (only what the data supports). */
+/** Up to three stats for the top strip (only what the data supports): a big value, a label, a sub-line. */
 export function topStats(
-  clocks: ClockState[],
+  clocks: SpotClockInfo[],
   spots: Spot[],
   stations: Pick<Station, "key" | "name">[],
   forecast: Forecast | null,
@@ -272,11 +280,12 @@ export function topStats(
       const gap = spot.threshold - sf.levelNow;
       const tr = trend(forecast.observed?.[spot.gauge]);
       const gaugeName = plainGauge(stations.find((s) => s.key === spot.gauge)?.name ?? spot.gauge);
-      const outlook = (main.p ?? 0) < 0.01 ? "no flood expected in 72 h" : `${formatPct(main.p ?? 0)} chance of flooding in 72 h`;
+      const outlook = (main.p ?? 0) < 0.005 ? "no flood expected in 72 h" : `${pctPlain(main.p ?? 0)} chance of flooding in 72 h`;
       out.push({
-        label: `${gaugeName} gauge`,
-        value: gap > 0 ? `${gap.toFixed(2)} m below flood level` : `${(-gap).toFixed(2)} m above flood level`,
-        note: [tr, outlook].filter(Boolean).join(" · "),
+        value: `${Math.abs(gap).toFixed(2)} m`,
+        label: `${gap > 0 ? "below" : "above"} flood level at ${gaugeName}`,
+        sub: [tr, outlook].filter(Boolean).join(" · "),
+        tone: kitState(main) as StatTone,
       });
     }
   }
@@ -286,18 +295,20 @@ export function topStats(
     const top = [...usable].sort((a, b) => (b.p ?? 0) - (a.p ?? 0))[0];
     const p = top.p ?? 0;
     out.push({
-      label: "Highest chance in 3 days",
-      value: chanceText(p),
-      note: p < 0.01 ? `all ${usable.length} forecast spots` : `at ${top.name}`,
+      value: pctPlain(p),
+      label: "highest chance of flooding in 3 days",
+      sub: p < 0.005 ? `across all ${usable.length} forecast spots` : `at ${top.name}`,
+      tone: kitState(top) as StatTone,
     });
   }
 
   // 3. Coverage: how many spots have a forecast, and why the others don't.
   const missing = clocks.filter((c) => c.kind !== "forecast" && c.kind !== "flooding");
   out.push({
-    label: "Spots with a forecast",
     value: `${usable.length} of ${clocks.length}`,
-    note: missing.length ? missing.map((c) => `${c.name}: ${c.status}`).join(" · ") : undefined,
+    label: "spots with a forecast",
+    sub: missing.length ? missing.map((c) => `${c.name}: ${c.status}`).join(" · ") : undefined,
+    tone: missing.length ? "muted" : "neutral",
   });
   return out.slice(0, 3);
 }

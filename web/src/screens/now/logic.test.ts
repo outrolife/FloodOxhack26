@@ -14,7 +14,7 @@ import {
   dataTimestamp,
   formatCountdown,
   headline,
-  missingNote,
+  kitState,
   plainGauge,
   pulseSeconds,
   riverLinks,
@@ -66,6 +66,7 @@ describe("clock states from live.json", () => {
     expect(formatCountdown(null)).toBe("—");
     expect(formatCountdown(31.4)).toBe("≈ 31 h");
     expect(formatCountdown(0)).toBe("now");
+    expect(formatCountdown(54)).toBe("≈ 2 days 6 h");
   });
 
   it("forecast spot: p is the 72 h chance, countdown from now to arrival.p50", () => {
@@ -87,6 +88,10 @@ describe("clock states from live.json", () => {
     expect(by.cherwell.kind).toBe("stale");
     expect(by.cherwell.status).toMatch(/^gauge offline since 13 Oct/);
     for (const k of ["osney", "botley", "abingdonrd"]) expect(by[k].kind).toBe("forecast");
+    expect(kitState(by.wolvercote)).toBe("noforecast");
+    expect(kitState(by.cherwell)).toBe("stale");
+    expect(kitState(by.osney)).toBe("watch"); // 41% within 72 h
+    expect(kitState(by.botley)).toBe("calm");
   });
 
   it("no live data: every clock says so", () => {
@@ -134,12 +139,6 @@ describe("headline", () => {
 
   it("no forecast at all points to gov.uk", () => {
     expect(headline(clockStates(spots, null, NOW))).toMatch(/no River Clock forecast.*gov\.uk\/check-flooding/);
-  });
-
-  it("missing note lists the unforecast spots and why", () => {
-    const note = missingNote(clockStates(spots, live, Date.parse(live.issuedAt)))!;
-    expect(note).toContain("Wolvercote (live gauge only, no forecast)");
-    expect(note).toContain("Cherwell (gauge offline since 13 Oct");
   });
 });
 
@@ -204,11 +203,14 @@ describe("top strip", () => {
     const stats = topStats(clocks, spots, stations, live);
     expect(stats.length).toBeLessThanOrEqual(3);
     const b = live.spots.find((s) => s.spot === "botley")!;
-    expect(stats[0].label).toBe("New Botley gauge");
-    expect(stats[0].value).toBe(`${(botley.threshold - b.levelNow).toFixed(2)} m below flood level`);
-    expect(stats[0].note).toMatch(/no flood expected in 72 h$/);
-    expect(stats[1]).toEqual({ label: "Highest chance in 3 days", value: "41%", note: "at Osney Island" });
+    expect(stats[0].value).toBe(`${(botley.threshold - b.levelNow).toFixed(2)} m`);
+    expect(stats[0].label).toBe("below flood level at New Botley");
+    expect(stats[0].sub).toMatch(/no flood expected in 72 h$/);
+    expect(stats[0].tone).toBe("calm");
+    expect(stats[1]).toEqual({ value: "41%", label: "highest chance of flooding in 3 days", sub: "at Osney Island", tone: "watch" });
     expect(stats[2].value).toBe("3 of 5");
+    expect(stats[2].sub).toContain("Wolvercote: live gauge only, no forecast");
+    expect(stats[2].sub).toContain("Cherwell: gauge offline since 13 Oct");
   });
 
   it("timestamp ignores stale gauges", () => {
