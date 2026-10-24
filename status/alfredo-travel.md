@@ -1,14 +1,14 @@
 # alfredo-travel
 
 - **role**: Model
-- **state**: blocked
+- **state**: reviewing
 - **issue**: #7
-- **task**: Travel times (SPEC 6) PR #37 open: 11 pairs, Thames -> newbotley/minns/coldharbour + Cherwell (PR #30)
-- **next**: When hourly.parquet lands: run, commit travel_times.json, switch PR #37 to Closes #7
-- **needs**: hourly.parquet at shared data/processed from s-s01s-pipeline (#3)
-- **notes**: lags.json = {pairs:[{up,down,lag_lo,lag_main,lag_hi,source}]} (PR #31 reads it). Stand-in run: enslow->kingsmill 18.6h n=6, cassington->newbotley 9.5h n=24
-- **branch**: model/travel-times
-- **head**: ee08a87 Retarget travel-time pairs to newbotley, minns and coldharbour
+- **task**: Real-data travel_times.json in PR #47 (Closes #7); shared lags.json written
+- **next**: Address review on PR #47
+- **needs**: 
+- **notes**: Headline: enslow->kingsmill T_half 18.6h (n=6), cassington->newbotley 9.5h (n=24), farmoor->newbotley xcorr 5h (n=0). lags.json at shared data/processed
+- **branch**: model/travel-times-data
+- **head**: 02ee5fa Add travel_times.json from the real hourly data (11 pairs)
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:22:38Z
+- **updated**: 2026-10-24T16:40:26Z
