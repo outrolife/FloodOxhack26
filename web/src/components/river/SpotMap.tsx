@@ -5,6 +5,7 @@ import { type ReactNode, useState } from "react";
 import { CircleMarker, MapContainer, TileLayer, Tooltip } from "react-leaflet";
 import type { Forecast, Spot, Station } from "../../contracts";
 import { LEVEL_STYLE, pFloodAt, pct, spotLevel } from "../shared/forecast";
+import { FIT_PADDING, labelSide, shortSpotName, spotBounds } from "./mapLayout";
 
 const OXFORD: [number, number] = [51.7585, -1.2655];
 
@@ -25,11 +26,15 @@ export function SpotMap({
   children?: ReactNode;
 }) {
   const [tilesFailed, setTilesFailed] = useState(!navigator.onLine);
+  const bounds = spotBounds(spots);
 
   return (
     <div>
       <div className="map-wrap">
-        <MapContainer center={OXFORD} zoom={13} scrollWheelZoom={false}>
+        <MapContainer
+          {...(bounds ? { bounds, boundsOptions: { padding: FIT_PADDING } } : { center: OXFORD, zoom: 13 })}
+          scrollWheelZoom={false}
+        >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -65,10 +70,16 @@ export function SpotMap({
                 }}
                 eventHandlers={{ click: () => onSelect(spot.key) }}
               >
-                <Tooltip direction="top" offset={[0, -10]}>
-                  <strong>{spot.name}</strong>
-                  <br />
-                  {lvl === "unknown" ? LEVEL_STYLE.unknown.label : `${pct(p)} chance of flooding within 24 h`}
+                {/* Always-on label (#103): the judge can tell the dots apart without tiles or hovering. */}
+                <Tooltip
+                  permanent
+                  direction={labelSide(spot.key)}
+                  offset={[labelSide(spot.key) === "left" ? -12 : 12, 0]}
+                  className="spot-label"
+                >
+                  <strong>{shortSpotName(spot.name)}</strong>
+                  {" · "}
+                  {lvl === "unknown" ? LEVEL_STYLE.unknown.label : `${pct(p)} in 24 h`}
                 </Tooltip>
               </CircleMarker>
             );

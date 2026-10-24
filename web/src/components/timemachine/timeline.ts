@@ -138,6 +138,28 @@ function gainH(rc: string, o: Official): { h: number; approx: string } {
 
 const hrs = (h: number) => `${Math.abs(h).toFixed(0)} h`;
 
+/** Hours of run-up the "start just before the flood" button shows before River Clock's 50% (#103). */
+export const RUN_UP_H = 72;
+
+/**
+ * Forecast index to start a replay "just before the flood" (#103): RUN_UP_H
+ * before River Clock first reached 50% for this flood, else before the
+ * crossing, else before its first 10%. For e2014 at Botley this is 1 Jan 2014
+ * 12:00 GMT (step 150, as in docs/demo.md). null if the event has none of these.
+ */
+export function runUpIndex(
+  forecasts: Pick<Replay["forecasts"][number], "issuedAt">[],
+  warning: Pick<TierMatch, "rc" | "crossing">,
+  alert: Pick<TierMatch, "rc">,
+): number | null {
+  const anchor = warning.rc ?? warning.crossing ?? alert.rc;
+  if (!anchor || forecasts.length === 0) return null;
+  const target = ms(anchor) - RUN_UP_H * H;
+  let idx = 0;
+  for (let i = 0; i < forecasts.length; i++) if (ms(forecasts[i].issuedAt) <= target) idx = i;
+  return idx;
+}
+
 /**
  * One sentence for a tier match, or null if there is nothing to say or the
  * slider hasn't reached every time it mentions yet (no spoilers). `endT` is
@@ -150,8 +172,17 @@ export function tierSentence(m: TierMatch, revealed: (t: string) => boolean, end
   const noun = m.official ? officialLabel(m.official) : tierNoun;
   const seen = (...ts: (string | null | undefined)[]) => ts.every((t) => t == null || revealed(t));
 
+  // Both markers are on screen but the outcome isn't yet (#103): say the head
+  // start now, without saying whether or when the river floods.
+  const soFar = (): string | null => {
+    if (!m.rc || !m.official || m.alreadyOn || !seen(m.rc, m.official.issuedAt)) return null;
+    const { h, approx } = gainH(m.rc, m.official);
+    const when = Math.abs(h) < 0.5 ? "at about the same time as" : `${hrs(h)} ${h > 0 ? "earlier" : "later"} than`;
+    return `So far: River Clock reached ${pct} ${when} the EA ${noun}${approx}. Keep playing to see what the river did.`;
+  };
+
   if (m.crossing) {
-    if (!seen(m.crossing, m.rc, m.official?.issuedAt)) return null;
+    if (!seen(m.crossing, m.rc, m.official?.issuedAt)) return soFar();
     const c = m.crossing;
     // Already at the level when the 72 h window opened: say so, and leads are lower bounds.
     const already = m.alreadyOn
@@ -169,7 +200,7 @@ export function tierSentence(m: TierMatch, revealed: (t: string) => boolean, end
       if (m.lateOfficial && seen(m.lateOfficial.issuedAt)) {
         return `${before}; the EA ${officialLabel(m.lateOfficial)} came ${hrs(hoursBetween(c, m.lateOfficial.issuedAt))} after the crossing.`;
       }
-      return `${before}; no EA ${tierNoun} in the ${MATCH_WINDOW_H} h before it.`;
+      return `${before}; no new EA ${tierNoun} was issued in the ${MATCH_WINDOW_H} h before the crossing.`;
     }
     if (m.official) {
       return `The EA ${noun} came ${hrs(hoursBetween(m.official.issuedAt, c))} before the river crossed the threshold; River Clock did not reach ${pct} in the ${MATCH_WINDOW_H} h before it.`;
@@ -178,13 +209,14 @@ export function tierSentence(m: TierMatch, revealed: (t: string) => boolean, end
   }
 
   // No crossing in this event.
-  if (!m.rc || !seen(m.rc, m.official?.issuedAt, endT)) return null;
+  if (!m.rc || !seen(m.rc, m.official?.issuedAt)) return null;
+  if (!seen(endT)) return soFar();
   const stayed = "the river stayed below the flood threshold";
   if (m.official) {
     const { h, approx } = gainH(m.rc, m.official);
     const when = Math.abs(h) < 0.5 ? "at about the same time as" : `${hrs(h)} ${h > 0 ? "earlier" : "later"} than`;
     return `River Clock reached ${pct} ${when} the EA ${noun}${approx}, and ${stayed}.`;
   }
-  return `River Clock reached ${pct} on ${formatDateTimeYear(m.rc)} and ${stayed}; no EA ${tierNoun} within ${MATCH_WINDOW_H} h of it.`;
+  return `River Clock reached ${pct} on ${formatDateTimeYear(m.rc)} and ${stayed}; no EA ${tierNoun} was issued within ${MATCH_WINDOW_H} h of that.`;
 }
 
