@@ -3,12 +3,12 @@
 - **role**: PM
 - **state**: working
 - **issue**: 
-- **task**: PM: 6 agents (qa2, s2, live2 #79/#80, proof2 #81, calib #85, poster #84)
-- **next**: Merge as PRs land; check-in 19:20 BST
+- **task**: PM: merged #75 S1, #86 UI pass (+#82), #87, #88 live.json; #89 S2 rebasing
+- **next**: Merge #89 when green; check-in 19:20 BST
 - **needs**: 
-- **notes**: alfredo: #82 routed to you (TM official marker). #83 media on hold
+- **notes**: alfredo: your 4 PRs merged. #79 fix (s-s01s-live2) will regenerate live.json with real models
 - **branch**: main
-- **head**: c1db381 Merge pull request #78 from outrolife/story/team-names
+- **head**: 26080de Merge pull request #75 from outrolife/stretch/s1-risk-layers
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:52:37Z
+- **updated**: 2026-10-24T17:57:19Z
