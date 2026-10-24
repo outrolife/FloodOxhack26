@@ -176,7 +176,7 @@ class SPAStaticFiles(StaticFiles):
 
     async def get_response(self, path: str, scope: Scope):  # type: ignore[override]
         try:
-            return await super().get_response(path, scope)
+            response = await super().get_response(path, scope)
         except StarletteHTTPException as exc:
             # Starlette hands us an OS path (os.path.normpath): ``api\nope`` on Windows. Check the
             # URL-style form so ``/api/*`` stays 404 on every OS.
@@ -184,7 +184,12 @@ class SPAStaticFiles(StaticFiles):
             last = url_path.rsplit("/", 1)[-1]
             if exc.status_code != 404 or url_path == "api" or url_path.startswith("api/") or "." in last:
                 raise
-            return await super().get_response("index.html", scope)
+            response = await super().get_response("index.html", scope)
+        # Hashed bundles under assets/ can be cached; the page shell and data must not be, or a
+        # rebuild leaves the browser pointing at deleted bundles (a blank page at the demo).
+        if not path.replace(os.sep, "/").startswith("assets/"):
+            response.headers["Cache-Control"] = "no-cache"
+        return response
 
 
 def mount_static(target: FastAPI, directory: Path) -> None:

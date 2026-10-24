@@ -3,17 +3,15 @@
 // main roads, railways and buildings; © OpenStreetMap contributors, ODbL),
 // drawn as Leaflet vector layers. OSM raster tiles are an optional extra when
 // online. Children are overlays (spot clocks, spread heatmap, pins).
-import { type ReactNode, useEffect, useState } from "react";
+import { Component, type ReactNode, useEffect, useState } from "react";
 import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
 import type { FeatureCollection } from "geojson";
 import type { PathOptions } from "leaflet";
 import { loadData } from "../data";
 
-/** Default view: the five trouble spots with some room around them. */
-export const OXFORD_BOUNDS: [[number, number], [number, number]] = [
-  [51.722, -1.305],
-  [51.786, -1.232],
-];
+import { OXFORD_BOUNDS, safeBounds, type Bounds } from "./bounds";
+
+export { OXFORD_BOUNDS, safeBounds };
 
 export const BASEMAP_FILE = "geo/oxford-base.geojson";
 
@@ -72,16 +70,21 @@ export function useBaseMap(): Base {
  * invalidateSize() whenever the container changes size, and re-fits the
  * bounds the first time it gets a real size.
  */
-function MapSizer({ bounds }: { bounds: [[number, number], [number, number]] }) {
+function MapSizer({ bounds }: { bounds: Bounds }) {
   const map = useMap();
+  const key = bounds.flat().join(",");
   useEffect(() => {
     const el = map.getContainer();
-    let sized = el.clientWidth > 0 && el.clientHeight > 0;
+    let fitted = false;
     const fix = () => {
       map.invalidateSize();
-      const now = el.clientWidth > 0 && el.clientHeight > 0;
-      if (now && !sized) map.fitBounds(bounds, { padding: [24, 24] });
-      sized = now;
+      if (fitted || el.clientWidth === 0 || el.clientHeight === 0) return;
+      try {
+        map.fitBounds(bounds, { padding: [24, 24] });
+        fitted = true;
+      } catch {
+        // Not laid out yet; the next resize tries again.
+      }
     };
     const t = window.setTimeout(fix, 0); // once after the first layout
     if (typeof ResizeObserver === "undefined") {
@@ -97,9 +100,21 @@ function MapSizer({ bounds }: { bounds: [[number, number], [number, number]] }) 
       window.clearTimeout(t);
       ro.disconnect();
     };
-    // Bounds are read when the map first gets a real size; later changes don't re-fit.
-  }, [map]);
+    // Re-fit when the bounds change (e.g. from the Oxford fallback to the loaded data), not on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, key]);
   return null;
+}
+
+/** A map failure shows a note instead of unmounting the whole page. */
+class MapErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    return this.state.failed ? <div className="ui-basemap-note">The map could not be drawn. Reload the page.</div> : this.props.children;
+  }
 }
 
 export function BaseMap({
@@ -120,11 +135,16 @@ export function BaseMap({
   const base = useBaseMap();
   const online = typeof navigator === "undefined" ? false : navigator.onLine;
   const [tiles, setTiles] = useState(tilesDefault && online);
+  const fit = safeBounds(bounds);
+  // Start from a centre and zoom, never from bounds: fitting bounds in a container that has no size yet
+  // gives a NaN zoom. MapSizer fits the bounds once the container is laid out.
+  const center: [number, number] = [(fit[0][0] + fit[1][0]) / 2, (fit[0][1] + fit[1][1]) / 2];
   return (
     <div className={`ui-basemap${className ? ` ${className}` : ""}`}>
+      <MapErrorBoundary>
       <MapContainer
-        bounds={bounds}
-        boundsOptions={{ padding: [24, 24] }}
+        center={center}
+        zoom={13}
         zoomSnap={0.25}
         scrollWheelZoom={false}
         dragging={interactive}
@@ -152,9 +172,10 @@ export function BaseMap({
               />
             ) : null,
           )}
-        <MapSizer bounds={bounds} />
+        <MapSizer bounds={fit} />
         {children}
       </MapContainer>
+      </MapErrorBoundary>
       {online && (
         <button className="ui-basemap-toggle" onClick={() => setTiles((t) => !t)} aria-pressed={tiles}>
           {tiles ? "Simple map" : "Street map"}
