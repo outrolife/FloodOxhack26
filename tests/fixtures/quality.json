@@ -1,0 +1,152 @@
+{
+ "gauges": [
+  {
+   "key": "farmoor",
+   "coveragePct": 99.4,
+   "gapsFilled": 120,
+   "gapsFlagged": 3,
+   "spikesRemoved": 0,
+   "thresholdApi": 1.3,
+   "thresholdConfig": 1.3,
+   "notes": []
+  },
+  {
+   "key": "eynsham",
+   "coveragePct": 98.7,
+   "gapsFilled": 137,
+   "gapsFlagged": 8,
+   "spikesRemoved": 7,
+   "thresholdApi": 2.96,
+   "thresholdConfig": 2.96,
+   "notes": []
+  },
+  {
+   "key": "cassington",
+   "coveragePct": 98.0,
+   "gapsFilled": 154,
+   "gapsFlagged": 13,
+   "spikesRemoved": 1,
+   "thresholdApi": null,
+   "thresholdConfig": 0.77,
+   "notes": [
+    "No stageScale in flood-monitoring metadata; amber taken from config."
+   ]
+  },
+  {
+   "key": "enslow",
+   "coveragePct": 97.3,
+   "gapsFilled": 171,
+   "gapsFlagged": 7,
+   "spikesRemoved": 8,
+   "thresholdApi": 1.29,
+   "thresholdConfig": 1.29,
+   "notes": [
+    "EA: high-flow rating unreliable; level used, not flow.",
+    "Possible datum shift 2016-03-04 logged for review."
+   ]
+  },
+  {
+   "key": "islip",
+   "coveragePct": 96.6,
+   "gapsFilled": 188,
+   "gapsFlagged": 12,
+   "spikesRemoved": 2,
+   "thresholdApi": 7.8,
+   "thresholdConfig": 7.8,
+   "notes": [
+    "EA: high-flow rating unreliable; level used, not flow."
+   ]
+  },
+  {
+   "key": "godstow",
+   "coveragePct": 95.9,
+   "gapsFilled": 205,
+   "gapsFlagged": 6,
+   "spikesRemoved": 9,
+   "thresholdApi": 2.57,
+   "thresholdConfig": 2.57,
+   "notes": []
+  },
+  {
+   "key": "osney",
+   "coveragePct": 95.2,
+   "gapsFilled": 222,
+   "gapsFlagged": 11,
+   "spikesRemoved": 3,
+   "thresholdApi": 3.18,
+   "thresholdConfig": 3.18,
+   "notes": []
+  },
+  {
+   "key": "iffley",
+   "coveragePct": 94.5,
+   "gapsFilled": 239,
+   "gapsFlagged": 5,
+   "spikesRemoved": 10,
+   "thresholdApi": 2.72,
+   "thresholdConfig": 2.72,
+   "notes": []
+  },
+  {
+   "key": "kingsmill",
+   "coveragePct": 93.8,
+   "gapsFilled": 256,
+   "gapsFlagged": 10,
+   "spikesRemoved": 4,
+   "thresholdApi": 2.35,
+   "thresholdConfig": 2.4,
+   "notes": [
+    "Threshold mismatch: API typicalRangeHigh 2.35 m vs config 2.40 m."
+   ]
+  },
+  {
+   "key": "newbotley",
+   "coveragePct": 89.0,
+   "gapsFilled": 273,
+   "gapsFlagged": 4,
+   "spikesRemoved": 11,
+   "thresholdApi": 2.01,
+   "thresholdConfig": 2.01,
+   "notes": [
+    "Hydrology API gap 2013-12-24 to 2013-12-29 filled from daily archive CSVs."
+   ]
+  }
+ ],
+ "sources": [
+  {
+   "name": "EA Hydrology API (15-min level and rainfall)",
+   "url": "https://environment.data.gov.uk/hydrology/",
+   "licence": "OGL v3.0",
+   "downloadedAt": "2026-10-24T14:12:00Z",
+   "rows": 4718304
+  },
+  {
+   "name": "EA flood-monitoring API (station metadata, live readings)",
+   "url": "https://environment.data.gov.uk/flood-monitoring/",
+   "licence": "OGL v3.0",
+   "downloadedAt": "2026-10-25T01:00:00Z",
+   "rows": 40320
+  },
+  {
+   "name": "EA flood-monitoring daily archive",
+   "url": "https://environment.data.gov.uk/flood-monitoring/archive/",
+   "licence": "OGL v3.0",
+   "downloadedAt": "2026-10-24T15:03:00Z",
+   "rows": 576
+  },
+  {
+   "name": "EA Historic Flood Warnings",
+   "url": "https://www.data.gov.uk/dataset/d4fb2591-f4dd-4e7f-9aaf-49af94437b36/historic-flood-warnings2",
+   "licence": "OGL v3.0",
+   "downloadedAt": "2026-10-24T14:40:00Z",
+   "rows": 412
+  },
+  {
+   "name": "Open-Meteo historical weather (fallback rainfall)",
+   "url": "https://archive-api.open-meteo.com/v1/archive",
+   "licence": "CC BY 4.0",
+   "downloadedAt": "2026-10-24T14:55:00Z",
+   "rows": 173352
+  }
+ ]
+}

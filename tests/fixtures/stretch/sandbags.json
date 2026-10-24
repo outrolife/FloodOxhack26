@@ -1,0 +1,56 @@
+{
+ "issuedAt": "2026-10-25T01:15:00Z",
+ "budget": 500,
+ "candidates": [
+  {
+   "id": "osm-way-123456781",
+   "lat": 51.7512,
+   "lon": -1.2731,
+   "score": 0.68,
+   "pWet48": 0.68,
+   "medianDepthM": 0.18,
+   "firstWet": "2026-10-26T14:00:00Z",
+   "bags": 140,
+   "reasons": [
+    "Frequency \u2265 0.5 along 14 m of the north wall by 48 h",
+    "Median depth 0.18 m (\u2264 0.3 m)"
+   ],
+   "checks": [
+    "Door and sill height",
+    "Access for delivery",
+    "Owner permission",
+    "Risk of diverting water to neighbours"
+   ]
+  },
+  {
+   "id": "osm-way-123456799",
+   "lat": 51.7503,
+   "lon": -1.2744,
+   "score": 0.27,
+   "pWet48": 0.54,
+   "medianDepthM": 0.36,
+   "firstWet": "2026-10-26T20:00:00Z",
+   "bags": 90,
+   "reasons": [
+    "Frequency \u2265 0.5 along 9 m of footprint",
+    "Median depth 0.36 m: score halved"
+   ],
+   "checks": [
+    "Door and sill height",
+    "Access for delivery",
+    "Owner permission",
+    "Risk of diverting water to neighbours"
+   ]
+  }
+ ],
+ "excluded": [
+  {
+   "id": "osm-way-123456802",
+   "reason": "Median depth 0.62 m > 0.5 m: sandbags impractical"
+  },
+  {
+   "id": "osm-way-123456815",
+   "reason": "First wet before now + 3 h deployment time"
+  }
+ ]
+}

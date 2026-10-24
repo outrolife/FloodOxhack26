@@ -1,0 +1,142 @@
+{
+ "osney": [
+  {
+   "h": 6,
+   "features": [
+    {
+     "name": "osney_chg_3h",
+     "gain": 4120.5
+    },
+    {
+     "name": "level_now",
+     "gain": 3310.2
+    },
+    {
+     "name": "godstow_anom_lag0h",
+     "gain": 2290.8
+    },
+    {
+     "name": "osney_chg_1h",
+     "gain": 1585.0
+    },
+    {
+     "name": "eynsham_anom_lag6h",
+     "gain": 920.4
+    },
+    {
+     "name": "rain_6h",
+     "gain": 610.3
+    },
+    {
+     "name": "mean_21d",
+     "gain": 402.7
+    },
+    {
+     "name": "doy_sin",
+     "gain": 120.9
+    }
+   ]
+  },
+  {
+   "h": 24,
+   "features": [
+    {
+     "name": "eynsham_anom_lag0h",
+     "gain": 3890.1
+    },
+    {
+     "name": "cassington_anom_lag0h",
+     "gain": 2975.6
+    },
+    {
+     "name": "level_now",
+     "gain": 2410.3
+    },
+    {
+     "name": "farmoor_anom_lag6h",
+     "gain": 1820.0
+    },
+    {
+     "name": "rain_24h",
+     "gain": 1490.2
+    },
+    {
+     "name": "osney_chg_24h",
+     "gain": 1102.8
+    },
+    {
+     "name": "godstow_chg_24h",
+     "gain": 760.5
+    },
+    {
+     "name": "doy_cos",
+     "gain": 210.4
+    }
+   ]
+  },
+  {
+   "h": 72,
+   "features": [
+    {
+     "name": "rain_72h",
+     "gain": 3550.0
+    },
+    {
+     "name": "farmoor_anom_lag0h",
+     "gain": 2840.7
+    },
+    {
+     "name": "rain_21d",
+     "gain": 2215.3
+    },
+    {
+     "name": "eynsham_chg_24h",
+     "gain": 1640.9
+    },
+    {
+     "name": "mean_21d",
+     "gain": 1388.1
+    },
+    {
+     "name": "level_now",
+     "gain": 1012.6
+    },
+    {
+     "name": "rain_168h",
+     "gain": 815.2
+    },
+    {
+     "name": "doy_sin",
+     "gain": 330.0
+    }
+   ]
+  }
+ ],
+ "kingsmill": [
+  {
+   "h": 24,
+   "features": [
+    {
+     "name": "enslow_anom_lag0h",
+     "gain": 2650.4
+    },
+    {
+     "name": "islip_anom_lag6h",
+     "gain": 1930.7
+    },
+    {
+     "name": "level_now",
+     "gain": 1450.0
+    },
+    {
+     "name": "rain_24h",
+     "gain": 1110.6
+    },
+    {
+     "name": "kingsmill_chg_6h",
+     "gain": 640.2
+    }
+   ]
+  }
+ ]
+}
