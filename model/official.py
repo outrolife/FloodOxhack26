@@ -29,6 +29,7 @@ import pandas as pd
 P_STARS: tuple[float, ...] = (0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)  # SPEC §8.2
 LEVEL_RANK: dict[str, int] = {"alert": 0, "warning": 1, "severe": 2}
 LOCAL_TZ = "Europe/London"
+FLOOD_WARNING_WINDOW = pd.Timedelta(hours=72)  # SPEC §8.2: a hit is a trigger within 72 h before a crossing
 
 # EA target areas per spot (codes verified in the July 2026 Historic Flood Warnings release).
 # Each spot gets its warning area, the alert area that covers it and the 2006-08 legacy reach
@@ -196,6 +197,21 @@ def lead_gained_h(
 # --------------------------------------------------------------------------- comparison
 
 
+def first_flood_end(end: Any, onsets: Sequence[Any] | None) -> pd.Timestamp:
+    """End of the first flood's part of an event window, else ``end``.
+
+    A long window (e2012, e2014) can hold two floods weeks apart. Comparing our first trigger with the
+    first official message only makes sense within one flood, otherwise a trigger for the second flood
+    is set against a warning for the first one (e2012 Cherwell at p* = 0.7 gave -670 h). The first
+    flood's part ends where the second flood's 72 h warning window begins (the §8.2 hit window), but
+    never before the first onset itself.
+    """
+    ons = sorted(_utc(c) for c in onsets or ())
+    if len(ons) > 1 and ons[1] <= _utc(end):
+        return max(ons[1] - FLOOD_WARNING_WINDOW, ons[0]) - pd.Timedelta(seconds=1)
+    return _utc(end)
+
+
 def compare_event(
     p: pd.Series,
     warnings: pd.DataFrame,
@@ -205,12 +221,16 @@ def compare_event(
     end: Any,
     p_stars: Sequence[float] = P_STARS,
     spot_areas: Mapping[str, Sequence[str]] = SPOT_AREAS,
+    onsets: Sequence[Any] | None = None,
 ) -> list[dict[str, Any]]:
     """One row per p*: our first trigger and lead gained vs the first EA warning and alert.
 
-    Both our trigger and the official messages are taken from the same window [start, end].
-    Times are pandas UTC Timestamps (or None); leads are hours (or None).
+    Both our trigger and the official messages are taken from the same window: [start, end], cut
+    72 h before the second flood onset when ``onsets`` (the event's flood onsets, e.g.
+    ``metrics.flood_onsets`` of the replay crossings) has more than one, so both sides refer to the
+    first flood (``first_flood_end``). Times are pandas UTC Timestamps (or None); leads are hours (or None).
     """
+    end = first_flood_end(end, onsets)
     warn = first_official(warnings, spot, start, end, "warning", spot_areas)
     alert = first_official(warnings, spot, start, end, "alert", spot_areas)
     rows = []
@@ -261,12 +281,19 @@ def compare_events(
     events: Mapping[str, tuple[Any, Any]],
     p_stars: Sequence[float] = P_STARS,
     spot_areas: Mapping[str, Sequence[str]] = SPOT_AREAS,
+    onsets: Mapping[tuple[str, str], Sequence[Any]] | None = None,
 ) -> pd.DataFrame:
-    """``compare_event`` for every (event_id, spot) in ``triggers``; ``events`` maps id -> (start, end)."""
+    """``compare_event`` for every (event_id, spot) in ``triggers``; ``events`` maps id -> (start, end).
+
+    ``onsets`` maps (event_id, spot) -> flood onset times; with it, each comparison is limited to the
+    event's first flood (see ``first_flood_end``). Pass it: without it, a two-flood window can pair
+    a trigger for one flood with a warning for the other.
+    """
     rows: list[dict[str, Any]] = []
     for (event_id, spot), p in triggers.items():
         start, end = events[event_id]
-        rows += compare_event(p, warnings, spot, event_id, start, end, p_stars, spot_areas)
+        ons = (onsets or {}).get((event_id, spot))
+        rows += compare_event(p, warnings, spot, event_id, start, end, p_stars, spot_areas, ons)
     return pd.DataFrame(rows, columns=COMPARE_COLUMNS)
 
 
