@@ -49,29 +49,6 @@
    ]
   },
   {
-   "id": "osm-way-264911996",
-   "lat": 51.75138,
-   "lon": -1.2806,
-   "score": 0.595,
-   "pWet48": 0.595,
-   "medianDepthM": 0.11,
-   "firstWet": "2014-01-06T12:00:00Z",
-   "bags": 78,
-   "reasons": [
-    "Frequency ≥ 0.2 along 8 m of its 57 m walls by 48 h (OSM semidetached_house)",
-    "P(wet by 48 h) 0.60",
-    "Median depth 0.11 m (≤ 0.3 m)",
-    "Frequency ≥ 0.5 from the +36 h frame",
-    "Bags assume 10 per metre of exposed wall (assumption)"
-   ],
-   "checks": [
-    "Door and sill height",
-    "Access for delivery",
-    "Owner permission",
-    "Risk of diverting water to neighbours"
-   ]
-  },
-  {
    "id": "osm-way-1101953852",
    "lat": 51.75155,
    "lon": -1.28328,
@@ -108,6 +85,29 @@
     "P(wet by 48 h) 0.57",
     "Median depth 0.10 m (≤ 0.3 m)",
     "Frequency ≥ 0.5 from the +48 h frame",
+    "Bags assume 10 per metre of exposed wall (assumption)"
+   ],
+   "checks": [
+    "Door and sill height",
+    "Access for delivery",
+    "Owner permission",
+    "Risk of diverting water to neighbours"
+   ]
+  },
+  {
+   "id": "osm-way-896034870",
+   "lat": 51.75292,
+   "lon": -1.26515,
+   "score": 0.575,
+   "pWet48": 0.575,
+   "medianDepthM": 0.14,
+   "firstWet": "2014-01-06T12:00:00Z",
+   "bags": 72,
+   "reasons": [
+    "Frequency ≥ 0.2 along 7 m of its 64 m walls by 48 h (OSM retail)",
+    "P(wet by 48 h) 0.57",
+    "Median depth 0.14 m (≤ 0.3 m)",
+    "Frequency ≥ 0.5 from the +36 h frame",
     "Bags assume 10 per metre of exposed wall (assumption)"
    ],
    "checks": [
@@ -237,7 +237,7 @@
   },
   {
    "id": "osm-way-1248151545",
-   "reason": "Recorded flood defence within 5 m (EA Spatial Flood Defences / OSM): existing defence location, inspect the defence instead; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+   "reason": "Recorded flood defence within 5 m (EA Spatial Flood Defences / OSM): existing defence location, inspect the defence instead"
   },
   {
    "id": "osm-way-1383017909",
@@ -318,10 +318,6 @@
   {
    "id": "osm-way-1564910042",
    "reason": "Recorded flood defence within 5 m (EA Spatial Flood Defences / OSM): existing defence location, inspect the defence instead; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
-  },
-  {
-   "id": "osm-way-221612667",
-   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
   },
   {
    "id": "osm-way-221612670",
@@ -517,7 +513,7 @@
   },
   {
    "id": "osm-way-588797866",
-   "reason": "Recorded flood defence within 5 m (EA Spatial Flood Defences / OSM): existing defence location, inspect the defence instead; Median depth 0.86 m > 0.5 m: sandbags impractical; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+   "reason": "Recorded flood defence within 5 m (EA Spatial Flood Defences / OSM): existing defence location, inspect the defence instead; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
   },
   {
    "id": "osm-way-824226022",
@@ -528,24 +524,12 @@
    "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
   },
   {
-   "id": "osm-way-896034870",
-   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
-  },
-  {
    "id": "osm-way-896034872",
    "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
   },
   {
-   "id": "osm-way-954506073",
-   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
-  },
-  {
-   "id": "osm-way-954506076",
-   "reason": "First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
-  },
-  {
    "id": "osm-way-961889997",
-   "reason": "Median depth 0.75 m > 0.5 m: sandbags impractical; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
+   "reason": "Median depth 0.64 m > 0.5 m: sandbags impractical; First wet before now + 3 h deployment time (frequency ≥ 0.5 by the +6 h frame)"
   },
   {
    "id": "osm-way-995894322",

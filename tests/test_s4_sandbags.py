@@ -182,31 +182,45 @@ def test_parse_overpass(geo) -> None:
     assert len(defences) == 1
 
 
-def test_load_cells_reads_s3_geotiff(tmp_path: Path) -> None:
-    rasterio = pytest.importorskip("rasterio")
-    from rasterio.transform import from_origin
-
+def test_load_cells_reads_s3_npz(tmp_path: Path) -> None:
+    """The ``cells.npz`` layout alfredo-s3 publishes on #22: (I, T, H, W) arrays plus the grid."""
     c = make_cells()
-    path = tmp_path / "2014-01-05T000000Z.tif"
-    layers = {"first_tau_h": c.first_tau}
-    for k, t in enumerate(TAUS):
-        layers[f"freq_{t:02d}"] = c.freq[k]
-        layers[f"median_depth_{t:02d}"] = c.depth[k]
-    with rasterio.open(
-        path, "w", driver="GTiff", width=NX, height=NY, count=len(layers), dtype="float32",
-        crs="EPSG:27700", transform=from_origin(449000, 207000, CELL, CELL), nodata=np.nan,
-    ) as dst:  # fmt: skip
-        for i, (n, a) in enumerate(layers.items(), start=1):
-            dst.write(a, i)
-            dst.set_band_description(i, n)
-    got = s4.load_cells(path)
+    river = np.zeros((NY, NX), dtype=bool)
+    river[:, 0] = True
+    path = tmp_path / "cells.npz"
+    np.savez_compressed(
+        path,
+        issued_at=np.array(["2014-01-04T00:00:00Z", "2014-01-05T00:00:00Z"]),
+        tau_h=np.array(TAUS),
+        freq=np.stack([c.freq * 0, c.freq]),
+        median_depth_m=np.stack([c.depth, c.depth]),
+        first_tau_h=np.stack([c.first_tau, c.first_tau]),
+        transform=np.array([5.0, 0.0, 449000.0, 0.0, -5.0, 207000.0]),
+        crs=np.array("EPSG:27700"),
+        river=river,
+    )
+    assert s4.npz_issues(path) == [datetime(2014, 1, 4, tzinfo=UTC), ISSUED]
+    got = s4.load_cells(path, ISSUED)
     assert got.issued_at == ISSUED
     assert list(got.taus) == TAUS
     assert (got.x0, got.y0, got.cell) == (449000, 207000, CELL)
-    np.testing.assert_array_equal(got.freq, c.freq)
+    np.testing.assert_array_equal(got.freq, c.freq)  # the second issue, not the first
     np.testing.assert_array_equal(got.first_tau, c.first_tau)
+    assert got.river is not None and got.river[:, 0].all() and got.river.sum() == NY
     row, col, inside = got.index(np.array([449002.0, 448990.0]), np.array([206998.0, 206998.0]))
     assert (row[0], col[0], inside.tolist()) == (0, 0, [True, False])
+    with pytest.raises(ValueError, match="no issue"):
+        s4.load_cells(path, datetime(2014, 1, 6, tzinfo=UTC))
+
+
+def test_river_cells_are_not_exposure(geo) -> None:
+    cells = make_cells()
+    cells.river = np.zeros(cells.shape, dtype=bool)
+    b = s4.Building("a", zone_box("edge"), {"building": "house"})  # x 20..30, y 45..55
+    full = s4.measure(cells, [b], [], P)[0].exposed_m
+    cells.river[:, 6] = True  # x 30..35: the east wall's samples (x = 31) sit on the channel
+    part = s4.measure(cells, [b], [], P)[0].exposed_m
+    assert full == pytest.approx(40.0) and 25.0 < part < 35.0
 
 
 # ---------------------------------------------------------------------------

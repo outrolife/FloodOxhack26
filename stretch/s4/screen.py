@@ -6,10 +6,10 @@ Suggests where a limited stock of sandbags is worth *inspecting* first. It is a 
 human, never an instruction, and the score is not a modelled damage reduction.
 
 Inputs
-- S3 per-cell rasters: ``$RC_DATA_DIR/processed/s3/{event}/{issuedAt}.tif``, written by
-  ``stretch/s3/spread.py`` on the 5 m EPSG:27700 grid. Bands ``freq_TT`` (ensemble frequency at lead
-  TT h), ``median_depth_TT`` (median depth among wet runs, m) and ``first_tau_h`` (earliest lead
-  with frequency >= 0.5).
+- S3 per-cell outputs: ``$RC_DATA_DIR/processed/s3/{event}/cells.npz``, written by
+  ``stretch/s3/spread.py`` on the 5 m EPSG:27700 grid (keys on #22): per issue time ``freq``
+  (ensemble frequency per lead), ``median_depth_m`` (median depth among wet runs) and
+  ``first_tau_h`` (earliest lead with frequency >= 0.5), plus the Main River seed cells ``river``.
 - OpenStreetMap building footprints (ODbL, "© OpenStreetMap contributors"), one cached Overpass
   request, reprojected to EPSG:27700.
 - EA Spatial Flood Defences (OGL v3) for the defence check.
@@ -17,8 +17,9 @@ Inputs
 Method (SPEC §11 S4)
 1. Each footprint's walls are sampled every 1 m along a line 1 m outside the footprint (so the
    samples sit in the cells the walls touch). Samples that fall inside another building are party
-   walls and can't be wet. A sample is "wet" if its cell has frequency >= 0.2 at any lead <= 48 h.
-   Candidates are buildings with at least one wet sample.
+   walls and can't be wet; samples on Main River seed cells are the channel itself, not flooding.
+   A sample is "wet" if its cell has frequency >= 0.2 at any lead <= 48 h. Candidates are
+   buildings with at least one wet sample.
 2. Hard exclusions (listed in ``excluded`` with the reason):
    - depth: the median depth at the building is over 0.5 m (sandbags work to about 0.3 m, at most
      ~0.5 m in ideal conditions). "Depth at the building" = for each lead <= 48 h, the median over
@@ -132,6 +133,7 @@ class Cells:
     x0: float  # west edge (m)
     y0: float  # north edge (m)
     cell: float  # cell size (m)
+    river: np.ndarray | None = None  # (ny, nx) Main River seed cells
 
     @property
     def shape(self) -> tuple[int, int]:
@@ -163,31 +165,35 @@ def iso_z(t: datetime) -> str:
     return t.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def load_cells(path: Path) -> Cells:
-    """Read an S3 per-issue GeoTIFF (band descriptions ``freq_TT``, ``median_depth_TT``, ``first_tau_h``)."""
-    import rasterio
+def npz_issues(path: Path) -> list[datetime]:
+    """Issue times stored in an S3 ``cells.npz``."""
+    with np.load(path, allow_pickle=False) as z:
+        return [parse_issue(str(t)) for t in z["issued_at"]]
 
-    with rasterio.open(path) as src:
-        names = list(src.descriptions)
-        t = src.transform
-        if abs(t.b) > 1e-9 or abs(t.d) > 1e-9 or abs(t.a + t.e) > 1e-9:
-            raise ValueError(f"{path.name}: expected a north-up square grid, got {t}")
-        if src.crs is None or src.crs.to_epsg() != 27700:
-            raise ValueError(f"{path.name}: expected EPSG:27700, got {src.crs}")
-        bands = {n: src.read(i + 1).astype(np.float32) for i, n in enumerate(names) if n}
-    taus = sorted(int(n.split("_")[1]) for n in bands if re.fullmatch(r"freq_\d+", n))
-    if not taus or "first_tau_h" not in bands:
-        raise ValueError(f"{path.name}: missing S3 bands, found {names}")
-    return Cells(
-        issued_at=parse_issue(path.stem),
-        taus=np.array(taus),
-        freq=np.stack([bands[f"freq_{t:02d}"] for t in taus]),
-        depth=np.stack([bands[f"median_depth_{t:02d}"] for t in taus]),
-        first_tau=bands["first_tau_h"],
-        x0=float(t.c),
-        y0=float(t.f),
-        cell=float(t.a),
-    )
+
+def load_cells(path: Path, issued: datetime) -> Cells:
+    """One issue time from an S3 ``cells.npz`` (layout on #22)."""
+    with np.load(path, allow_pickle=False) as z:
+        issues = [parse_issue(str(t)) for t in z["issued_at"]]
+        if issued not in issues:
+            raise ValueError(f"{path}: no issue {iso_z(issued)}; has {[iso_z(t) for t in issues]}")
+        k = issues.index(issued)
+        a, b, c, d, e, f = (float(v) for v in z["transform"])
+        if abs(b) > 1e-9 or abs(d) > 1e-9 or abs(a + e) > 1e-9:
+            raise ValueError(f"{path}: expected a north-up square grid, got {z['transform']}")
+        if "crs" in z.files and str(z["crs"]) != "EPSG:27700":
+            raise ValueError(f"{path}: expected EPSG:27700, got {z['crs']}")
+        return Cells(
+            issued_at=issued,
+            taus=np.asarray(z["tau_h"]).astype(int),
+            freq=np.asarray(z["freq"][k], dtype=np.float32),
+            depth=np.asarray(z["median_depth_m"][k], dtype=np.float32),
+            first_tau=np.asarray(z["first_tau_h"][k], dtype=np.float32),
+            x0=c,
+            y0=f,
+            cell=a,
+            river=np.asarray(z["river"], dtype=bool) if "river" in z.files else None,
+        )
 
 
 @dataclass
@@ -347,6 +353,8 @@ def measure(
         blocked = np.zeros(len(pts), dtype=bool)
         blocked[hit_pts[hit_geoms != i]] = True
         ok = inside & ~blocked
+        if cells.river is not None:
+            ok &= ~cells.river[row, col]
         wet = ok & (pmax[row, col] >= p.freq_min)
         if not wet.any():
             continue
@@ -496,15 +504,8 @@ def screen(cells: Cells, measures: Sequence[Measure], p: Params) -> dict:
 # ---------------------------------------------------------------------------
 
 
-def available_issues(event: str) -> dict[datetime, Path]:
-    d = S3_DIR / event
-    out = {}
-    for f in sorted(d.glob("*.tif")):
-        try:
-            out[parse_issue(f.stem)] = f
-        except ValueError:
-            continue
-    return out
+def cells_path(event: str) -> Path:
+    return S3_DIR / event / "cells.npz"
 
 
 def default_issue(event: str, issues: Sequence[datetime], ahead_h: int = 24) -> datetime:
@@ -525,15 +526,14 @@ def run(
 ) -> dict:
     t0 = time.time()
     p = p or Params()
-    issues = available_issues(event)
-    if not issues:
-        raise SystemExit(
-            f"no S3 rasters in {S3_DIR / event}; run `python -m stretch.s3.spread --event {event}` first"
-        )
-    t_issue = default_issue(event, list(issues)) if issued == "auto" else parse_issue(issued)
+    src = cells_path(event)
+    if not src.exists():
+        raise SystemExit(f"no {src}; run `python -m stretch.s3.spread --event {event}` first")
+    issues = npz_issues(src)
+    t_issue = default_issue(event, issues) if issued == "auto" else parse_issue(issued)
     if t_issue not in issues:
-        raise SystemExit(f"no S3 raster for {iso_z(t_issue)}; available: {[iso_z(t) for t in issues]}")
-    cells = load_cells(issues[t_issue])
+        raise SystemExit(f"no S3 issue {iso_z(t_issue)} in {src}; available: {[iso_z(t) for t in issues]}")
+    cells = load_cells(src, t_issue)
     buildings, osm_def = parse_overpass(json.loads(fetch.fetch_osm(refresh).read_text(encoding="utf-8")))
     ea_def = load_ea_defences(fetch.fetch_defences(cells.bounds, refresh))
     # Only buildings whose centroid is inside the S3 subarea bbox.
