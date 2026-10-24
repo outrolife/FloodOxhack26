@@ -1,39 +1,44 @@
 # River Clock: demo script (4 minutes)
 
-Judging is science-fair style: about 4 minutes per judge, at our table. The app has **four screens: Now · Replay · Protect · How good is it?** It must work with **no network**.
+Judging is science-fair style: about 4 minutes per judge, at our table. The app is **one screen, "River Clock"**: a map of Oxford's rivers with a clock for each spot, a timeline under it, a 2-line scoreboard, a switch along the top (**Now | 2014 | Jan 2024 | Nov 2024 | 2026 near miss**) and a one-line proof footer. Everything else (sandbag screening, the accuracy charts, the cost–loss calculator, data quality) is behind **Show the working**. It must work with **no network**.
 
 All times are UK local time. Judging is on **Sun 25 Oct 2026, after the clocks went back at 02:00**, so the app and this script are on **GMT (= UTC)**. January events are GMT too.
 
-<!-- Every number below is read from committed JSON on main; the src comment beside each says where. If `make train backtest` runs again (#125, cut-off 03:00 GMT), re-check each src before rehearsal. The screens read their numbers at runtime, so they follow the data; this script doesn't. Never say a number we haven't computed. -->
+<!-- Every number below is read from committed JSON on main; the src comment beside each says where. If `make train backtest` runs again (#125, cut-off 03:00 GMT), re-check each src before rehearsal. The app reads its numbers at runtime, so it follows the data; this script doesn't. Never say a number we haven't computed. -->
 
 ---
+
+## What's on the screen
+
+- **The map (hero):** the rivers flow and rise as the water comes; each trouble spot has a clock face that fills as its chance of flooding rises, with a countdown underneath.
+- **The timeline (under the map):** our forecast range against the real river level, with three markers: **River Clock warned · EA warned · Flooded**. Space plays it.
+- **The scoreboard (2 lines):** when River Clock warned, when the EA warned, and when it flooded, for the chosen flood.
+- **The switch (top):** today, or one of four past floods.
+- **The proof footer (1 line):** across all the floods we replayed, how many River Clock caught and how many the official warning caught.
 
 ## Presenter keys
 
 | Key | Does |
 |---|---|
-| **1 · 2 · 3 · 4** | Now · Replay · Protect · How good is it? |
-| **Space** | Play / pause the replay |
-| **← / →** | Step the replay one forecast (**Shift**: 6 steps) |
+| **1 · 2 · 3 · 4 · 5** | Now · 2014 · Jan 2024 · Nov 2024 · 2026 near miss |
+| **Space** | Play / pause the timeline |
 | **P** | Presenter mode: bigger type, no chrome |
-
-Each screen's details live behind **Show the working** (the old charts, tables, cost–loss calculator and data quality). Use it only when a judge asks.
 
 ## Before each judging slot (1 minute)
 
 1. Laptop on mains. Wi-Fi **off**. `make demo` running (see `docs/demo-backup.md`); `make preflight` shows only ✅/ℹ️.
-2. Open **http://127.0.0.1:8080/#/replay** in a **fresh tab** (the replay auto-plays on the first visit in a tab). Event **January 2014**, spot **Botley Road**. Press **P**.
-3. If it has already played: press **Space** to pause, then **Shift+←** until the date reads about **1 Jan 2014, 12:00**. From there at 1× the 50% row fills at about 12 s, the EA warning at 13 s, the crossing at 20 s and the peak at about 32 s, then it stops.
+2. Browser at **http://127.0.0.1:8080/**, press **P**, then **2** (2014), spot **Botley Road**, timeline at its start (about 1 Jan 2014). Don't press Space yet.
+3. Check the proof footer reads 30 caught for River Clock and 24 for the official warning. If it doesn't, the data has changed: say what the footer says, not this script.
 
 ---
 
 ## The 4-minute walkthrough
 
-Spoken words are in quotes: about 520 in total, so it fits 4:00 at a calm pace with room for one click each.
+Spoken words are in quotes: about 460 in total, so it fits 4:00 at a calm pace with time for the plays.
 
-### 0:00–1:00 · Replay (press 2): the hero
+### 0:00–1:00 · The 2014 replay (key 2), the hero
 
-**Do:** let it play. Point at the scoreboard rows as they fill in. Don't explain the chart yet.
+**Do:** press **Space**. Point at each marker on the timeline as it appears: River Clock warned, EA warned, Flooded. Don't explain the chart yet.
 
 > "This is Botley Road in January 2014, replayed hour by hour. The model sees only what was known at each moment, and was trained without this flood.
 >
@@ -44,48 +49,45 @@ Spoken words are in quotes: about 520 in total, so it fits 4:00 at a calm pace w
 > That's one flood. Over all our replays the EA is sometimes earlier than us, and the app shows where. It's a student prototype, not an official warning."
 
 <!-- src: web/public/data/replays/e2014.json: botley first pFlood >= 0.5 at issuedAt 2014-01-04T12:00:00Z (0.59 at 72 h); official botley warning 2014-01-04T19:03:30Z; crossings botley 2014-01-06T01:00:00Z (37 h after 12:00 on 4 Jan); observed newbotley peak 3.027 m at 2014-01-09T09:00:00Z; forecast issued 72 h before the peak (2014-01-06T08:00Z, the nearest 2-hourly issue) h=72 q05 2.622, q95 3.152 -->
-<!-- src: web/public/data/proof.json perEvent e2014 botley leadVsOfficialH 7.06 (the scoreboard's "7 h earlier" is read from here) -->
+<!-- src: web/public/data/proof.json perEvent e2014 botley leadVsOfficialH 7.06; web/public/data/travel_times.json enslow->kingsmill tHalf median 18.6 h, p10 15.0, p90 22.8, n 6 -->
 
-### 1:00–1:40 · Now (press 1): the clock
+### 1:00–1:45 · The map: how the water flows
 
-**Do:** point at the river strip on the left edge, at the **Enslow → Kings Mill** link, then at the clocks on the map.
+**Do:** while 2014 keeps playing, point at the rivers on the map, then at the clocks.
 
-> "Here's the clock today. Each link is a travel time we measured from past floods. Enslow to Kings Mill: 19 hours, 15 to 23 across six floods. Those lags choose what the model reads upstream.
+> "Watch the map. The rivers rise upstream first and the water moves down towards Oxford. We measured those travel times from past floods: Enslow to Kings Mill takes 15 to 23 hours across six floods. Those lags choose what the model reads upstream.
 >
-> Each clock is a spot. It fills as the chance of flooding rises, with a countdown underneath. Kings Mill has sent no data since 13 October, so the Cherwell says 'no forecast' instead of guessing. Wolvercote never has one: its gauge has no history."
+> Each clock is a trouble spot. It fills as the chance of flooding rises, with a countdown to when the water is likely to arrive. That's what a resident needs: how likely, and by when."
 
-<!-- src: web/public/data/travel_times.json enslow->kingsmill tHalf median 18.6 h, p10 15.0, p90 22.8, n 6; web/public/data/live.json stale ["kingsmill"]; web/public/data/spots.json wolvercote mode timing_only -->
+<!-- src: web/public/data/travel_times.json enslow->kingsmill p10 15.0, p90 22.8, n 6 -->
 
-**Read the headline aloud if it says something** (it's live data, so don't learn a number for it). Don't lead with Cassington → New Botley: its 9.5 h half-rise includes a fast local jump, and its peak-to-peak time is 32 h. <!-- src: travel_times.json cassington->newbotley tHalf median 9.5 (p10 1.3, p90 42.5), tPeak median 32.0, n 24 -->
+Don't lead with Cassington → New Botley: its 9.5 h half-rise includes a fast local jump, and its peak-to-peak time is 32 h. <!-- src: travel_times.json cassington->newbotley tHalf median 9.5 (p10 1.3, p90 42.5), tPeak median 32.0, n 24 -->
 
-### 1:40–2:20 · Protect (press 3): the decision on the ground
+### 1:45–2:30 · Nov 2024 (key 4): where the EA was earlier
 
-**Do:** January 2014 is selected. Drag the hour slider once, then click pin 1.
+**Do:** press **4**, Space. Let the three markers appear.
 
-> "Protect asks: if the council had 500 sandbags, where would they do the most good, and by when? We run the forecast through the terrain 200 times. Red means wet in most runs. The pins are the buildings most exposed, with the time the bags must be in place. Each card lists the checks a person must make first. It's screening, not instructions. Against the real 2014 flood outline the map overlaps 68 percent."
+> "Here's the honest one. In November 2024, at Botley, the EA warned about 30 hours before we did. We still flagged it before the river crossed, but they were earlier, and the app shows it, not just the floods we're proud of. On average across all floods, we're ahead of the EA at Osney and the Cherwell, and behind at Botley and Abingdon Road."
 
-<!-- src: web/public/data/spread/e2014/manifest.json runs 200, validation.iou 0.681; web/public/data/spread/e2014/sandbags.json budget 500, 5 candidates, 248 bags, first firstWet 2014-01-05T12:00Z (deploy-by = 3 h earlier, 09:00 GMT) -->
+<!-- src: web/public/data/proof.json perEvent e2024b botley leadVsOfficialH -30.14, crossed true; tradeoff botley pStar 0.5 misses 0; meanLeadVsOfficialH osney +2.13, cherwell +8.16, botley -5.92, abingdonrd -14.58 -->
 
-### 2:20–3:30 · How good is it? (press 4): the honest test
+### 2:30–3:20 · The proof footer: should you trust it?
 
-**Do:** point at the three tiles, left to right.
+**Do:** point at the footer line.
 
-> "Should you trust it? First, we beat the simple guess that the river stays where it is: 27 percent more accurate a day ahead, 39 at six hours, falling to 11 at three days. That's on forecasts from October 2021 on, which no model saw, pooled across our four gauges.
->
-> Second, honest odds: when we say a chance, does it happen that often? Dots near the line mean yes. The counts are small, so we show them.
->
-> Third, early without crying wolf. Alarm when the chance passes one in two: we caught all 30 floods across four spots, with 5 false alarms. The EA's own warnings, scored the same way, caught 24, with 1 false alarm. On timing it's mixed: we're ahead at Osney and the Cherwell, behind at Botley and Abingdon Road."
+> "This line is the whole test. Alarm when the chance passes one in two: across 30 floods at four spots, River Clock caught all 30, with 5 false alarms. The EA's own warnings, scored the same way, caught 24, with 1 false alarm. And against the simple guess that the river stays where it is, we're 27 percent more accurate a day ahead, on forecasts from 2021 on that no model saw. The edge shrinks to 11 percent at three days."
 
-<!-- src: web/public/data/proof.json skillByLead h24 skill 0.2664, h6 0.3915, h72 0.1079; testPeriodNote (issue times from 2021-10-01; pool newbotley, minns, coldharbour, kingsmill) -->
-<!-- src: web/public/data/proof.json tradeoff pStar 0.5: osney 7/0/2, botley 8/0/3, abingdonrd 8/0/0, cherwell 7/0/0 (hits/misses/falseAlarms) = 30 caught of 30, 5 false alarms; officialOutcome: osney 5/2/0, botley 8/0/0, abingdonrd 8/0/0, cherwell 3/4/1 = 24 of 30, 1 false alarm; meanLeadVsOfficialH osney +2.13, cherwell +8.16, botley -5.92, abingdonrd -14.58 -->
+<!-- src: web/public/data/proof.json tradeoff pStar 0.5: osney 7/0/2, botley 8/0/3, abingdonrd 8/0/0, cherwell 7/0/0 (hits/misses/falseAlarms) = 30 of 30, 5 false alarms; officialOutcome: osney 5/2/0, botley 8/0/0, abingdonrd 8/0/0, cherwell 3/4/1 = 24 of 30, 1 false alarm; skillByLead h24 0.2664, h72 0.1079; testPeriodNote (issue times from 2021-10-01, four gauges pooled) -->
 
-### 3:30–4:00 · The near miss and the close
+### 3:20–4:00 · The 2026 near miss (key 5), and the close
 
-**Do:** press **2**, click the **2026** thumbnail ("Stayed calm: highest chance 28%").
+**Do:** press **5**, Space.
 
-> "Last winter the river came within 11 centimetres of Botley's flood line and stayed high for weeks. River Clock never went above 28 percent, so a one-in-two alarm never fired. Next, we tested real rain forecasts: three days ahead they lift accuracy from 11 to 28 percent, but they added three false alarms, so they're not switched on yet. One finding, one model, one baseline, honest proof. Thanks."
+> "Last winter the river came within 11 centimetres of Botley's flood line and stayed high for weeks. River Clock never went above 28 percent, so a one-in-two alarm never fired. Next, rain forecasts: in a test they lifted three-day accuracy from 11 to 28 percent but added three false alarms, so they're off for now. Sandbag screening and all the charts are in Show the working. One finding, one model, one baseline, honest proof. Thanks."
 
-<!-- src: web/public/data/replays/e2026.json botley max pFlood 0.2767 (2026-02-15), observed newbotley peak 2.647 m vs threshold 2.76 m in spots.json (11 cm); proof.json perEvent e2026 crossed false at every spot; rain forecasts: issue #100 results comment (honest window, 72 h pooled skill +0.114 -> +0.278; false alarms Botley 1 -> 3, Osney 0 -> 1), shown on the How good is it? "What's next" card -->
+<!-- src: web/public/data/replays/e2026.json botley max pFlood 0.2767 (2026-02-15), observed newbotley peak 2.647 m vs threshold 2.76 m in spots.json (11 cm); proof.json perEvent e2026 crossed false at every spot; rain forecasts: issue #100 results comment (honest window, 72 h pooled skill +0.114 -> +0.278; false alarms Botley 1 -> 3, Osney 0 -> 1) -->
+
+If a judge asks about today, press **1**: read the headline as it is (live data, so don't learn a number for it). Kings Mill has sent no data since 13 October, so the Cherwell says "no forecast"; Wolvercote never has one (no gauge history). <!-- src: web/public/data/live.json stale ["kingsmill"]; spots.json wolvercote mode timing_only -->
 
 ---
 
@@ -97,12 +99,12 @@ Spoken words are in quotes: about 520 in total, so it fits 4:00 at a calm pace w
 
 <!-- src: travel_times.json enslow->kingsmill tHalf median 18.6 n 6; replays/e2014.json + proof.json perEvent e2014 botley leadVsOfficialH 7.06; proof.json tradeoff pStar 0.5 -->
 
-### 2 minutes (one screen each, no Q&A)
+### 2 minutes (no Q&A)
 
-1. **Replay (2), 40 s.** Let it play from 1 Jan. "Noon on 4 January: more likely than not. The EA's warning came seven hours later; the river crossed 37 hours after our call. The peak, 3.03 m, was inside our 2.62–3.15 m range from three days before. One flood: over all floods the EA is sometimes earlier." <!-- src: replays/e2014.json; proof.json perEvent e2014 botley -->
-2. **Now (1), 25 s.** "The clock: Enslow to Kings Mill takes about 19 hours, 15 to 23 across six floods. Each spot's clock fills as the chance rises. The Cherwell says 'no forecast' because Kings Mill is offline." <!-- src: travel_times.json enslow->kingsmill; live.json stale -->
-3. **Protect (3), 20 s.** "Where would 500 sandbags do the most good, and by when? 200 runs through the terrain; the pins are the most exposed buildings. Screening, not instructions." <!-- src: spread/e2014/manifest.json runs 200; sandbags.json budget 500 -->
-4. **How good is it? (4), 30 s.** "27% more accurate than 'the river stays the same' a day ahead. At a one-in-two alarm: 30 of 30 floods, 5 false alarms. The EA's warnings scored the same way: 24 of 30, 1 false alarm. Ahead of the EA at Osney and the Cherwell, behind at Botley and Abingdon Road." <!-- src: proof.json skillByLead h24 0.2664; tradeoff pStar 0.5; officialOutcome; meanLeadVsOfficialH -->
+1. **2014 (key 2, Space), 50 s.** "Noon on 4 January: more likely than not. The EA's warning came seven hours later; the river crossed 37 hours after our call. The peak, 3.03 m, was inside our 2.62–3.15 m range from three days before." Point at the rivers rising: "Enslow to Kings Mill takes about 19 hours; we measured it over six floods." <!-- src: replays/e2014.json; proof.json perEvent e2014 botley; travel_times.json enslow->kingsmill -->
+2. **Nov 2024 (key 4), 20 s.** "Here the EA warned about 30 hours before us. It's mixed: ahead at Osney and the Cherwell, behind at Botley and Abingdon Road." <!-- src: proof.json perEvent e2024b botley -30.14; tradeoff meanLeadVsOfficialH -->
+3. **Proof footer, 30 s.** "At a one-in-two alarm: 30 of 30 floods, 5 false alarms. The EA's warnings scored the same way: 24 of 30, 1 false alarm. 27% more accurate than 'the river stays the same' a day ahead." <!-- src: proof.json tradeoff pStar 0.5; officialOutcome; skillByLead h24 0.2664 -->
+4. **2026 (key 5), 15 s.** "Within 11 cm of the line; we never went above 28%, so no false alarm." <!-- src: replays/e2026.json -->
 5. **Close, 5 s.** "Not an official warning; a clock you can read."
 
 ---
@@ -112,11 +114,11 @@ Spoken words are in quotes: about 520 in total, so it fits 4:00 at a calm pace w
 | Problem | What to do |
 |---|---|
 | App won't start | `docs/demo-backup.md` plan B: the last `demo-ready-*` tag and `make demo`, or `cd web && npm run preview` (port 4173). |
-| A screen shows "sample data" | Say so. Don't present fixture numbers as results. |
+| The app shows "sample data" | Say so. Don't present fixture numbers as results. |
 | Map looks plain | Expected offline: it's the bundled OpenStreetMap basemap (rivers, roads, buildings), no tiles. |
-| Replay already finished | Space, then Shift+← back to about 1 Jan 12:00, then Space. Or open `#/replay` in a new tab. |
-| "Live data unavailable" on Now | Expected offline: it shows the last saved forecast with its time. "Online it polls the EA every 15 minutes." |
-| Out of time | Cut Protect, then the near miss. Never cut the disclaimer or the "EA is sometimes earlier" line. |
+| The 2014 timeline has already played | Press another flood's key and then **2** again, or reload the page. |
+| "Live data unavailable" on Now (key 1) | Expected offline: it shows the last saved forecast with its time. "Online it polls the EA every 15 minutes." |
+| Out of time | Cut the map section, then the near miss. Never cut the disclaimer or Nov 2024 (the EA was earlier). |
 
 ---
 
@@ -144,7 +146,7 @@ Short, honest answers. If we don't know, say so and say what we'd check.
 No, and we don't claim it. It's complementary. EA warnings are yes/no, per warning area, from duty forecasters. We give each spot a chance and a time, so each user picks their own trigger. Scored with the same rules over seven events, at a one-in-two trigger we caught 30 of 30 floods with 5 false alarms; the EA's warnings caught 24 with 1 false alarm. Part of their "misses" is a mismatch: we score them against our gauge's flood line, not theirs. On timing it's mixed: ahead at Osney (+2.1 h) and the Cherwell (+8.2 h), behind at Botley (−5.9 h) and Abingdon Road (−14.6 h). <!-- src: proof.json tradeoff pStar 0.5; officialOutcome; meanLeadVsOfficialH -->
 
 **How do you know there's no look-ahead?**
-Every input is a trailing window. Tests change the data after the forecast time and check that nothing at that time changes, for the inputs and for the replay forecasts (`tests/test_features.py`, `tests/test_backtest.py`). A forecast issued at t only uses hourly rows up to t − 1 h, and the Replay screen shows a reading only an hour after it happened. The accuracy scores use forecasts from Oct 2021 on, after all training and calibration. <!-- src: proof.json testPeriodNote; web/src/screens/replay/facts.ts OBS_LAG_H (#93) -->
+Every input is a trailing window. Tests change the data after the forecast time and check that nothing at that time changes, for the inputs and for the replay forecasts (`tests/test_features.py`, `tests/test_backtest.py`). A forecast issued at t only uses hourly rows up to t − 1 h, and the replay timeline shows a reading only an hour after it happened. The accuracy scores use forecasts from Oct 2021 on, after all training and calibration. <!-- src: proof.json testPeriodNote; web/src/screens/replay/facts.ts OBS_LAG_H (#93) -->
 
 **But the 2014 replay model has seen later floods?**
 Yes. Each replay uses a model retrained without that flood (±7 days), so the 2014 model has seen 2024. With seven events that's the best we can do, and it's why the accuracy scores use a strict time split instead. <!-- src: proof.json testPeriodNote -->
@@ -167,11 +169,11 @@ The EA flags the high-flow ratings at Farmoor, Enslow, Cassington and Islip as u
 **Why stand-in gauges?**
 In the first hour we found that the Osney, Godstow and Iffley lock gauges have no public history on their flood side (0.7% coverage). So Osney Island uses Minns Estate, about 1.2 km west, checked against residents' flood reports; Abingdon Road uses Cold Harbour; Wolvercote has no forecast. <!-- src: web/public/data/quality.json osney/godstow/iffley coveragePct 0.7 -->
 
-**What does Protect's 68% mean?**
-At the 2014 peak, the area wet in at least half of 200 terrain runs overlaps the EA's recorded flood outline with an intersection-over-union of 0.68. It's a sanity check on one event: a simple terrain fill ignores channels, walls, drains and defences, and much of the overlap is open floodplain. <!-- src: spread/e2014/manifest.json validation.iou 0.681, caveats -->
+**What's the sandbag screening in Show the working?**
+For Osney and Botley we push the forecast level through the terrain 200 times and rank buildings for 500 sandbags, each with a deploy-by time and the checks a person must make. It's experimental: screening, not instructions. At the 2014 peak, the area wet in at least half of the runs overlaps the EA's recorded flood outline with an intersection-over-union of 0.68. It's a sanity check on one event: a simple terrain fill ignores channels, walls, drains and defences, and much of the overlap is open floodplain. <!-- src: spread/e2014/manifest.json validation.iou 0.681, caveats -->
 
 **Where is the decision part?**
-A cost–loss rule: if acting costs C and being caught out costs L, act when the chance passes C ÷ L. Moving a car (£20 against £2,000) means act at 1%; closing a road (£5,000 against £100,000) at 5%. It drives the advice lines on Now and the alarm level on How good is it?; the calculator is under Show the working.
+A cost–loss rule: if acting costs C and being caught out costs L, act when the chance passes C ÷ L. Moving a car (£20 against £2,000) means act at 1%; closing a road (£5,000 against £100,000) at 5%. The calculator, with presets for a resident, a commuter and the council, is under Show the working.
 
 **The clocks went back last night. Did that break anything?**
 Everything is stored and computed in UTC and converted to UK time only on screen, with the zone shown. The EA's historic warnings come in UK local time with a repeated hour each autumn; there's a test for that.

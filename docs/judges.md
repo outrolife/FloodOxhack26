@@ -8,16 +8,17 @@
 
 Oxford floods from the river, slowly: the water that floods Botley Road is upstream a day or more before it arrives. We measured how long it takes. On the Cherwell, a rise at **Enslow reaches Kings Mill in about 18.6 h (15–23 h, over 6 floods)**. <!-- src: web/public/data/travel_times.json enslow->kingsmill tHalf median 18.6, p10 15.0, p90 22.8, n 6 --> One LightGBM model uses those travel times to make a **prediction for five Oxford trouble spots: the chance of flooding and the arrival time, hour by hour, for the next 72 h**. A cost–loss rule turns that into a **decision**: is it worth acting yet? Every score is against a "nothing changes" baseline.
 
-## What you'll see: four screens
+## What you'll see: one screen
 
-| Screen | The question | What it looks like |
-|---|---|---|
-| **Now** | Where is the water, and when does it get here? | An Oxford map with a **clock face for each spot** that fills as the flood chance rises, with a countdown. Down the left edge, the river as a chain of gauges, with a pulse travelling down it and the measured travel time on each link. |
-| **Replay** (the hero) | Would it have worked in a real flood? | January 2014 plays itself: the clocks fill on the map, the forecast range sweeps forward on the chart, and a **scoreboard fills in** as each moment arrives (our call, the EA warning, the difference, the crossing, the peak). Thumbnails for all seven events. |
-| **Protect** | Where would 500 sandbags do the most good, and by when? | A zoomed Osney and Botley map: a flood-spread heat map from 200 terrain runs, and the five most exposed buildings as numbered pins, each with a deploy-by time and the checks a person must make. "Screening, not instructions." |
-| **How good is it?** | Should you trust it? | Three big tiles: beats "nothing changes", honest odds, early without crying wolf. "Show the working" opens every chart and table behind them. |
+| Part | What you see |
+|---|---|
+| **The map** (hero) | Oxford's rivers flowing and rising as the water comes, with a **clock face for each trouble spot** that fills as its chance of flooding rises, and a countdown to when the water is likely to arrive. |
+| **The timeline** (under the map) | Our forecast range against the real river level, with three markers: **River Clock warned · EA warned · Flooded**. Press play and it runs hour by hour, revealing each reading only after it happened. |
+| **The scoreboard** (2 lines) | For the chosen flood: when River Clock warned, when the EA warned, when it flooded. |
+| **The switch** (top) | **Now \| 2014 \| Jan 2024 \| Nov 2024 \| 2026 near miss**. Today's live forecast, or a past flood replayed with a model trained without it. |
+| **The proof footer** (1 line) | Across all 30 floods we replayed: how many River Clock caught, and how many the official warning caught. |
 
-Presenter keys: **1–4** switch screens, **Space** plays the replay, **← / →** step it, **P** presenter mode.
+Sandbag screening, the accuracy charts and the cost–loss calculator are behind **Show the working**. Presenter keys: **Space** plays, **1–5** switch flood, **P** presenter mode.
 
 ## The headline: January 2014, Botley Road (times GMT)
 
@@ -50,7 +51,7 @@ River Clock first said **more likely than not at 12:00 on Sat 4 Jan**: **7 h bef
             v
  Leave-one-flood-out replays + proof metrics  ->  replays/*.json, proof.json
             v
- App (offline, committed JSON): Now . Replay . Protect . How good is it?
+ App (offline, committed JSON): one screen: map + timeline + scoreboard + proof
 ```
 <!-- src: SPEC.md §5-§8; row counts from docs/tiger-data.md -->
 

@@ -23,18 +23,19 @@ Oxford floods from the river, slowly. The Thames, the Cherwell and their side st
 4. **Proof.** We replay real past floods hour by hour, using only what was known at each moment. We score the model against the baseline and against the times the EA issued its official warnings.
 5. **Decisions.** A cost–loss rule says when acting is worth it. If acting costs C and not acting when it floods costs L, act when the chance of flooding is above C / L.
 
-### The app: four screens
+### The app: one screen
 
-Each screen answers one question with one big picture and at most three numbers. Every number is read from the committed JSON at runtime.
+The app is a single screen, **River Clock**. It answers three questions at a glance: where is the water, when does it get here, and did that work in real floods? Every number is read from the committed JSON at runtime.
 
-| Screen | The question | What you see |
-|---|---|---|
-| **Now** | Where is the water, and when does it get here? | A map of Oxford with a **clock face for each spot**. It fills as the chance of flooding rises and shows a countdown ("≈ 31 h"). Down the left edge, the river as a chain of gauges: a pulse travels down it, and each link shows its measured travel time (bold when it rests on 5 or more floods). Click a spot for its 72 h forecast fan, the arrival window as clock times, and one plain advice line each for a resident, a commuter and the council. |
-| **Replay** (the hero) | Would it have worked in a real flood? | January 2014 plays itself. The clocks fill on the map as the wave arrives, the forecast range sweeps forward on the chart with the real level revealed behind it, and a **scoreboard fills in** as each moment is reached: River Clock's call, the EA's warning, the difference, the crossing, and the predicted peak range against the real peak. Big thumbnails for all seven events, each with a one-line result ("Stayed calm: highest chance 28%"). |
-| **Protect** | Where would 500 sandbags do the most good, and by when? | A zoomed Osney and Botley map: a flood-spread heat map from 200 terrain runs for the chosen hour, building outlines, and the five most exposed buildings as numbered pins. Each pin card says why it's exposed, how many bags, the deploy-by time, and the checks a person must make. Labelled "Experimental" and "Screening, not instructions". |
-| **How good is it?** | Should you trust it? | Three big tiles: **beats "nothing changes"** (one bar at 24 h), **honest odds** (said X%, flooded Y% of the time), **early without crying wolf** (floods caught, false alarms, lead time, and the honest per-spot lead against the EA). A "What's next" card reports the rain-forecast test. |
+| Part | What you see |
+|---|---|
+| **The map** (hero) | Oxford's rivers flowing and rising as the water comes, with a **clock face for each trouble spot** that fills as its chance of flooding rises, and a countdown to when the water is likely to arrive. |
+| **The timeline** (under the map) | Our forecast range against the real river level, with three markers: **River Clock warned · EA warned · Flooded**. Press play and it runs hour by hour, revealing each reading only after it happened. |
+| **The scoreboard** (2 lines) | For the chosen flood: when River Clock warned, when the EA warned, when it flooded. |
+| **The switch** (top) | **Now \| 2014 \| Jan 2024 \| Nov 2024 \| 2026 near miss**. Today's live forecast, or a past flood replayed with a model trained without it. |
+| **The proof footer** (1 line) | Across all 30 floods we replayed: how many River Clock caught, and how many the official warning caught. |
 
-Behind every screen, **Show the working** opens the detail: the old charts and tables, the cost–loss calculator, the per-event table, the data-quality report and the travel-time scatter. Presenter mode: keys **1–4** switch screens, **Space** plays the replay, **← / →** step it, **P** enlarges the type. The app runs fully offline, with a bundled OpenStreetMap basemap.
+Everything else is behind **Show the working**: sandbag screening (Protect), the accuracy and reliability charts, the cost–loss calculator, the per-event table, the data-quality report and the travel-time scatter. Presenter mode: **Space** plays the timeline, keys **1–5** switch flood, **P** enlarges the type. The app runs fully offline, with a bundled OpenStreetMap basemap.
 
 Judges and presenters: the one-page version is [`docs/judges.md`](docs/judges.md); the demo script is [`docs/demo.md`](docs/demo.md).
 
@@ -116,7 +117,7 @@ One flood seen in SQL, from the Tiger Data mirror: in Jan 2014, Cassington peake
 
 ### The proof: leave-one-flood-out replays
 
-For each past flood we retrain every model **without that flood** (plus 7 days either side), then issue a forecast every hour through the event (every 2 hours in the committed e2014 replay, to keep the file small). No data after a forecast's issue time can affect it: a forecast issued at t uses hourly rows only up to t − 1 h, and the Replay screen shows a reading only an hour after it happened (#93). Automated tests check this for the inputs (`tests/test_features.py`: change the future, check no input changes) and for the replays (`tests/test_backtest.py::test_replay_forecast_uses_no_data_after_issue_time`). <!-- src: PR #39, merged --> Separately, we report scores on a strict time split (test period from Oct 2021).
+For each past flood we retrain every model **without that flood** (plus 7 days either side), then issue a forecast every hour through the event (every 2 hours in the committed e2014 replay, to keep the file small). No data after a forecast's issue time can affect it: a forecast issued at t uses hourly rows only up to t − 1 h, and the replay timeline shows a reading only an hour after it happened (#93). Automated tests check this for the inputs (`tests/test_features.py`: change the future, check no input changes) and for the replays (`tests/test_backtest.py::test_replay_forecast_uses_no_data_after_issue_time`). <!-- src: PR #39, merged --> Separately, we report scores on a strict time split (test period from Oct 2021).
 
 We score:
 - pinball loss and skill against persistence, by lead time;
@@ -137,9 +138,9 @@ We score:
 
 ### Decisions: cost–loss
 
-Three presets: **Resident** (move the car: C = £20, L = £2,000), **Commuter** (reroute: C = £5, L = £100) and **Council** (close a road or put up barriers: C = £5,000, L = £100,000). The best trigger is p* = C / L. This drives the plain advice lines on the Now screen ("Not yet: chance under 1%") and the alarm level on How good is it?. The calculator itself, with the expected cost over the replayed floods for River Clock, the official warnings, "never act" and "always act", is under Show the working.
+Three presets: **Resident** (move the car: C = £20, L = £2,000), **Commuter** (reroute: C = £5, L = £100) and **Council** (close a road or put up barriers: C = £5,000, L = £100,000). The best trigger is p* = C / L. The "River Clock warned" marker uses a one-in-two trigger. The calculator itself, with the expected cost over the replayed floods for River Clock, the official warnings, "never act" and "always act", is under Show the working.
 
-### Protect: sandbag screening (experimental)
+### Protect: sandbag screening (experimental, in Show the working)
 
 For Osney and Botley, the forecast level is pushed through a 5 m terrain model 200 times (level drawn from River Clock's range, terrain jittered for LiDAR error). The share of runs in which each cell is wet makes the heat map. Buildings whose walls get wet within 48 h are ranked by their chance of getting wet. Buildings are left out when the water comes before bags could be placed (3 h), when it's too deep for sandbags, or when a recorded flood defence is already there. The bag count assumes 10 bags per metre of exposed wall. At the 2014 peak the 50% wet area overlaps the EA's recorded flood outline with an intersection-over-union of **0.68**. It's a simple terrain fill: it ignores channels, walls, drains, pumps and defences, and the run frequency is not a verified flood probability. <!-- src: web/public/data/spread/e2014/manifest.json (runs 200, validation.iou 0.681, caveats); sandbags.json (budget 500, reasons) -->
 
@@ -181,7 +182,7 @@ For **Botley Road** (New Botley gauge, threshold 2.76 m):
 | New Botley peak (hourly mean 3.027 m) | 09:00, Thu 9 Jan 2014 |
 
 - The forecast issued at 12:00 on 4 Jan put the 50% arrival time at **21:39 on 5 Jan**, about 3 h before the gauge crossed. <!-- src: replays/e2014.json botley 2014-01-04T12:00Z arrival.p50 2014-01-05T21:39Z -->
-- The peak, **3.03 m**, was **inside the 2.62–3.15 m range** (5–95%) that River Clock gave 72 h before it. This is the Replay screen's last scoreboard row. <!-- src: replays/e2014.json forecast 2014-01-06T08:00Z botley h72 q05 2.622, q95 3.152; observed newbotley 3.027 m at 2014-01-09T09:00Z -->
+- The peak, **3.03 m**, was **inside the 2.62–3.15 m range** (5–95%) that River Clock gave 72 h before it. <!-- src: replays/e2014.json forecast 2014-01-06T08:00Z botley h72 q05 2.622, q95 3.152; observed newbotley 3.027 m at 2014-01-09T09:00Z -->
 - The EA's lower-level Flood Alert came out more than two days before River Clock's first 10%. We are ahead of the Flood Warning, not the Alert.
 - One flood is one data point. `proof.json` agrees: Botley's e2014 lead vs the EA warning is +7.1 h (`perEvent`). But averaged over all floods at Botley, the EA's warning was earlier (below).
 
@@ -228,7 +229,7 @@ In the **e2014** replay, River Clock was ahead of the EA warning at Osney (+20.9
 
 **e2026 near miss:** no gauge crossed its threshold; New Botley peaked at 2.65 m, 11 cm under its 2.76 m line. River Clock's highest flood chance in the whole event was 28% (Botley, 15 Feb 2026), so a 1-in-2 trigger raised **no false alarm** (nor any trigger of 30% or more). At lower triggers it would have fired, which a resident at p* = 0.01 accepts by design. <!-- src: replays/e2026.json botley max pFlood 0.2767 on 2026-02-15, observed newbotley peak 2.647 m; perEvent e2026 crossed false at every spot -->
 
-Pooled over our four gauges the model beats persistence at every lead on the test period, and its edge shrinks with lead time. The How good is it? screen says where it loses.
+Pooled over our four gauges the model beats persistence at every lead on the test period, and its edge shrinks with lead time. Show the working says where it loses.
 
 ### What's next: rain forecasts (tested, not switched on)
 
@@ -325,7 +326,7 @@ make live      # last 28 days of EA readings + a forecast for now
 make api       # FastAPI on http://localhost:8000; the web dev server proxies /api to it
 ```
 
-The API polls the EA at most every 15 minutes. A gauge whose latest reading is more than 3 hours old is marked stale, and spots that depend on it get no forecast. If the API is down, the Now screen says "Live data unavailable" and shows the last saved forecast with its time.
+The API polls the EA at most every 15 minutes. A gauge whose latest reading is more than 3 hours old is marked stale, and spots that depend on it get no forecast. If the API is down, the Now view says "Live data unavailable" and shows the last saved forecast with its time.
 
 ### Tiger Data mirror (optional)
 
