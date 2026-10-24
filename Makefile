@@ -69,8 +69,10 @@ live-web: setup
 	$(PY) -m model.forecast_live --write-web
 	$(PY) -m pytest -q tests/test_public_data.py -k live
 
+# Live refresh runs in a background thread (as in make demo DEMO_LIVE=1 and the container): a cold EA
+# poll takes ~30 s (minutes if the EA is down), longer than the web app's 5 s wait for /api/live.
 api: setup
-	$(BIN)/uvicorn$(EXE) api.main:app --reload --port 8000
+	RIVER_CLOCK_LIVE_BACKGROUND=1 $(BIN)/uvicorn$(EXE) api.main:app --reload --port 8000
 
 web:
 	@test -f web/package.json || { echo "web app not scaffolded yet (issue #5)"; exit 1; }
