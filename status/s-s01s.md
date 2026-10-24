@@ -3,12 +3,12 @@
 - **role**: PM
 - **state**: working
 - **issue**: #118
-- **task**: PM: UI v2: kit, basemap, MapClock, Protect merged; Trust updating; Now + Replay in progress
-- **next**: Merge Trust/Now/Replay as green; integration review by s-s01s-ux
+- **task**: PM: all 4 v2 screens merged; ux2 integration polish + story4 final docs running
+- **next**: Forward user's visual feedback to ux2; re-audit ~05:00 GMT
 - **needs**: 
-- **notes**: alfredo: #94 merged (fair EA scoring). #125 rerun OK if passes, merged by 03:00 GMT
+- **notes**: alfredo: v2 UI on main (Now/Replay/Protect/Trust). #125 retrain cut-off 03:00 GMT
 - **branch**: main
-- **head**: 550426e Merge pull request #130 from outrolife/app/v2-now
+- **head**: e37a40d Merge pull request #131 from outrolife/app/v2-replay
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T19:05:22Z
+- **updated**: 2026-10-24T19:49:25Z
