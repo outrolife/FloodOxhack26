@@ -60,6 +60,54 @@
   "record": 9.327
  },
  {
+  "key": "shifford",
+  "name": "Shifford Lock u/s",
+  "river": "Thames",
+  "role": "upstream",
+  "ref": "0904TH",
+  "lat": 51.70718,
+  "lon": -1.465193,
+  "amber": 0.42,
+  "threshold": null,
+  "record": 0.728
+ },
+ {
+  "key": "hannington",
+  "name": "Hannington Bridge",
+  "river": "Thames",
+  "role": "upstream",
+  "ref": "0569TH",
+  "lat": 51.663588,
+  "lon": -1.749677,
+  "amber": 3.81,
+  "threshold": 4.47,
+  "record": 4.49
+ },
+ {
+  "key": "worsham",
+  "name": "Worsham",
+  "river": "Windrush",
+  "role": "upstream",
+  "ref": "1080TH",
+  "lat": 51.793689,
+  "lon": -1.564378,
+  "amber": 1.62,
+  "threshold": 2.16,
+  "record": 1.698
+ },
+ {
+  "key": "shipton",
+  "name": "Shipton",
+  "river": "Evenlode",
+  "role": "upstream",
+  "ref": "1238TH",
+  "lat": 51.861678,
+  "lon": -1.594363,
+  "amber": 2.02,
+  "threshold": 2.62,
+  "record": 3.437
+ },
+ {
   "key": "newbotley",
   "name": "New Botley",
   "river": "Bulstake Stream",
@@ -144,6 +192,30 @@
   "record": 3.665
  },
  {
+  "key": "banbury",
+  "name": "Banbury",
+  "river": "Cherwell",
+  "role": "live_only",
+  "ref": "1420TH",
+  "lat": 52.066379,
+  "lon": -1.333286,
+  "amber": 1.14,
+  "threshold": 1.83,
+  "record": 2.392
+ },
+ {
+  "key": "lowerarncott",
+  "name": "Lower Arncott",
+  "river": "Ray",
+  "role": "live_only",
+  "ref": "1483TH",
+  "lat": 51.861059,
+  "lon": -1.119228,
+  "amber": 2.0,
+  "threshold": 3.26,
+  "record": 2.984
+ },
+ {
   "key": "kingslock",
   "name": "Kings Lock d/s",
   "river": "Thames",
@@ -166,18 +238,6 @@
   "amber": 3.056,
   "threshold": 3.84,
   "record": 3.876
- },
- {
-  "key": "shifford",
-  "name": "Shifford Lock u/s",
-  "river": "Thames",
-  "role": "live_only",
-  "ref": "0904TH",
-  "lat": 51.70718,
-  "lon": -1.465193,
-  "amber": 0.42,
-  "threshold": null,
-  "record": 0.728
  },
  {
   "key": "rushey",
@@ -204,18 +264,6 @@
   "record": 3.547
  },
  {
-  "key": "hannington",
-  "name": "Hannington Bridge",
-  "river": "Thames",
-  "role": "live_only",
-  "ref": "0569TH",
-  "lat": 51.663588,
-  "lon": -1.749677,
-  "amber": 3.81,
-  "threshold": 4.47,
-  "record": 4.49
- },
- {
   "key": "newbridge",
   "name": "Newbridge",
   "river": "Windrush",
@@ -240,18 +288,6 @@
   "record": 2.45
  },
  {
-  "key": "worsham",
-  "name": "Worsham",
-  "river": "Windrush",
-  "role": "live_only",
-  "ref": "1080TH",
-  "lat": 51.793689,
-  "lon": -1.564378,
-  "amber": 1.62,
-  "threshold": 2.16,
-  "record": 1.698
- },
- {
   "key": "woodstock",
   "name": "Woodstock",
   "river": "Glyme",
@@ -262,18 +298,6 @@
   "amber": 0.75,
   "threshold": 1.8,
   "record": 1.284
- },
- {
-  "key": "shipton",
-  "name": "Shipton-under-Wychwood",
-  "river": "Evenlode",
-  "role": "live_only",
-  "ref": "1238TH",
-  "lat": 51.861678,
-  "lon": -1.594363,
-  "amber": 2.02,
-  "threshold": 2.62,
-  "record": 3.437
  },
  {
   "key": "botanic",
@@ -310,29 +334,5 @@
   "amber": 1.3,
   "threshold": 2.05,
   "record": 2.569
- },
- {
-  "key": "banbury",
-  "name": "Banbury",
-  "river": "Cherwell",
-  "role": "live_only",
-  "ref": "1420TH",
-  "lat": 52.066379,
-  "lon": -1.333286,
-  "amber": 1.14,
-  "threshold": 1.83,
-  "record": 2.392
- },
- {
-  "key": "lowerarncott",
-  "name": "Lower Arncott",
-  "river": "Ray",
-  "role": "live_only",
-  "ref": "1483TH",
-  "lat": 51.861059,
-  "lon": -1.119228,
-  "amber": 2.0,
-  "threshold": 3.26,
-  "record": 2.984
  }
 ]

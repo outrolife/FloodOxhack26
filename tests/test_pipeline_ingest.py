@@ -44,7 +44,7 @@ def test_archive_days_event_windows_clipped_to_archive() -> None:
 def test_fallback_gauges_and_lock_series_keys() -> None:
     levels, rains = stations.load_gauges(path=stations.REPO_ROOT / "does-not-exist.yaml")
     keys = [g.key for g in levels]
-    assert keys[0] == "newbotley" and len(keys) == 12
+    assert keys[0] == "newbotley" and len(keys) == 18
     assert {"minns", "coldharbour"} <= set(keys)
     osney = next(g for g in levels if g.key == "osney")
     assert osney.needs_archive
@@ -103,6 +103,36 @@ def test_repo_stations_yaml_loads() -> None:
     assert all(by[k].needs_archive for k in ("osney", "godstow", "iffley"))
     assert all(g.hydrology_measure and g.hydrology_measure.endswith("-m-qualified") for g in levels)
     assert all(r.hydrology_measure for r in rains)
+
+
+NEW_125 = {"shifford": "upstream", "hannington": "upstream", "worsham": "upstream", "shipton": "upstream",
+           "banbury": "live_only", "lowerarncott": "live_only"}
+
+
+def test_further_upstream_gauges_125() -> None:
+    """#125 A: the six further-upstream gauges have Hydrology history on their live trace."""
+    levels, _ = stations.load_gauges()
+    by = {g.key: g for g in levels}
+    fallback, _ = stations.load_gauges(path=stations.REPO_ROOT / "does-not-exist.yaml")
+    fb = {g.key: g for g in fallback}
+    for key, role in NEW_125.items():
+        g = by[key]
+        assert g.role == role and g.history_ok and not g.needs_archive
+        assert stations.hydrology_series_key(g) == key
+        assert g.hydrology_measure == fb[key].hydrology_measure  # fallback copy stays in sync
+        assert (g.amber, g.threshold, g.record) == (fb[key].amber, fb[key].threshold, fb[key].record)
+        assert g.fm_level_measure.startswith(g.ref + "-level-stage-")  # "Stage", the Hydrology trace
+
+
+def test_live_measures_match_stations_yaml() -> None:
+    """ingest_live polls the same flood-monitoring measure stations.yaml names for each gauge."""
+    from pipeline import ingest_live
+
+    levels, _ = stations.load_gauges()
+    by = {g.key: g for g in levels}
+    assert set(ingest_live.LEVEL_MEASURES) == set(by)
+    for key, measure in ingest_live.LEVEL_MEASURES.items():
+        assert by[key].fm_level_measure == measure, key
 
 
 def test_cached_get_never_redownloads(tmp_path, monkeypatch) -> None:

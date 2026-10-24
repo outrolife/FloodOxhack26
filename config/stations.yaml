@@ -9,8 +9,9 @@
 # Roles (PM decision after #2, SPEC §4.1.1):
 #   upstream   feature gauge with Hydrology history on the trace we use
 #   target     trained and backtested target (newbotley = primary, kingsmill, minns, coldharbour)
-#   live_only  shown live from flood-monitoring only: no matching history, so not trained or backtested
-#              (osney, godstow, iffley). NOTE: SPEC §9 `Station.role` currently allows only upstream|target.
+#   live_only  shown live from flood-monitoring only; not trained, backtested or used as a feature. Either
+#              no matching history (osney, godstow, iffley: history_ok false) or history the model does
+#              not use (banbury, lowerarncott, #125: history_ok true, ingested for analysis only).
 #
 # Field guide
 #   key, name, river, role, ref, lat, lon, amber, threshold, record: the SPEC §9 `Station` fields.
@@ -162,6 +163,104 @@ gauges:
     datum_maod: 50.0         # round value: unverified
     api: {typicalRangeLow: 6.492, typicalRangeHigh: 7.8, highestRecent: null, maxOnRecord: 9.327}
     verified: "Matches §4.1. Hydrology daily max 9.921 on 2022-12-22 exceeds the record: a spike for the cleaner. ~5% Suspect days."
+
+  # Further-upstream gauges (issue #125 experiment A, adopted for newbotley + minns only by the PM,
+  # 24 Oct 21:38Z). Found by Hydrology discovery (observedProperty=waterLevel, 40 km around 51.80N
+  # 1.50W). Each live fm_measure equals its Hydrology series exactly: mean and max |diff| 0.000 m over
+  # 457 shared 15-min readings, 2026-10-20T00Z to 2026-10-24T18:30Z. Raw: data/raw/exp125/trace_check/.
+  # GOV.UK thresholds read 2026-10-24 22:47Z. Which targets use them is set in flow_paths, not here.
+  - key: shifford
+    name: Shifford Lock u/s
+    river: Thames
+    role: upstream
+    ref: 0904TH
+    rloi_id: "7038"
+    lat: 51.70718
+    lon: -1.465193
+    amber: 0.42              # u/s typicalRangeHigh (GOV.UK upstream page agrees)
+    threshold: null          # GOV.UK lists only "low-lying land flooding possible" at the 0.42 normal top
+    record: 0.728            # 2014-01-07T05:00, u/s
+    trace: u/s               # Hydrology only has the u/s stage (like eynsham); d/s differs by 1.7 m
+    fm_measure: 0904TH-level-stage-i-15_min-mASD
+    hydrology:
+      station: b94cc43a-f693-4efa-8749-c4718c7eb2b8
+      level_measure: b94cc43a-f693-4efa-8749-c4718c7eb2b8-level-i-900-m-qualified
+      qualifier: u/s
+      earliest: "2002-11-02T09:00:00Z"
+    history_ok: true
+    datum_maod: 64.355
+    api: {typicalRangeLow: 0.005, typicalRangeHigh: 0.42, highestRecent: 0.728, maxOnRecord: 0.728}
+    other_trace: {trace: d/s, fm_measure: 0904TH-level-downstage-i-15_min-mASD, datum_maod: 60.042, amber: 3.531, record: 4.41}
+    verified: "#125: Hydrology = live u/s Stage (|diff| 0.000 m, 20-24 Oct 2026); d/s trace off by 1.72 m mean. Half-rise lag to newbotley 17 h."
+
+  - key: hannington
+    name: Hannington Bridge
+    river: Thames
+    role: upstream
+    ref: 0569TH
+    rloi_id: "7024"
+    lat: 51.663588
+    lon: -1.749677
+    amber: 3.81
+    threshold: 4.47          # GOV.UK station page 7024
+    record: 4.49             # 2007-07-28T01:00
+    trace: single
+    fm_measure: 0569TH-level-stage-i-15_min-mASD
+    hydrology:
+      station: 62a5f097-03e7-4dca-91cc-cb3cf6f1c1c7
+      level_measure: 62a5f097-03e7-4dca-91cc-cb3cf6f1c1c7-level-i-900-m-qualified
+      qualifier: single
+      earliest: "1995-09-17T00:00:00Z"
+    history_ok: true
+    datum_maod: 70.0         # round value: unverified
+    api: {typicalRangeLow: 2.07, typicalRangeHigh: 3.81, highestRecent: 4.376, maxOnRecord: 4.49}
+    verified: "#125: Hydrology = live Stage (|diff| 0.000 m, 20-24 Oct 2026). GOV.UK amber/threshold/record 3.81/4.47/4.49. Lag to newbotley 18 h."
+
+  - key: worsham
+    name: Worsham
+    river: Windrush
+    role: upstream
+    ref: 1080TH
+    rloi_id: "7042"
+    lat: 51.793689
+    lon: -1.564378
+    amber: 1.62
+    threshold: 2.16          # GOV.UK station page 7042
+    record: 1.698            # 2024-11-25T07:45
+    trace: single
+    fm_measure: 1080TH-level-stage-i-15_min-mASD   # level, not the flow measures at this station
+    hydrology:
+      station: bed0ef93-6faa-4f98-af56-bfb3fed3ed61
+      level_measure: bed0ef93-6faa-4f98-af56-bfb3fed3ed61-level-i-900-m-qualified
+      qualifier: single
+      earliest: "1988-02-03T13:00:00Z"
+    history_ok: true
+    datum_maod: 89.27
+    api: {typicalRangeLow: 0.303, typicalRangeHigh: 1.62, highestRecent: 1.428, maxOnRecord: 1.698}
+    verified: "#125: Hydrology = live Stage (|diff| 0.000 m, 20-24 Oct 2026). GOV.UK amber/threshold/record 1.62/2.16/1.70. Lag to newbotley 9 h."
+
+  - key: shipton
+    name: Shipton
+    river: Evenlode
+    role: upstream
+    ref: 1238TH
+    rloi_id: "7051"
+    lat: 51.861678
+    lon: -1.594363
+    amber: 2.02
+    threshold: 2.62          # GOV.UK station page 7051
+    record: 3.437            # 2024-11-24T20:45
+    trace: single
+    fm_measure: 1238TH-level-stage-i-15_min-mASD
+    hydrology:
+      station: 22eb53c1-ea9b-4094-a813-6d8f9328b8aa
+      level_measure: 22eb53c1-ea9b-4094-a813-6d8f9328b8aa-level-i-900-m-qualified
+      qualifier: single
+      earliest: "1998-01-01T09:15:00Z"
+    history_ok: true
+    datum_maod: 94.0         # round value: unverified
+    api: {typicalRangeLow: 0.563, typicalRangeHigh: 2.02, highestRecent: 2.643, maxOnRecord: 3.437}
+    verified: "#125: Hydrology = live Stage (|diff| 0.000 m, 20-24 Oct 2026). GOV.UK amber/threshold/record 2.02/2.62/3.44. Lag to newbotley 19 h."
 
   # ---------------------------------------------------------------- trained targets
   - key: newbotley
@@ -333,6 +432,55 @@ gauges:
     api: {typicalRangeLow: 2.294, typicalRangeHigh: 2.72, highestRecent: 3.665, maxOnRecord: 3.665}
     other_trace: {trace: u/s, fm_measure: 1501TH-level-stage-i-15_min-mASD, datum_maod: 54.617, amber: 0.25, record: 0.937}
     verified: "Thresholds match §4.1. D/s only in flood-monitoring live and the archive (from 2025-10-29)."
+
+  # Cherwell-side gauges from #125 A. They have full matching Hydrology history (history_ok: true), but
+  # A was not adopted for kingsmill, so they are shown live only and feed no model. Same checks as above.
+  - key: banbury
+    name: Banbury
+    river: Cherwell
+    role: live_only
+    ref: 1420TH
+    rloi_id: "7060"
+    lat: 52.066379
+    lon: -1.333286
+    amber: 1.14
+    threshold: 1.83          # GOV.UK station page 7060
+    record: 2.392            # 2007-07-21T04:45
+    trace: u/s               # "Stage"; the station also has a "Downstream Stage" (0.57 m off Hydrology)
+    fm_measure: 1420TH-level-stage-i-15_min-mASD
+    hydrology:
+      station: 08a56e86-d214-4288-8726-8de31eb55766
+      level_measure: 08a56e86-d214-4288-8726-8de31eb55766-level-i-900-m-qualified
+      qualifier: u/s
+      earliest: "1986-10-01T09:15:00Z"
+    history_ok: true
+    datum_maod: 88.73
+    api: {typicalRangeLow: 0.02, typicalRangeHigh: 1.14, highestRecent: 1.801, maxOnRecord: 2.392}
+    other_trace: {trace: d/s, fm_measure: 1420TH-level-downstage-i-15_min-mASD}   # no downstageScale published
+    verified: "#125: Hydrology = live Stage (|diff| 0.000 m, 20-24 Oct 2026). GOV.UK amber/threshold/record 1.14/1.83/2.39. Not a kingsmill feature."
+
+  - key: lowerarncott
+    name: Lower Arncott
+    river: Ray
+    role: live_only
+    ref: 1483TH
+    rloi_id: "7068"
+    lat: 51.861059
+    lon: -1.119228
+    amber: 2.00
+    threshold: 3.26          # GOV.UK station page 7068 (above the 2.984 record)
+    record: 2.984            # 2003-01-03T16:45
+    trace: single
+    fm_measure: 1483TH-level-stage-i-15_min-mASD
+    hydrology:
+      station: 2253c9fa-d697-46d6-a9b2-e4368862af85
+      level_measure: 2253c9fa-d697-46d6-a9b2-e4368862af85-level-i-900-m-qualified
+      qualifier: single
+      earliest: "1998-01-01T09:15:00Z"
+    history_ok: true
+    datum_maod: 58.0         # round value: unverified
+    api: {typicalRangeLow: 0.297, typicalRangeHigh: 2.0, highestRecent: 2.911, maxOnRecord: 2.984}
+    verified: "#125: Hydrology = live Stage (|diff| 0.000 m, 20-24 Oct 2026). GOV.UK amber/threshold/record 2.00/3.26/2.98. Not a kingsmill feature."
 
 # EA tipping-bucket rain gauges (SPEC §4.1). Catchment rain = mean of the available gauges per hour.
 # All have dense 15-min Hydrology history from 2000 or earlier and are live on flood-monitoring. ~10% of

@@ -134,6 +134,14 @@ LEVEL_MEASURES: dict[str, str] = {
     "newbotley": "1645TH-level-stage-i-15_min-mASD",
     "minns": "1635TH-level-stage-i-15_min-mASD",
     "coldharbour": "1675TH-level-stage-i-15_min-mASD",
+    # #125 A further-upstream gauges (same trace as their Hydrology history; stations.yaml fm_measure):
+    # features for newbotley + minns, and banbury / lowerarncott shown live only.
+    "shifford": "0904TH-level-stage-i-15_min-mASD",
+    "hannington": "0569TH-level-stage-i-15_min-mASD",
+    "worsham": "1080TH-level-stage-i-15_min-mASD",
+    "shipton": "1238TH-level-stage-i-15_min-mASD",
+    "banbury": "1420TH-level-stage-i-15_min-mASD",
+    "lowerarncott": "1483TH-level-stage-i-15_min-mASD",
 }
 # Main-channel locks with live data only (SPEC §4.1.1): shown, never forecast.
 LIVE_ONLY_GAUGES: frozenset[str] = frozenset({"godstow", "osney", "iffley"})
