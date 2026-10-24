@@ -66,6 +66,16 @@ SM_RAW_DIR = DATA_DIR / "raw" / "open_meteo_era5_land"
 SM_START_YEAR = 2005  # one spare year before the hourly record (2006) for the 7-day changes and lag
 SM_CHANGE_H = 168
 SM_LIVE_LAG_H = 168  # ERA5-Land latency ~5.5-6 days, so t - 7 d is always published live
+# Live-honest substitute for soil moisture at t: ECMWF IFS HRES analysis (Open-Meteo `ecmwf_ifs`), live
+# from api.open-meteo.com and archived from 2017 by the historical-forecast API. It is quantile-mapped
+# onto ERA5-Land per layer using 2017-01-01 .. 2021-09-30 only (before the test period) and read at
+# t - 12 h (a run is published ~6-8 h after its base time).
+IFS_MODEL = "ecmwf_ifs"
+IFS_URL = "https://historical-forecast-api.open-meteo.com/v1/forecast"
+IFS_RAW_DIR = DATA_DIR / "raw" / "open_meteo_ifs_soil"
+IFS_START_YEAR = 2017
+IFS_MAP_WINDOW = (pd.Timestamp("2017-01-01", tz="UTC"), pd.Timestamp("2021-09-30 23:00", tz="UTC"))
+IFS_AVAIL_LAG_H = 12
 
 COINC_LAGS_H: tuple[int, ...] = (0, 6, 12, 24)
 CROSS_UPSTREAMS: dict[str, tuple[str, ...]] = {
@@ -85,8 +95,10 @@ P_STAR = 0.5
 RAIN_FIT = (pd.Timestamp("2024-01-22", tz="UTC"), pd.Timestamp("2024-09-30 23:00", tz="UTC"))
 RAIN_EVAL_START = pd.Timestamp("2024-10-01", tz="UTC")
 NOISE_BINS_MM: tuple[float, ...] = (0.0, 0.5, 2.0, 5.0, 10.0, 20.0, np.inf)
+RATIO_FROM_MM = 2.0
 NOISE_BLOCK_H = 12  # one error draw per 12 h block, so successive rows see a coherent forecast error
 SEED = 42
+RAIN_ARMS: tuple[str, ...] = ("rain_noise", "rain_mos", "rain_noise_sm")
 
 
 # ---------------------------------------------------------------------------------------------
@@ -100,11 +112,17 @@ def _points() -> list[tuple[str, float, float]]:
     return load_points()
 
 
-def fetch_soil_year(year: int, end: pd.Timestamp, refresh: bool = False) -> Path:
-    """One archive call per year for the three points; past years are cached forever."""
+def fetch_soil_year(year: int, end: pd.Timestamp, refresh: bool = False, source: str = "era5") -> Path:
+    """One archive call per year for the three points; past years are cached forever.
+
+    ``source="era5"``: ERA5-Land reanalysis (archive API). ``source="ifs"``: the ECMWF IFS HRES analysis
+    as archived by Open-Meteo's historical-forecast API (the first hours of each run, i.e. what the live
+    forecast API returns as "current" soil moisture), from 2017.
+    """
     a = f"{year}-01-01"
     b = min(pd.Timestamp(f"{year}-12-31"), end.tz_localize(None).normalize()).strftime("%Y-%m-%d")
-    path = SM_RAW_DIR / f"{SM_MODEL}_{a}_{b}.json"
+    model, url, raw = (SM_MODEL, ARCHIVE_URL, SM_RAW_DIR) if source == "era5" else (IFS_MODEL, IFS_URL, IFS_RAW_DIR)
+    path = raw / f"{model}_{a}_{b}.json"
     if path.is_file() and not refresh:
         return path
     import requests
@@ -114,13 +132,13 @@ def fetch_soil_year(year: int, end: pd.Timestamp, refresh: bool = False) -> Path
         "latitude": ",".join(f"{lat:.5f}" for _, lat, _ in pts),
         "longitude": ",".join(f"{lon:.5f}" for _, _, lon in pts),
         "hourly": ",".join(f"soil_moisture_{x}" for x in SM_LAYERS),
-        "models": SM_MODEL,
+        "models": model,
         "start_date": a,
         "end_date": b,
         "timezone": "GMT",
     }
     for attempt in range(4):
-        r = requests.get(ARCHIVE_URL, params=params, timeout=180)
+        r = requests.get(url, params=params, timeout=180)
         if r.status_code == 429:
             time.sleep(30 * (attempt + 1))
             continue
@@ -140,9 +158,12 @@ def fetch_soil(end: pd.Timestamp | None = None, refresh: bool = False) -> None:
         # The current year is refetched (it grows); earlier years only if missing.
         p = fetch_soil_year(y, end, refresh=refresh or y == end.year)
         log.info("soil moisture %d: %s", y, p.name)
+    for y in range(IFS_START_YEAR, end.year + 1):
+        p = fetch_soil_year(y, end, refresh=refresh or y == end.year, source="ifs")
+        log.info("IFS soil moisture %d: %s", y, p.name)
 
 
-def load_soil(raw_dir: Path = SM_RAW_DIR) -> pd.DataFrame:
+def load_soil(raw_dir: Path = SM_RAW_DIR, source: str = "era5") -> pd.DataFrame:
     """Catchment-mean soil moisture (m3/m3) per hour; columns = SM_LAYERS; index = UTC instant.
 
     Open-Meteo's hourly soil moisture is the state at the stamp. We label it with the stamp itself, so
@@ -150,7 +171,9 @@ def load_soil(raw_dir: Path = SM_RAW_DIR) -> pd.DataFrame:
     unless all three points have a value.
     """
     frames = []
-    for path in sorted(raw_dir.glob(f"{SM_MODEL}_*.json")):
+    model = SM_MODEL if source == "era5" else IFS_MODEL
+    raw_dir = raw_dir if source == "era5" else IFS_RAW_DIR
+    for path in sorted(raw_dir.glob(f"{model}_*.json")):
         body = json.loads(path.read_text(encoding="utf-8"))
         stack = []
         idx = None
@@ -201,6 +224,31 @@ def soil_features(sm: pd.DataFrame, index: pd.DatetimeIndex, lag_h: int = 0) -> 
         out[cols[i]] = v
         out[cols[n + i]] = v - v.shift(SM_CHANGE_H)
     return pd.DataFrame(out, index=full)[cols].reindex(index)
+
+
+def quantile_map(src: pd.DataFrame, ref: pd.DataFrame, window: tuple[pd.Timestamp, pd.Timestamp]) -> pd.DataFrame:
+    """Map each column of ``src`` onto ``ref``'s distribution (empirical quantiles fitted on ``window``).
+
+    A fixed monotone transform per column (fitted on past data only), applied pointwise: the value at t
+    depends only on ``src`` at t.
+    """
+    qs = np.linspace(0, 1, 201)
+    out = {}
+    for c in src.columns:
+        s = src[c][(src.index >= window[0]) & (src.index <= window[1])].dropna()
+        r = ref[c][(ref.index >= window[0]) & (ref.index <= window[1])].dropna()
+        xs, ys = np.quantile(s, qs), np.quantile(r, qs)
+        xs = np.maximum.accumulate(xs + np.arange(len(xs)) * 1e-9)
+        out[c] = pd.Series(np.interp(src[c].to_numpy(), xs, ys), index=src.index).where(src[c].notna())
+    return pd.DataFrame(out, index=src.index)
+
+
+def ifs_soil_as_now(ifs: pd.DataFrame, era5: pd.DataFrame, index: pd.DatetimeIndex) -> pd.DataFrame:
+    """LIVE-HONEST stand-in for the ``sm_now`` columns: mapped IFS analysis at t - IFS_AVAIL_LAG_H."""
+    mapped = quantile_map(ifs, era5, IFS_MAP_WINDOW)
+    f = soil_features(mapped, index, IFS_AVAIL_LAG_H)
+    f.columns = soil_columns(0)
+    return f
 
 
 def coinc_columns(target: str) -> list[str]:
@@ -267,8 +315,12 @@ def fit_rain_error(obs: pd.DataFrame, fc: pd.DataFrame, window: tuple[pd.Timesta
         bins = np.digitize(a["obs"].to_numpy(), NOISE_BINS_MM[1:-1])
         res = []
         for b in range(len(NOISE_BINS_MM) - 1):
-            r = (a["fc"] - a["obs"]).to_numpy()[bins == b]
-            if len(r) < 20 and res:  # too few heavy-rain cases: borrow the bin below, scaled as a ratio
+            sel = bins == b
+            if NOISE_BINS_MM[b] >= RATIO_FROM_MM:  # wet: the error scales with the rain, keep fc / obs
+                r = (a["fc"] / a["obs"]).to_numpy()[sel]
+            else:  # (nearly) dry: additive error, fc - obs
+                r = (a["fc"] - a["obs"]).to_numpy()[sel]
+            if len(r) < 20 and res:  # too few heavy-rain cases: borrow the bin below
                 r = res[-1]
             res.append(np.sort(r))
         b_, a_ = np.polyfit(a["fc"].to_numpy(), a["obs"].to_numpy(), 1)
@@ -279,9 +331,10 @@ def fit_rain_error(obs: pd.DataFrame, fc: pd.DataFrame, window: tuple[pd.Timesta
 def noisy_future_rain(obs: pd.DataFrame, err: Mapping[str, Any], seed: int = SEED) -> pd.DataFrame:
     """TRAINING ONLY: observed future rain + an error drawn from the archived forecast's error.
 
-    For each lead window and row, an error quantile u is drawn per NOISE_BLOCK_H block (the same u for
-    the three windows' rows in a block, different u per window), then the residual at quantile u of the
-    row's observed-rain bin is added; values are clipped at 0. Fixed seed. Like ``observed_future_rain``
+    For each lead window, an error quantile u is drawn per NOISE_BLOCK_H block (all rows in a block share
+    it), then the error at quantile u of the row's observed-rain bin is applied: a ratio fc / obs for
+    bins from RATIO_FROM_MM up (so the heavy-rain under-forecast is reproduced: shrink + noise), an
+    additive fc - obs below; values are clipped at 0. Fixed seed. Like ``observed_future_rain``
     this uses observed rain after t, so it is for fitting only.
     """
     rng = np.random.default_rng(seed)
@@ -293,12 +346,13 @@ def noisy_future_rain(obs: pd.DataFrame, err: Mapping[str, Any], seed: int = SEE
         u = rng.random(nb)[blocks]
         x = obs[c].to_numpy(dtype=float)
         bins = np.digitize(np.nan_to_num(x), np.asarray(e["edges"][1:-1]))
-        noise = np.zeros_like(x)
+        y = x.copy()
         for b, r in enumerate(e["residuals"]):
             m = bins == b
             if m.any() and len(r):
-                noise[m] = np.quantile(r, u[m])
-        out[c] = np.clip(x + noise, 0, None)
+                d = np.quantile(r, u[m])
+                y[m] = x[m] * d if e["edges"][b] >= RATIO_FROM_MM else x[m] + d
+        out[c] = np.clip(y, 0, None)
     df = pd.DataFrame(out, index=obs.index)
     df.attrs["uses_future_observations"] = True
     return df
@@ -405,8 +459,12 @@ class Arm:
         return self.extra(hourly, target, index, training=True)
 
     def extra(self, hourly: pd.DataFrame, target: str, index: pd.DatetimeIndex, training: bool = False) -> pd.DataFrame:
-        if self.name == "sm_now":
+        if self.name == "sm_now" or (self.name == "sm_ifs" and training):
             return soil_features(self.soil(), index, 0)
+        if self.name == "sm_ifs":  # the sm_now models, fed the live-available IFS analysis
+            if "ifs" not in self._rain:
+                self._rain["ifs"] = load_soil(source="ifs")
+            return ifs_soil_as_now(self._rain["ifs"], self.soil(), index)
         if self.name == "sm_lag7d":
             return soil_features(self.soil(), index, SM_LIVE_LAG_H)
         if self.name == "coinc":
@@ -414,6 +472,9 @@ class Arm:
 
             med = cross_medians(hourly, target, DEFAULT_SPLITS.val_start)
             return coinc_features(hourly, target, med, index)
+        if self.name == "rain_noise_sm":  # PM order (#134): noise-aware rain together with soil moisture
+            sm = soil_features(self.soil(), index, SM_LIVE_LAG_H)
+            return Arm("rain_noise").extra(hourly, target, index, training).join(sm)
         if self.name in ("rain_noise", "rain_mos"):
             from analysis import rain_experiment as RE
 
@@ -440,6 +501,8 @@ def arm_dir(arm: str, event_id: str | None = None) -> Path:
         return BASELINE_DIR if event_id is None else BASELINE_LOFO_DIR / event_id
     if arm == "rain_mos":
         return RAIN_PP_DIR if event_id is None else EXP_DIR / "rain_pp_lofo" / event_id
+    if arm == "sm_ifs":
+        arm = "sm_now"
     return EXP_DIR / arm if event_id is None else EXP_DIR / f"{arm}_lofo" / event_id
 
 
@@ -520,13 +583,13 @@ def evaluate(arms: Sequence[str], with_events: bool, rain_window: bool) -> dict[
     for arm in arms:
         t0 = time.time()
         models = load_arm(arm, hourly)
-        if arm not in ("rain_noise", "rain_mos"):
+        if arm not in RAIN_ARMS:
             out["testPeriod"].append(score_variant(arm, models, hourly, spots, rows_full, (test_start, end)))
         if rain_window:
             out["rainWindow"].append(score_variant(arm, models, hourly, spots, rows_rain, (RAIN_EVAL_START, end)))
-        test_ev = ("e2024b", "e2026") if arm in ("rain_noise", "rain_mos") else ("e2024a", "e2024b", "e2026")
+        test_ev = ("e2024b", "e2026") if arm in RAIN_ARMS else ("e2024a", "e2024b", "e2026")
         out["testEvents"].append(event_block(arm, {e: models for e in test_ev}, hourly, spots))
-        if with_events and arm not in ("rain_noise", "rain_mos"):
+        if with_events and arm not in RAIN_ARMS:
             try:
                 pem = models_per_event(arm, hourly, list(backtest.load_events()))
                 out["events"].append(event_block(arm, pem, hourly, spots))
@@ -574,7 +637,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     f = sub.add_parser("fetch")
     f.add_argument("--refresh", action="store_true")
     t = sub.add_parser("train")
-    t.add_argument("--arm", required=True, choices=["sm_now", "sm_lag7d", "coinc", "rain_noise"])
+    t.add_argument("--arm", required=True, choices=["sm_now", "sm_lag7d", "coinc", "rain_noise", "rain_noise_sm"])
     t.add_argument("--targets", nargs="+", default=list(TARGETS))
     t.add_argument("--lofo", action="store_true", help="leave-one-flood-out models for the pre-test events")
     t.add_argument("--events", nargs="+", default=None)
