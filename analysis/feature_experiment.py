@@ -672,9 +672,7 @@ def report(res: Mapping[str, Any]) -> str:
     L.append("|---|---|" + "---|" * len(HORIZONS_H))
     for s in res["scores"]:
         L.append(f"| {s['arm']} | pooled | {_skill_row(s['skill'])} |")
-    for s in res["scores"]:
-        L.append(f"| {s['arm']} | newbotley | {_skill_row(s['perGauge']['newbotley']['skill'])} |")
-    for g in TARGETS[1:]:
+    for g in TARGETS:
         for s in res["scores"]:
             if g in s["perGauge"]:
                 L.append(f"| {s['arm']} | {g} | {_skill_row(s['perGauge'][g]['skill'])} |")
@@ -796,7 +794,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         res = evaluate_cli(args.arms, events=not args.no_events)
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)
         Path(args.out).write_text(json.dumps(res, indent=1, default=str), encoding="utf-8")
-        print(report(res))
+        md = Path(args.out).with_suffix(".md")
+        md.write_text(report(res), encoding="utf-8")
+        log.info("wrote %s and %s", args.out, md)
     return 0
 
 
