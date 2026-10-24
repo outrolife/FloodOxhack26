@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: working
 - **issue**: #23
-- **task**: S4 sandbag screening in stretch/s4 (draft PR only, waits on S3)
-- **next**: Coding stretch/s4 (fetch OSM+EA defences, screen.py) against S3 GeoTIFFs in processed/s3
+- **task**: S4 sandbag screening: code+tests pushed, e2014 run done; SandbagList UI behind SHOW_S4=false
+- **next**: Open draft PR, run vitest
 - **needs**: 
 - **notes**: 
 - **branch**: stretch/s4-sandbags
-- **head**: b958dd2 Merge pull request #98 from outrolife/data/live-models-clean
+- **head**: 5ca4c9b Read S3 per-cell outputs from cells.npz and skip river seed ce
 - **unpushed**: 0
-- **dirty**: 0
-- **updated**: 2026-10-24T18:14:18Z
+- **dirty**: 3
+- **updated**: 2026-10-24T18:28:40Z
