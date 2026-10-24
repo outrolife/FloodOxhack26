@@ -1,14 +1,14 @@
 # s-s01s-story
 
 - **role**: Story
-- **state**: working
+- **state**: reviewing
 - **issue**: #10
-- **task**: Writing spots.yaml/events.yaml with minns/coldharbour thresholds (2.90/2.44) verified
-- **next**: Commit, PR, results comment on #10
+- **task**: PR open: spots.yaml + events.yaml (#10)
+- **next**: Await review; README sources for #19
 - **needs**: 
 - **notes**: 
 - **branch**: story/verify-spots-events
-- **head**: 3130f0f Merge pull request #28 from outrolife/data/historic-warnings
+- **head**: 9c4a086 Add verified spots.yaml and events.yaml with dated flood evide
 - **unpushed**: 0
-- **dirty**: 1
-- **updated**: 2026-10-24T16:18:52Z
+- **dirty**: 0
+- **updated**: 2026-10-24T16:20:20Z
