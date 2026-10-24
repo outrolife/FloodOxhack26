@@ -1,14 +1,14 @@
 # s-s01s-mapui
 
 - **role**: App
-- **state**: idle
-- **issue**: 
-- **task**: 
-- **next**: 
+- **state**: working
+- **issue**: #152
+- **task**: Map v3 UI: MapLibre + PMTiles + deck.gl flow (FlowMapGL behind ?map=gl)
+- **next**: Install pinned deps, build FlowMapGL
 - **needs**: 
 - **notes**: 
-- **branch**: worktree-agent-ae96cf56c6f80d3b1
-- **head**: ad506c6 Ignore internal observer tooling
-- **unpushed**: no upstream
+- **branch**: app/map-v3
+- **head**: 728aa2d Merge pull request #150 from outrolife/app/ux-river-walk
+- **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T22:03:41Z
+- **updated**: 2026-10-24T22:03:49Z
