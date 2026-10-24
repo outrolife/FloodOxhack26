@@ -152,7 +152,7 @@
   <section class="finding">
     <h2>The finding: <span class="k">the flood is already on its way</span></h2>
     <svg viewBox="0 0 1000 278" role="img" aria-labelledby="chain-title">
-      <title id="chain-title">Travel times: a rise at Cassington reaches New Botley (Botley Road) in about 9.5 hours; a rise at Enslow reaches Kings Mill (Cherwell) in about 18.6 hours.</title>
+      <title id="chain-title">Travel times: a rise at Enslow reaches Kings Mill (Cherwell) in about 18.6 hours, 15 to 23 hours over 6 floods; a rise at Cassington first shows at New Botley (Botley Road) in about 9.5 hours, with the peaks about 32 hours apart.</title>
       <defs>
         <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="3.2" markerHeight="3.2" orient="auto">
           <path d="M0 0L10 5L0 10Z" fill="#2a78d6"/>
@@ -174,34 +174,34 @@
       <!-- Oxford block -->
       <rect x="790" y="0" width="206" height="226" rx="14" fill="#cde2fb"/>
       <text x="808" y="30" font-size="22" font-weight="800" fill="#184f95" letter-spacing="3">OXFORD</text>
-      <text x="808" y="72" font-size="30" font-weight="700" fill="#0b0b0b">Botley Road</text>
-      <text x="808" y="98" font-size="21" fill="#52514e">New Botley gauge</text>
-      <text x="808" y="180" font-size="30" font-weight="700" fill="#0b0b0b">Cherwell</text>
-      <text x="808" y="206" font-size="21" fill="#52514e">Kings Mill gauge</text>
+      <text x="808" y="72" font-size="30" font-weight="700" fill="#0b0b0b">Cherwell</text>
+      <text x="808" y="98" font-size="21" fill="#52514e">Kings Mill gauge</text>
+      <text x="808" y="180" font-size="30" font-weight="700" fill="#0b0b0b">Botley Road</text>
+      <text x="808" y="206" font-size="21" fill="#52514e">New Botley gauge</text>
 
-      <!-- Row 1: Cassington (Evenlode) -> New Botley. src: web/public/data/travel_times.json cassington->newbotley n=24, tHalf median 9.5 h (p10 1.3, p90 42.5) -->
-      <path d="M513.0 62Q527.1 55 541.1 62T569.2 62T597.4 62T625.5 62T653.6 62T681.8 62T709.9 62T738.0 62" fill="none" stroke="#2a78d6" stroke-width="9" stroke-linecap="round" marker-end="url(#arrow)"/>
-      <circle cx="498.75" cy="62" r="15" fill="#fcfcfb" stroke="#2a78d6" stroke-width="6"/>
+      <!-- Row 1: Enslow (Cherwell) -> Kings Mill. src: web/public/data/travel_times.json enslow->kingsmill n=6, tHalf median 18.6 h (p10 15.0, p90 22.8) -->
+      <path d="M262.5 62Q277.4 55 292.2 62T321.9 62T351.7 62T381.4 62T411.1 62T440.8 62T470.5 62T500.2 62T530.0 62T559.7 62T589.4 62T619.1 62T648.8 62T678.6 62T708.3 62T738.0 62" fill="none" stroke="#2a78d6" stroke-width="9" stroke-linecap="round" marker-end="url(#arrow)"/>
+      <circle cx="248.5" cy="62" r="15" fill="#fcfcfb" stroke="#2a78d6" stroke-width="6"/>
       <circle cx="760" cy="62" r="11" fill="#184f95"/>
-      <text x="474" y="64" font-size="32" font-weight="700" fill="#0b0b0b" text-anchor="end">Cassington</text>
-      <text x="474" y="90" font-size="21" fill="#52514e" text-anchor="end">River Evenlode</text>
-      <!-- src: web/public/data/travel_times.json (cassington->newbotley tHalf.median 9.5, n 24) -->
-      <rect x="548" y="32" width="164" height="60" rx="30" fill="#fcfcfb" stroke="#2a78d6" stroke-width="4"/>
-      <text x="630" y="79" font-size="46" font-weight="800" fill="#0b0b0b" text-anchor="middle">9.5 h</text>
-      <text x="630" y="122" font-size="23" fill="#52514e" text-anchor="middle">median of 24 floods</text>
-
-      <!-- Row 2: Enslow (Cherwell) -> Kings Mill. src: web/public/data/travel_times.json enslow->kingsmill n=6, tHalf median 18.6 h (p10 15.0, p90 22.8) -->
-      <path d="M262.5 170Q277.4 163 292.2 170T321.9 170T351.7 170T381.4 170T411.1 170T440.8 170T470.5 170T500.2 170T530.0 170T559.7 170T589.4 170T619.1 170T648.8 170T678.6 170T708.3 170T738.0 170" fill="none" stroke="#2a78d6" stroke-width="9" stroke-linecap="round" marker-end="url(#arrow)"/>
-      <circle cx="248.5" cy="170" r="15" fill="#fcfcfb" stroke="#2a78d6" stroke-width="6"/>
-      <circle cx="760" cy="170" r="11" fill="#184f95"/>
-      <text x="224" y="172" font-size="32" font-weight="700" fill="#0b0b0b" text-anchor="end">Enslow</text>
-      <text x="224" y="198" font-size="21" fill="#52514e" text-anchor="end">River Cherwell</text>
+      <text x="224" y="64" font-size="32" font-weight="700" fill="#0b0b0b" text-anchor="end">Enslow</text>
+      <text x="224" y="90" font-size="21" fill="#52514e" text-anchor="end">River Cherwell</text>
       <!-- src: web/public/data/travel_times.json (enslow->kingsmill tHalf.median 18.6, p10 15.0, p90 22.8, n 6) -->
-      <rect x="402" y="140" width="196" height="60" rx="30" fill="#fcfcfb" stroke="#2a78d6" stroke-width="4"/>
-      <text x="500" y="187" font-size="46" font-weight="800" fill="#0b0b0b" text-anchor="middle">18.6 h</text>
-      <text x="500" y="228" font-size="23" fill="#52514e" text-anchor="middle">6 floods, range 15&#8211;23 h</text>
+      <rect x="402" y="32" width="196" height="60" rx="30" fill="#fcfcfb" stroke="#2a78d6" stroke-width="4"/>
+      <text x="500" y="79" font-size="46" font-weight="800" fill="#0b0b0b" text-anchor="middle">18.6 h</text>
+      <text x="500" y="122" font-size="23" fill="#52514e" text-anchor="middle">6 floods, range 15&#8211;23 h</text>
+      <!-- Row 2: Cassington (Evenlode) -> New Botley. src: web/public/data/travel_times.json cassington->newbotley n=24, tHalf median 9.5 h (p10 1.3, p90 42.5) -->
+      <path d="M513.0 170Q527.1 163 541.1 170T569.2 170T597.4 170T625.5 170T653.6 170T681.8 170T709.9 170T738.0 170" fill="none" stroke="#2a78d6" stroke-width="9" stroke-linecap="round" marker-end="url(#arrow)"/>
+      <circle cx="498.75" cy="170" r="15" fill="#fcfcfb" stroke="#2a78d6" stroke-width="6"/>
+      <circle cx="760" cy="170" r="11" fill="#184f95"/>
+      <text x="474" y="172" font-size="32" font-weight="700" fill="#0b0b0b" text-anchor="end">Cassington</text>
+      <text x="474" y="198" font-size="21" fill="#52514e" text-anchor="end">River Evenlode</text>
+      <!-- src: web/public/data/travel_times.json (cassington->newbotley tHalf.median 9.5, tPeak.median 32.0, n 24) -->
+      <rect x="548" y="140" width="164" height="60" rx="30" fill="#fcfcfb" stroke="#2a78d6" stroke-width="4"/>
+      <text x="630" y="187" font-size="46" font-weight="800" fill="#0b0b0b" text-anchor="middle">9.5 h</text>
+      <text x="630" y="228" font-size="23" fill="#52514e" text-anchor="middle">first rise, 24 floods</text>
+
     </svg>
-    <p class="note">Median time for a flood's half-rise to travel between gauges. We only use gauge pairs seen in 3 or more past floods<!-- src: web/public/data/travel_times.json (9 of 11 pairs have n >= 3) --> (9 of 11).</p>
+    <p class="note">Median time for a flood's half-rise to travel between gauges. We only use gauge pairs seen in 3 or more past floods<!-- src: web/public/data/travel_times.json (9 of 11 pairs have n >= 3) --> (9 of 11). On the Thames the peaks are slower: Cassington to New Botley, 32 h peak to peak.<!-- src: travel_times.json cassington->newbotley tPeak.median 32.0 --></p>
   </section>
 
   <!-- 4. How it works -->
@@ -242,6 +242,7 @@
         <p><b>4. Decide</b>act when the chance beats cost&nbsp;&#247;&nbsp;loss</p>
       </div>
     </div>
+    <p class="note" style="margin-top:1.5mm">On the laptop, one screen: the river map with a clock per spot, a timeline of our forecast against the real level (River Clock warned &#183; EA warned &#183; Flooded), and a switch between today and past floods.</p>
   </section>
 
   <!-- 5. Results -->
@@ -281,32 +282,33 @@
         <p class="note">Pinball loss by lead time; forecasts from Oct 2021 on, unseen in training.<!-- src: web/public/data/proof.json testPeriodNote (issue times from 2021-10-01) --></p>
       </div>
       <div class="table">
-        <h3>No flood missed at a 50% trigger</h3>
+        <h3>No flood missed at a 1-in-2 trigger</h3>
         <!-- src: web/public/data/proof.json tradeoff[spot] row pStar 0.5: hits, misses, falseAlarms, meanLeadH, meanLeadVsOfficialH -->
         <table>
           <thead><tr><th>Spot</th><th>Floods caught</th><th>False alarms</th><th>Lead time</th><th>vs EA warning</th></tr></thead>
           <tbody>
-            <tr><td>Osney</td><td>7 / 7</td><td>2</td><td>17 h</td><td class="ahead">2.9 h ahead</td></tr><!-- src: web/public/data/proof.json tradeoff.osney pStar 0.5: hits 7, misses 0, falseAlarms 2, meanLeadH 17.0, meanLeadVsOfficialH 2.88 -->
-            <tr><td>Botley Rd</td><td>8 / 8</td><td>3</td><td>28 h</td><td>5.1 h behind</td></tr><!-- src: web/public/data/proof.json tradeoff.botley pStar 0.5: hits 8, misses 0, falseAlarms 3, meanLeadH 28.12, meanLeadVsOfficialH -5.08 -->
-            <tr><td>Abingdon Rd</td><td>8 / 8</td><td>0</td><td>23 h</td><td>13.8 h behind</td></tr><!-- src: web/public/data/proof.json tradeoff.abingdonrd pStar 0.5: hits 8, misses 0, falseAlarms 0, meanLeadH 22.88, meanLeadVsOfficialH -13.75 -->
-            <tr><td>Cherwell</td><td>7 / 7</td><td>0</td><td>9 h</td><td class="ahead">9.2 h ahead</td></tr><!-- src: web/public/data/proof.json tradeoff.cherwell pStar 0.5: hits 7, misses 0, falseAlarms 0, meanLeadH 9.29, meanLeadVsOfficialH 9.16 -->
+            <tr><td>Osney</td><td>7 / 7</td><td>2</td><td>17 h</td><td class="ahead">2.1 h ahead</td></tr><!-- src: web/public/data/proof.json tradeoff.osney pStar 0.5: hits 7, misses 0, falseAlarms 2, meanLeadH 16.86, meanLeadVsOfficialH 2.13 -->
+            <tr><td>Botley Rd</td><td>8 / 8</td><td>3</td><td>27 h</td><td>5.9 h behind</td></tr><!-- src: web/public/data/proof.json tradeoff.botley pStar 0.5: hits 8, misses 0, falseAlarms 3, meanLeadH 27.12, meanLeadVsOfficialH -5.92 -->
+            <tr><td>Abingdon Rd</td><td>8 / 8</td><td>0</td><td>22 h</td><td>14.6 h behind</td></tr><!-- src: web/public/data/proof.json tradeoff.abingdonrd pStar 0.5: hits 8, misses 0, falseAlarms 0, meanLeadH 22.38, meanLeadVsOfficialH -14.58 -->
+            <tr><td>Cherwell</td><td>7 / 7</td><td>0</td><td>8 h</td><td class="ahead">8.2 h ahead</td></tr><!-- src: web/public/data/proof.json tradeoff.cherwell pStar 0.5: hits 7, misses 0, falseAlarms 0, meanLeadH 8.29, meanLeadVsOfficialH 8.16 -->
+            <tr><td>EA warning</td><td>24 / 30</td><td>1</td><td></td><td>same rules</td></tr><!-- src: web/public/data/proof.json officialOutcome: hits 5+8+8+3 = 24, misses 2+0+0+4 = 6, falseAlarms 0+0+0+1 = 1 -->
           </tbody>
         </table>
-        <p class="note" style="margin-top:1.5mm">Mean hours before the flood, and versus the EA Flood Warning: ahead at two spots, behind at two.</p>
+        <p class="note" style="margin-top:1.5mm">Mean hours before the flood, and versus the EA Flood Warning: ahead at two spots, behind at two. Last row: the EA&#8217;s own warnings, scored the same way.</p>
       </div>
     </div>
     <div class="callouts">
       <div class="callout">
-        <!-- src: web/public/data/replays/e2014.json (botley pFlood first >= 0.5 at issuedAt 2014-01-04T12:00Z; official warning 2014-01-04T19:03:30Z; first crossing 2014-01-06T01:00Z); proof.json perEvent e2014 botley leadVsOfficialH 7.06 -->
+        <!-- src: web/public/data/replays/e2014.json (botley pFlood first >= 0.5 at issuedAt 2014-01-04T12:00Z; official warning 2014-01-04T19:03:30Z; first crossing 2014-01-06T01:00Z; newbotley peak 3.027 m; forecast 2014-01-06T08:00Z h72 q05 2.622, q95 3.152); proof.json perEvent e2014 botley leadVsOfficialH 7.06 -->
         <div class="big">7 h before the EA</div>
         <h3>Jan 2014 replay, Botley Road</h3>
-        <p>Passed 50% at 12:00 on 4 Jan: 7 h before the EA Flood Warning (19:03), 37 h before the flood (GMT).</p>
+        <p>Passed 50% at 12:00 on 4 Jan: 7 h before the EA Flood Warning (19:03), 37 h before the flood (GMT). Peak 3.03 m, inside the 2.62&#8211;3.15 m range given 3 days before. One flood: on average the EA was earlier at Botley.</p>
       </div>
       <div class="callout">
         <!-- src: web/public/data/replays/e2026.json (max pFlood 0.2767, botley, 2026-02-15T14:00Z; no crossings) -->
         <div class="big">28% at most</div>
         <h3>2026 near miss: no flood came</h3>
-        <p>Our highest chance was 28%, so no false alarm at any trigger of 30% or more.</p>
+        <p>The river came within 11 cm of Botley&#8217;s flood line. Our highest chance was 28%, so no false alarm at a 1-in-2 trigger.</p><!-- src: replays/e2026.json observed newbotley peak 2.647 m; spots.json botley threshold 2.76 -->
       </div>
     </div>
   </section>
@@ -317,8 +319,9 @@
       <h2>What it can't do</h2>
       <ul>
         <li><b>Few floods:</b> 7 events since 2007<!-- src: web/public/data/events.json -->, so uncertainty is wide.</li>
-        <li><b>No future rain:</b> only water already in the river. River flooding only.</li>
-        <li><b>Stand-ins:</b> Osney uses a gauge 1.2 km west<!-- src: README.md (Minns Estate, about 1.2 km west); web/public/data/spots.json osney gauge minns -->. Wolvercote has no forecast.</li>
+        <li><b>No future rain:</b> only water already in the river. River flooding only. Replays may have seen later floods.</li>
+        <li><b>Stand-ins:</b> Osney uses a gauge 1.2 km west<!-- src: README.md (Minns Estate, about 1.2 km west); web/public/data/spots.json osney gauge minns -->. Wolvercote has no forecast; Kings Mill is offline live.<!-- src: web/public/data/live.json stale kingsmill --></li>
+        <li><b>Next:</b> rain forecasts lifted 72&nbsp;h accuracy from 11% to 28% in a test, but added 3 false alarms, so they&#8217;re off.<!-- src: issue #100 results comment --></li>
       </ul>
     </div>
     <div>
