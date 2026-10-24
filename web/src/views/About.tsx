@@ -1,7 +1,11 @@
 // About: how it works, limitations, credits, disclaimer (SPEC §10.2, §15.7).
+import HowItWorks from "../components/about/HowItWorks";
+
 export default function About() {
   return (
     <div className="grid-cols">
+      <HowItWorks />
+
       <section className="card">
         <h2>How it works</h2>
         <ol>
