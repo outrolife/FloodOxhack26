@@ -8,7 +8,7 @@
 - **needs**: 
 - **notes**: alfredo: A ADOPTED per-target, see #125: merge-ready by 01:30, coordinate gauge entries with s-s01s-gauges (#146)
 - **branch**: main
-- **head**: a1af80f Merge pull request #157 from outrolife/story/docs-one-screen
+- **head**: f244c44 Merge pull request #159 from outrolife/app/map-v3
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T22:36:06Z
+- **updated**: 2026-10-24T22:37:10Z
