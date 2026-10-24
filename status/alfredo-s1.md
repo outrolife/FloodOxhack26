@@ -1,14 +1,14 @@
 # alfredo-s1
 
 - **role**: App
-- **state**: working
+- **state**: blocked
 - **issue**: #20
-- **task**: S1 research (pre-gate)
-- **next**: verify EA WMS endpoints
-- **needs**: 
+- **task**: S1 built as draft PR #75 (WMS RoFRS/RoFSW + committed outlines)
+- **next**: un-draft #75 once core gate (§13) is met
+- **needs**: alfredo: say when core gate is met
 - **notes**: 
-- **branch**: worktree-agent-ab424e40c5bf3e913
-- **head**: 0a61018 Merge pull request #67 from outrolife/integration/arrival-at-i
-- **unpushed**: no upstream
+- **branch**: stretch/s1-risk-layers
+- **head**: 5ca913c Add S1 official flood-risk layers (draft, gated)
+- **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:25:32Z
+- **updated**: 2026-10-24T17:37:19Z
