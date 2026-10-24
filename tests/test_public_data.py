@@ -194,11 +194,15 @@ def test_replay(name: str, stations: dict, spots: dict, events: dict) -> None:
     for i, fc in enumerate(r["forecasts"]):
         p = f"{name}.forecasts[{i}]"
         check_forecast(fc, stations, spots, p)  # includes: no dataAsOf after issuedAt
-        t = parse_utc(fc["issuedAt"])
+        # A forecast issued at t uses the last complete hourly row, labelled t - 1 h: the row labelled t
+        # holds readings up to t + 45 min (#93). So levelNow is the observed level at t - 1 h.
+        last_row = parse_utc(fc["issuedAt"]) - timedelta(hours=1)
         for sf in fc["spots"]:
             g = spots[sf["spot"]]["gauge"]
-            if g in obs and t in obs[g]:
-                assert_close(sf["levelNow"], obs[g][t], 1e-3, f"{p}.{sf['spot']}.levelNow vs observed")
+            if g in obs and last_row in obs[g]:
+                assert_close(
+                    sf["levelNow"], obs[g][last_row], 1e-3, f"{p}.{sf['spot']}.levelNow vs obs at t - 1 h"
+                )
     for o in r["official"]:
         assert o["spot"] in spots, f"{name}.official: unknown spot {o['spot']!r}"
     for c in r["crossings"]:

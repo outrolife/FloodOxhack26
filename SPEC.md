@@ -235,7 +235,7 @@ For a forecast issued at t for gauge g:
 For every backtest event:
 - **Leave-one-flood-out:** retrain all models excluding the event window ± 7 days; recalibrate on remaining validation events.
 - Issue a forecast every hour across the event window; compute probabilities and arrival windows for all spots.
-- Write `web/public/data/replays/{eventId}.json` (§9). Observed data after each forecast's issue time must not influence that forecast (test).
+- Write `web/public/data/replays/{eventId}.json` (§9). Observed data after each forecast's issue time must not influence that forecast (test). The hourly row labelled L holds the readings from L to L + 45 min, so a forecast issued at t uses rows labelled ≤ t − 1 h: its `levelNow` is the observed level at t − 1 h, and lead h is the hour ending at t + h (#93).
 - The About screen states that leave-one-flood-out training can include floods after the replayed one, and that strict time-split test results are reported separately.
 
 ### 8.2 Metrics → `web/public/data/proof.json`
