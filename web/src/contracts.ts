@@ -168,7 +168,40 @@ export type Proof = {
       meanLeadH: number | null; // hours: crossing time - official issue time
     }
   >;
+  /**
+   * Per-spot warn-at level (#134, SPEC §8.2): p* chosen on the validation flood replays only (issue
+   * times before 2021-10-01) by `rule`, then frozen and scored on the test events, next to p* 0.5.
+   */
+  warnAt?: Record<
+    string /*spot*/,
+    {
+      pStar: number; // the spot's warn-at trigger probability, 0.1 ... 0.9
+      rule: string; // how it was chosen, in words
+      validation: WarnAtScore; // the events it was chosen on
+      test: WarnAtScore; // test-period events: the honest result
+      atDefault: { pStar: number; validation: WarnAtScore; test: WarnAtScore }; // same events at p* 0.5
+      perEvent: {
+        eventId: string; // EventMeta.id
+        period: "validation" | "test";
+        hits: number;
+        misses: number;
+        falseAlarms: number;
+        meanLeadH: number | null; // hours before the crossing
+        leadVsOfficialH: number | null; // hours; positive = earlier than the first EA Flood Warning
+      }[];
+    }
+  >;
   testPeriodNote: string;
+};
+
+/** Outcomes at one trigger level over a set of events (Proof.warnAt). */
+export type WarnAtScore = {
+  events: string[]; // EventMeta.id
+  hits: number;
+  misses: number;
+  falseAlarms: number;
+  meanLeadH: number | null; // hours: crossing - first trigger, pooled over hits
+  meanLeadVsOfficialH: number | null; // hours; mean over events with both a trigger and an EA warning
 };
 
 /** quality.json: data-quality report (SPEC §5.3). */

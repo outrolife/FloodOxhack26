@@ -39,6 +39,9 @@ Definitions (used in the UI and by judges):
   scored with the same hit/miss/false-alarm rules.
 - **Arrival error**: the forecast issued 24 h (or 48 h) before a crossing gives a 50% arrival time;
   error = that time - the actual crossing, in hours (negative = predicted too early).
+- **Warn-at level** (#134): one p* per spot, chosen on the validation flood replays only (issue times
+  before the test period) by a fixed rule (``choose_warn_at``), then frozen and scored on the test
+  events. The rest of proof.json reports p* = 0.5.
 - **Bootstrap**: resample events with replacement (1,000 times, seed 42) and recompute the statistic;
   the 90% interval is the 5th to 95th percentile of the resampled values.
 """
@@ -343,6 +346,161 @@ def tradeoff_rows(
             row["ci90"] = [round(ci[0], 2), round(ci[1], 2)]
         rows.append(row)
     return rows
+
+
+# --------------------------------------------------------------------------- per-spot warn-at levels (#134)
+
+# Candidate warn-at levels: the SPEC §8.2 grid 0.1 ... 0.9. The 0.01-0.05 rows are cost-loss settings
+# for the Decide presets, not levels anyone would call a warning.
+WARN_AT_GRID: tuple[float, ...] = (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
+WARN_AT_MAX_FA = 1  # false alarms allowed in each validation flood replay (one flood season)
+WARN_AT_DEFAULT = 0.5  # the single trigger used everywhere else in proof.json
+WARN_AT_RULE = (
+    "Lowest p* in 0.1-0.9 with at most {max_fa} false alarm in every validation flood replay "
+    "(issue times before {cutoff}: {events}); 0.5 if none qualifies. Chosen before looking at the "
+    "test period."
+)
+
+
+def before(
+    p_by_event: Mapping[str, pd.Series],
+    crossings_by_event: Mapping[str, Sequence[Any]],
+    cutoff: Any,
+) -> tuple[dict[str, pd.Series], dict[str, list[pd.Timestamp]]]:
+    """Only what was known before ``cutoff``: issue times and crossings strictly earlier.
+
+    Events with no issue time left are dropped. This is what ``choose_warn_at`` sees, so nothing from
+    the test period (``cutoff`` = its start) can reach the choice of a warn-at level.
+    """
+    cut = _utc(cutoff)
+    p_out: dict[str, pd.Series] = {}
+    c_out: dict[str, list[pd.Timestamp]] = {}
+    for eid, p in p_by_event.items():
+        s = p.sort_index()
+        s = s[s.index < cut]
+        if s.empty:
+            continue
+        p_out[eid] = s
+        c_out[eid] = [c for c in (_utc(x) for x in crossings_by_event.get(eid, [])) if c < cut]
+    return p_out, c_out
+
+
+def choose_warn_at(
+    p_by_event: Mapping[str, pd.Series],
+    crossings_by_event: Mapping[str, Sequence[Any]],
+    cutoff: Any,
+    grid: Sequence[float] = WARN_AT_GRID,
+    max_fa: int = WARN_AT_MAX_FA,
+    default: float = WARN_AT_DEFAULT,
+) -> float:
+    """One spot's warn-at level p*, chosen on validation information only (issue times < ``cutoff``).
+
+    Rule: the **lowest** p* on ``grid`` such that **every** validation flood replay has at most
+    ``max_fa`` false alarms at this spot; ``default`` (0.5) if no p* qualifies.
+
+    Why this rule:
+    - Lowering p* can only add triggers, so hits never fall and the first trigger never comes later:
+      the lowest acceptable p* is the earliest warning. What it costs is false alarms.
+    - Each replay window covers one flood season around a flood (2 weeks to 2 months), so "at most one
+      false alarm per replay" reads as "at most one false alarm per flood season": a resident who is
+      told to move the car once in a winter for nothing keeps listening; one told three times doesn't.
+    - It is a cap on the worst season, not on the total, so one bad season can't hide behind quiet ones.
+    - Simple and fixed in advance: no weights to tune, and it never looks at the EA's warnings, so the
+      lead vs the EA on the test period is not part of the choice.
+
+    Honesty: the caller passes the leave-one-flood-out replays, and this function first drops every
+    issue time and crossing at or after ``cutoff`` (the test period start, 2021-10-01) with ``before``,
+    so the test events (e2024a, e2024b, e2026) can't change the result. Each validation replay is
+    forecast by models trained without that flood, but those models did see later floods (including the
+    test-period ones) in training; the time-split test events are the clean check.
+    """
+    p_val, c_val = before(p_by_event, crossings_by_event, cutoff)
+    if not p_val:
+        return float(default)
+    for p_star in sorted(grid):
+        fas = [
+            event_outcomes(trigger_times(p, p_star), c_val.get(eid, []))["falseAlarms"]
+            for eid, p in p_val.items()
+        ]
+        if max(fas) <= max_fa:
+            return float(p_star)
+    return float(default)
+
+
+def warn_at_score(
+    p_by_event: Mapping[str, pd.Series],
+    crossings_by_event: Mapping[str, Sequence[Any]],
+    p_star: float,
+    events: Sequence[str],
+    lead_vs_official: Callable[[str, float], float | None] | None = None,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Outcomes at ``p_star`` summed over ``events``, plus one row per event.
+
+    ``lead_vs_official(event_id, p_star)`` gives that event's lead vs the first EA Flood Warning (hours,
+    + = we were earlier; None if either side is missing). ``meanLeadVsOfficialH`` averages the events
+    where it exists; ``meanLeadH`` pools the leads of all hits, as ``tradeoff_rows`` does.
+    """
+    rows: list[dict[str, Any]] = []
+    leads: list[float] = []
+    vs_off: list[float] = []
+    for eid in events:
+        res = event_outcomes(trigger_times(p_by_event[eid], p_star), crossings_by_event.get(eid, []))
+        v = lead_vs_official(eid, p_star) if lead_vs_official else None
+        leads += res["leads"]
+        if v is not None:
+            vs_off.append(v)
+        rows.append(
+            {
+                "eventId": eid,
+                "hits": res["hits"],
+                "misses": res["misses"],
+                "falseAlarms": res["falseAlarms"],
+                "meanLeadH": mean_or_none(res["leads"]),
+                "leadVsOfficialH": None if v is None else round(float(v), 2),
+            }
+        )
+    total = {
+        "events": list(events),
+        "hits": sum(r["hits"] for r in rows),
+        "misses": sum(r["misses"] for r in rows),
+        "falseAlarms": sum(r["falseAlarms"] for r in rows),
+        "meanLeadH": mean_or_none(leads),
+        "meanLeadVsOfficialH": mean_or_none(vs_off),
+    }
+    return total, rows
+
+
+def warn_at_entry(
+    p_by_event: Mapping[str, pd.Series],
+    crossings_by_event: Mapping[str, Sequence[Any]],
+    periods: Mapping[str, str],
+    cutoff: Any,
+    lead_vs_official: Callable[[str, float], float | None] | None = None,
+    rule: str = WARN_AT_RULE,
+) -> dict[str, Any]:
+    """``Proof.warnAt[spot]``: the chosen level, its rule, and its validation and test results.
+
+    ``periods`` maps event id -> "validation" or "test" (events in neither are left out). The level is
+    chosen by ``choose_warn_at`` (validation information only) and then frozen; the test-period score
+    at it, and at the default 0.5 for comparison, is reported, never used.
+    """
+    val = [e for e in p_by_event if periods.get(e) == "validation"]
+    test = [e for e in p_by_event if periods.get(e) == "test"]
+    p_star = choose_warn_at({e: p_by_event[e] for e in val}, crossings_by_event, cutoff)
+    v_score, v_rows = warn_at_score(p_by_event, crossings_by_event, p_star, val, lead_vs_official)
+    t_score, t_rows = warn_at_score(p_by_event, crossings_by_event, p_star, test, lead_vs_official)
+    v_def, _ = warn_at_score(p_by_event, crossings_by_event, WARN_AT_DEFAULT, val, lead_vs_official)
+    t_def, _ = warn_at_score(p_by_event, crossings_by_event, WARN_AT_DEFAULT, test, lead_vs_official)
+    cut = _utc(cutoff)
+    return {
+        "pStar": p_star,
+        "rule": rule.format(max_fa=WARN_AT_MAX_FA, cutoff=cut.strftime("%Y-%m-%d"), events=", ".join(val)),
+        "validation": v_score,
+        "test": t_score,
+        "atDefault": {"pStar": WARN_AT_DEFAULT, "validation": v_def, "test": t_def},
+        "perEvent": [{**r, "period": "validation"} for r in v_rows]
+        + [{**r, "period": "test"} for r in t_rows],
+    }
 
 
 OFFICIAL_HOLD = pd.Timedelta(hours=24)

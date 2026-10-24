@@ -320,3 +320,105 @@ def test_arrival_error_uses_latest_forecast_within_tolerance():
     # crossing at 100 h; nothing issued at 76 h, so the 75 h forecast (1 h earlier) is used: 99 - 100
     assert m.arrival_error_h(fcs, "botley", hrs(100)[0], 24) == -1.0
     assert m.arrival_error_h(fcs, "botley", hrs(101)[0], 24) is None  # 77 h: 75 h is 2 h early
+
+
+# --------------------------------------------------------------------------- warn-at levels (#134)
+
+CUTOFF = pd.Timestamp("2021-10-01T00:00:00Z")  # test period start
+T_TEST = pd.Timestamp("2024-01-01T00:00:00Z")
+
+
+def hourly_p(t0: pd.Timestamp, n: int, p_of_hour) -> pd.Series:
+    idx = pd.DatetimeIndex([t0 + pd.Timedelta(hours=h) for h in range(n)])
+    return pd.Series([float(p_of_hour(h)) for h in range(n)], index=idx, dtype=float)
+
+
+def _validation_event(spikes: float = 0.35):
+    """Crossing at 200 h, p = 0.6 from 150 h (a hit at every p* <= 0.6). Two short spikes to ``spikes``
+    at 20 h and 60 h, more than 72 h before the crossing and 40 h apart: two false alarms at p* below
+    the spike, none above it."""
+    p = hourly_p(T0, 300, lambda h: 0.6 if 150 <= h < 200 else spikes if h in (20, 60) else 0.0)
+    return p, [T0 + pd.Timedelta(hours=200)]
+
+
+def _test_event(kind: str):
+    if kind == "quiet":
+        return hourly_p(T_TEST, 300, lambda h: 0.0), []
+    if kind == "spiky":  # a false alarm at every p* (would push any rule that saw it up to 0.9)
+        return hourly_p(T_TEST, 300, lambda h: 0.95 if h % 50 == 0 else 0.0), []
+    # "flood": crossing at 100 h, p = 0.15 from 30 h (rewards a very low p* if it were looked at)
+    flood = hourly_p(T_TEST, 300, lambda h: 0.15 if 30 <= h < 100 else 0.0)
+    return flood, [T_TEST + pd.Timedelta(hours=100)]
+
+
+def test_choose_warn_at_lowest_p_with_at_most_one_false_alarm_per_replay():
+    p, c = _validation_event()
+    # p* 0.1-0.3: both spikes trigger -> 2 false alarms in the replay; 0.4 is the lowest with <= 1
+    assert m.choose_warn_at({"v": p}, {"v": c}, CUTOFF) == 0.4
+    # without the spikes, nothing stops the lowest grid value
+    p0, c0 = _validation_event(spikes=0.0)
+    assert m.choose_warn_at({"v": p0}, {"v": c0}, CUTOFF) == 0.1
+    # the cap is per replay: one spike in each of two replays is fine at 0.1
+    p1 = hourly_p(T0, 300, lambda h: 0.6 if 150 <= h < 200 else 0.35 if h == 20 else 0.0)
+    t2 = T0 + pd.Timedelta(days=400)
+    p2 = hourly_p(t2, 300, lambda h: 0.6 if 150 <= h < 200 else 0.35 if h == 20 else 0.0)
+    crossings = {"a": c, "b": [t2 + pd.Timedelta(hours=200)]}
+    assert m.choose_warn_at({"a": p1, "b": p2}, crossings, CUTOFF) == 0.1
+
+
+def test_choose_warn_at_falls_back_to_default():
+    # a false-alarm spike at 0.95 every 50 h: no grid p* has <= 1 false alarm
+    p = hourly_p(T0, 300, lambda h: 0.95 if h % 50 == 0 else 0.0)
+    assert m.choose_warn_at({"v": p}, {"v": []}, CUTOFF) == m.WARN_AT_DEFAULT
+    assert m.choose_warn_at({}, {}, CUTOFF) == m.WARN_AT_DEFAULT
+
+
+@pytest.mark.parametrize("kind", ["quiet", "spiky", "flood"])
+def test_choose_warn_at_ignores_test_period_events(kind: str):
+    p, c = _validation_event()
+    tp, tc = _test_event(kind)
+    chosen = m.choose_warn_at({"v": p, "t": tp}, {"v": c, "t": tc}, CUTOFF)
+    assert chosen == m.choose_warn_at({"v": p}, {"v": c}, CUTOFF) == 0.4
+
+
+def test_before_cuts_a_straddling_event_at_the_cutoff():
+    # issue times from 10 h before the cutoff; repeated 0.95 spikes after the cutoff are never seen
+    t0 = CUTOFF - pd.Timedelta(hours=10)
+    p = hourly_p(t0, 300, lambda h: 0.95 if h >= 10 and h % 50 == 0 else 0.0)
+    cross = [CUTOFF + pd.Timedelta(hours=5)]
+    p_val, c_val = m.before({"x": p}, {"x": cross}, CUTOFF)
+    assert p_val["x"].index.max() < CUTOFF and len(p_val["x"]) == 10
+    assert c_val["x"] == []
+    assert m.choose_warn_at({"x": p}, {"x": cross}, CUTOFF) == 0.1
+    # an event wholly in the test period is dropped
+    assert m.before({"t": _test_event("spiky")[0]}, {}, CUTOFF) == ({}, {})
+
+
+@pytest.mark.parametrize("kind", ["quiet", "spiky", "flood"])
+def test_warn_at_entry_reports_test_events_without_using_them(kind: str):
+    p, c = _validation_event()
+    tp, tc = _test_event(kind)
+    lead_vs_ea = {("v", 0.4): 12.0, ("v", 0.5): 2.0, ("t", 0.4): -3.0, ("t", 0.5): -5.0}
+    w = m.warn_at_entry(
+        {"v": p, "t": tp},
+        {"v": c, "t": tc},
+        {"v": "validation", "t": "test"},
+        CUTOFF,
+        lead_vs_official=lambda eid, ps: lead_vs_ea.get((eid, ps)),
+    )
+    assert w["pStar"] == 0.4 and "2021-10-01" in w["rule"] and ": v)" in w["rule"]
+    assert w["validation"] == {
+        "events": ["v"],
+        "hits": 1,
+        "misses": 0,
+        "falseAlarms": 0,
+        "meanLeadH": 50.0,  # 200 - 150
+        "meanLeadVsOfficialH": 12.0,
+    }
+    assert w["atDefault"]["pStar"] == 0.5
+    assert w["atDefault"]["validation"]["meanLeadVsOfficialH"] == 2.0
+    assert w["test"]["events"] == ["t"] and w["atDefault"]["test"]["events"] == ["t"]
+    assert [(r["eventId"], r["period"]) for r in w["perEvent"]] == [("v", "validation"), ("t", "test")]
+    assert w["test"]["falseAlarms"] == {"quiet": 0, "spiky": 6, "flood": 0}[kind]
+    if kind == "flood":  # p = 0.15 never reaches 0.4: a miss at the frozen level, as it should be
+        assert (w["test"]["hits"], w["test"]["misses"]) == (0, 1)

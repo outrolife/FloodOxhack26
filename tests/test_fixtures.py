@@ -215,6 +215,14 @@ REPLAY = {
     ),
     "crossings": ListOf({"spot": STR, "t": UTC}),
 }
+WARN_AT_SCORE = {
+    "events": ListOf(STR),
+    "hits": NUM,
+    "misses": NUM,
+    "falseAlarms": NUM,
+    "meanLeadH": Nullable(NUM),
+    "meanLeadVsOfficialH": Nullable(NUM),
+}
 PROOF = {
     "skillByLead": ListOf({"h": NUM, "pinballModel": NUM, "pinballPersistence": NUM, "skill": NUM}),
     "coverage": ListOf({"h": NUM, "nominal": NUM, "actual": NUM}),
@@ -254,6 +262,26 @@ PROOF = {
     ),
     "officialOutcome?": RecordOf(
         {"hits": NUM, "misses": NUM, "falseAlarms": NUM, "meanLeadH": Nullable(NUM)}
+    ),
+    "warnAt?": RecordOf(  # per-spot warn-at level chosen on validation floods (#134)
+        {
+            "pStar": NUM,
+            "rule": STR,
+            "validation": WARN_AT_SCORE,
+            "test": WARN_AT_SCORE,
+            "atDefault": {"pStar": NUM, "validation": WARN_AT_SCORE, "test": WARN_AT_SCORE},
+            "perEvent": ListOf(
+                {
+                    "eventId": STR,
+                    "period": Lit("validation", "test"),
+                    "hits": NUM,
+                    "misses": NUM,
+                    "falseAlarms": NUM,
+                    "meanLeadH": Nullable(NUM),
+                    "leadVsOfficialH": Nullable(NUM),
+                }
+            ),
+        }
     ),
     "testPeriodNote": STR,
 }
@@ -375,6 +403,42 @@ def assert_known(keys, known, path: str) -> None:
 
 def assert_close(a: float, b: float, tol: float, path: str) -> None:
     assert abs(a - b) <= tol, f"{path}: {a} != {b} (tol {tol})"
+
+
+TEST_START = datetime.fromisoformat("2021-10-01T00:00:00+00:00")  # SPEC §7.3 time split
+WARN_AT_GRID = [round(0.1 * i, 1) for i in range(1, 10)]
+
+
+def check_warn_at(warn_at: dict, spots: dict, events: dict) -> None:
+    """Proof.warnAt (#134): chosen on validation events (all before the test period), scored on test
+    events (all in it); totals match the per-event rows; same crossings as at p* 0.5."""
+    assert_known(warn_at, spots, "proof.warnAt")
+    for spot, w in warn_at.items():
+        p = f"proof.warnAt[{spot}]"
+        assert any(abs(w["pStar"] - g) < EPS for g in WARN_AT_GRID), f"{p}: pStar not in 0.1 ... 0.9"
+        assert w["rule"].strip(), f"{p}: empty rule"
+        assert abs(w["atDefault"]["pStar"] - 0.5) < EPS, f"{p}: atDefault.pStar must be 0.5"
+        val, test = w["validation"]["events"], w["test"]["events"]
+        assert not set(val) & set(test), f"{p}: an event is in both validation and test"
+        assert_known(val + test, events, f"{p}.events")
+        for e in val:
+            assert parse_utc(events[e]["end"]) < TEST_START, f"{p}: validation event {e} in the test period"
+        for e in test:
+            assert parse_utc(events[e]["start"]) >= TEST_START, f"{p}: test event {e} starts before it"
+        for period, events_in in (("validation", val), ("test", test)):
+            score, default = w[period], w["atDefault"][period]
+            assert default["events"] == events_in, f"{p}.atDefault.{period}: different events"
+            rows = [r for r in w["perEvent"] if r["period"] == period]
+            assert [r["eventId"] for r in rows] == events_in, f"{p}.perEvent: {period} rows != events"
+            for s in (score, default):
+                assert min(s["hits"], s["misses"], s["falseAlarms"]) >= 0, f"{p}.{period}: negative count"
+                if s["hits"] == 0:
+                    assert s["meanLeadH"] is None, f"{p}.{period}: meanLeadH without hits"
+            for k in ("hits", "misses", "falseAlarms"):
+                assert sum(r[k] for r in rows) == score[k], f"{p}.{period}.{k} != sum of perEvent"
+            assert score["hits"] + score["misses"] == default["hits"] + default["misses"], (
+                f"{p}.{period}: hits + misses differs from p* 0.5 (same crossings)"
+            )
 
 
 def check_arrival_probability(sf: dict, spot: dict, issued: datetime, path: str) -> None:
@@ -509,6 +573,7 @@ def test_every_contract_type_is_exported_from_contracts_ts() -> None:
         "Forecast",
         "Replay",
         "Proof",
+        "WarnAtScore",
         "Quality",
         "Importance",
         "RiskLayers",
@@ -761,6 +826,8 @@ def test_proof(spots: dict, events: dict) -> None:
                 )
             if o["hits"] == 0:
                 assert o["meanLeadH"] is None, f"{p}: meanLeadH without hits"
+    assert "warnAt" in pr, "fixture should include warnAt (#134)"
+    check_warn_at(pr["warnAt"], spots, events)
     near_miss = [r for r in pr["perEvent"] if r["eventId"] == "e2026" and r["spot"] == "osney"]
     assert near_miss and near_miss[0]["crossed"] is False and near_miss[0]["peakObs"] == 2.742
 

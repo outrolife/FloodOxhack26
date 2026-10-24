@@ -193,6 +193,24 @@ def test_in_test_period() -> None:
     assert not proof.in_test_period({"start": "2021-10-03", "end": "2021-10-20"})  # -7 days is before
 
 
+def test_event_period_for_warn_at() -> None:
+    def period(start: str, end: str) -> str | None:
+        return proof.event_period({"start": f"{start}T00:00:00Z", "end": f"{end}T00:00:00Z"})
+
+    assert period("2021-01-20", "2021-02-20") == "validation"
+    assert period("2007-07-18", "2007-08-02") == "validation"
+    assert period("2024-11-20", "2024-12-05") == "test"
+    assert period("2021-09-25", "2021-10-05") is None  # straddles the test period start
+
+
+def test_warn_at_in_event_scores(scored: dict) -> None:
+    w = scored["warnAt"]["botley"]
+    # both synthetic events are in 2014 (validation); e2's 0.6 blip is 1 false alarm, allowed
+    assert w["validation"]["events"] == ["e1", "e2"] and w["test"]["events"] == []
+    assert w["pStar"] == 0.1 and w["validation"]["falseAlarms"] == 1
+    assert w["validation"]["meanLeadVsOfficialH"] == 30.0  # EA at 70 h, our first trigger at 40 h
+
+
 # --------------------------------------------------------------------------- generated files (if present)
 
 
@@ -240,7 +258,14 @@ def test_flood_coverage_range_and_note() -> None:
     assert proof.coverage_range(rows, 0.9) == "0.86–0.91"
     assert proof.coverage_range(rows, 0.5) == "n/a"
     note = proof.TEST_PERIOD_NOTE.format(
-        flood90="0.86–0.91", flood80="0.76–0.82", test_start="2021-10-01", gauges="g", test_events="e"
+        flood90="0.86–0.91",
+        flood80="0.76–0.82",
+        test_start="2021-10-01",
+        gauges="g",
+        test_events="e",
+        val_events="v",
     )
     assert "inside flood windows the 90% interval covers 0.86–0.91" in note
     assert "some time in (t, t + h]" in note and "already over the line" in note
+    assert "061FWF23NwBotley" in note and "Botley warning" in note  # Abingdon Rd caveat (#134)
+    assert "warn-at level" in note and "before 2021-10-01: v" in note
