@@ -1,0 +1,84 @@
+[
+ {
+  "id": "e2007",
+  "name": "July 2007",
+  "start": "2007-07-18T00:00:00Z",
+  "end": "2007-08-02T00:00:00Z",
+  "peak": {
+   "farmoor": 2.01,
+   "eynsham": 3.65,
+   "cassington": 1.29,
+   "godstow": 3.11,
+   "osney": 3.86,
+   "iffley": 3.41,
+   "newbotley": 3.14
+  },
+  "headline": false
+ },
+ {
+  "id": "e2012",
+  "name": "Nov\u2013Dec 2012",
+  "start": "2012-11-20T00:00:00Z",
+  "end": "2013-01-05T00:00:00Z",
+  "peak": {
+   "enslow": 1.88,
+   "islip": 9.05,
+   "kingsmill": 2.71,
+   "osney": 3.82,
+   "iffley": 3.29
+  },
+  "headline": false
+ },
+ {
+  "id": "e2014",
+  "name": "Jan\u2013Feb 2014",
+  "start": "2013-12-20T00:00:00Z",
+  "end": "2014-02-20T00:00:00Z",
+  "peak": {
+   "eynsham": 3.4,
+   "cassington": 1.18,
+   "godstow": 3.02,
+   "osney": 3.97,
+   "iffley": 3.67,
+   "newbotley": 2.98
+  },
+  "headline": true
+ },
+ {
+  "id": "e2024a",
+  "name": "Jan 2024 (Storm Henk)",
+  "start": "2023-12-28T00:00:00Z",
+  "end": "2024-01-15T00:00:00Z",
+  "peak": {
+   "godstow": 3.0,
+   "osney": 3.84,
+   "iffley": 3.3
+  },
+  "headline": false
+ },
+ {
+  "id": "e2024b",
+  "name": "Nov 2024 (Storm Bert)",
+  "start": "2024-11-20T00:00:00Z",
+  "end": "2024-12-05T00:00:00Z",
+  "peak": {
+   "enslow": 1.95,
+   "islip": 9.12,
+   "kingsmill": 2.79,
+   "osney": 3.52
+  },
+  "headline": false
+ },
+ {
+  "id": "e2026",
+  "name": "Feb\u2013Mar 2026",
+  "start": "2026-02-18T00:00:00Z",
+  "end": "2026-03-10T00:00:00Z",
+  "peak": {
+   "godstow": 2.84,
+   "osney": 3.41,
+   "iffley": 3.02
+  },
+  "headline": false
+ }
+]

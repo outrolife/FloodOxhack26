@@ -1,0 +1,851 @@
+{
+ "skillByLead": [
+  {
+   "h": 6,
+   "pinballModel": 0.012,
+   "pinballPersistence": 0.016,
+   "skill": 0.25
+  },
+  {
+   "h": 12,
+   "pinballModel": 0.021,
+   "pinballPersistence": 0.031,
+   "skill": 0.323
+  },
+  {
+   "h": 24,
+   "pinballModel": 0.038,
+   "pinballPersistence": 0.061,
+   "skill": 0.377
+  },
+  {
+   "h": 36,
+   "pinballModel": 0.052,
+   "pinballPersistence": 0.088,
+   "skill": 0.409
+  },
+  {
+   "h": 48,
+   "pinballModel": 0.066,
+   "pinballPersistence": 0.112,
+   "skill": 0.411
+  },
+  {
+   "h": 72,
+   "pinballModel": 0.094,
+   "pinballPersistence": 0.148,
+   "skill": 0.365
+  }
+ ],
+ "coverage": [
+  {
+   "h": 6,
+   "nominal": 0.5,
+   "actual": 0.52
+  },
+  {
+   "h": 6,
+   "nominal": 0.8,
+   "actual": 0.81
+  },
+  {
+   "h": 6,
+   "nominal": 0.9,
+   "actual": 0.91
+  },
+  {
+   "h": 12,
+   "nominal": 0.5,
+   "actual": 0.51
+  },
+  {
+   "h": 12,
+   "nominal": 0.8,
+   "actual": 0.8
+  },
+  {
+   "h": 12,
+   "nominal": 0.9,
+   "actual": 0.9
+  },
+  {
+   "h": 24,
+   "nominal": 0.5,
+   "actual": 0.49
+  },
+  {
+   "h": 24,
+   "nominal": 0.8,
+   "actual": 0.78
+  },
+  {
+   "h": 24,
+   "nominal": 0.9,
+   "actual": 0.88
+  },
+  {
+   "h": 36,
+   "nominal": 0.5,
+   "actual": 0.48
+  },
+  {
+   "h": 36,
+   "nominal": 0.8,
+   "actual": 0.77
+  },
+  {
+   "h": 36,
+   "nominal": 0.9,
+   "actual": 0.86
+  },
+  {
+   "h": 48,
+   "nominal": 0.5,
+   "actual": 0.47
+  },
+  {
+   "h": 48,
+   "nominal": 0.8,
+   "actual": 0.75
+  },
+  {
+   "h": 48,
+   "nominal": 0.9,
+   "actual": 0.84
+  },
+  {
+   "h": 72,
+   "nominal": 0.5,
+   "actual": 0.45
+  },
+  {
+   "h": 72,
+   "nominal": 0.8,
+   "actual": 0.72
+  },
+  {
+   "h": 72,
+   "nominal": 0.9,
+   "actual": 0.78
+  }
+ ],
+ "reliability": {
+  "osney": [
+   {
+    "h": 6,
+    "bins": [
+     {
+      "pPred": 0.044,
+      "pObs": 0.046,
+      "n": 4194
+     },
+     {
+      "pPred": 0.155,
+      "pObs": 0.155,
+      "n": 304
+     },
+     {
+      "pPred": 0.255,
+      "pObs": 0.277,
+      "n": 134
+     },
+     {
+      "pPred": 0.345,
+      "pObs": 0.318,
+      "n": 84
+     },
+     {
+      "pPred": 0.44,
+      "pObs": 0.435,
+      "n": 54
+     },
+     {
+      "pPred": 0.56,
+      "pObs": 0.538,
+      "n": 39
+     },
+     {
+      "pPred": 0.653,
+      "pObs": 0.652,
+      "n": 32
+     },
+     {
+      "pPred": 0.753,
+      "pObs": 0.746,
+      "n": 24
+     },
+     {
+      "pPred": 0.859,
+      "pObs": 0.813,
+      "n": 20
+     },
+     {
+      "pPred": 0.94,
+      "pObs": 0.887,
+      "n": 35
+     }
+    ],
+    "brier": 0.0124,
+    "brierPersistence": 0.0159
+   },
+   {
+    "h": 12,
+    "bins": [
+     {
+      "pPred": 0.043,
+      "pObs": 0.068,
+      "n": 4188
+     },
+     {
+      "pPred": 0.151,
+      "pObs": 0.143,
+      "n": 298
+     },
+     {
+      "pPred": 0.254,
+      "pObs": 0.273,
+      "n": 128
+     },
+     {
+      "pPred": 0.343,
+      "pObs": 0.347,
+      "n": 78
+     },
+     {
+      "pPred": 0.455,
+      "pObs": 0.423,
+      "n": 48
+     },
+     {
+      "pPred": 0.556,
+      "pObs": 0.569,
+      "n": 33
+     },
+     {
+      "pPred": 0.642,
+      "pObs": 0.593,
+      "n": 26
+     },
+     {
+      "pPred": 0.746,
+      "pObs": 0.73,
+      "n": 18
+     },
+     {
+      "pPred": 0.859,
+      "pObs": 0.82,
+      "n": 14
+     },
+     {
+      "pPred": 0.954,
+      "pObs": 0.89,
+      "n": 29
+     }
+    ],
+    "brier": 0.0148,
+    "brierPersistence": 0.0196
+   },
+   {
+    "h": 24,
+    "bins": [
+     {
+      "pPred": 0.054,
+      "pObs": 0.081,
+      "n": 4176
+     },
+     {
+      "pPred": 0.142,
+      "pObs": 0.171,
+      "n": 286
+     },
+     {
+      "pPred": 0.257,
+      "pObs": 0.266,
+      "n": 116
+     },
+     {
+      "pPred": 0.342,
+      "pObs": 0.368,
+      "n": 66
+     },
+     {
+      "pPred": 0.456,
+      "pObs": 0.435,
+      "n": 36
+     },
+     {
+      "pPred": 0.549,
+      "pObs": 0.522,
+      "n": 21
+     },
+     {
+      "pPred": 0.65,
+      "pObs": 0.613,
+      "n": 14
+     },
+     {
+      "pPred": 0.757,
+      "pObs": 0.741,
+      "n": 6
+     },
+     {
+      "pPred": 0.842,
+      "pObs": 0.827,
+      "n": 5
+     },
+     {
+      "pPred": 0.953,
+      "pObs": 0.922,
+      "n": 17
+     }
+    ],
+    "brier": 0.0196,
+    "brierPersistence": 0.0273
+   },
+   {
+    "h": 36,
+    "bins": [
+     {
+      "pPred": 0.054,
+      "pObs": 0.074,
+      "n": 4164
+     },
+     {
+      "pPred": 0.155,
+      "pObs": 0.197,
+      "n": 274
+     },
+     {
+      "pPred": 0.245,
+      "pObs": 0.269,
+      "n": 104
+     },
+     {
+      "pPred": 0.351,
+      "pObs": 0.345,
+      "n": 54
+     },
+     {
+      "pPred": 0.449,
+      "pObs": 0.448,
+      "n": 24
+     },
+     {
+      "pPred": 0.545,
+      "pObs": 0.542,
+      "n": 9
+     },
+     {
+      "pPred": 0.657,
+      "pObs": 0.597,
+      "n": 5
+     },
+     {
+      "pPred": 0.758,
+      "pObs": 0.698,
+      "n": 5
+     },
+     {
+      "pPred": 0.849,
+      "pObs": 0.802,
+      "n": 5
+     },
+     {
+      "pPred": 0.948,
+      "pObs": 0.856,
+      "n": 5
+     }
+    ],
+    "brier": 0.0244,
+    "brierPersistence": 0.0358
+   },
+   {
+    "h": 48,
+    "bins": [
+     {
+      "pPred": 0.057,
+      "pObs": 0.066,
+      "n": 4152
+     },
+     {
+      "pPred": 0.144,
+      "pObs": 0.18,
+      "n": 262
+     },
+     {
+      "pPred": 0.247,
+      "pObs": 0.276,
+      "n": 92
+     },
+     {
+      "pPred": 0.354,
+      "pObs": 0.334,
+      "n": 42
+     },
+     {
+      "pPred": 0.44,
+      "pObs": 0.451,
+      "n": 12
+     },
+     {
+      "pPred": 0.542,
+      "pObs": 0.527,
+      "n": 5
+     },
+     {
+      "pPred": 0.65,
+      "pObs": 0.625,
+      "n": 5
+     },
+     {
+      "pPred": 0.754,
+      "pObs": 0.71,
+      "n": 5
+     },
+     {
+      "pPred": 0.85,
+      "pObs": 0.803,
+      "n": 5
+     },
+     {
+      "pPred": 0.942,
+      "pObs": 0.85,
+      "n": 5
+     }
+    ],
+    "brier": 0.0292,
+    "brierPersistence": 0.0449
+   },
+   {
+    "h": 72,
+    "bins": [
+     {
+      "pPred": 0.054,
+      "pObs": 0.081,
+      "n": 4128
+     },
+     {
+      "pPred": 0.152,
+      "pObs": 0.173,
+      "n": 238
+     },
+     {
+      "pPred": 0.251,
+      "pObs": 0.254,
+      "n": 68
+     },
+     {
+      "pPred": 0.355,
+      "pObs": 0.336,
+      "n": 18
+     },
+     {
+      "pPred": 0.454,
+      "pObs": 0.416,
+      "n": 5
+     },
+     {
+      "pPred": 0.545,
+      "pObs": 0.484,
+      "n": 5
+     },
+     {
+      "pPred": 0.644,
+      "pObs": 0.568,
+      "n": 5
+     },
+     {
+      "pPred": 0.751,
+      "pObs": 0.697,
+      "n": 5
+     },
+     {
+      "pPred": 0.844,
+      "pObs": 0.743,
+      "n": 5
+     },
+     {
+      "pPred": 0.95,
+      "pObs": 0.863,
+      "n": 5
+     }
+    ],
+    "brier": 0.0388,
+    "brierPersistence": 0.0653
+   }
+  ],
+  "abingdonrd": [
+   {
+    "h": 24,
+    "bins": [
+     {
+      "pPred": 0.06,
+      "pObs": 0.08,
+      "n": 4170
+     },
+     {
+      "pPred": 0.146,
+      "pObs": 0.134,
+      "n": 280
+     },
+     {
+      "pPred": 0.244,
+      "pObs": 0.232,
+      "n": 110
+     },
+     {
+      "pPred": 0.344,
+      "pObs": 0.311,
+      "n": 60
+     },
+     {
+      "pPred": 0.451,
+      "pObs": 0.426,
+      "n": 30
+     },
+     {
+      "pPred": 0.559,
+      "pObs": 0.542,
+      "n": 15
+     },
+     {
+      "pPred": 0.654,
+      "pObs": 0.604,
+      "n": 8
+     },
+     {
+      "pPred": 0.757,
+      "pObs": 0.721,
+      "n": 5
+     },
+     {
+      "pPred": 0.857,
+      "pObs": 0.818,
+      "n": 5
+     },
+     {
+      "pPred": 0.949,
+      "pObs": 0.895,
+      "n": 11
+     }
+    ],
+    "brier": 0.0196,
+    "brierPersistence": 0.0273
+   },
+   {
+    "h": 48,
+    "bins": [
+     {
+      "pPred": 0.044,
+      "pObs": 0.047,
+      "n": 4146
+     },
+     {
+      "pPred": 0.159,
+      "pObs": 0.174,
+      "n": 256
+     },
+     {
+      "pPred": 0.256,
+      "pObs": 0.255,
+      "n": 86
+     },
+     {
+      "pPred": 0.341,
+      "pObs": 0.344,
+      "n": 36
+     },
+     {
+      "pPred": 0.441,
+      "pObs": 0.403,
+      "n": 6
+     },
+     {
+      "pPred": 0.551,
+      "pObs": 0.51,
+      "n": 5
+     },
+     {
+      "pPred": 0.66,
+      "pObs": 0.595,
+      "n": 5
+     },
+     {
+      "pPred": 0.755,
+      "pObs": 0.708,
+      "n": 5
+     },
+     {
+      "pPred": 0.856,
+      "pObs": 0.775,
+      "n": 5
+     },
+     {
+      "pPred": 0.95,
+      "pObs": 0.871,
+      "n": 5
+     }
+    ],
+    "brier": 0.0292,
+    "brierPersistence": 0.0449
+   }
+  ]
+ },
+ "tradeoff": {
+  "osney": [
+   {
+    "pStar": 0.1,
+    "hits": 4,
+    "misses": 0,
+    "falseAlarms": 3,
+    "meanLeadH": 58.5,
+    "meanLeadVsOfficialH": 31.0,
+    "ci90": [
+     49.0,
+     69.5
+    ]
+   },
+   {
+    "pStar": 0.2,
+    "hits": 4,
+    "misses": 0,
+    "falseAlarms": 2,
+    "meanLeadH": 52.0,
+    "meanLeadVsOfficialH": 26.5
+   },
+   {
+    "pStar": 0.3,
+    "hits": 4,
+    "misses": 0,
+    "falseAlarms": 2,
+    "meanLeadH": 47.5,
+    "meanLeadVsOfficialH": 22.0
+   },
+   {
+    "pStar": 0.4,
+    "hits": 4,
+    "misses": 0,
+    "falseAlarms": 1,
+    "meanLeadH": 43.0,
+    "meanLeadVsOfficialH": 17.5,
+    "ci90": [
+     33.5,
+     54.0
+    ]
+   },
+   {
+    "pStar": 0.5,
+    "hits": 4,
+    "misses": 0,
+    "falseAlarms": 1,
+    "meanLeadH": 38.5,
+    "meanLeadVsOfficialH": 12.0
+   },
+   {
+    "pStar": 0.6,
+    "hits": 3,
+    "misses": 1,
+    "falseAlarms": 1,
+    "meanLeadH": 31.0,
+    "meanLeadVsOfficialH": 6.5
+   },
+   {
+    "pStar": 0.7,
+    "hits": 3,
+    "misses": 1,
+    "falseAlarms": 0,
+    "meanLeadH": 26.5,
+    "meanLeadVsOfficialH": 2.0,
+    "ci90": [
+     17.0,
+     37.5
+    ]
+   },
+   {
+    "pStar": 0.8,
+    "hits": 2,
+    "misses": 2,
+    "falseAlarms": 0,
+    "meanLeadH": 19.0,
+    "meanLeadVsOfficialH": -3.5
+   },
+   {
+    "pStar": 0.9,
+    "hits": 2,
+    "misses": 2,
+    "falseAlarms": 0,
+    "meanLeadH": 13.5,
+    "meanLeadVsOfficialH": -8.0
+   }
+  ],
+  "abingdonrd": [
+   {
+    "pStar": 0.1,
+    "hits": 3,
+    "misses": 0,
+    "falseAlarms": 4,
+    "meanLeadH": 49.0,
+    "meanLeadVsOfficialH": 22.0,
+    "ci90": [
+     39.5,
+     60.0
+    ]
+   },
+   {
+    "pStar": 0.2,
+    "hits": 3,
+    "misses": 0,
+    "falseAlarms": 3,
+    "meanLeadH": 44.5,
+    "meanLeadVsOfficialH": 18.5
+   },
+   {
+    "pStar": 0.3,
+    "hits": 3,
+    "misses": 0,
+    "falseAlarms": 2,
+    "meanLeadH": 39.0,
+    "meanLeadVsOfficialH": 14.0
+   },
+   {
+    "pStar": 0.4,
+    "hits": 2,
+    "misses": 1,
+    "falseAlarms": 2,
+    "meanLeadH": 33.0,
+    "meanLeadVsOfficialH": 9.0,
+    "ci90": [
+     23.5,
+     44.0
+    ]
+   },
+   {
+    "pStar": 0.5,
+    "hits": 2,
+    "misses": 1,
+    "falseAlarms": 1,
+    "meanLeadH": 28.5,
+    "meanLeadVsOfficialH": 5.5
+   },
+   {
+    "pStar": 0.6,
+    "hits": 2,
+    "misses": 1,
+    "falseAlarms": 1,
+    "meanLeadH": 24.0,
+    "meanLeadVsOfficialH": 1.0
+   },
+   {
+    "pStar": 0.7,
+    "hits": 1,
+    "misses": 2,
+    "falseAlarms": 1,
+    "meanLeadH": 18.0,
+    "meanLeadVsOfficialH": -4.0,
+    "ci90": [
+     8.5,
+     29.0
+    ]
+   },
+   {
+    "pStar": 0.8,
+    "hits": 1,
+    "misses": 2,
+    "falseAlarms": 0,
+    "meanLeadH": 12.5,
+    "meanLeadVsOfficialH": -9.5
+   },
+   {
+    "pStar": 0.9,
+    "hits": 0,
+    "misses": 3,
+    "falseAlarms": 0,
+    "meanLeadH": null,
+    "meanLeadVsOfficialH": null
+   }
+  ]
+ },
+ "perEvent": [
+  {
+   "eventId": "e2007",
+   "spot": "osney",
+   "crossed": true,
+   "peakObs": 3.86,
+   "arrivalErrH": -3.5,
+   "leadVsOfficialH": 18.0
+  },
+  {
+   "eventId": "e2012",
+   "spot": "osney",
+   "crossed": true,
+   "peakObs": 3.82,
+   "arrivalErrH": 2.0,
+   "leadVsOfficialH": 9.5
+  },
+  {
+   "eventId": "e2014",
+   "spot": "osney",
+   "crossed": true,
+   "peakObs": 3.97,
+   "arrivalErrH": -2.5,
+   "leadVsOfficialH": 34.1
+  },
+  {
+   "eventId": "e2024a",
+   "spot": "osney",
+   "crossed": true,
+   "peakObs": 3.84,
+   "arrivalErrH": 4.5,
+   "leadVsOfficialH": 6.0
+  },
+  {
+   "eventId": "e2024b",
+   "spot": "osney",
+   "crossed": false,
+   "peakObs": 3.52,
+   "arrivalErrH": null,
+   "leadVsOfficialH": null
+  },
+  {
+   "eventId": "e2026",
+   "spot": "osney",
+   "crossed": false,
+   "peakObs": 3.41,
+   "arrivalErrH": null,
+   "leadVsOfficialH": null
+  },
+  {
+   "eventId": "e2007",
+   "spot": "abingdonrd",
+   "crossed": true,
+   "peakObs": 3.41,
+   "arrivalErrH": -5.0,
+   "leadVsOfficialH": 12.0
+  },
+  {
+   "eventId": "e2014",
+   "spot": "abingdonrd",
+   "crossed": true,
+   "peakObs": 3.67,
+   "arrivalErrH": 1.5,
+   "leadVsOfficialH": 15.5
+  },
+  {
+   "eventId": "e2024a",
+   "spot": "abingdonrd",
+   "crossed": true,
+   "peakObs": 3.3,
+   "arrivalErrH": 3.0,
+   "leadVsOfficialH": 4.0
+  },
+  {
+   "eventId": "e2026",
+   "spot": "abingdonrd",
+   "crossed": false,
+   "peakObs": 3.02,
+   "arrivalErrH": null,
+   "leadVsOfficialH": null
+  }
+ ],
+ "testPeriodNote": "Skill and coverage: strict time split, test period from 2021-10-01. Event outcomes and official-warning comparison: leave-one-flood-out replays, which may train on floods after the replayed one."
+}
