@@ -8,7 +8,7 @@
 - **needs**: 
 - **notes**: Target newbotley (+kingsmill, minns, coldharbour). Run: python3 scripts/status.py progress
 - **branch**: main
-- **head**: eb8eb87 Merge pull request #33 from outrolife/app/decide
+- **head**: 34d1b94 Merge pull request #42 from outrolife/integration/ci
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:30:59Z
+- **updated**: 2026-10-24T16:33:24Z
