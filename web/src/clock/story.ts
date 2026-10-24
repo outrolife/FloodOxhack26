@@ -1,19 +1,23 @@
 // The one-screen UI (#135): what the Timeline markers, the 2-line Scoreboard
 // and the proof footer say. Pure functions only, so every wording rule is
 // unit-tested. Every number is read from the data at runtime:
-//   - replay facts (River Clock's first 50%, the EA warning, the crossing)
-//     come from screens/replay/facts.ts, the same rules as the Replay screen
-//     and model/metrics.py;
-//   - River Clock vs the EA is proof.perEvent.leadVsOfficialH, never recomputed,
-//     and shown with its honest sign;
-//   - the footer's counts are summed from proof.tradeoff (River Clock at 50%)
-//     and proof.officialOutcome (EA Flood Warnings), scored on the same rules.
+//   - replay facts (River Clock's first chance at or above the spot's warn-at
+//     level, the EA warning, the crossing) come from screens/replay/facts.ts,
+//     the same rules as the Replay screen and model/metrics.py;
+//   - each spot's warn-at level is proof.warnAt[spot].pStar (chosen on the
+//     pre-2021 floods only), else 50%;
+//   - River Clock vs the EA is read from proof.json at that level
+//     (proof.warnAt[spot].perEvent, else proof.perEvent at 50%), never
+//     recomputed, and shown with its honest sign;
+//   - the footer's counts are summed from proof.tradeoff (River Clock at each
+//     spot's warn-at level) and proof.officialOutcome (EA Flood Warnings),
+//     scored on the same rules.
 // Our outputs are never called a "Flood Warning" or "Flood Alert".
-import type { Forecast, Proof, Replay, Spot } from "../contracts";
+import type { EventMeta, Forecast, Proof, Replay, Spot } from "../contracts";
 import { HOUR, formatDateTime, formatShort } from "../time";
 import { pctPlain } from "../lib/plain";
 import { pFloodMax } from "../components/shared/forecast";
-import { OBS_LAG_H, type ReplayFacts } from "../screens/replay/facts";
+import { DEFAULT_WARN_AT, OBS_LAG_H, leadVsOfficialAt, warnAtFor, type ReplayFacts } from "../screens/replay/facts";
 import { indexAt } from "../screens/replay/playback";
 
 /** The palette: blue = River Clock, grey = the EA, black = what the river really did. Always with a label. */
@@ -21,8 +25,44 @@ export const COLOURS = { rc: "#184f95", ea: "#6b6a65", real: "#0b0b0b" } as cons
 
 export const MARKER_LABEL = { rc: "River Clock warned", ea: "EA warned", flood: "Flooded" } as const;
 
-/** River Clock "warns" at its first >= 50% chance (matched like model/metrics.py). */
-export const WARN_AT = 0.5;
+/**
+ * River Clock "warns" at its first chance at or above the spot's warn-at level
+ * (proof.warnAt[spot].pStar; matched like model/metrics.py). This is the
+ * level when proof.json has none.
+ */
+export const WARN_AT = DEFAULT_WARN_AT;
+
+/**
+ * The caption under the Scoreboard: "Warns at 30% chance (level chosen on
+ * 2007–2021 floods)". The years span the events the level was chosen on
+ * (proof.warnAt[spot].validation.events, dated from events.json); without
+ * warnAt it is just the 50% default.
+ */
+export function warnAtCaption(proof: Pick<Proof, "warnAt"> | null | undefined, spot: string, events: Pick<EventMeta, "id" | "start" | "end">[] | null | undefined): string {
+  const text = `Warns at ${pctPlain(warnAtFor(proof, spot))} chance`;
+  const ids = proof?.warnAt?.[spot]?.validation?.events ?? [];
+  const chosenOn = (events ?? []).filter((e) => ids.includes(e.id));
+  if (chosenOn.length === 0) return text;
+  const from = Math.min(...chosenOn.map((e) => new Date(e.start).getUTCFullYear()));
+  const to = Math.max(...chosenOn.map((e) => new Date(e.end).getUTCFullYear()));
+  if (!Number.isFinite(from) || !Number.isFinite(to)) return text;
+  return `${text} (level chosen on ${from === to ? from : `${from}–${to}`} floods)`;
+}
+
+/**
+ * When a spot shares its EA warning area with another spot (Abingdon Rd with
+ * Botley), its "vs the EA" is measured against that shared warning: say so,
+ * from spots.json, in a few words. Null otherwise.
+ */
+export function sharedAreaNote(spot: Pick<Spot, "key" | "warningArea">, spots: Pick<Spot, "key" | "name" | "warningArea">[] | null | undefined): string | null {
+  if (!spot.warningArea) return null;
+  const other = (spots ?? []).find((s) => s.key !== spot.key && s.warningArea === spot.warningArea);
+  if (!other) return null;
+  // The first spot with the area owns it: Botley's own note would be pointless.
+  const first = (spots ?? []).find((s) => s.warningArea === spot.warningArea);
+  if (first?.key === spot.key) return null;
+  return `EA times are for the ${other.name.split(" / ")[0].trim()} warning area`;
+}
 
 export type Marker = { t: string; label: string; colour: string };
 export type Tone = "good" | "bad" | "neutral";
@@ -58,12 +98,12 @@ export function firstCrossing(observed: { t: string; level: number }[], threshol
   return null;
 }
 
-/** Markers for Now: River Clock's call if this forecast is >= 50%, and "Flooded" if the river is over the line in the last 7 days. */
-export function nowMarkers(live: Forecast, spot: Pick<Spot, "key" | "gauge" | "threshold">): Marker[] {
+/** Markers for Now: River Clock's call if this forecast is at or above the spot's warn-at level, and "Flooded" if the river is over the line in the last 7 days. */
+export function nowMarkers(live: Forecast, spot: Pick<Spot, "key" | "gauge" | "threshold">, pStar: number = WARN_AT): Marker[] {
   const out: Marker[] = [];
-  const sf = live.spots.find((s) => s.spot === spot.key);
-  const p = sf && sf.mode === "probability" && !live.stale.includes(spot.gauge) ? pFloodMax(sf) : null;
-  if (p != null && p >= WARN_AT && sf!.levelNow < spot.threshold) {
+  const sf = live.spots?.find((s) => s.spot === spot.key);
+  const p = sf && sf.mode === "probability" && !(live.stale ?? []).includes(spot.gauge) ? pFloodMax(sf) : null;
+  if (p != null && p >= pStar && sf!.levelNow < spot.threshold) {
     out.push({ t: live.issuedAt, label: MARKER_LABEL.rc, colour: COLOURS.rc });
   }
   const c = firstCrossing(live.observed?.[spot.gauge] ?? [], spot.threshold, ms(live.issuedAt) - LAG);
@@ -76,8 +116,8 @@ export function nowMarkers(live: Forecast, spot: Pick<Spot, "key" | "gauge" | "t
 // ---------------------------------------------------------------------------
 
 /** Highest chance (any lead) River Clock gives a spot in the replay forecast in force at t. */
-export function chanceAt(forecasts: Replay["forecasts"], spot: string, t: number): number | null {
-  if (forecasts.length === 0) return null;
+export function chanceAt(forecasts: Replay["forecasts"] | undefined, spot: string, t: number): number | null {
+  if (!forecasts?.length || Number.isNaN(t)) return null;
   const i = indexAt(
     forecasts.map((f) => ms(f.issuedAt)),
     t,
@@ -110,7 +150,8 @@ export function replayScore(f: ReplayFacts, t: number, endT: string, chanceNow: 
     chanceNow == null
       ? { text: "No forecast at this time", tone: "neutral" }
       : { text: `Chance of flooding within 3 days: ${pctPlain(chanceNow)}`, tone: "neutral" };
-  const calling: ScoreLine = { text: "River Clock warned: a flood is more likely than not", tone: "neutral" };
+  const level = pctPlain(f.pStar ?? WARN_AT);
+  const calling: ScoreLine = { text: `River Clock warned: chance of flooding reached ${level}`, tone: "neutral" };
 
   // Line 1: River Clock against the river.
   let first: ScoreLine;
@@ -119,7 +160,7 @@ export function replayScore(f: ReplayFacts, t: number, endT: string, chanceNow: 
       first =
         f.rc50 && f.leadBeforeFloodH != null
           ? { text: `River Clock warned ${f.rc50AlreadyOn ? "at least " : ""}${hrs(f.leadBeforeFloodH)} before the flood`, tone: "good" }
-          : { text: "Flooded before River Clock reached 50%", tone: "bad" };
+          : { text: `Flooded before River Clock reached ${level}`, tone: "bad" };
     } else first = rcSeen ? calling : soFar;
   } else if (atEnd) {
     first = f.rc50
@@ -150,9 +191,9 @@ export function replayScore(f: ReplayFacts, t: number, endT: string, chanceNow: 
 }
 
 /** The Scoreboard for Now, from the live forecast. */
-export function nowScore(live: Forecast, spot: Pick<Spot, "key" | "gauge" | "threshold">): ScoreLine[] {
-  const sf = live.spots.find((s) => s.spot === spot.key);
-  if (!sf || sf.mode !== "probability" || sf.leads.length === 0 || live.stale.includes(spot.gauge)) {
+export function nowScore(live: Forecast, spot: Pick<Spot, "key" | "gauge" | "threshold">, pStar: number = WARN_AT): ScoreLine[] {
+  const sf = live.spots?.find((s) => s.spot === spot.key);
+  if (!sf || sf.mode !== "probability" || !sf.leads?.length || (live.stale ?? []).includes(spot.gauge)) {
     return [{ text: "No forecast here right now", tone: "neutral" }];
   }
   const below = Math.round((spot.threshold - sf.levelNow) * 100);
@@ -164,7 +205,7 @@ export function nowScore(live: Forecast, spot: Pick<Spot, "key" | "gauge" | "thr
   // The first lead at which the chance reaches its 3-day high (it never falls with lead).
   const lead = sf.leads.find((l) => (l.pFlood ?? 0) >= p - 1e-9) ?? sf.leads[sf.leads.length - 1];
   const by = ms(live.issuedAt) + lead.h * HOUR;
-  return [{ text: `${pctPlain(p)} chance of flooding by ${formatShort(by)}`, tone: p >= WARN_AT ? "bad" : "neutral" }, level];
+  return [{ text: `${pctPlain(p)} chance of flooding by ${formatShort(by)}`, tone: p >= pStar ? "bad" : "neutral" }, level];
 }
 
 // ---------------------------------------------------------------------------
@@ -180,20 +221,20 @@ export type ProofSummary = {
   compared: number;
 };
 
-/** proof.tradeoff row at River Clock's 50% trigger (the nearest pStar if 0.5 is missing). */
-function at50(rows: Proof["tradeoff"][string]) {
-  let best: (typeof rows)[number] | null = null;
-  for (const r of rows) if (!best || Math.abs(r.pStar - WARN_AT) < Math.abs(best.pStar - WARN_AT)) best = r;
+/** proof.tradeoff row at a trigger level (the nearest pStar if that one is missing). */
+function rowAt(rows: Proof["tradeoff"][string] | undefined, p: number) {
+  let best: NonNullable<typeof rows>[number] | null = null;
+  for (const r of rows ?? []) if (!best || Math.abs(r.pStar - p) < Math.abs(best.pStar - p)) best = r;
   return best;
 }
 
-/** Sums over the forecast spots in proof.json. */
-export function proofSummary(proof: Pick<Proof, "tradeoff" | "officialOutcome" | "perEvent">): ProofSummary {
-  const spots = Object.keys(proof.tradeoff);
+/** Sums over the forecast spots in proof.json, River Clock at each spot's warn-at level. */
+export function proofSummary(proof: Pick<Proof, "tradeoff" | "officialOutcome" | "perEvent"> & Partial<Pick<Proof, "warnAt">>): ProofSummary {
+  const spots = Object.keys(proof.tradeoff ?? {});
   let floods = 0;
   const rc = { hits: 0, falseAlarms: 0 };
   for (const s of spots) {
-    const r = at50(proof.tradeoff[s]);
+    const r = rowAt(proof.tradeoff[s], warnAtFor(proof, s));
     if (!r) continue;
     floods += r.hits + r.misses;
     rc.hits += r.hits;
@@ -210,8 +251,12 @@ export function proofSummary(proof: Pick<Proof, "tradeoff" | "officialOutcome" |
       }
     }
   }
-  const both = proof.perEvent.filter((r) => spots.includes(r.spot) && r.crossed && r.leadVsOfficialH != null);
-  return { floods, rc, ea, earlier: both.filter((r) => r.leadVsOfficialH! > 0).length, compared: both.length };
+  // The same lead vs the EA the Scoreboard shows for each flood (at the spot's warn-at level).
+  const leads = (proof.perEvent ?? [])
+    .filter((r) => spots.includes(r.spot) && r.crossed)
+    .map((r) => leadVsOfficialAt(proof, r.eventId, r.spot))
+    .filter((h): h is number => h != null);
+  return { floods, rc, ea, earlier: leads.filter((h) => h > 0).length, compared: leads.length };
 }
 
 const falseAlarms = (n: number) => `${n} false alarm${n === 1 ? "" : "s"}`;

@@ -10,6 +10,7 @@ import type { Feature, FeatureCollection, LineString, MultiLineString } from "ge
 import type { Forecast, Station, TravelPair } from "../contracts";
 import { countAtOrBefore, type Point } from "../components/shared/series";
 import { bestPair, LOW_CONFIDENCE_N } from "../components/shared/RiverStrip";
+import { OXFORD_BOUNDS } from "../ui/bounds";
 
 const HOUR = 3_600_000;
 
@@ -24,8 +25,8 @@ export function levelAt(points: readonly Point[] | undefined, t: number): number
 
 /** The forecast middle (q50) at t for one gauge's spot, interpolated between leads; null outside 0–72 h. */
 export function forecastLevelAt(f: Forecast, spotKey: string, t: number): number | null {
-  const sf = f.spots.find((s) => s.spot === spotKey);
-  if (!sf || sf.leads.length === 0) return null;
+  const sf = f.spots?.find((s) => s.spot === spotKey);
+  if (!sf || !sf.leads?.length) return null;
   const h = (t - Date.parse(f.issuedAt)) / HOUR;
   const pts = [{ h: 0, v: sf.levelNow }, ...[...sf.leads].sort((a, b) => a.h - b.h).map((l) => ({ h: l.h, v: l.q["50"] }))];
   if (h < 0 || h > pts[pts.length - 1].h) return null;
@@ -174,10 +175,12 @@ export function chainLinks(stations: Pick<Station, "key" | "role">[], pairs: Tra
   return out;
 }
 
-/** Map bounds: the spots plus the upstream gauges the chain starts from, padded. */
+/** Map bounds: the spots plus the upstream gauges the chain starts from, padded. Oxford until any are known. */
 export function flowBounds(points: { lat: number; lon: number }[], pad = 0.006): [[number, number], [number, number]] {
-  const lats = points.map((p) => p.lat);
-  const lons = points.map((p) => p.lon);
+  const ok = (points ?? []).filter((p) => Number.isFinite(p?.lat) && Number.isFinite(p?.lon));
+  if (ok.length === 0) return OXFORD_BOUNDS;
+  const lats = ok.map((p) => p.lat);
+  const lons = ok.map((p) => p.lon);
   return [
     [Math.min(...lats) - pad, Math.min(...lons) - pad * 1.6],
     [Math.max(...lats) + pad, Math.max(...lons) + pad * 1.6],

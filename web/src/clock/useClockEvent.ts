@@ -6,7 +6,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Forecast, Proof, Replay, Spot, SpotsFile } from "../contracts";
 import { loadData, loadLive, useData } from "../data";
-import { perEventRow, replayFacts, type ReplayFacts } from "../screens/replay/facts";
+import { replayFactsFor, warnAtFor, type ReplayFacts } from "../screens/replay/facts";
 import type { ClockEventId } from "./choices";
 
 const LIVE_TTL_MS = 15 * 60_000;
@@ -24,8 +24,9 @@ export function loadLiveOnce(): Promise<Forecast | null> {
 export type ClockData =
   | { status: "loading" }
   | { status: "missing"; message: string }
-  | { status: "ready"; kind: "now"; live: Forecast; spot: Spot; spots: Spot[]; proof: Proof | null }
-  | { status: "ready"; kind: "replay"; replay: Replay; spot: Spot; spots: Spot[]; proof: Proof | null; facts: ReplayFacts };
+  // pStar: the spot's warn-at level (proof.warnAt, else 0.5), for the "River Clock warned" marker and the Scoreboard.
+  | { status: "ready"; kind: "now"; live: Forecast; spot: Spot; spots: Spot[]; proof: Proof | null; pStar: number }
+  | { status: "ready"; kind: "replay"; replay: Replay; spot: Spot; spots: Spot[]; proof: Proof | null; pStar: number; facts: ReplayFacts };
 
 type Source = { status: "loading" } | { status: "missing" } | { status: "now"; live: Forecast } | { status: "replay"; replay: Replay };
 
@@ -61,7 +62,7 @@ export function useClockEvent(event: ClockEventId, spotKey: string): ClockData {
   const spot = spots?.find((s) => s.key === spotKey) ?? null;
 
   const facts = useMemo(
-    () => (src.status === "replay" && spot ? replayFacts(src.replay, spot, perEventRow(proof, src.replay.eventId, spot.key)) : null),
+    () => (src.status === "replay" && spot ? replayFactsFor(src.replay, spot, proof) : null),
     [src, spot, proof],
   );
 
@@ -69,6 +70,8 @@ export function useClockEvent(event: ClockEventId, spotKey: string): ClockData {
   if (src.status === "missing") return { status: "missing", message: event === "now" ? "No live forecast" : "No replay for this flood yet" };
   if (src.status === "loading" || !spots || proofState.status === "loading") return { status: "loading" };
   if (!spot) return { status: "missing", message: "Unknown spot" };
-  if (src.status === "now") return { status: "ready", kind: "now", live: src.live, spot, spots, proof };
-  return { status: "ready", kind: "replay", replay: src.replay, spot, spots, proof, facts: facts! };
+  const pStar = warnAtFor(proof, spot.key);
+  if (src.status === "now") return { status: "ready", kind: "now", live: src.live, spot, spots, proof, pStar };
+  if (!facts) return { status: "loading" };
+  return { status: "ready", kind: "replay", replay: src.replay, spot, spots, proof, pStar, facts };
 }

@@ -5,7 +5,7 @@
 // between two of them (River Clock's call -> the crossing). The difference vs
 // the EA is read from proof.perEvent.leadVsOfficialH, never recomputed.
 import type { Proof, Replay, Spot } from "../../contracts";
-import { matchTier, runUpIndex, type Official, type TierMatch } from "../../components/timemachine/timeline";
+import { MATCH_WINDOW_H, matchTier, runUpIndex, type Official, type TierMatch } from "../../components/timemachine/timeline";
 import { pFloodMax } from "../../components/shared/forecast";
 import { hoursBetween } from "../../time";
 
@@ -25,15 +25,21 @@ export type ReplayFacts = {
   spot: string;
   /** First threshold crossing in the event (replay.crossings), or null. */
   crossing: string | null;
-  /** River Clock's first "more likely than not" (>= 50%) issue time, matched like model/metrics.py, or null. */
+  /**
+   * River Clock's first issue time at or above the spot's warn-at level
+   * `pStar` (50% unless proof.warnAt says otherwise), matched like
+   * model/metrics.py, or null. ("rc50" from when the level was always 50%.)
+   */
   rc50: string | null;
+  /** The warn-at level rc50 was matched at (proof.warnAt[spot].pStar, else 0.5). */
+  pStar: number;
   /** rc50 is only the edge of the 72 h window: River Clock was already at 50% before it. */
   rc50AlreadyOn: boolean;
   /** Hours from rc50 to the crossing (both read from the data), or null. */
   leadBeforeFloodH: number | null;
   /** First EA Flood Warning for the spot's area (proof.perEvent.officialIssuedAt, else the replay's match). */
   official: Official | null;
-  /** proof.perEvent.leadVsOfficialH: positive = River Clock earlier than the EA. */
+  /** Lead vs the EA at pStar (leadVsOfficialAt): positive = River Clock earlier than the EA. */
   leadVsOfficialH: number | null;
   /** Highest chance River Clock gave in the whole event (max pFlood, any lead) and when. */
   peakChance: { p: number; t: string; index: number } | null;
@@ -51,7 +57,41 @@ const ms = Date.parse;
 
 /** The perEvent row for one event and spot, if any. */
 export function perEventRow(proof: Pick<Proof, "perEvent"> | null, eventId: string, spot: string): PerEventRow | null {
-  return proof?.perEvent.find((r) => r.eventId === eventId && r.spot === spot) ?? null;
+  return proof?.perEvent?.find((r) => r.eventId === eventId && r.spot === spot) ?? null;
+}
+
+/** River Clock's trigger level when proof.json has no warn-at level for a spot. */
+export const DEFAULT_WARN_AT = 0.5;
+
+/** A spot's warn-at level p*: proof.warnAt[spot].pStar (chosen on pre-2021 floods), else 0.5. */
+export function warnAtFor(proof: Pick<Proof, "warnAt"> | null | undefined, spot: string): number {
+  const p = proof?.warnAt?.[spot]?.pStar;
+  return typeof p === "number" && p > 0 && p < 1 ? p : DEFAULT_WARN_AT;
+}
+
+/**
+ * River Clock vs the EA's first Flood Warning for one event and spot, at the
+ * spot's warn-at level, read from proof.json (never recomputed): the
+ * proof.warnAt[spot].perEvent row if there is one; at 50%, proof.perEvent;
+ * otherwise null (proof.json has no number for that level).
+ *
+ * A difference of MATCH_WINDOW_H (72 h) or more can't compare two messages
+ * about the same flood (both fall in the 72 h before it): the trigger was an
+ * earlier false alarm (Abingdon Rd e2014 at 20%: "+225 h", #142). It is
+ * shown as not compared (null), so the screen never contradicts its markers.
+ */
+export function leadVsOfficialAt(
+  proof: Pick<Proof, "warnAt" | "perEvent"> | null | undefined,
+  eventId: string,
+  spot: string,
+): number | null {
+  const w = proof?.warnAt?.[spot]?.perEvent?.find((r) => r.eventId === eventId);
+  const h = w
+    ? w.leadVsOfficialH
+    : warnAtFor(proof, spot) === DEFAULT_WARN_AT
+      ? (perEventRow(proof ?? null, eventId, spot)?.leadVsOfficialH ?? null)
+      : null;
+  return h != null && Number.isFinite(h) && Math.abs(h) < MATCH_WINDOW_H ? h : null;
 }
 
 /** Highest pFlood (any lead) a replay gave a spot, the forecast it came from and its index. First one wins ties. */
@@ -96,13 +136,18 @@ export function peakBandFor(
   return { lo, hi, issuedAt: best.f.issuedAt, leadH, inside: peak.level >= lo && peak.level <= hi };
 }
 
-/** Everything the scoreboard, badge and headline say about one spot in one replay. */
+/**
+ * Everything the scoreboard, badge and headline say about one spot in one
+ * replay. `at` is River Clock's warn-at level and its lead vs the EA at that
+ * level (default: 50% and proof.perEvent's lead); replayFactsFor fills it from proof.json.
+ */
 export function replayFacts(
   replay: Pick<Replay, "eventId" | "forecasts" | "official" | "crossings" | "observed">,
   spot: Pick<Spot, "key" | "gauge" | "threshold">,
   row: PerEventRow | null,
+  at: { pStar: number; leadVsOfficialH: number | null } = { pStar: DEFAULT_WARN_AT, leadVsOfficialH: row?.leadVsOfficialH ?? null },
 ): ReplayFacts {
-  const warn: TierMatch = matchTier(replay, spot.key, spot.threshold, "warning");
+  const warn: TierMatch = matchTier(replay, spot.key, spot.threshold, "warning", at.pStar);
   const crossing = warn.crossing;
   const rc50 = warn.rc;
 
@@ -130,16 +175,29 @@ export function replayFacts(
     spot: spot.key,
     crossing,
     rc50,
+    pStar: at.pStar,
     rc50AlreadyOn: warn.alreadyOn,
     leadBeforeFloodH: rc50 && crossing ? hoursBetween(rc50, crossing) : null,
     official,
-    leadVsOfficialH: row?.leadVsOfficialH ?? null,
+    leadVsOfficialH: at.leadVsOfficialH,
     peakChance: peakChanceOf(replay.forecasts, spot.key),
     peakObs,
     peakBand,
     crossed: row ? row.crossed : crossing != null,
     noForecast,
   };
+}
+
+/** replayFacts at the spot's warn-at level, with its lead vs the EA, all from proof.json. */
+export function replayFactsFor(
+  replay: Pick<Replay, "eventId" | "forecasts" | "official" | "crossings" | "observed">,
+  spot: Pick<Spot, "key" | "gauge" | "threshold">,
+  proof: Pick<Proof, "warnAt" | "perEvent"> | null,
+): ReplayFacts {
+  return replayFacts(replay, spot, perEventRow(proof, replay.eventId, spot.key), {
+    pStar: warnAtFor(proof, spot.key),
+    leadVsOfficialH: leadVsOfficialAt(proof, replay.eventId, spot.key),
+  });
 }
 
 /**
@@ -150,10 +208,10 @@ export function replayFacts(
 export function startIndex(
   replay: Pick<Replay, "forecasts" | "official" | "crossings">,
   spot: Pick<Spot, "key" | "threshold">,
-  facts: Pick<ReplayFacts, "crossing" | "peakChance">,
+  facts: Pick<ReplayFacts, "crossing" | "peakChance"> & { pStar?: number },
 ): number {
   if (facts.crossing) {
-    const warn = matchTier(replay, spot.key, spot.threshold, "warning");
+    const warn = matchTier(replay, spot.key, spot.threshold, "warning", facts.pStar);
     const alert = matchTier(replay, spot.key, spot.threshold, "alert");
     const i = runUpIndex(replay.forecasts, warn, alert);
     if (i != null) return i;

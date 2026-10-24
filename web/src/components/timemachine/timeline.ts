@@ -91,9 +91,13 @@ function triggerP(f: Replay["forecasts"][number], spot: string, threshold: numbe
   return best;
 }
 
-/** Match River Clock and the EA for one spot and tier (see the rules above). */
-export function matchTier(replay: ReplayTimeline, spot: string, threshold: number, tier: Tier): TierMatch {
-  const { p, types } = TIER[tier];
+/**
+ * Match River Clock and the EA for one spot and tier (see the rules above).
+ * `pStar` overrides the tier's trigger level (e.g. a spot's proof.warnAt level).
+ */
+export function matchTier(replay: ReplayTimeline, spot: string, threshold: number, tier: Tier, pStar?: number): TierMatch {
+  const { types } = TIER[tier];
+  const p = pStar ?? TIER[tier].p;
   const officials = replay.official
     .filter((o) => o.spot === spot && types.includes(o.type))
     .sort((a, b) => ms(a.issuedAt) - ms(b.issuedAt));

@@ -4,7 +4,7 @@
 // footer. "Now" reads the live forecast; a past flood loads only its own
 // replay, on demand (useClockEvent, shared with the Timeline, so one fetch).
 import { useCallback, useMemo, useState } from "react";
-import type { EventsFile, Forecast, StationsFile, TravelTimesFile } from "../contracts";
+import type { EventsFile, Forecast, Spot, StationsFile, TravelTimesFile } from "../contracts";
 import { useData } from "../data";
 import { formatDateTime, formatDateTimeYear } from "../time";
 import { usePickKeys } from "../ui/presenter";
@@ -20,6 +20,10 @@ import "./shell.css";
 
 /** Readings are known an hour after they happen (#93), as in the Timeline. */
 const REPLAY_LAG_H = 1;
+
+/** Stable empty lists while stations.json / spots.json load, so memos keyed on them don't re-run. */
+const NONE_STATIONS: StationsFile = [];
+const NONE_SPOTS: Spot[] = [];
 
 /** The switch: choices on it, and the rest under "More". Keys 1–5 pick the ones on it, in order. */
 export const SWITCH = EVENT_CHOICES.filter((c) => !c.more);
@@ -89,21 +93,15 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
 
   const replay = data.status === "ready" && data.kind === "replay" ? data.replay : null;
   const live: Forecast | null = data.status === "ready" && data.kind === "now" ? data.live : null;
-  const times = useMemo(() => (replay ? replay.forecasts.map((f) => Date.parse(f.issuedAt)) : []), [replay]);
+  const times = useMemo(() => (replay?.forecasts ?? []).map((f) => Date.parse(f.issuedAt)), [replay]);
   const names = useMemo(
     () => Object.fromEntries((events.status === "ready" ? events.data : []).map((e) => [e.id, e.name])),
     [events],
   );
 
-  if (stations.status !== "ready" || (data.status === "ready" && !data.spots)) {
-    return (
-      <div className="rc-screen">
-        <p className="ui-placeholder">Reading the river…</p>
-      </div>
-    );
-  }
-  const stationList = stations.data;
-  const spotList = data.status === "ready" ? data.spots : [];
+  // The whole screen (switch, map, timeline) is drawn at once; parts fill in as their files load (#118: never a blank page).
+  const stationList = stations.status === "ready" && Array.isArray(stations.data) ? stations.data : NONE_STATIONS;
+  const spotList = data.status === "ready" ? data.spots : NONE_SPOTS;
 
   // The moment on screen: what the Timeline reported for this event, else its first forecast.
   const t = time?.event === event ? time.t : live ? Date.parse(live.issuedAt) : times.length ? times[0] : null;
@@ -123,7 +121,9 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
 
   const label = event === "now" ? "Now" : (names[event] ?? event);
   const note =
-    data.status === "loading"
+    stations.status === "error"
+      ? "No gauge list"
+      : data.status === "loading"
       ? event === "now"
         ? "Reading the live river…"
         : `Loading the ${label} replay…`
