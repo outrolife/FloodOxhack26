@@ -29,11 +29,13 @@ The app is a single screen, **River Clock**. It answers three questions at a gla
 
 | Part | What you see |
 |---|---|
-| **The map** (hero) | Oxford's rivers flowing and rising as the water comes, with a **clock face for each trouble spot** that fills as its chance of flooding rises, and a countdown to when the water is likely to arrive. |
+| **The map** (hero) | Oxford's rivers flowing and rising as the water comes, every river gauge as a small icon (hover for its level), and a **ring for each trouble spot** that fills as its chance of flooding in the next 3 days rises. Pick a spot and its **river walk** lights up: the upstream gauges its water comes from, with the measured travel time on each link. |
 | **The timeline** (under the map) | Our forecast range against the real river level, with three markers: **River Clock warned · EA warned · Flooded**. Press play and it runs hour by hour, revealing each reading only after it happened. |
 | **The scoreboard** (2 lines) | For the chosen flood: when River Clock warned, when the EA warned, when it flooded. |
-| **The switch** (top) | **Now \| 2014 \| Jan 2024 \| Nov 2024 \| 2026 near miss**. Today's live forecast, or a past flood replayed with a model trained without it. |
+| **The switch** (top) | **Now \| 2014 \| Henk (Jan 2024) \| Bert (Nov 2024) \| 2026 near miss**, with 2007, 2012 and 2021 under More. Today's live forecast, or a past flood replayed with a model trained without it. |
 | **The proof footer** (1 line) | Across all 30 floods we replayed: how many River Clock caught, and how many the official warning caught. |
+
+A spot appears on the map only when we have data for it: Wolvercote has no forecast and is hidden, and the Cherwell is hidden in Now while the Kings Mill gauge is offline (it is shown in the replays).
 
 Everything else is behind **Show the working**: sandbag screening (Protect), the accuracy and reliability charts, the cost–loss calculator, the per-event table, the data-quality report and the travel-time scatter. Presenter mode: **Space** plays the timeline, keys **1–5** switch flood, **P** enlarges the type. The app runs fully offline, with a bundled OpenStreetMap basemap.
 
@@ -231,9 +233,15 @@ In the **e2014** replay, River Clock was ahead of the EA warning at Osney (+20.9
 
 Pooled over our four gauges the model beats persistence at every lead on the test period, and its edge shrinks with lead time. Show the working says where it loses.
 
-### What's next: rain forecasts (tested, not switched on)
+### What's next
 
-River Clock only reads river and rain gauges, so it can't see rain that hasn't fallen. We tested adding real archived ECMWF rain forecasts (from Jan 2024 on, each from a run issued at least 6 h before the forecast). On that window, 72 h accuracy against the simple guess rose from **+11% to +28%**, and for the Nov 2024 flood Botley's first alarm came 29 h earlier, level with the EA. But it added **3 false alarms** (2 at Botley, 1 at Osney), Botley's flood odds scored worse at 48–72 h, and the window holds only one flood. That fails our own adoption rule, so the shipped model doesn't use it. Code: branch `model/rain-features`, issue #100. <!-- src: issue #100 results comment (honest window 72 h +0.114 -> +0.278; Botley FA 1 -> 3, Osney 0 -> 1; e2024b Botley lead vs EA -29.1 h -> -0.1 h) -->
+**Rain forecasts (tested, not switched on).** River Clock only reads river and rain gauges, so it can't see rain that hasn't fallen. We tested adding real archived ECMWF rain forecasts (from Jan 2024 on, each from a run issued at least 6 h before the forecast). On that window, 72 h accuracy against the simple guess rose from **+11% to +28%**, and for the Nov 2024 flood Botley's first alarm came 29 h earlier, level with the EA. But it added **3 false alarms** (2 at Botley, 1 at Osney), Botley's flood odds scored worse at 48–72 h, and the window holds only one flood. That fails our own adoption rule, so the shipped model doesn't use it. Code: branch `model/rain-features`, issue #100. <!-- src: issue #100 results comment (honest window 72 h +0.114 -> +0.278; Botley FA 1 -> 3, Osney 0 -> 1; e2024b Botley lead vs EA -29.1 h -> -0.1 h) --> The next step is to train the model to distrust the forecast (to match its real errors) and add how wet the ground already is, so forecast rain on dry ground doesn't raise an alarm (research: [`docs/research/earlier-warnings.md`](docs/research/earlier-warnings.md), #134).
+
+**A live gauge for the Cherwell again.** The Kings Mill gauge stopped sending readings on 13 Oct 2026. The EA gauge at Oxford Botanic Gardens (1490TH), 0.9 km downstream, is live and has history from 1996. It is already on the map. Using it as the Cherwell spot's gauge means a new model: it also rises when the Thames backs up from the confluence, so it needs Thames gauges as inputs, new travel times, a retrain and new replays. Too big a change for the night before the freeze (#146).
+
+**Floods before 2006.** We train and replay from 2006, which is also when the EA's warning records start. Most of our gauges' records go back to the late 1980s or 1990s (Kings Mill from 1998), so earlier floods could add more events to learn from and test on. They could be scored against the simple baseline, but not against EA warnings.
+
+**Ensemble and longer-range rain.** One forecast gives one answer; an ensemble (51 versions of the ECMWF forecast) shows how sure the weather is. The app already shows ensemble rain as context in Show the working, but the model doesn't read it: there is no free archive of past ensembles to train and test on honestly. Rain forecasts further ahead would be the only way to warn more than a day or two ahead.
 
 ---
 
