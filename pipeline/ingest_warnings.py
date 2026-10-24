@@ -17,6 +17,7 @@ precision: "time"|"date"`` plus two informational columns, ``area_name`` and ``m
 The ZIP is cached under ``data/raw/warnings/`` and never re-downloaded once cached.
 Issue #13.
 """
+
 from __future__ import annotations
 
 import io
@@ -185,7 +186,11 @@ def read_all_warnings(zip_path: Path) -> pd.DataFrame:
             rows = iter_ods_rows(fh)
             header = next(rows)
             if [h.strip().upper() for h in header[:5]] != [
-                "DATE", "AREA", "CODE", "WARNING / ALERT AREA NAME", "TYPE",
+                "DATE",
+                "AREA",
+                "CODE",
+                "WARNING / ALERT AREA NAME",
+                "TYPE",
             ]:
                 raise ValueError(f"unexpected header in {ods_name}: {header}")
             records = [r[:5] + [""] * (5 - len(r)) for r in rows]
