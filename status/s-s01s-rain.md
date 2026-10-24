@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: working
 - **issue**: #100
-- **task**: Rain-forecast features: checking Open-Meteo archived-forecast availability
-- **next**: Build perfect-prognosis features + honest/upper-bound eval in analysis/rain_experiment.py
+- **task**: Rain features: archive fetched (ECMWF previous runs 2024-01+), training perfect-prog models
+- **next**: Evaluate current vs honest vs upper bound; post table on #100
 - **needs**: 
 - **notes**: 
 - **branch**: model/rain-features
-- **head**: b958dd2 Merge pull request #98 from outrolife/data/live-models-clean
+- **head**: e021597 Add rain-forecast perfect-prognosis experiment for #100
 - **unpushed**: 0
-- **dirty**: 0
-- **updated**: 2026-10-24T18:11:17Z
+- **dirty**: 1
+- **updated**: 2026-10-24T18:19:25Z
