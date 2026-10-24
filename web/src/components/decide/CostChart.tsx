@@ -1,6 +1,7 @@
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { Costs, StrategyCost, StrategyKey } from "../../lib/costLoss";
 import { formatCount, formatGBP, formatGBPCompact } from "./format";
+import { lowestKeys } from "./takeaway";
 
 // River Clock carries the model colour, official warnings the comparison
 // colour; the two baselines share one neutral. Every bar is labelled on the
@@ -18,6 +19,9 @@ export function CostChart({ strategies, costs, best }: { strategies: StrategyCos
   const rows = strategies.filter((s): s is Row => s.cost !== null);
   const missing = strategies.filter((s) => s.cost === null);
   if (rows.length === 0) return <p className="muted">No backtest outcomes for this spot yet.</p>;
+  // Ties share the label (#103): River Clock must not be "lowest" alone when Always act costs the same.
+  const lowest = lowestKeys(strategies);
+  const tag = lowest.length > 1 ? " · joint lowest" : " · lowest";
 
   return (
     <div>
@@ -62,10 +66,10 @@ export function CostChart({ strategies, costs, best }: { strategies: StrategyCos
                   const { x, y, width, height, value, index } = props as {
                     x: number; y: number; width: number; height: number; value: number; index: number;
                   };
-                  const isBest = rows[index]?.key === best;
+                  const isBest = best !== null && lowest.includes(rows[index]?.key);
                   return (
                     <text x={x + width + 6} y={y + height / 2} dominantBaseline="central" fill="var(--ink)" fontSize={13} fontWeight={isBest ? 700 : 400}>
-                      {formatGBP(value)}{isBest ? " · lowest" : ""}
+                      {formatGBP(value)}{isBest ? tag : ""}
                     </text>
                   );
                 }}

@@ -20,6 +20,13 @@ import { OutcomesTable } from "../components/decide/Outcomes";
 import { FixtureNotice } from "../components/shared/DataNotice";
 import { FLOOD_EPISODES, FLOOD_EPISODE_NOTE, FLOOD_EPISODE_RULE } from "../components/shared/episodes";
 import { formatCount, formatGBP, niceRound } from "../components/decide/format";
+import { costTakeaway } from "../components/decide/takeaway";
+
+/** The demo opens on Botley Road, the spot judges know (#103). */
+const DEFAULT_SPOT = "botley";
+
+/** A costlier example for the sliders (user inputs, not results): trigger 30%. */
+const COSTLY_EXAMPLE = { C: 3_000, L: 10_000 };
 
 // The slices of the §9 contracts this tab reads.
 type ProofSlice = Pick<Proof, "tradeoff" | "officialOutcome">;
@@ -92,7 +99,12 @@ export default function Decide() {
   }, [spots, proof]);
 
   const tradeoff = proof.status === "ready" ? proof.data.tradeoff : {};
-  const spot = spotKey ?? spotList.find((s) => tradeoff[s.key]?.length)?.key ?? spotList[0]?.key ?? null;
+  const spot =
+    spotKey ??
+    (tradeoff[DEFAULT_SPOT]?.length ? DEFAULT_SPOT : undefined) ??
+    spotList.find((s) => tradeoff[s.key]?.length)?.key ??
+    spotList[0]?.key ??
+    null;
   const spotName = spotList.find((s) => s.key === spot)?.name ?? spot ?? "";
 
   const pStar = optimalTrigger(costs);
@@ -129,6 +141,17 @@ export default function Decide() {
             </button>
           ))}
         </div>
+        <h3 style={{ marginTop: "0.6rem" }}>Try your own costs</h3>
+        <p className="small muted">
+          Drag the sliders: what acting costs you, and what a flood would cost you if you hadn't acted. Or{" "}
+          <button
+            className="btn"
+            aria-pressed={costs.C === COSTLY_EXAMPLE.C && costs.L === COSTLY_EXAMPLE.L}
+            onClick={() => setCosts(COSTLY_EXAMPLE)}
+          >
+            try a costly action ({formatGBP(COSTLY_EXAMPLE.C)} to protect {formatGBP(COSTLY_EXAMPLE.L)})
+          </button>
+        </p>
         <div style={{ display: "grid", gap: "0.4rem", maxWidth: 640 }}>
           <LogSlider label="Cost of acting, C" value={costs.C} range={C_RANGE} onChange={(C) => setCosts((c) => ({ ...c, C }))} />
           <LogSlider label="Loss if flooded, L" value={costs.L} range={L_RANGE} onChange={(L) => setCosts((c) => ({ ...c, L }))} />
@@ -201,6 +224,9 @@ export default function Decide() {
               Total cost over the {formatCount(result.crossings)} past {FLOOD_EPISODES}*
             </h3>
             <CostChart strategies={result.strategies} costs={costs} best={result.best} />
+            {costTakeaway(result.strategies, pStar) && (
+              <p className="decide-takeaway">{costTakeaway(result.strategies, pStar)}</p>
+            )}
             <p className="small muted" title={FLOOD_EPISODE_RULE}>* {FLOOD_EPISODE_NOTE}</p>
             <details className="small muted" style={{ marginTop: "0.5rem" }}>
               <summary>How the costs are counted</summary>
