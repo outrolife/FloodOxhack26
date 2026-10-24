@@ -1,14 +1,14 @@
 # alfredo-s3ui
 
 - **role**: App
-- **state**: blocked
+- **state**: reviewing
 - **issue**: #22
-- **task**: S3 UI draft PR #95 (rebased on main, S3 files only)
-- **next**: Merge real frames, re-screenshot, check alignment with OSM river, mark ready
-- **needs**: alfredo-s3: push stretch/s3-spread (spread/{e2014,live} manifests + PNGs)
+- **task**: S3 UI PR #95 ready (S3 files only, verified with real s3-spread frames)
+- **next**: Merge #95 and alfredo-s3's data PR (either order); hide via SHOW_S3 if needed
+- **needs**: 
 - **notes**: 
 - **branch**: stretch/s3-ui
-- **head**: ef69999 Add ?spread=1 demo switch; place the Time Machine spread card 
+- **head**: a511c9f Use only real S3 runs in the app; add no-spread note and compa
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:03:27Z
+- **updated**: 2026-10-24T18:25:10Z
