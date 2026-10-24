@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: working
 - **issue**: #125
-- **task**: Exp C: regime-conditional (Mondrian) CQR, recalibration only, no retrain
-- **next**: cache raw val/test predictions of shipped models, then score variants
+- **task**: Exp C: regime CQR; test-period scores done, event replays running
+- **next**: regime-threshold sensitivity, post table + verdict on #125
 - **needs**: 
 - **notes**: 
 - **branch**: model/exp-calib
-- **head**: e37a40d Merge pull request #131 from outrolife/app/v2-replay
+- **head**: 06c5ebc Add in-event Mondrian variants, adoption-rule table and report
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T20:16:51Z
+- **updated**: 2026-10-24T20:38:18Z
