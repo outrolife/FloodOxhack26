@@ -4,11 +4,11 @@
 - **state**: working
 - **issue**: 
 - **task**: GitHub Actions CI: python, web, size checks
-- **next**: Write ci.yml, run checks locally, open PR
+- **next**: Watch CI on PR #42 until green
 - **needs**: 
 - **notes**: 
 - **branch**: integration/ci
-- **head**: eb8eb87 Merge pull request #33 from outrolife/app/decide
+- **head**: 00bf043 Add GitHub Actions CI for tests, lint, web build and data size
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:30:09Z
+- **updated**: 2026-10-24T16:31:54Z
