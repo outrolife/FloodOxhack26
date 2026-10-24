@@ -27,7 +27,7 @@ import { PathLayer } from "@deck.gl/layers";
 import { TripsLayer } from "@deck.gl/geo-layers";
 import type { PickingInfo } from "@deck.gl/core";
 import type { Feature, FeatureCollection, Position } from "geojson";
-import type { Forecast, Station } from "../contracts";
+import type { Station } from "../contracts";
 import { loadData } from "../data";
 import { gaugeName } from "../lib/plain";
 import { useBaseMap } from "../ui/BaseMap";
@@ -58,7 +58,6 @@ import {
   padBounds,
   probeBasemap,
   routedCourses,
-  spotVisibility,
   toLngLat,
   tripClock,
   type BasemapProbe,
@@ -68,13 +67,10 @@ import {
 import { BASEMAP_SOURCE, RIVER_LAYOUT, basemapLayers, baseStyle, fallbackLayers, riverPaint } from "./glstyle";
 import { GAUGE_LOOK, gaugeCard, gaugeIconSvg, lookFor, type GaugeLook } from "./gauges";
 import { setHiddenSpots } from "./hiddenSpots";
-import { DOT_BOX, spotDots } from "./markers";
+import { DOT_BOX, spotDots, withData } from "./markers";
 
 export type FlowMapProps = Parameters<typeof FlowMap>[0];
-export type FlowMapGLProps = FlowMapProps & {
-  /** Every forecast in the view (Now: the live one; a past flood: every replay step): which spots have data. */
-  viewForecasts?: readonly Forecast[];
-};
+export type FlowMapGLProps = FlowMapProps;
 
 const BASE = import.meta.env.BASE_URL;
 const NO_READING = "#b7c3cc";
@@ -87,6 +83,8 @@ const NAMES_FROM_ZOOM = 13;
 
 /** "Islip (Cherwell)" → "Islip". */
 const shortGauge = (name: string) => gaugeName(name).replace(/ \(.*\)$/, "");
+/** "No live river reading…" → "no live river reading…", to sit in brackets after a name. */
+const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
 // ---------------------------------------------------------------- one-time setup
 
@@ -183,7 +181,6 @@ function FlowMapGLInner({
   marks,
   t = null,
   lagH = 0,
-  viewForecasts,
 }: FlowMapGLProps) {
   const mapRef = useRef<MapRef | null>(null);
   const [basemap, setBasemap] = useState<BasemapProbe | null>(null);
@@ -351,17 +348,19 @@ function FlowMapGLInner({
     return out;
   }, [links, spots, byKey]);
 
-  const gaugeNames = useMemo(() => Object.fromEntries(stations.map((s) => [s.key, shortGauge(s.name)])), [stations]);
-  const visibility = useMemo(
-    () => spotVisibility(spots, viewForecasts ?? (forecast ? [forecast] : []), gaugeNames),
-    [spots, viewForecasts, forecast, gaugeNames],
+  // Only spots with something to show (the shared rule, markers.withData); the rest are named in Show the working.
+  const allDots = spotDots(clocksFor(forecast, spots), forecast, spots);
+  const dots = withData(allDots, forecast).map((d) => ({ ...d, ...marks?.[d.key] }));
+  const shownKeys = new Set(dots.map((d) => d.key));
+  const hidden = allDots.filter((d) => !shownKeys.has(d.key)).map((d) => ({ key: d.key, name: d.label, why: lowerFirst(d.note ?? "no forecast here") }));
+  const hiddenSig = hidden.map((h) => `${h.key}:${h.why}`).join("|");
+  useEffect(
+    () => setHiddenSpots(hidden),
+    // hiddenSig stands for the list.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [hiddenSig],
   );
-  useEffect(() => setHiddenSpots(visibility.hidden), [visibility]);
   useEffect(() => () => setHiddenSpots([]), []);
-
-  const dots = spotDots(clocksFor(forecast, spots), forecast, spots)
-    .filter((d) => visibility.shown.has(d.key))
-    .map((d) => ({ ...d, ...marks?.[d.key] }));
 
   // ------------------------------------------------ view
   const [tick, setTick] = useState(0);

@@ -32,7 +32,6 @@ const NONE_STATIONS: StationsFile = [];
 const NONE_SPOTS: Spot[] = [];
 const NONE_PAIRS: TravelTimesFile = [];
 const NONE_STALE: string[] = [];
-const NONE_FORECASTS: Forecast[] = [];
 
 /** The switch: choices on it, and the rest under "More". Keys 1–5 pick the ones on it, in order. */
 export const SWITCH = EVENT_CHOICES.filter((c) => !c.more);
@@ -153,8 +152,6 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
     t,
     lagH: replay ? REPLAY_LAG_H : 0,
   };
-  // Map v3 only: every forecast in the view decides which spots have data to show (#152).
-  const viewForecasts = useMemo(() => (live ? [live] : (replay?.forecasts ?? NONE_FORECASTS)), [live, replay]);
 
   const label = event === "now" ? "Now" : (names[event] ?? event);
   const spotName = spotList.find((s) => s.key === spot)?.name.split(" / ")[0].trim() ?? null;
@@ -178,7 +175,7 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
       <div className="rc-hero">
         {gl ? (
           <Suspense fallback={<div className="ui-basemap rc-flowmap rc-gl" aria-busy="true" />}>
-            <FlowMapGL {...mapProps} viewForecasts={viewForecasts} />
+            <FlowMapGL {...mapProps} />
           </Suspense>
         ) : (
           <FlowMap {...mapProps} />

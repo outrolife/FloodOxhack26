@@ -7,12 +7,11 @@
 // - Which river paths may be drawn: only ones that follow the river (no
 //   straight lines, ever). Until the routed paths file exists, paths are
 //   routed along the river lines we already have, or hidden.
-// - Which spots are on the map: only those with data for the current view.
 // - Whether the offline PMTiles basemap is there (else a plain fallback).
 // - Each river line's gauge: its own river's nearest gauge (levels are only
 //   ever compared with that gauge's own usual high and flood level).
 import type { Feature, FeatureCollection, LineString, Position } from "geojson";
-import type { Forecast, Spot, Station } from "../contracts";
+import type { Station } from "../contracts";
 import { LOW_CONFIDENCE_N } from "../components/shared/RiverStrip";
 import { SECONDS_PER_HOUR, type ChainLink } from "./flow";
 
@@ -385,56 +384,9 @@ export function routedCourses(
   return out;
 }
 
-// ---------------------------------------------------------------- which spots are on the map
+// ---------------------------------------------------------------- spots left off the map (markers.withData), named in Show the working
 
 export type HiddenSpot = { key: string; name: string; why: string };
-
-/**
- * A spot is on the map only when it has data for the current view: some
- * forecast in the view (Now: the live one; a past flood: any replay step) has
- * lead times for it while its gauge is not offline. Wolvercote (timing only,
- * no forecast) never shows; Cherwell shows in past floods and is hidden in Now
- * while the Kings Mill gauge is offline. Hidden spots are listed with why.
- * With no forecasts yet (still loading), nothing is shown or listed.
- */
-export function spotVisibility(
-  spots: Pick<Spot, "key" | "name" | "gauge" | "mode">[],
-  forecasts: readonly (Pick<Forecast, "spots" | "stale"> | null | undefined)[] | null | undefined,
-  gaugeNames: Record<string, string> = {},
-): { shown: Set<string>; hidden: HiddenSpot[] } {
-  const shown = new Set<string>();
-  const hidden: HiddenSpot[] = [];
-  const fs = (forecasts ?? []).filter((f): f is Pick<Forecast, "spots" | "stale"> => f != null);
-  if (fs.length === 0) return { shown, hidden };
-  for (const s of spots) {
-    let leads = false;
-    let live = false;
-    for (const f of fs) {
-      const sf = f.spots?.find((x) => x.spot === s.key);
-      const has = (sf?.leads?.length ?? 0) > 0;
-      const up = !(f.stale ?? []).includes(s.gauge);
-      leads ||= has;
-      if (has && up) {
-        live = true;
-        break;
-      }
-    }
-    if (live) {
-      shown.add(s.key);
-      continue;
-    }
-    const name = s.name.split(" / ")[0].trim();
-    const gauge = gaugeNames[s.gauge] ?? s.gauge;
-    const why =
-      s.mode === "timing_only" && !leads
-        ? `timing only: the ${gauge} gauge is shown live, but there is no forecast here`
-        : fs.every((f) => (f.stale ?? []).includes(s.gauge))
-          ? `the ${gauge} gauge has no recent reading, so there is no forecast`
-          : "no forecast in this view";
-    hidden.push({ key: s.key, name, why });
-  }
-  return { shown, hidden };
-}
 
 // ---------------------------------------------------------------- river lines and their gauges
 

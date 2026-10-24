@@ -3,7 +3,6 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Feature, FeatureCollection, Position } from "geojson";
 import { describe, expect, it } from "vitest";
-import type { Forecast, Spot } from "../contracts";
 import { linkOf } from "./flow";
 import {
   DEFAULT_MAP,
@@ -27,7 +26,6 @@ import {
   probeBasemap,
   routeAlong,
   routedCourses,
-  spotVisibility,
   tripClock,
   tripSeconds,
 } from "./flowgl";
@@ -158,49 +156,6 @@ describe("no straight lines", () => {
       { key: "kingsmill", lat: 51.756, lon: -1.239 },
     ];
     expect([...routedCourses(net, [pair], stations).keys()]).toEqual(["islip>kingsmill"]);
-  });
-});
-
-describe("which spots are on the map", () => {
-  const spots: Pick<Spot, "key" | "name" | "gauge" | "mode">[] = [
-    { key: "osney", name: "Osney", gauge: "minns", mode: "probability" },
-    { key: "cherwell", name: "Cherwell / St Clement's", gauge: "kingsmill", mode: "probability" },
-    { key: "wolvercote", name: "Wolvercote", gauge: "godstow", mode: "timing_only" },
-  ];
-  const lead = { h: 6, q: { "05": 1, "10": 1, "25": 1, "50": 1, "75": 1, "90": 1, "95": 1 }, pFlood: 0.1, pAmber: 0.2 };
-  const sf = (spot: string, leads = [lead]) => ({ spot, levelNow: 1, leads, arrival: null, mode: "probability" as const });
-
-  it("Now: hides Wolvercote (no forecast) and Cherwell while its gauge is offline, and says why", () => {
-    const now: Pick<Forecast, "spots" | "stale"> = { stale: ["kingsmill"], spots: [sf("osney"), sf("cherwell", []), sf("wolvercote", [])] };
-    const v = spotVisibility(spots, [now], { kingsmill: "Kings Mill", godstow: "Godstow" });
-    expect([...v.shown]).toEqual(["osney"]);
-    expect(v.hidden.map((h) => h.key)).toEqual(["cherwell", "wolvercote"]);
-    expect(v.hidden[0].name).toBe("Cherwell");
-    expect(v.hidden[0].why).toMatch(/Kings Mill gauge has no recent reading/);
-    expect(v.hidden[1].why).toMatch(/timing only/);
-  });
-
-  it("a past flood: Cherwell shows when any replay step has a forecast for it", () => {
-    const steps = [
-      { stale: ["kingsmill"], spots: [sf("osney"), sf("cherwell", [])] },
-      { stale: [], spots: [sf("osney"), sf("cherwell")] },
-    ];
-    const v = spotVisibility(spots, steps);
-    expect(v.shown.has("cherwell")).toBe(true);
-    expect(v.shown.has("wolvercote")).toBe(false);
-  });
-
-  it("while loading (no forecasts) nothing is shown or listed", () => {
-    expect(spotVisibility(spots, [])).toEqual({ shown: new Set(), hidden: [] });
-    expect(spotVisibility(spots, [null])).toEqual({ shown: new Set(), hidden: [] });
-  });
-
-  it.skipIf(!existsSync(DATA + "live.json") || !existsSync(DATA + "spots.json"))("with the real files: Wolvercote is never on the map in Now", () => {
-    const live = JSON.parse(readFileSync(DATA + "live.json", "utf8")) as Forecast;
-    const real = JSON.parse(readFileSync(DATA + "spots.json", "utf8")) as Spot[];
-    const v = spotVisibility(real, [live]);
-    if (real.some((s) => s.key === "wolvercote")) expect(v.shown.has("wolvercote")).toBe(false);
-    expect(v.shown.size + v.hidden.length).toBe(real.length);
   });
 });
 
