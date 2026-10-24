@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: working
 - **issue**: #8
-- **task**: Osney model: probability+calibrate done, now train.py
-- **next**: train.py loop + persistence baseline, synthetic tests
+- **task**: New Botley model: probability/calibrate/train done; e2014 replay next
+- **next**: backtest.py replay + replay leakage test
 - **needs**: 
 - **notes**: 
 - **branch**: model/osney-model
-- **head**: 45a4e51 Add calibrate.py: CQR offsets, apply, event windows (SPEC 7.4)
+- **head**: e4ff2b7 Re-target training to newbotley/kingsmill/minns/coldharbour (P
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:10:30Z
+- **updated**: 2026-10-24T16:17:53Z
