@@ -4,11 +4,11 @@
 - **state**: working
 - **issue**: #70
 - **task**: Offline demo kit: make demo, preflight, backup plan
-- **next**: Write make demo target and preflight script
+- **next**: Write docs/demo-backup.md, open PR
 - **needs**: 
 - **notes**: 
 - **branch**: integration/demo-kit
-- **head**: 0a61018 Merge pull request #67 from outrolife/integration/arrival-at-i
+- **head**: dc79388 Add make demo and make preflight for the offline judging demo
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:28:22Z
+- **updated**: 2026-10-24T17:35:15Z
