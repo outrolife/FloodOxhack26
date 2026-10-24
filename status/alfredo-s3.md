@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: reviewing
 - **issue**: #22
-- **task**: S3 heatmap PR #115 open; e2024a frames next
-- **next**: e2024a replay frames on stretch/s3-heatmap
+- **task**: S3: #115 heatmap (feathered) + e2024a PR open
+- **next**: idle unless asked; regenerate live after live.json updates
 - **needs**: 
 - **notes**: 
-- **branch**: stretch/s3-heatmap
-- **head**: b6be9fe Render S3 spread frames as a 25 m pixel heatmap
+- **branch**: stretch/s3-e2024a
+- **head**: d3b7bab Add S3 spread frames for the e2024a replay (Storm Henk)
 - **unpushed**: 0
-- **dirty**: 1
-- **updated**: 2026-10-24T18:34:02Z
+- **dirty**: 0
+- **updated**: 2026-10-24T18:45:05Z
