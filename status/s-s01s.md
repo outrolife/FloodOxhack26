@@ -8,7 +8,7 @@
 - **needs**: 
 - **notes**: Core 87%, P0 left: 0. Core gate needs #11 (#66), #13, #19, #50, #68
 - **branch**: main
-- **head**: 269866e Merge pull request #71 from outrolife/integration/windows-dev
+- **head**: bb40327 Merge pull request #66 from outrolife/model/proof-json
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:31:47Z
+- **updated**: 2026-10-24T17:37:11Z
