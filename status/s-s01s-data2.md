@@ -1,14 +1,14 @@
 # s-s01s-data2
 
 - **role**: Data
-- **state**: working
+- **state**: reviewing
 - **issue**: #58
-- **task**: List warnings/archive in quality sources; fetch-data provides warnings.parquet
-- **next**: Read quality_report, ingest_warnings, Makefile
+- **task**: PR open: warnings in quality sources; fetch-data gets warnings.parquet
+- **next**: Await review/merge
 - **needs**: 
 - **notes**: 
 - **branch**: data/quality-sources
-- **head**: bdf5ca0 Merge pull request #55 from outrolife/integration/public-data-
+- **head**: b41f511 List warnings in quality sources; fetch-data provides warnings
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:03:23Z
+- **updated**: 2026-10-24T17:09:42Z
