@@ -3,12 +3,12 @@
 - **role**: App
 - **state**: working
 - **issue**: #118
-- **task**: Browser feedback: small round spot markers, full-width map, flow pulses
-- **next**: PR for items 1,3,5 then 2,4,6
+- **task**: Gauge icons + hover card, catchment bounds (live_only)
+- **next**: Then replay EA badges + warn pulse on spot markers
 - **needs**: 
 - **notes**: 
-- **branch**: app/ux-warnat
-- **head**: e426178 Use each spot's warn-at level on the one screen; guard loading
+- **branch**: app/ux-map-markers
+- **head**: c22df14 Small identical spot markers, full-width map, pulses on upstre
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T21:34:57Z
+- **updated**: 2026-10-24T21:40:27Z
