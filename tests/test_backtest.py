@@ -103,6 +103,8 @@ def test_build_replay_lofo_and_contract(setup, tmp_path) -> None:
     assert len(replay["forecasts"]) == 20 * 24
     assert set(replay["observed"]) >= {TARGET, "farmoor"}
     json.dumps(replay, allow_nan=False)  # strict JSON: no NaN anywhere
+    thin = build_replay(hourly, models, "esynth", EVENT, [SPOT], every_h=3)
+    assert len(thin["forecasts"]) == 20 * 24 // 3 and thin["observed"] == replay["observed"]
 
 
 def test_load_spots_modes() -> None:

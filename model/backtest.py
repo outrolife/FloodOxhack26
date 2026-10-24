@@ -2,7 +2,7 @@
 
 Issue #8.
 
-``python -m model.backtest [--event e2014] [--targets newbotley] [--retrain] [--train-only]``:
+``python -m model.backtest [--event e2014] [--targets newbotley] [--retrain] [--train-only] [--every-h N]``:
 
 1. Leave-one-flood-out: train every target model with the event window ± 7 days removed from training
    and calibration (cached under ``$RC_DATA_DIR/models/lofo/<event>/<gauge>/``; ``--retrain`` refits).
@@ -305,10 +305,14 @@ def build_replay(
     event_id: str,
     event: Mapping[str, Any],
     spots: Sequence[Mapping[str, Any]],
+    every_h: int = 1,
 ) -> dict[str, Any]:
-    """SPEC §9 ``Replay`` for one event (models must already exclude the event: leave-one-flood-out)."""
+    """SPEC §9 ``Replay`` for one event (models must already exclude the event: leave-one-flood-out).
+
+    ``every_h`` thins the issue times (1 = hourly, SPEC §8.1); observed levels stay hourly.
+    """
     start, end = event_window(event)
-    times = pd.date_range(start, end, freq="h", tz="UTC")
+    times = pd.date_range(start, end, freq=f"{every_h}h", tz="UTC")
     fc = forecasts_at(hourly, models, spots, times)
     gauges = {s["gauge"] for s in spots} | {g for m in models.values() for g in m.medians}
     return {
@@ -367,6 +371,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     ap.add_argument("--targets", nargs="+", default=list(DEFAULT_TARGETS))
     ap.add_argument("--retrain", action="store_true")
     ap.add_argument("--train-only", action="store_true", help="fit/cache the leave-one-out models and stop")
+    ap.add_argument("--every-h", type=int, default=1, help="issue a forecast every N hours (file size)")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     events = load_events()
@@ -375,7 +380,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     models = lofo_models(hourly, args.event, event, args.targets, load_lags(), retrain=args.retrain)
     if args.train_only:
         return
-    replay = build_replay(hourly, models, args.event, event, load_spots())
+    replay = build_replay(hourly, models, args.event, event, load_spots(), every_h=args.every_h)
     path = write_json(replay, WEB_DATA / "replays" / f"{args.event}.json")
     log.info("wrote %s (%d forecasts, %.1f MB)", path, len(replay["forecasts"]), path.stat().st_size / 1e6)
 
