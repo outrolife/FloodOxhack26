@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: reviewing
 - **issue**: #16
-- **task**: PR #29 live mode: re-target applied
-- **next**: After #26 merges: add method/note to contracts.ts + fixtures; rebase on #30
+- **task**: PR #29 live mode + Forecast method/note contract
+- **next**: Await review/merge
 - **needs**: 
 - **notes**: 
 - **branch**: data/live-mode
-- **head**: f7b1a89 Apply re-targeted spot gauges to live mode
+- **head**: d84b160 Add optional method and note to the Forecast contract
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:16:04Z
+- **updated**: 2026-10-24T16:18:25Z
