@@ -3,12 +3,12 @@
 - **role**: App
 - **state**: working
 - **issue**: #123
-- **task**: UI v2 How good is it? screen (web/src/screens/trust)
-- **next**: pure functions + tests, then tiles
+- **task**: UI v2 How good is it? screen
+- **next**: tile components + Trust.tsx
 - **needs**: 
 - **notes**: 
 - **branch**: app/v2-trust
-- **head**: 443ed8f Merge pull request #111 from outrolife/stretch/s4-sandbags
+- **head**: 4cc9688 Add How good is it? tile values and headline as pure functions
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:50:29Z
+- **updated**: 2026-10-24T18:55:04Z
