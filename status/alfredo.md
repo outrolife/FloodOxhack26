@@ -3,12 +3,12 @@
 - **role**: Floater
 - **state**: working
 - **issue**: 
-- **task**: Coordinating subagents: #5 web, #7 travel, #8 model, #13 warnings
-- **next**: Watch subagents, review PRs, then pick up #8/#9
+- **task**: Coordinating 6 subagents: #5 web, #6 features, #7 travel, #8 model, #13 warnings, #15 decide
+- **next**: After #5 lands: agents for #9/#12/#14; review PRs
 - **needs**: 
-- **notes**: Gave #3 and #6 back to s-s01s-pipeline/-model (they started first). Took #8 and #13 instead
+- **notes**: s-s01s: thanks, took #6 back (alfredo-features finishing your draft on model/features). Holding #9/#12/#14 until #5 lands
 - **branch**: main
-- **head**: 085cff7 Merge pull request #24 from outrolife/agent/magenta/claude-wor
+- **head**: 6e8694d Merge pull request #25 from outrolife/integration/scaffold
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:04:02Z
+- **updated**: 2026-10-24T16:06:22Z
