@@ -1,0 +1,94 @@
+/* Now screen (#119). Palette from styles.css: blue = model / water, status
+   colours only for flood state (via the kit's SpotClock, always with a shape and label). */
+
+/* Hero: river strip on the left edge, the map filling the rest. */
+.now-hero { display: grid; grid-template-columns: 250px minmax(0, 1fr); height: 100%; min-height: 64vh; }
+.now-map { position: relative; min-height: 64vh; }
+.now-map .ui-basemap { position: absolute; inset: 0; min-height: 0; }
+@media (max-width: 760px) {
+  .now-hero { grid-template-columns: minmax(0, 1fr); }
+  .now-map { min-height: 60vh; }
+}
+
+/* River strip */
+.now-strip { padding: 0.8rem 0.8rem 0.6rem; border-right: 1px solid var(--border); background: var(--surface); overflow-y: auto; }
+.now-strip-title { font-size: 1.05rem; margin: 0 0 0.25rem; }
+.now-strip-sub { font-size: 0.8rem; color: var(--ink-2); margin: 0 0 0.6rem; }
+.now-chain + .now-chain { margin-top: 0.6rem; }
+.now-chain-river { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-2); margin: 0 0 0.2rem; }
+.now-links { list-style: none; margin: 0; padding: 0; }
+.now-link { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 0.5rem; align-items: center; }
+.now-link-svg { display: block; overflow: visible; }
+.now-link-line { stroke: var(--series-1-light); stroke-width: 3; stroke-linecap: round; }
+.now-node { fill: #fff; stroke: var(--accent); stroke-width: 2; }
+.now-node.down { fill: var(--accent); }
+.now-pulse {
+  fill: var(--series-1); opacity: 0;
+  animation-name: now-pulse; animation-timing-function: linear; animation-iteration-count: infinite;
+}
+@keyframes now-pulse {
+  0% { transform: translateY(0); opacity: 0; }
+  8% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { transform: translateY(44px); opacity: 0; }
+}
+.now-link-label { font-size: 0.88rem; line-height: 1.25; }
+.now-link-hours { font-size: 1rem; white-space: nowrap; }
+.now-link-basis { font-size: 0.75rem; color: var(--ink-2); }
+/* Fewer than 5 past rises: greyed, dashed, labelled (never hidden). */
+.now-link.low .now-link-label, .now-link.low .now-link-hours { color: var(--muted); font-weight: 400; }
+.now-link.low .now-link-line { stroke: var(--axis); stroke-dasharray: 3 4; }
+.now-link.low .now-node { stroke: var(--unknown); }
+.now-link.low .now-node.down { fill: var(--unknown); }
+.now-link.low .now-pulse { fill: var(--unknown); }
+@media (prefers-reduced-motion: reduce) {
+  .now-pulse { animation: none; opacity: 1; transform: translateY(22px); }
+}
+
+/* Clocks on the map: an empty Leaflet marker at the spot, the clock portalled into it. */
+.leaflet-marker-icon.now-clock-marker { background: none; border: 0; overflow: visible; }
+.now-clock-anchor { position: relative; width: 0; height: 0; }
+.now-clock-pin {
+  position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--ink); border: 2px solid #fff; box-sizing: content-box; transform: translate(-2px, -2px);
+}
+.now-clock-leader { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; }
+.now-clock-leader line { stroke: var(--ink-2); stroke-width: 1.5; }
+.now-clock-box {
+  position: absolute; left: 0; top: 0; pointer-events: auto; display: flex; flex-direction: column; align-items: center;
+  background: rgba(252, 252, 251, 0.92); border-radius: 14px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18); padding: 0.15rem 0.25rem 0.3rem;
+}
+.now-clock-status { font-size: 0.75rem; color: var(--ink-2); max-width: 9.5rem; text-align: center; line-height: 1.2; }
+
+/* Spot card */
+.now-card { margin: 0; }
+.now-card-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.6rem; align-items: start; }
+.now-card-title { font-size: 1.1rem; margin: 0.2rem 0 0.2rem; }
+.now-card-gauge { font-size: 0.85rem; color: var(--ink-2); margin: 0; }
+.now-card-close {
+  font: inherit; font-size: 1.3rem; line-height: 1; width: 2rem; height: 2rem; border: 1px solid var(--axis);
+  border-radius: 6px; background: #fff; cursor: pointer;
+}
+.now-card-arrival { margin: 0.6rem 0; }
+.now-card-note { font-size: 0.8rem; color: var(--ink-2); margin: 0.4rem 0 0; }
+.now-advice { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.4rem; }
+.now-advice-line { font-size: 0.95rem; line-height: 1.35; }
+.now-advice-tag {
+  display: inline-block; min-width: 4.6rem; text-align: center; padding: 0 0.4rem; margin-right: 0.2rem;
+  border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--axis); vertical-align: 1px;
+}
+.now-advice-tag.act { background: var(--accent); color: #fff; border-color: var(--accent); }
+.now-advice-tag.wait { background: #fff; color: var(--ink-2); }
+.now-advice-tag.none { background: #fff; color: var(--muted); border-style: dashed; }
+
+/* Fan */
+.now-fan { margin: 0.6rem 0 0; }
+.now-fan-caption { font-size: 0.75rem; color: var(--ink-2); }
+.now-fan-chances { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.2rem; margin: 0.4rem 0 0; text-align: center; }
+.now-fan-chances dt { font-size: 0.7rem; color: var(--ink-2); }
+.now-fan-chances dd { margin: 0; font-size: 0.8rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+
+/* Nothing selected */
+.now-pick-text { font-size: 1rem; font-weight: 600; }
+.now-legend { font-size: 0.85rem; color: var(--ink-2); }
+.now-legend ul { list-style: none; padding: 0; margin: 0.4rem 0 0; display: grid; gap: 0.15rem; }
