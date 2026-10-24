@@ -45,6 +45,8 @@ import numpy as np
 import pandas as pd
 from scipy.signal import find_peaks
 
+from model.features import FALLBACK_UPSTREAMS, load_flow_paths  # noqa: F401  (fallback re-exported)
+
 log = logging.getLogger(__name__)
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -82,15 +84,12 @@ FALLBACK_EVENTS: list[dict[str, str]] = [
     {"id": "e2026", "start": "2026-02-18", "end": "2026-03-10"},
 ]
 
-# Pairs (SPEC §4.1 flow paths, §6.2 as re-targeted in PR #30), keyed by target, in display order: the Thames
-# chain into newbotley (primary) first. godstow, osney and iffley are live only (§4.1.1): the Hydrology API
-# has no downstream-stage history for them, so they have no pairs.
-UPSTREAMS: dict[str, tuple[str, ...]] = {
-    "newbotley": ("farmoor", "eynsham", "cassington"),
-    "minns": ("farmoor", "eynsham", "cassington"),
-    "coldharbour": ("farmoor", "eynsham", "cassington"),
-    "kingsmill": ("enslow", "islip"),
-}
+# Pairs = the river walk (SPEC §4.1 flow paths, §6.2, §7.2; #125 A), keyed by target, in display order: the
+# Thames chain into newbotley (primary) first. Read from the ``flow_paths:`` section of config/stations.yaml,
+# the same loader the model uses (``model.features.load_flow_paths``), with the identical fallback copy
+# ``FALLBACK_UPSTREAMS`` if the file is missing. godstow, osney and iffley are live only (§4.1.1): the
+# Hydrology API has no downstream-stage history for them, so they have no pairs.
+UPSTREAMS: dict[str, tuple[str, ...]] = load_flow_paths(STATIONS_YAML)
 
 # Tunables (SPEC §6 unless noted)
 MERGE_GAP = pd.Timedelta(days=7)
@@ -691,7 +690,9 @@ def main(argv: list[str] | None = None) -> None:
     if not args.hourly.exists():
         raise SystemExit(f"{args.hourly} not found: run `make data` first (issue #3)")
     hourly = pd.read_parquet(args.hourly)
-    out = run(hourly, load_amber(args.stations), load_named_events(args.events))
+    out = run(
+        hourly, load_amber(args.stations), load_named_events(args.events), load_flow_paths(args.stations)
+    )
     write_json(args.out, out.travel_pairs)
     write_json(args.lags, out.lags)
     write_json(args.detail, out.detail)

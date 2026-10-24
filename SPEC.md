@@ -112,9 +112,12 @@ The Hydrology API holds only the **upstream** lock stage for osney, godstow, iff
 
 Rain gauges (EA): Osney `256230TP`, Eynsham `254336TP`, Abingdon `261021TP`, Benson `264254TP`, Wheatley `263541TP`. Catchment rain = mean of available gauges per hour (log which are used).
 
-Flow paths (for travel times and features):
-- Thames: farmoor, eynsham, cassington are the upstream gauges for the three west/south Oxford targets: newbotley (Bulstake Stream), minns (Seacourt Stream) and coldharbour (Hinksey Stream). The main-channel locks godstow → osney → iffley are live only (§4.1.1).
-- Cherwell: enslow, islip → kingsmill.
+Flow paths = the **river walk** (for travel times and features; `flow_paths:` in `config/stations.yaml` is the single source, read by `model/features.py` and `analysis/travel_times.py`). For each target, walk upstream through the river network and list every gauge the water passes; each enters the model shifted by its own measured travel time (§6, §7.2).
+- newbotley (Bulstake Stream) and minns (Seacourt Stream): farmoor, eynsham, cassington, then further up shifford and hannington (Thames), worsham (Windrush) and shipton (Evenlode). The further four were added on #125 (experiment A, adopted for these two targets only).
+- coldharbour (Hinksey Stream): farmoor, eynsham, cassington. The further gauges lowered its 72 h skill in experiment A, so it keeps the near gauges.
+- kingsmill (Cherwell): enslow, islip. banbury and lowerarncott are `live_only` for the same reason.
+- The main-channel locks godstow → osney → iffley are live only (§4.1.1) and have no pairs.
+- Each list is flat (one list per target, model column order), not a per-branch tree: that reproduces experiment A's models exactly. Per-branch aggregation is a post-freeze idea.
 
 ### 4.2 Trouble spots (`config/spots.yaml`)
 Coordinates verified with point-in-polygon against each EA warning area (#10; see `config/spots.yaml` for the evidence). Thresholds: minns and coldharbour confirmed against dated flood reports; cherwell stays on `probability` (EA operational level, history from 1998), although no property flooding is confirmed there.
@@ -204,7 +207,7 @@ One hourly frame per target gauge with ≥ 5 years usable history. Lead times h 
 
 ### 7.2 Features (`model/features.py`): all known at time t
 - Target gauge: `level_now`; changes over 1, 3, 6, 24 h; 21-day mean level.
-- Each upstream gauge on the flow path: anomaly (level minus that gauge's own long-term median) at lags {0, 6, 12, 24, lag_lo, lag_main, lag_hi} h (deduplicated); changes over 3 h and 24 h.
+- Each upstream gauge on the target's river walk (§4.1: 7 gauges for newbotley and minns, 3 for coldharbour, 2 for kingsmill): anomaly (level minus that gauge's own long-term median) at lags {0, 6, 12, 24, lag_lo, lag_main, lag_hi} h (deduplicated); changes over 3 h and 24 h. The travel-time lags come from §6 for every pair, including the further gauges (for example hannington → newbotley 3/18/64 h, shipton → minns 14/21/78 h). A saved model keeps its own upstream list (read from its feature columns), so live mode and replays build exactly the columns it was trained on, even after `flow_paths` changes.
 - Catchment rain: sums over the last 6, 24, 72, 168 h and 21 days.
 - Season: sin and cos of day of year.
 - Missing values remain NaN.
@@ -260,6 +263,7 @@ Computed on the test period and across replay events.
 - **Official warnings as a trigger** (`officialOutcome`): score the first EA Flood Warning per event and spot with the same hit / miss / false-alarm rules as our trigger, so the Decide tab can price "act on official warnings". e2026 has no Oxford warning messages at all.
 - **Warn-at level per spot** (`warnAt`, #134): each probability spot's trigger p* is chosen on **validation information only** (replay issue times and crossings before the test period, 2021-10-01: the leave-one-flood-out replays of e2007, e2012, e2014, e2021) by one fixed rule: the lowest p* in 0.1–0.9 with at most 1 false alarm in every validation flood replay (0.5 if none qualifies). It is then frozen and scored on the test events (e2024a, e2024b, e2026), next to p* = 0.5 on the same events. Test events never enter the choice. Everything else in proof.json stays at p* = 0.5.
 - **Uncertainty:** bootstrap over events (1,000 resamples), 90% intervals for event-level numbers. `tradeoff[].ci90` is the 90% bootstrap interval of `meanLeadH` (hours).
+- **Known cost of the river walk (#125 A), to report honestly:** the further-upstream gauges gave Botley a first trigger 52 h before the e2024a crossing (16 h before; 43.5 h ahead of the EA warning), but they also add one Botley false alarm at p* = 0.5 in the strict test period: 22–23 Feb 2024, when New Botley peaked at 2.687 m against the 2.76 m line (a near miss, not a dry-weather alarm). The gain rests on one flood (e2024b is unchanged, e2026 has no crossing).
 
 ---
 
@@ -351,7 +355,7 @@ Stretch contracts are in §11.
 ## 10. Application
 
 ### 10.1 API (`api/main.py`, FastAPI)
-- `GET /api/live` → `Forecast` for now (from `forecast_live.py`, cached ≤ 15 min). A gauge whose latest reading is > 3 h old is listed in `stale`; spots depending on it get `leads: []`.
+- `GET /api/live` → `Forecast` for now (from `forecast_live.py`, cached ≤ 15 min). A gauge whose latest reading is > 3 h old is listed in `stale`. A spot whose own gauge is stale gets `leads: []`. A spot whose own gauge is fresh but one of its model's upstream gauges is stale gets labelled persistence for that spot only (the `note` names the spot and the gauge; #125): a stale Shifford sends Botley and Osney to persistence and leaves Abingdon Road and Cherwell on the model.
 - All other data is static JSON. **The app must run fully offline** from `web/public/data/`; live mode degrades to "Live data unavailable".
 
 ### 10.2 Web app (React + Vite + TS): one screen

@@ -43,6 +43,7 @@ from model.train import (
     WEB_DATA,
     GaugeModel,
     gauge_lines,
+    is_current,
     load_hourly,
     load_lags,
     train_gauge,
@@ -230,7 +231,7 @@ def forecasts_at(
     preds: dict[str, dict[int, np.ndarray]] = {}
     lnow: dict[str, np.ndarray] = {}
     for g, m in models.items():
-        X = features.build_features(hourly, g, m.medians, m.lags).reindex(rows)
+        X = features.build_features(hourly, g, m.medians, m.lags, m.upstreams).reindex(rows)
         preds[g] = m.predict(X)
         lnow[g] = X["level_now"].to_numpy(dtype=float)
 
@@ -359,9 +360,13 @@ def lofo_models(
     for g in targets:
         d = cache_dir / g
         if not retrain and (d / "meta.json").exists():
-            out[g] = GaugeModel.load(d)
-            log.info("loaded cached leave-one-out model %s", d)
-            continue
+            m = GaugeModel.load(d)
+            if is_current(m, lags):
+                out[g] = m
+                log.info("loaded cached leave-one-out model %s", d)
+                continue
+            # e.g. trained before the river walk (#125): other upstream gauges or lags than the config.
+            log.warning("cached leave-one-out model %s does not match the current config; retraining", d)
         m = train_gauge(hourly, g, lags=lags, exclude_windows=[window], **fit_kwargs)
         m.save(d)
         out[g] = m

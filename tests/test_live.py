@@ -349,8 +349,10 @@ def test_model_upstreams_count_as_dependencies(tmp_path: Path) -> None:
 
     fc = fl.build_forecast(hourly, meta, T0, forecaster=Model())
     spots = {s["spot"]: s for s in fc["spots"]}
-    assert fc["method"] == "model" and fc["note"] == ""
-    assert spots["botley"]["leads"] == [] and spots["cherwell"]["leads"]
+    # Stale upstream: labelled persistence for botley only (#125), never a silent model forecast.
+    assert fc["method"] == "model" and fc["note"].startswith("Persistence fallback for Botley Road")
+    assert "Farmoor upstream" in fc["note"] and "Cherwell" not in fc["note"]
+    assert spots["botley"]["leads"] and spots["cherwell"]["leads"]
 
 
 def test_no_live_data_raises() -> None:
@@ -384,18 +386,22 @@ def test_persistence_uses_shared_probability(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------------------------
 
 
-def _tiny_model(target: str = "newbotley"):  # noqa: ANN202 - GaugeModel (lightgbm import kept local)
-    """A real GaugeModel with few trees, fitted on random features of the live column set (lags {})."""
+def _tiny_model(target: str = "newbotley", upstreams: tuple[str, ...] | None = None):  # noqa: ANN202
+    """A real GaugeModel with few trees, fitted on random features of the live column set (lags {}).
+
+    ``upstreams`` overrides the configured river walk, e.g. to make an old-style 3-gauge model.
+    """
     from model import features, train
 
-    cols = features.feature_columns(target, {})
+    ups = tuple(features.UPSTREAMS[target] if upstreams is None else upstreams)
+    cols = features.feature_columns(target, {}, ups)
     idx = pd.date_range("2015-01-01", periods=1200, freq="h", tz="UTC")
     rng = np.random.default_rng(0)
     X = pd.DataFrame(rng.normal(0, 0.3, (len(idx), len(cols))), index=idx, columns=cols)
     X["level_now"] += 1.5
     Y = pd.DataFrame(
         {
-            f"y_{h}h": 0.05 * h / 6 * X[f"{features.UPSTREAMS[target][0]}_anom_lag0h"]
+            f"y_{h}h": 0.05 * h / 6 * X[f"{ups[0]}_anom_lag0h"]
             + rng.normal(0, 0.05, len(idx))
             for h in fl.LEADS_H
         },
@@ -408,7 +414,7 @@ def _tiny_model(target: str = "newbotley"):  # noqa: ANN202 - GaugeModel (lightg
         amber=2.01,
         threshold=2.76,
         splits=train.Splits(idx[700], idx[1000]),
-        medians=dict.fromkeys(features.UPSTREAMS[target], 1.0),
+        medians=dict.fromkeys(ups, 1.0),
         lags={},
         params={"min_data_in_leaf": 20},
         n_estimators=8,
@@ -430,7 +436,8 @@ def test_load_trained_models(models_dir: Path) -> None:
     fc = fl.load_model_forecaster(models_dir)
     assert isinstance(fc, fl.TrainedForecaster)
     assert list(fc.models) == ["newbotley"]  # lofo/ and stray files skipped
-    assert fc.upstreams == {"newbotley": ["farmoor", "eynsham", "cassington"]}
+    walk = ["farmoor", "eynsham", "cassington", "shifford", "hannington", "worsham", "shipton"]
+    assert fc.upstreams == {"newbotley": walk}  # the model's own list (from its columns)
 
 
 def test_model_forecast_is_the_backtest_forecast(models_dir: Path, tmp_path: Path) -> None:

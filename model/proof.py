@@ -46,6 +46,7 @@ from model.train import (
     WEB_DATA,
     GaugeModel,
     build_xy,
+    is_current,
     load_hourly,
     load_lags,
     train_gauge,
@@ -97,7 +98,13 @@ def main_models(
     for g in targets:
         d = MODELS_DIR / g
         if (d / "meta.json").exists():
-            out[g] = GaugeModel.load(d)
+            m = GaugeModel.load(d)
+            if not is_current(m, lags):
+                raise SystemExit(
+                    f"{d} does not match the current config (upstream gauges or lags, #125): "
+                    "run `make train` first"
+                )
+            out[g] = m
             continue
         log.info("training main model %s", g)
         m = train_gauge(hourly, g, lags=lags, **fit_kwargs)
@@ -227,7 +234,7 @@ def test_period_scores(
     flood_rows: list[np.ndarray] = []
     reliability: dict[str, list[dict[str, Any]]] = {}
     for g, m in models.items():
-        X, Y = build_xy(hourly, g, m.medians, m.lags, HORIZONS_H)
+        X, Y = build_xy(hourly, g, m.medians, m.lags, HORIZONS_H, m.upstreams)
         in_flood = event_mask(X["level_now"], m.amber).to_numpy()
         test = X.index >= m.splits.test_start
         X, Y, in_flood = X[test], Y[test], in_flood[test]
