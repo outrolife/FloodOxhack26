@@ -142,6 +142,10 @@ function weightedLead(
 }
 
 // ---- Official warnings ----
+// TODO(#38): when proof.json carries an `officialOutcome` field (official
+// hits / misses / false alarms per spot), use it directly in preference to
+// officialFromReplays / officialFromPerEvent. #38 also adds pStar rows
+// 0.01–0.05, which interpolateTradeoff picks up with no code change.
 
 /**
  * Official-warning outcomes for one spot from replays (preferred).
