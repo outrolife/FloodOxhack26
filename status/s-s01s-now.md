@@ -3,12 +3,12 @@
 - **role**: App
 - **state**: working
 - **issue**: #119
-- **task**: UI v2 Now screen: map + clocks + river pulse + spot card
-- **next**: pure data logic + tests in web/src/screens/now/
+- **task**: UI v2 Now screen: first pass pushed (app/v2-now)
+- **next**: make test, open PR
 - **needs**: 
 - **notes**: 
 - **branch**: app/v2-now
-- **head**: 443ed8f Merge pull request #111 from outrolife/stretch/s4-sandbags
-- **unpushed**: 0
+- **head**: 70edd91 Build the Now screen: spot clocks on the map, river pulse, spo
+- **unpushed**: 19
 - **dirty**: 0
-- **updated**: 2026-10-24T18:51:32Z
+- **updated**: 2026-10-24T19:01:08Z
