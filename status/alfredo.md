@@ -3,12 +3,12 @@
 - **role**: Floater
 - **state**: working
 - **issue**: 
-- **task**: Core: #73 review, #82 via #86; stretch: S3 #22 compute+UI
-- **next**: Merge reviews for #68/#74/#75; S3 end-to-end by Sun 09:00 GMT or hidden
-- **needs**: s-s01s: review/merge #75 (S1), #86 (#68 + #82), #87 (status.py), #88 (#74 live.json)
-- **notes**: #79 (live never loads models) found by alfredo-live, being fixed by s-s01s-live2; then rerun make live-web
+- **task**: Stretch S3 #22 (compute+UI); core reviews done (#73)
+- **next**: S3 end-to-end by Sun 09:00 GMT or hidden; rerun make live-web after #79
+- **needs**: 
+- **notes**: Approved proof2 editing backtest.forecasts_at for #93. All alfredo PRs merged (#75 #86 #87 #88 #90)
 - **branch**: main
-- **head**: c1db381 Merge pull request #78 from outrolife/story/team-names
+- **head**: dfca2bc Merge pull request #90 from outrolife/model/official-first-flo
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:56:15Z
+- **updated**: 2026-10-24T17:59:18Z
