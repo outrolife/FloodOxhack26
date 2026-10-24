@@ -145,6 +145,15 @@ def test_colour_ramp_matches_agreed_stops() -> None:
     )
 
 
+def test_feather_fades_outer_three_pixels() -> None:
+    rgba = np.zeros((9, 11, 4), dtype=np.uint8)
+    rgba[..., 0] = 200
+    rgba[..., 3] = 200
+    a = s3.feather(rgba)[..., 3]
+    assert a[0, 5] == 50 and a[1, 5] == 100 and a[2, 5] == 150 and a[4, 5] == 200
+    assert a[4, 0] == 50 and a[4, 10] == 50 and a[8, 5] == 50
+
+
 def test_block_mean_ignores_excluded_cells() -> None:
     a = np.zeros((10, 10))
     a[:5, :5] = 1.0

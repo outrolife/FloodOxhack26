@@ -85,6 +85,7 @@ RAMP: list[tuple[float, tuple[int, int, int]]] = [
     (1.00, (0xD7, 0x30, 0x27)),  # red
 ]
 RAMP_ALPHA = round(0.85 * 255)
+FEATHER = (0.25, 0.5, 0.75)  # alpha multipliers for the outer pixels (blocks) of the box, edge inwards
 
 CAVEATS_BASE = [
     "Experimental. A simple terrain fill: ignores channel flow, walls, drains, pumps and defences. "
@@ -401,6 +402,20 @@ def in_bbox_mask(grid: Grid) -> np.ndarray:
     return (lon >= LON_W) & (lon <= LON_E) & (lat >= LAT_S) & (lat <= LAT_N)
 
 
+def feather(rgba: np.ndarray, steps: tuple[float, ...] = FEATHER) -> np.ndarray:
+    """Fade alpha over the outer ``len(steps)`` pixels so the box edge doesn't end in a hard line."""
+    h, w = rgba.shape[:2]
+    rows, cols = np.arange(h)[:, None], np.arange(w)[None, :]
+    d = np.minimum(np.minimum(rows, h - 1 - rows), np.minimum(cols, w - 1 - cols))
+    mult = np.ones((h, w))
+    for i, m in enumerate(steps):
+        mult[d == i] = m
+    out = rgba.copy()
+    out[..., 3] = np.round(rgba[..., 3] * mult).astype(np.uint8)
+    out[out[..., 3] == 0] = 0
+    return out
+
+
 def colourise(freq: np.ndarray) -> np.ndarray:
     """(H, W) frequencies -> (H, W, 4) uint8 RGBA on the ``RAMP``; NaN or < ``RAMP_MIN`` is transparent."""
     f = np.asarray(freq, dtype=float)
@@ -634,7 +649,7 @@ def run(event: str, every_h: int = 0, n_runs: int = N_RUNS, seed: int = SEED) ->
             # River centreline cells are seeds of the fill, not results: left out of the block means.
             blocks = block_mean(freq, river).astype(np.float32)
             warped = to_wgs84(blocks, block_transform, ov, nodata=np.nan)
-            png, _ = _write_png(out_dir, rel_dir, tau, colourise(warped), cache)
+            png, _ = _write_png(out_dir, rel_dir, tau, feather(colourise(warped)), cache)
             frames.append({"tau": tau, "issuedAt": issue.issued_at, "png": png})
         cell_freq.append(np.stack([freqs.get(t, np.full(river.shape, np.nan)) for t in TAUS]))
         cell_depth.append(
