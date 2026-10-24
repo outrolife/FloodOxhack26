@@ -104,7 +104,7 @@ One flood seen in SQL, from the Tiger Data mirror: in Jan 2014, Cassington peake
 
 ### The proof: leave-one-flood-out replays
 
-For each past flood we retrain every model **without that flood** (plus 7 days either side), then issue a forecast every hour through the event. No data after a forecast's issue time can affect it. Automated tests check this for the inputs (`tests/test_features.py`: change the future, check no input changes). <!-- PENDING #39: the replay leakage test (test_replay_forecast_uses_no_data_after_issue_time) is in PR #39, not yet on main. When it merges, add: "and for the replays (tests/test_backtest.py)". --> Separately, we report scores on a strict time split (test period from Oct 2021).
+For each past flood we retrain every model **without that flood** (plus 7 days either side), then issue a forecast every hour through the event (every 2 hours in the committed e2014 replay, to keep the file small). No data after a forecast's issue time can affect it. Automated tests check this for the inputs (`tests/test_features.py`: change the future, check no input changes) and for the replays (`tests/test_backtest.py::test_replay_forecast_uses_no_data_after_issue_time`). <!-- src: PR #39, merged --> Separately, we report scores on a strict time split (test period from Oct 2021).
 
 We score:
 - pinball loss and skill against persistence, by lead time;
@@ -139,19 +139,38 @@ The Decide tab has three presets: **Resident** (move the car: C = £20, L = £2,
 - **Live polling:** a full poll of the EA (17 requests: 12 level gauges, 5 rain gauges) went from 199.8 s to 28.5 s with 4 polite parallel workers; a repeat within 15 minutes comes from the cache in 0.07 s. <!-- src: PR #62 -->
 - **Tiger Data mirror:** all 3.29M hourly rows plus live readings in a Timescale hypertable; compression took them from 434 MB to 35 MB (12.4×). Details below. <!-- src: docs/tiger-data.md -->
 
-### Model results: waiting for the backtest
+### The 2014 replay (real, `replays/e2014.json`)
 
-<!-- RESULTS (PENDING #66 / #39): fill every TODO in this table from web/public/data/proof.json and web/public/data/replays/e2014.json. Don't round up. Quote the 90% intervals. -->
+A leave-one-flood-out replay of Jan–Feb 2014 for the four forecast spots, with a forecast issued every 2 hours (745 forecasts). All times GMT (= UTC in January). <!-- src: web/public/data/replays/e2014.json (PR #39) -->
 
-**TODO (results):** not filled yet. The backtest (PR #39, PR #66) writes `web/public/data/proof.json` and `replays/*.json`. Until then the app shows sample data and labels it as such.
+For **Botley Road** (New Botley gauge, threshold 2.76 m):
+
+| What | When (GMT) |
+|---|---|
+| EA Flood **Alert** for the area (the lower level) | 19:27, Mon 23 Dec 2013 |
+| River Clock first ≥ 10% (at the 72 h lead) | 22:00, Wed 25 Dec 2013 |
+| **River Clock first ≥ 50%** (63% at the 48 h and 72 h leads) | **12:00, Sat 4 Jan 2014** |
+| EA Flood **Warning** for the area | 19:03, Sat 4 Jan 2014: **about 7 h after River Clock reached 50%** |
+| New Botley passes 2.76 m | 01:00, Mon 6 Jan 2014: 37 h after River Clock reached 50% |
+| New Botley peak (hourly mean 3.027 m) | 09:00, Thu 9 Jan 2014 |
+
+- The forecast issued at 12:00 on 4 Jan put the 50% arrival time at **01:01 on 6 Jan**. The gauge crossed at 01:00.
+- The observed peak was **inside the 5–95% band at every lead from 6 h to 72 h** (forecasts aimed at 08:00 and 10:00 on 9 Jan, either side of the peak hour).
+- The EA's lower-level Flood Alert came out two days before River Clock's first 10%. We are ahead of the Flood Warning, not the Alert.
+- One flood is one data point. The scores over all events are below.
+
+### Scores over all events: waiting for `proof.json`
+
+<!-- RESULTS (PENDING #66): fill every TODO in this table from web/public/data/proof.json. Don't round up. Quote the 90% intervals. -->
+
+**TODO (results):** not filled yet. The backtest (PR #66) writes `web/public/data/proof.json`. Until then the Proof and Decide tabs show sample data and label it as such.
 
 | Measure | Value | Source in `proof.json` |
 |---|---|---|
 | Skill vs persistence at 24 h (New Botley) | TODO | `skillByLead` |
 | Skill vs persistence at 72 h (New Botley) | TODO | `skillByLead` |
 | 90% interval coverage at 24 h | TODO | `coverage` |
-| e2014 replay: first time River Clock ≥ 50% for Botley | TODO | `replays/e2014.json` |
-| e2014: lead vs first EA warning | TODO | `perEvent.leadVsOfficialH` |
+| e2014: lead vs first EA warning, per p* (official figure) | TODO (replay above shows about 7 h at p = 50%) | `perEvent.leadVsOfficialH` |
 | e2026 near miss: false alarm or not? | TODO | `perEvent`, `tradeoff` |
 | Hits / misses / false alarms at p* = 0.5 | TODO | `tradeoff` |
 
@@ -345,4 +364,4 @@ Team members: <!-- TODO: names and roles -->
 
 Also built: the Tiger Data (Timescale) mirror of the hourly and live readings (#17, PR #63; see "Tiger Data mirror" above). There is no public deploy: the app runs locally and offline.
 
-<!-- TODO at code freeze (Sun 25 Oct, 11:00 GMT): fill the "Model results" table (PENDING #39 / #66), the team names, and remove anything not built. -->
+<!-- TODO at code freeze (Sun 25 Oct, 11:00 GMT): fill the "Scores over all events" table (PENDING #66), the team names, and remove anything not built. -->
