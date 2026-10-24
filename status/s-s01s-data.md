@@ -1,14 +1,14 @@
 # s-s01s-data
 
 - **role**: Data
-- **state**: working
+- **state**: reviewing
 - **issue**: #2
-- **task**: stations.yaml pushed; posting checklist results on #2
-- **next**: Open PR for #2
+- **task**: PR open: Verify EA gauges and write stations.yaml
+- **next**: Await review; ready for #3 ingest
 - **needs**: 
 - **notes**: 
 - **branch**: data/first-hour-verification
-- **head**: 6ed384a Add verified stations.yaml with EA refs, Hydrology measures an
+- **head**: 7dae530 Apply re-target roles to stations.yaml: add minns, coldharbour
 - **unpushed**: 0
-- **dirty**: 0
-- **updated**: 2026-10-24T16:13:18Z
+- **dirty**: 1
+- **updated**: 2026-10-24T16:16:17Z
