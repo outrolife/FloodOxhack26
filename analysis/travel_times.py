@@ -338,7 +338,11 @@ class Hydro:
 
 
 class Excluded(Exception):  # noqa: N818 - reads well at the call site
-    """An event that cannot be used for a pair, with a human-readable reason."""
+    """An event that cannot be used for a pair, with a human-readable reason (and the rise, if known)."""
+
+    def __init__(self, reason: str, rise: float | None = None) -> None:
+        super().__init__(reason)
+        self.rise = rise
 
 
 def smooth(series: pd.Series) -> pd.Series:
@@ -369,7 +373,10 @@ def hydro_features(full: pd.Series, gauge: str, w0: pd.Timestamp, w1: pd.Timesta
     peak = float(x[i_peak])
     if peak - baseline < MIN_RISE_M:
         raise Excluded(f"no clear rise at {gauge} ({peak - baseline:.2f} m above baseline)")
-    dominant_peak_check(x, i_peak, gauge)
+    try:
+        dominant_peak_check(x, i_peak, gauge)
+    except Excluded as exc:
+        raise Excluded(str(exc), rise=peak - baseline) from None
     t_half = half_rise_time(win.loc[t_rise : win.index[i_peak]], baseline + 0.5 * (peak - baseline))
     return Hydro(win.index[i_peak], t_half, t_rise, baseline, peak)
 
@@ -381,7 +388,9 @@ def dominant_peak_check(x: np.ndarray, i_peak: int, gauge: str) -> None:
     if len(peaks) == 0:
         return
     prom = props["prominences"]
-    j_main = int(np.argmin(np.abs(peaks - i_peak)))
+    j_main = int(np.argmax(filled[peaks]))  # the global maximum (find_peaks reports a plateau's middle)
+    if filled[peaks[j_main]] < filled[i_peak] - 1e-9:
+        raise Excluded(f"peak at window edge at {gauge}")  # the maximum is a plateau running to an edge
     main = prom[j_main]
     others = np.delete(prom, j_main)
     if main > 0 and others.size and others.max() >= SECOND_PEAK_MAX_RATIO * main:
@@ -422,7 +431,12 @@ def match_event(up: pd.Series, down: pd.Series, up_key: str, down_key: str, even
     res = EventResult(event)
     try:
         hu = hydro_features(up, up_key, w0, w1)
-        res.rise = round(hu.rise, 3)
+    except Excluded as exc:
+        res.excluded = str(exc)
+        res.rise = round(exc.rise, 3) if exc.rise is not None else 0.0
+        return res
+    res.rise = round(hu.rise, 3)
+    try:
         hd = hydro_features(down, down_key, w0, w1)
     except Excluded as exc:
         res.excluded = str(exc)
