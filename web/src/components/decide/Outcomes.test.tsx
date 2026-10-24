@@ -60,7 +60,7 @@ describe("Decide flood episodes (#99 item 3)", () => {
     const o = interpolateTradeoff(proof.tradeoff.osney, 0.05)!;
     const html = renderToStaticMarkup(<OutcomesTable o={o} costs={resident} official={null} />);
     expect(html).toContain("flood episodes (counted once per flood)");
-    expect(FLOOD_EPISODE_NOTE).toContain("less than 72 h (3 days) later, it is still the same flood");
-    expect(FLOOD_EPISODE_NOTE).toContain("already over the line doesn't count as a warning");
+    expect(FLOOD_EPISODE_NOTE).toContain("less than 3 days later, it is still the same flood");
+    expect(FLOOD_EPISODE_NOTE).toContain("already above flood level doesn't count as a warning");
   });
 });

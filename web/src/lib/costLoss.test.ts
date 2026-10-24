@@ -184,8 +184,8 @@ describe("advice", () => {
   it("degrades without live data", () => {
     expect(advice(0.01, { status: "unavailable" })).toMatchObject({
       act: null,
-      text: "At your costs, act when P ≥ 1%. Now: Live data unavailable.",
-      now: "Live data unavailable.",
+      text: "At your costs, act when P ≥ 1%. Now: No forecast available right now.",
+      now: "No forecast available right now.",
     });
   });
   it("handles C >= L", () => {

@@ -48,3 +48,21 @@ export function costTakeaway(strategies: StrategyCost[], pStar: number): string 
     always !== null && rc < always ? ` Acting every time would cost ${formatGBP(always)}: the forecast saves you the false alarms.` : "";
   return `Costly action (act at ${formatPct(pStar)} chance or more): wait until a flood is likely.${alwaysNote}${vsOfficial}`;
 }
+
+/**
+ * The £ comparison under the Decide verdict (#103): "Over 8 past flood
+ * episodes at Botley Road, acting on River Clock would have cost £420;
+ * acting on official warnings, £4,160." Every number from `strategies`.
+ */
+export function costComparison(strategies: StrategyCost[], crossings: number, spotName: string): string | null {
+  const cost = (k: StrategyKey) => strategies.find((s) => s.key === k)?.cost ?? null;
+  const rc = cost("riverClock");
+  if (rc === null || crossings <= 0) return null;
+  const official = cost("official");
+  const n = Math.round(crossings * 10) / 10;
+  const spot = spotName.split(" / ")[0].trim();
+  const where = `Over ${n} past flood ${n === 1 ? "episode" : "episodes"}${spot ? ` at ${spot}` : ""}`;
+  return official === null
+    ? `${where}, acting on River Clock would have cost ${formatGBP(rc)}.`
+    : `${where}, acting on River Clock would have cost ${formatGBP(rc)}; acting on official warnings, ${formatGBP(official)}.`;
+}

@@ -23,19 +23,19 @@ export function OutcomesTable({ o, costs, official }: { o: Outcomes; costs: Cost
           </thead>
           <tbody>
             <tr>
-              <td>Hits (acted before the flood)</td>
+              <td>Floods caught in time</td>
               <td className="num">{formatCount(o.hits)}</td>
               <td className="num">{off(official?.hits ?? 0)}</td>
               <td>C = {formatGBP(costs.C)}</td>
             </tr>
             <tr>
-              <td>False alarms (acted, no flood)</td>
+              <td title="River Clock reached your act-at chance but the river didn't reach flood level within 3 days">Acted, but no flood came</td>
               <td className="num">{formatCount(o.falseAlarms)}</td>
               <td className="num">{off(official?.falseAlarms ?? 0)}</td>
               <td>C = {formatGBP(costs.C)}</td>
             </tr>
             <tr>
-              <td>Misses (flood, no warning in time)</td>
+              <td>Floods missed</td>
               <td className="num">{formatCount(o.misses)}</td>
               <td className="num">{off(official?.misses ?? 0)}</td>
               <td>L = {formatGBP(costs.L)}</td>

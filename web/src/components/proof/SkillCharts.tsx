@@ -22,6 +22,7 @@ import {
 import type { Proof, Spot } from "../../contracts";
 import { FLOOD_EPISODE_NOTE, FLOOD_EPISODE_RULE, FLOOD_EPISODES } from "../shared/episodes";
 import { DIRECTION_TERM, coverageSummary } from "./coverage";
+import { TERM_TIPS, hoursWords } from "../../lib/plain";
 
 const AXIS = { stroke: "#c3c2b7", tick: { fill: "#52514e", fontSize: 12 } };
 const GRID = <CartesianGrid stroke="#e1e0d9" vertical={false} />;
@@ -32,25 +33,32 @@ export function SkillByLead({ proof }: { proof: Proof }) {
   const losing = rows.filter((r) => r.skill <= 0);
   return (
     <div className="card">
-      <h2>Skill vs persistence, by lead time</h2>
+      <h2>Better than a simple guess?</h2>
       <p className="sub">
-        Skill = 1 − model pinball loss / persistence pinball loss. Above 0 means River Clock beats
-        "the level stays roughly where it is".
+        How much smaller River Clock's forecast{" "}
+        <span
+          className="term"
+          title="Measured with the pinball loss, a standard score for range forecasts: skill = 1 − model pinball loss / persistence pinball loss. Scored on test-period forecasts no model trained on, all gauges pooled."
+        >
+          error
+        </span>{" "}
+        is than <span className="term" title={TERM_TIPS.simpleGuess}>the simple guess</span> "the river stays where it
+        is". 25% means a quarter less error. Above 0: River Clock is better. All gauges pooled.
       </p>
       {losing.length > 0 && (
         <div className="notice warn">
-          The model does <strong>not</strong> beat persistence at {losing.map((r) => `+${r.h} h`).join(", ")}.
+          River Clock is <strong>no better</strong> than the simple guess at {losing.map((r) => `${hoursWords(r.h)} ahead`).join(", ")}.
         </div>
       )}
       <div style={{ height: 220 }}>
         <ResponsiveContainer>
           <BarChart data={rows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
             {GRID}
-            <XAxis dataKey="h" tickFormatter={(h: number) => `+${h} h`} {...AXIS} />
-            <YAxis tickFormatter={(v: number) => v.toFixed(2)} {...AXIS} width={40} />
+            <XAxis dataKey="h" tickFormatter={(h: number) => hoursWords(h)} {...AXIS} />
+            <YAxis tickFormatter={(v: number) => `${Math.round(v * 100)}%`} {...AXIS} width={40} />
             <Tooltip
-              formatter={(v) => [Number(v).toFixed(3), "Skill"]}
-              labelFormatter={(h) => `Lead +${h} h`}
+              formatter={(v) => [`${Math.round(Number(v) * 100)}% less error (skill ${Number(v).toFixed(2)})`, "vs the simple guess"]}
+              labelFormatter={(h) => `${hoursWords(Number(h))} ahead`}
             />
             <ReferenceLine y={0} stroke="#52514e" />
             <Bar dataKey="skill" name="Skill" radius={[4, 4, 0, 0]} isAnimationActive={false}>
@@ -80,10 +88,10 @@ export function Coverage({ proof }: { proof: Proof }) {
   const flagged = summary?.flagged ?? [];
   return (
     <div className="card">
-      <h2>Interval coverage</h2>
+      <h2>Do our ranges hold the real level?</h2>
       <p className="sub">
-        How often the real level fell inside each forecast interval. Dashed lines are the nominal
-        targets.
+        How often the real river level ended up inside our 50%, 80% and 90% forecast ranges. Dashed
+        lines: where they should be.
       </p>
       {summary && (
         // Lead with the plain message (#103). Over-cover (cautious) is not a failure, so it
@@ -110,9 +118,9 @@ export function Coverage({ proof }: { proof: Proof }) {
         <ResponsiveContainer>
           <LineChart data={rows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
             {GRID}
-            <XAxis dataKey="h" tickFormatter={(h: number) => `+${h} h`} {...AXIS} />
+            <XAxis dataKey="h" tickFormatter={(h: number) => hoursWords(h)} {...AXIS} />
             <YAxis domain={[0, 100]} tickFormatter={(v: number) => `${v}%`} {...AXIS} width={40} />
-            <Tooltip formatter={(v, n) => [`${Number(v).toFixed(0)}%`, String(n)]} labelFormatter={(h) => `Lead +${h} h`} />
+            <Tooltip formatter={(v, n) => [`${Number(v).toFixed(0)}%`, String(n)]} labelFormatter={(h) => `${hoursWords(Number(h))} ahead`} />
             <Legend wrapperStyle={{ fontSize: 12 }} />
             {nominals.map((n, i) => (
               <ReferenceLine key={`r${n}`} y={n * 100} stroke={SERIES[i % 3]} strokeDasharray="4 3" strokeOpacity={0.6} />
@@ -121,7 +129,7 @@ export function Coverage({ proof }: { proof: Proof }) {
               <Line
                 key={n}
                 dataKey={`n${Math.round(n * 100)}`}
-                name={`${Math.round(n * 100)}% interval`}
+                name={`${Math.round(n * 100)}% range`}
                 stroke={SERIES[i % 3]}
                 strokeWidth={2}
                 dot={{ r: 4 }}
@@ -135,12 +143,23 @@ export function Coverage({ proof }: { proof: Proof }) {
   );
 }
 
+/** "Flood-chance error 11% lower than the simple guess." / "... 17% higher ..." (#103, audit P10). */
+export function brierSentence(brier: number, brierPersistence: number): string {
+  if (!(brierPersistence > 0)) return "No simple-guess score to compare with here.";
+  const skill = 1 - brier / brierPersistence;
+  const pc = Math.round(Math.abs(skill) * 100);
+  if (pc === 0) return "Flood-chance error about the same as the simple guess.";
+  return skill > 0
+    ? `Flood-chance error ${pc}% lower than the simple guess.`
+    : `Flood-chance error ${pc}% higher than the simple guess here: worse, not better.`;
+}
+
 /** Brier scores on rare floods are tiny (0.001): show two significant figures, not three decimals. */
 const brierFmt = (v: number): string => (v > 0 && v < 0.01 ? v.toPrecision(2) : v.toFixed(3));
 
 export function Reliability({ proof, spots }: { proof: Proof; spots: Spot[] }) {
   const spotKeys = Object.keys(proof.reliability);
-  const [spot, setSpot] = useState(spotKeys.includes("osney") ? "osney" : (spotKeys[0] ?? ""));
+  const [spot, setSpot] = useState(spotKeys.includes("botley") ? "botley" : (spotKeys[0] ?? ""));
   const entries = proof.reliability[spot] ?? [];
   const [h, setH] = useState<number>(entries.find((e) => e.h === 24)?.h ?? entries[0]?.h ?? 24);
   const entry = entries.find((e) => e.h === h) ?? entries[0];
@@ -148,8 +167,11 @@ export function Reliability({ proof, spots }: { proof: Proof; spots: Spot[] }) {
 
   return (
     <div className="card">
-      <h2>Reliability</h2>
-      <p className="sub">When River Clock says 30%, does it flood about 30% of the time? Points on the diagonal are well calibrated.</p>
+      <h2>When we say 30%, does it flood 30% of the time?</h2>
+      <p className="sub">
+        Dots on the dashed diagonal mean our chances are honest. Most of the time the chance is near 0% and nothing
+        floods (the big dot at the bottom left).
+      </p>
       <div className="controls">
         <label>
           Spot
@@ -162,11 +184,11 @@ export function Reliability({ proof, spots }: { proof: Proof; spots: Spot[] }) {
           </select>
         </label>
         <label>
-          Lead
+          Hours ahead
           <select value={entry?.h ?? h} onChange={(e) => setH(Number(e.target.value))}>
             {entries.map((e) => (
               <option key={e.h} value={e.h}>
-                +{e.h} h
+                {hoursWords(e.h)}
               </option>
             ))}
           </select>
@@ -181,21 +203,24 @@ export function Reliability({ proof, spots }: { proof: Proof; spots: Spot[] }) {
               <ScatterChart margin={{ top: 8, right: 16, left: 0, bottom: 16 }}>
                 <CartesianGrid stroke="#e1e0d9" />
                 <XAxis type="number" dataKey="pPred" domain={[0, 1]} tickFormatter={(v: number) => `${v * 100}%`} {...AXIS}
-                  label={{ value: "Forecast probability", position: "insideBottom", offset: -8, fill: "#52514e", fontSize: 12 }} />
-                <YAxis type="number" dataKey="pObs" domain={[0, 1]} tickFormatter={(v: number) => `${v * 100}%`} {...AXIS} width={44} />
+                  label={{ value: "Chance River Clock gave", position: "insideBottom", offset: -8, fill: "#52514e", fontSize: 12 }} />
+                <YAxis type="number" dataKey="pObs" domain={[0, 1]} tickFormatter={(v: number) => `${v * 100}%`} {...AXIS} width={44}
+                  label={{ value: "How often it flooded", angle: -90, position: "insideLeft", fill: "#52514e", fontSize: 12 }} />
                 <ZAxis type="number" dataKey="n" range={[40, 260]} />
                 <ReferenceLine segment={[{ x: 0, y: 0 }, { x: 1, y: 1 }]} stroke="#898781" strokeDasharray="4 3" />
                 <Tooltip
-                  formatter={(v, n) => [n === "n" ? String(v) : `${(Number(v) * 100).toFixed(0)}%`, n === "pPred" ? "Forecast" : n === "pObs" ? "Observed" : "Forecasts in bin"]}
+                  formatter={(v, n) => [n === "n" ? String(v) : `${(Number(v) * 100).toFixed(0)}%`, n === "pPred" ? "Chance given" : n === "pObs" ? "How often it flooded" : "Number of forecasts"]}
                 />
                 <Scatter data={entry.bins} fill="#2a78d6" stroke="#fcfcfb" strokeWidth={2} isAnimationActive={false} />
               </ScatterChart>
             </ResponsiveContainer>
           </div>
           <p className="small">
-            Brier score {brierFmt(entry.brier)} (persistence {brierFmt(entry.brierPersistence)}); Brier skill{" "}
-            <strong>{entry.brierPersistence > 0 ? (1 - entry.brier / entry.brierPersistence).toFixed(2) : "–"}</strong>. Dot
-            size = number of forecasts.
+            {brierSentence(entry.brier, entry.brierPersistence)}{" "}
+            <span className="muted">
+              (<span className="term" title="Brier score: the average squared gap between our chance (0–1) and what happened (0 or 1). 0 is perfect; lower is better.">Brier score</span>{" "}
+              {brierFmt(entry.brier)}, simple guess {brierFmt(entry.brierPersistence)}.) Bigger dot = more forecasts.
+            </span>
           </p>
         </>
       )}
@@ -214,7 +239,7 @@ export function Tradeoff({
   dateOnlySpots: Set<string>;
 }) {
   const spotKeys = Object.keys(proof.tradeoff);
-  const [spot, setSpot] = useState(spotKeys.includes("osney") ? "osney" : (spotKeys[0] ?? ""));
+  const [spot, setSpot] = useState(spotKeys.includes("botley") ? "botley" : (spotKeys[0] ?? ""));
   // ci90 is read as the 90% bootstrap interval of meanLeadH (proposed wording in #38).
   const rows = [...(proof.tradeoff[spot] ?? [])]
     .sort((a, b) => a.pStar - b.pStar)
@@ -230,12 +255,20 @@ export function Tradeoff({
   const name = (k: string) => spots.find((s) => s.key === k)?.name ?? k;
   return (
     <div className="card">
-      <h2>Lead time vs false alarms</h2>
+      <h2>Earlier warning means more false alarms</h2>
       <p className="sub">
-        Each point is a trigger probability p*. Lower p* gives earlier warning but more false alarms.
-        The dashed zero line is the official EA warning time.
-        {official?.meanLeadH != null && " The purple dot is the official EA Flood Warnings themselves, scored the same way."}
-        {anyCi && " Whiskers: 90% bootstrap interval over events."}
+        Each dot is a different "act when the chance reaches X%" rule. Acting at a lower chance warns
+        you earlier but cries wolf more often.
+        {official?.meanLeadH != null && " Purple dot: the official Environment Agency Flood Warnings, scored the same way."}
+        {anyCi && (
+          <>
+            {" "}
+            <span className="term" title="90% bootstrap interval: we re-ran the scoring on random re-samples of the past floods; 9 in 10 results fell inside the whisker.">
+              Whiskers
+            </span>
+            : how much this could change with different floods.
+          </>
+        )}
       </p>
       {dateOnlySpots.has(spot) && (
         <div className="notice warn">
@@ -260,21 +293,21 @@ export function Tradeoff({
           <LineChart data={rows} margin={{ top: 8, right: 16, left: 0, bottom: 16 }}>
             {GRID}
             <XAxis dataKey="falseAlarms" type="number" allowDecimals={false} {...AXIS}
-              label={{ value: "False alarms over the backtest", position: "insideBottom", offset: -8, fill: "#52514e", fontSize: 12 }} />
-            <YAxis {...AXIS} width={44} tickFormatter={(v: number) => `${v} h`} />
+              label={{ value: "False alarms over the past floods", position: "insideBottom", offset: -8, fill: "#52514e", fontSize: 12 }} />
+            <YAxis {...AXIS} width={44} tickFormatter={(v: number) => `${v} h`}
+              label={{ value: "Hours of warning", angle: -90, position: "insideLeft", fill: "#52514e", fontSize: 12 }} />
             <Tooltip
               labelFormatter={(fa) => `${fa} false alarms`}
               formatter={(v, n, item) => {
                 const p = (item?.payload as { pStar?: number } | undefined)?.pStar;
-                return [v == null ? "–" : `${Number(v).toFixed(1)} h`, `${String(n)} (p* ${p != null ? Math.round(p * 100) : "?"}%)`];
+                return [v == null ? "–" : `${Number(v).toFixed(1)} hours`, `${String(n)} (act at ${p != null ? Math.round(p * 100) : "?"}%)`];
               }}
             />
-            <Legend verticalAlign="top" wrapperStyle={{ fontSize: 12, paddingBottom: 6 }} />
-            <ReferenceLine y={0} stroke="#6250d6" strokeDasharray="5 3" label={{ value: "Official warning", position: "insideBottomRight", fill: "#6250d6", fontSize: 12 }} />
-            <Line dataKey="meanLeadH" name="Mean lead before flooding" stroke={SERIES[0]} strokeWidth={2} dot={{ r: 4 }} isAnimationActive={false} connectNulls>
+            {/* One meaning per chart (#103, audit P12): only hours of warning before the flood.
+                "Ahead of the official warning" has a different zero, so it lives in the table. */}
+            <Line dataKey="meanLeadH" name="Average warning before the flood" stroke={SERIES[0]} strokeWidth={2} dot={{ r: 4 }} isAnimationActive={false} connectNulls>
               {anyCi && <ErrorBar dataKey="leadErr" direction="y" width={6} stroke={SERIES[0]} strokeWidth={1.5} isAnimationActive={false} />}
             </Line>
-            <Line dataKey="meanLeadVsOfficialH" name="Mean lead vs official warning" stroke={SERIES[1]} strokeWidth={2} dot={{ r: 4 }} isAnimationActive={false} connectNulls />
             {official?.meanLeadH != null && (
               <ReferenceDot
                 x={official.falseAlarms}
@@ -294,13 +327,13 @@ export function Tradeoff({
         <table className="data">
           <thead>
             <tr>
-              <th>p*</th>
-              <th>Hits*</th>
-              <th>Misses*</th>
+              <th title="Act when the chance of flooding reaches this (p*)">Act at</th>
+              <th>Caught*</th>
+              <th>Missed*</th>
               <th>False alarms</th>
-              <th>Mean lead</th>
-              <th>vs official</th>
-              <th>Mean lead, 90% interval</th>
+              <th>Average warning</th>
+              <th>Ahead of official (− = later)</th>
+              <th>Average warning, likely range</th>
             </tr>
           </thead>
           <tbody>
@@ -311,13 +344,13 @@ export function Tradeoff({
                 <td className="num">{r.misses}</td>
                 <td className="num">{r.falseAlarms}</td>
                 <td className="num">{r.meanLeadH == null ? "–" : `${r.meanLeadH.toFixed(1)} h`}</td>
-                <td className="num">{r.meanLeadVsOfficialH == null ? "–" : `${r.meanLeadVsOfficialH.toFixed(1)} h`}</td>
+                <td className="num">{r.meanLeadVsOfficialH == null ? "–" : `${r.meanLeadVsOfficialH > 0 ? "+" : ""}${r.meanLeadVsOfficialH.toFixed(1)} h`}</td>
                 <td className="num">{r.ci90 ? `${r.ci90[0].toFixed(1)} to ${r.ci90[1].toFixed(1)} h` : "–"}</td>
               </tr>
             ))}
             {official && (
               <tr style={{ color: "#6250d6", fontWeight: 600 }}>
-                <td>EA warnings</td>
+                <td>Official EA warnings</td>
                 <td className="num">{official.hits}</td>
                 <td className="num">{official.misses}</td>
                 <td className="num">{official.falseAlarms}</td>
@@ -330,7 +363,7 @@ export function Tradeoff({
         </table>
       </div>
       <p className="small muted" title={FLOOD_EPISODE_RULE}>
-        * Hits and misses are {FLOOD_EPISODES}
+        * Caught and missed count {FLOOD_EPISODES}
         {rows.length > 0 && `: ${rows[0].hits + rows[0].misses} at ${name(spot)}`}. {FLOOD_EPISODE_NOTE}
       </p>
     </div>

@@ -8,10 +8,10 @@ export const FLOOD_EPISODES = "flood episodes (counted once per flood)";
 
 /** Footnote: the 72 h rule and the already-flooding rule, in plain words. */
 export const FLOOD_EPISODE_NOTE =
-  "We count each flood once: if the river goes back over the flood line less than 72 h (3 days) later, " +
+  "We count each flood once: if the river goes back above flood level less than 3 days later, " +
   "it is still the same flood. Two separate floods in one event (3 days or more apart) count twice, so " +
   "these counts can be higher than the number of \"Yes\" rows in the event-by-event table. A forecast " +
-  "made when the river is already over the line doesn't count as a warning, right or wrong.";
+  "made when the river is already above flood level doesn't count as a warning, right or wrong.";
 
 /** The precise rule (model/metrics.py), for a title tooltip. */
 export const FLOOD_EPISODE_RULE =

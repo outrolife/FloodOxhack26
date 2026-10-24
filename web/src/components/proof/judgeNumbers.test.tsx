@@ -59,7 +59,7 @@ describe("coverage direction (#99 item 2)", () => {
 describe("flood episodes on Proof (#99 item 3)", () => {
   it("labels trade-off hits and misses as flood episodes with the 72 h rule", () => {
     const html = renderToStaticMarkup(<Tradeoff proof={proof} spots={spots} dateOnlySpots={new Set()} />);
-    expect(html).toContain("Hits and misses are flood episodes (counted once per flood)");
+    expect(html).toContain("Caught and missed count flood episodes (counted once per flood)");
     const first = [...proof.tradeoff.osney].sort((a, b) => a.pStar - b.pStar)[0];
     expect(html).toContain(`: ${first.hits + first.misses} at Osney`);
     expect(html).toContain("still the same flood");

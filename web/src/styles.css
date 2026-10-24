@@ -48,6 +48,8 @@ p { margin: 0 0 0.6em; }
   background: transparent; color: #fff; border: 1px solid transparent; border-radius: 6px;
   padding: 0.35rem 0.8rem; font: inherit; cursor: pointer;
 }
+.tabs .tab-hint { display: block; font-size: 0.7rem; opacity: 0.8; font-weight: 400; }
+.tabs .start-here-open { border: 1px dashed rgba(255, 255, 255, 0.6); font-size: 0.85rem; }
 .tabs button:hover { background: rgba(255, 255, 255, 0.12); }
 .tabs button[aria-selected="true"] { background: #fff; color: #0d366b; font-weight: 600; }
 
@@ -57,6 +59,28 @@ p { margin: 0 0 0.6em; }
 }
 .disclaimer strong { margin-right: 0.3em; }
 
+/* Tab takeaway (#103): the first thing on every tab. Model blue, never a warning colour. */
+.tab-headline {
+  background: var(--surface); border: 1px solid var(--border); border-left: 5px solid var(--series-1);
+  border-radius: 8px; padding: 0.7rem 1rem; margin-bottom: 1rem;
+}
+.tab-headline-main { font-size: 1.2rem; font-weight: 650; line-height: 1.35; margin: 0; }
+.tab-headline-detail { margin: 0.35rem 0 0; color: var(--ink-2); }
+/* "Start here" path (#103): neutral, dismissible, never styled like a warning. */
+.start-here {
+  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+  padding: 0.45rem 1.2rem; background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.start-here ol { display: flex; gap: 0.4rem; flex-wrap: wrap; list-style: none; margin: 0; padding: 0; }
+.start-here-n {
+  display: inline-grid; place-items: center; width: 1.3rem; height: 1.3rem; border-radius: 50%;
+  background: var(--accent); color: #fff; font-size: 0.75rem; font-weight: 700; margin-right: 0.2rem;
+}
+.start-here .btn[aria-current="step"] { border-color: var(--accent); font-weight: 600; }
+.start-here-close { margin-left: auto; font-size: 0.85rem; }
+.glossary { margin: 0; display: grid; gap: 0.5rem; }
+.glossary dt { font-weight: 600; }
+.glossary dd { margin: 0; color: var(--ink-2); font-size: 0.9rem; }
 .notice {
   background: #eef3fa; border: 1px solid #cddcf0; border-radius: 6px;
   padding: 0.4rem 0.7rem; font-size: 0.85rem; color: var(--ink-2); margin-bottom: 0.8rem;
@@ -156,6 +180,9 @@ table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .advice .act { color: var(--critical); font-weight: 700; }
 .advice .wait { color: #006300; font-weight: 700; }
 /* The one-line point of the Decide cost chart (#103). */
+details.why { display: inline; }
+details.why > summary { display: inline; cursor: pointer; color: var(--accent); font-size: 0.9rem; }
+details.why[open] { display: block; font-size: 0.9rem; color: var(--ink-2); margin-top: 0.3rem; }
 .decide-takeaway { margin-top: 0.4rem; padding-left: 0.6rem; border-left: 3px solid var(--series-1); }
 
 .fan-legend { display: flex; flex-wrap: wrap; gap: 0.2rem 0.9rem; font-size: 0.8rem; color: var(--ink-2); margin: 0.2rem 0 0.2rem 44px; }
@@ -171,6 +198,12 @@ table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .chart-tip {
   background: #fff; border: 1px solid var(--axis); border-radius: 6px; padding: 0.3rem 0.5rem;
   font-size: 0.8rem; color: var(--ink-2);
+}
+/* "For experts" fold on Proof (#103): progressive disclosure. */
+details.experts { margin-top: 0.5rem; }
+details.experts > summary {
+  cursor: pointer; font-weight: 600; padding: 0.6rem 1rem; margin-bottom: 1rem;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
 }
 .excluded-list { margin: 0.3rem 0 0; padding-left: 1.1rem; max-height: 14rem; overflow-y: auto; }
 /* Side-by-side cards keep their own height (no tall empty card next to a long table). */

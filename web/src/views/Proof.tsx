@@ -15,6 +15,8 @@ import { Coverage, Reliability, SkillByLead, Tradeoff } from "../components/proo
 import { FeatureImportance, PerEventTable, QualityTables, TravelFinding } from "../components/proof/TravelAndData";
 import { useOfficialPrecision } from "../components/proof/useOfficialPrecision";
 import { usePeakProbabilities } from "../components/proof/peakProbability";
+import { TabHeadline } from "../components/shared/TabHeadline";
+import { proofHeadline } from "../lib/headlines";
 
 export default function Proof() {
   const proof = useData<ProofData>("proof.json");
@@ -38,14 +40,12 @@ export default function Proof() {
       <FixtureNotice
         sources={[proof, travel, quality, importance].map((s) => (s.status === "ready" ? s.source : undefined))}
       />
+      {/* Headline number plus one honest limit first (#103); expert charts folded below. */}
+      {proof.status === "ready" && <TabHeadline h={proofHeadline(proof.data, spots.data)} />}
       {proof.status === "ready" ? (
         <>
           <div className="grid-cols">
             <SkillByLead proof={proof.data} />
-            <Coverage proof={proof.data} />
-          </div>
-          <div className="grid-cols">
-            <Reliability proof={proof.data} spots={spots.data} />
             <Tradeoff proof={proof.data} spots={spots.data} dateOnlySpots={dateOnlySpots} />
           </div>
           <PerEventTable proof={proof.data} events={events.data} spots={spots.data} dateOnly={precision.dateOnly} peaks={peaks} />
@@ -54,12 +54,21 @@ export default function Proof() {
         missing("Proof metrics (proof.json)")
       )}
       {travel.status === "ready" ? <TravelFinding pairs={travel.data} stations={stations.data} events={events.data} /> : missing("Travel times")}
-      {importance.status === "ready" ? (
-        <FeatureImportance importance={importance.data} stations={stations.data} />
-      ) : (
-        missing("Feature importance")
-      )}
-      {quality.status === "ready" ? <QualityTables quality={quality.data} stations={stations.data} /> : missing("Data quality report")}
+      <details className="experts">
+        <summary>For experts: forecast ranges, honest chances, model inputs and data quality</summary>
+        {proof.status === "ready" && (
+          <div className="grid-cols">
+            <Coverage proof={proof.data} />
+            <Reliability proof={proof.data} spots={spots.data} />
+          </div>
+        )}
+        {importance.status === "ready" ? (
+          <FeatureImportance importance={importance.data} stations={stations.data} />
+        ) : (
+          missing("Feature importance")
+        )}
+        {quality.status === "ready" ? <QualityTables quality={quality.data} stations={stations.data} /> : missing("Data quality report")}
+      </details>
     </>
   );
 }

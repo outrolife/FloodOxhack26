@@ -20,7 +20,9 @@ import { OutcomesTable } from "../components/decide/Outcomes";
 import { FixtureNotice } from "../components/shared/DataNotice";
 import { FLOOD_EPISODES, FLOOD_EPISODE_NOTE, FLOOD_EPISODE_RULE } from "../components/shared/episodes";
 import { formatCount, formatGBP, niceRound } from "../components/decide/format";
-import { costTakeaway } from "../components/decide/takeaway";
+import { costComparison, costTakeaway } from "../components/decide/takeaway";
+import { TabHeadline } from "../components/shared/TabHeadline";
+import { decideVerdict } from "../lib/headlines";
 
 /** The demo opens on Botley Road, the spot judges know (#103). */
 const DEFAULT_SPOT = "botley";
@@ -119,7 +121,9 @@ export default function Decide() {
   const liveP = liveProbability(live.status === "ready" ? live.forecast : null, spot ?? "", LIVE_LEAD_H);
   const adv = advice(pStar, liveP);
   const o = result?.outcomes ?? null;
-  const activePreset = PRESETS.find((p) => p.C === costs.C && p.L === costs.L)?.id;
+  const preset = PRESETS.find((p) => p.C === costs.C && p.L === costs.L);
+  const activePreset = preset?.id;
+  const comparison = result ? costComparison(result.strategies, result.crossings, spotName) : null;
 
   return (
     <>
@@ -127,19 +131,53 @@ export default function Decide() {
       <FixtureNotice
         sources={[proof.status === "ready" ? proof.source : undefined, spots.status === "ready" ? spots.source : undefined]}
       />
+      {/* Verdict first (#103): who you are, when to act, and what to do right now. */}
+      <TabHeadline
+        h={decideVerdict({
+          who: preset ? `${preset.label} (${preset.action}: ${formatGBP(preset.C)} to protect ${formatGBP(preset.L)})` : null,
+          C: costs.C,
+          L: costs.L,
+          pStar,
+          spotName,
+          liveP: liveP.status === "ok" ? liveP.p : null,
+          liveH: LIVE_LEAD_H,
+          liveReason: liveP.status === "ok" ? undefined : adv.now.replace(/\.$/, "").replace(/^No/, "no"),
+          gbp: formatGBP,
+        })}
+      >
+        {comparison && <p className="tab-headline-detail">{comparison}</p>}
+      </TabHeadline>
+
       <section className="card">
-        <h2>Decide: is it worth acting?</h2>
-        <p className="sub">
-          Acting costs <em>C</em>. Not acting when the flood comes loses <em>L</em>. With a calibrated probability{" "}
-          <em>P</em>, acting pays off when <em>P</em> × <em>L</em> ≥ <em>C</em>, so the best trigger is{" "}
-          <strong>p* = C / L</strong>.
-        </p>
-        <div className="controls" role="group" aria-label="Presets">
+        <h2>Is it worth acting?</h2>
+        <div className="controls" role="group" aria-label="Who are you?">
           {PRESETS.map((p) => (
             <button key={p.id} className="btn" aria-pressed={activePreset === p.id} onClick={() => setCosts({ C: p.C, L: p.L })}>
-              {p.label} <span className="small">({p.action}: {formatGBP(p.C)} / {formatGBP(p.L)})</span>
+              {p.label}: {p.action} <span className="small">(costs {formatGBP(p.C)}, protects {formatGBP(p.L)})</span>
             </button>
           ))}
+          <label>
+            Spot
+            <select value={spot ?? ""} onChange={(e) => setSpotKey(e.target.value)}>
+              {spotList.map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div>
+          Act once the chance of flooding reaches <span className="big">{formatPct(pStar)}</span>
+          {pStar >= 1 && <span className="muted"> (acting costs as much as the loss, so it never pays)</span>}{" "}
+          <details className="why">
+            <summary>Why?</summary>
+            Acting costs you <em>C</em> ({formatGBP(costs.C)}). Not acting when it floods costs <em>L</em> (
+            {formatGBP(costs.L)}). If the chance of flooding is <em>P</em>, waiting costs <em>P</em> × <em>L</em> on
+            average, so acting wins once <em>P</em> × <em>L</em> is more than <em>C</em>: at <em>P</em> = <em>C</em> ÷{" "}
+            <em>L</em> = {formatPct(pStar)} (the act-at chance, <em>p*</em>). This only works if our chances are honest
+            (when we say 30%, it floods about 30% of the time); the Proof tab checks that.
+          </details>
         </div>
         <h3 style={{ marginTop: "0.6rem" }}>Try your own costs</h3>
         <p className="small muted">
@@ -153,65 +191,29 @@ export default function Decide() {
           </button>
         </p>
         <div style={{ display: "grid", gap: "0.4rem", maxWidth: 640 }}>
-          <LogSlider label="Cost of acting, C" value={costs.C} range={C_RANGE} onChange={(C) => setCosts((c) => ({ ...c, C }))} />
-          <LogSlider label="Loss if flooded, L" value={costs.L} range={L_RANGE} onChange={(L) => setCosts((c) => ({ ...c, L }))} />
+          <LogSlider label="What acting costs you" value={costs.C} range={C_RANGE} onChange={(C) => setCosts((c) => ({ ...c, C }))} />
+          <LogSlider label="What you'd lose if it floods" value={costs.L} range={L_RANGE} onChange={(L) => setCosts((c) => ({ ...c, L }))} />
         </div>
-        <p style={{ marginTop: "0.8rem" }}>
-          Your trigger: <span className="big">p* = {formatPct(pStar)}</span>
-          {pStar >= 1 && <span className="muted"> (acting never pays off when C ≥ L)</span>}
-        </p>
-      </section>
-
-      <section className="card advice" aria-live="polite">
-        <div className="controls">
-          <label>
-            Spot
-            <select value={spot ?? ""} onChange={(e) => setSpotKey(e.target.value)}>
-              {spotList.map((s) => (
-                <option key={s.key} value={s.key}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <p>
-          {adv.head}
-          {pStar < 1 && (
-            <>
-              {" "}
-              Now ({LIVE_LEAD_H} h ahead):{" "}
-              {liveP.status === "ok" ? (
-                <>
-                  {formatPct(liveP.p)} →{" "}
-                  <span className={adv.act ? "act" : "wait"}>{adv.act ? "act" : "don't act yet"}</span>.
-                </>
-              ) : (
-                <span className="muted">{adv.now}</span>
-              )}
-            </>
-          )}
-        </p>
-        <p className="muted small">
-          {live.status === "loading" && "Loading live forecast…"}
-          {live.status === "none" && "Live data unavailable."}
+        <p className="muted small" style={{ marginTop: "0.6rem" }}>
+          {live.status === "loading" && "Loading the latest forecast…"}
+          {live.status === "none" && "No forecast available right now."}
           {live.status === "ready" &&
-            `Forecast issued ${formatDateTime(live.forecast.issuedAt)} · ${
-              live.origin === "api" ? "live API" : live.origin === "data" ? "latest saved forecast (live.json)" : "sample data (offline fixture), not today's river"
+            `Forecast made ${formatDateTime(live.forecast.issuedAt)}${
+              live.origin === "fixture" ? " · sample data, not today's river" : ""
             }.`}
         </p>
       </section>
 
       <section className="card">
-        <h2>Over the backtest at {spotName ? `${spotName}, ` : ""}p* = {formatPct(pStar)}</h2>
+        <h2>If you'd used this rule in past floods{spotName ? ` (${spotName}, act at ${formatPct(pStar)})` : ""}</h2>
         {proof.status === "loading" && <p className="muted">Loading backtest…</p>}
         {proof.status === "error" && <p className="notice warn">Backtest results unavailable: {proof.error}</p>}
         {result && (
           <>
             {o?.clamped && (
               <p className="notice">
-                Your p* is {o.clamped} the backtested triggers, so River Clock's outcomes are those at p* ={" "}
-                {formatPct(o.pStarUsed)}. The cost bars still use your C and L.
+                We tested act-at chances from the lowest to the highest in the results, and yours is {o.clamped} them, so
+                River Clock's results use the nearest one we tested ({formatPct(o.pStarUsed)}). Costs still use your amounts.
               </p>
             )}
             {o ? (
@@ -221,7 +223,7 @@ export default function Decide() {
             )}
 
             <h3 style={{ marginTop: "1rem" }}>
-              Total cost over the {formatCount(result.crossings)} past {FLOOD_EPISODES}*
+              What each approach would have cost over {formatCount(result.crossings)} past {FLOOD_EPISODES}*
             </h3>
             <CostChart strategies={result.strategies} costs={costs} best={result.best} />
             {costTakeaway(result.strategies, pStar) && (
@@ -231,7 +233,7 @@ export default function Decide() {
             <details className="small muted" style={{ marginTop: "0.5rem" }}>
               <summary>How the costs are counted</summary>
               <p>
-                Each hit or false alarm costs C; each miss costs L. <strong>River Clock</strong>: act when the forecast
+                Each time you act costs C; each flood you miss costs L. <strong>River Clock</strong>: act when the forecast
                 reaches p* (outcomes interpolated from the backtest). <strong>Official warnings</strong>: act on every EA
                 Flood Warning for the spot's area (alerts don't count);{" "}
                 {official

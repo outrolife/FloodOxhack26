@@ -20,10 +20,21 @@ import { FixtureNotice, Pending } from "../components/shared/DataNotice";
 import { ProbBars } from "../components/shared/ProbBars";
 import { RiverStrip } from "../components/shared/RiverStrip";
 import { arrivalSentence } from "../components/shared/forecast";
+import { TabHeadline } from "../components/shared/TabHeadline";
+import { timeMachineHeadline } from "../lib/headlines";
+import { peakPFloodBySpot } from "../components/proof/peakProbability";
 import { SpreadMapCard } from "../components/spread/SpreadOverlay"; // S3 (SPEC §11); hide with SHOW_S3 in stretch.ts
 
 const SIM_HOURS_PER_2S = 12; // SPEC §10.2: one simulated 12 h per 2 s (speed 1×)
 const SPEEDS = [0.5, 1, 2, 4] as const;
+
+// Highest pFlood per spot over a replay (near-miss headline), cached per replay.
+const peakCache = new WeakMap<Forecast[], Record<string, number>>();
+function peakFor(replay: Replay): Record<string, number> {
+  let p = peakCache.get(replay.forecasts);
+  if (!p) peakCache.set(replay.forecasts, (p = peakPFloodBySpot(replay)));
+  return p;
+}
 
 // River Clock vs EA matches per spot and tier (#82); cached per replay so the
 // slider doesn't rescan every forecast on each step.
@@ -71,6 +82,9 @@ export default function TimeMachine() {
   return (
     <>
       <div className="controls">
+        <span className="small muted" title="Each replay uses a model retrained without that flood (±7 days). It did learn from the other floods, including some after it. The strict test on forecasts no model trained on is on the Proof tab.">
+          Forecasts made by a model that never saw this flood.
+        </span>
         <label>
           Flood event
           <select value={eventId ?? ""} onChange={(e) => setEventId(e.target.value)}>
@@ -242,6 +256,13 @@ function ReplayPlayer({
   const alertSentence = tierSentence(alertMatch, revealed, endT);
 
   return (
+    <>
+    <TabHeadline
+      h={timeMachineHeadline(replay.name, spot.name, warnMatch, revealed, {
+        maxP: crossing ? null : (peakFor(replay)[spot.key] ?? null),
+        ended: revealed(endT),
+      })}
+    />
     <div className="grid-2">
       <section className="card">
         <div className="controls">
@@ -353,5 +374,6 @@ function ReplayPlayer({
         </div>
       </aside>
     </div>
+    </>
   );
 }

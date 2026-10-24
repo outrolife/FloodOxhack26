@@ -279,10 +279,10 @@ export function formatPct(p: number): string {
 export type Advice = { act: boolean | null; text: string; head: string; now: string };
 
 const LIVE_REASON: Record<Exclude<LiveProbability["status"], "ok">, string> = {
-  unavailable: "Live data unavailable",
-  "no-spot": "Live data unavailable for this spot",
-  stale: "Live data stale for this spot",
-  "timing-only": "No flood probability for this spot (timing only)",
+  unavailable: "No forecast available right now",
+  "no-spot": "No forecast for this spot",
+  stale: "No forecast: this spot's gauge is offline",
+  "timing-only": "No forecast for this spot (its gauge has no long history)",
 };
 
 /** "At your costs, act when P ≥ X%. Now: Y% → act / don't act yet." */

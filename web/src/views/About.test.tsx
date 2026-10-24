@@ -28,7 +28,7 @@ describe("About", () => {
   });
 
   it("states the known limitations", () => {
-    for (const s of ["Minns Estate", "Cold Harbour", "No forecast for Wolvercote", "13 Oct 2026", "April 2023", "Leave-one-flood-out", "No future rainfall"]) {
+    for (const s of ["Minns Estate", "Cold Harbour", "No forecast for Wolvercote", "13 Oct 2026", "April 2023", "Replays may have learned from later floods", "No future rainfall"]) {
       expect(html).toContain(s);
     }
   });

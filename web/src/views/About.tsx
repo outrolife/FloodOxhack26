@@ -1,8 +1,13 @@
 // About: how it works, limitations, credits, disclaimer (SPEC §10.2, §15.7).
 import HowItWorks from "../components/about/HowItWorks";
+import Glossary from "../components/about/Glossary";
+import { TabHeadline } from "../components/shared/TabHeadline";
+import { ABOUT_HEADLINE } from "../lib/headlines";
 
 export default function About() {
   return (
+    <>
+    <TabHeadline h={ABOUT_HEADLINE} />
     <div className="grid-cols">
       <HowItWorks />
 
@@ -12,25 +17,28 @@ export default function About() {
           <li>
             <strong>Measure the clock.</strong> From past Oxford floods we measure how long the
             flood wave takes to travel from upstream gauges (Farmoor, Eynsham, Cassington, Enslow,
-            Islip) to Oxford: the half-rise travel time <em>T½</em>.
+            Islip) to Oxford: how long the middle of a flood rise takes to get from one gauge to the
+            next (the travel time, <em>T½</em>).
           </li>
           <li>
-            <strong>Read the upstream gauges.</strong> Each river gauge is compared only with its
-            own history (anomalies), never with another gauge's datum.
+            <strong>Read the upstream gauges.</strong> We compare each gauge only with its own usual
+            level, because every gauge measures from a different zero.
           </li>
           <li>
-            <strong>Forecast a range.</strong> One LightGBM model per gauge, lead time (6 to 72 h)
-            and quantile gives the 5th to 95th percentile of future level, calibrated with conformal
-            prediction.
+            <strong>Forecast a range.</strong> A machine-learning model (LightGBM, a standard
+            decision-tree method) predicts a <em>range</em> for the river level 6 hours to 3 days
+            ahead, from a low guess to a high guess. We then adjust those ranges on past floods
+            (<span className="term" title="Conformal prediction: a standard method that widens or narrows forecast ranges, using results on held-out data, so they hold the truth as often as they claim.">conformal calibration</span>)
+            so that a 90% range really holds the real level about 9 times in 10.
           </li>
           <li>
-            <strong>Turn it into a probability and a time.</strong> The chance each trouble spot
-            passes its flood threshold, and when that chance reaches 10%, 50% and 90%.
+            <strong>Turn it into a chance and a time.</strong> The chance each spot reaches its
+            flood level, and when that chance reaches 1 in 10, 1 in 2 and 9 in 10.
           </li>
           <li>
-            <strong>Prove it, then decide.</strong> Replays of real floods, skill against a
-            "level stays roughly where it is" baseline, comparison with official EA warnings, and
-            a cost–loss rule for when acting is worth it.
+            <strong>Prove it, then decide.</strong> Replays of real floods, scoring against the
+            simple guess "the river stays where it is", comparison with the official Environment
+            Agency warnings, and a rule for when acting is worth the cost.
           </li>
         </ol>
       </section>
@@ -44,13 +52,13 @@ export default function About() {
             show 90% bootstrap intervals.
           </li>
           <li>
-            <strong>Leave-one-flood-out can see the future.</strong> Time Machine replays use a
-            model trained on the other floods, which may include floods that happened{" "}
-            <em>after</em> the replayed one (2014 is replayed with a model that saw 2024). Strict
-            time-split test results are reported separately on the Proof tab.
+            <strong>Replays may have learned from later floods.</strong> Each Time Machine replay
+            uses a model trained without that flood, but it may have seen floods that came{" "}
+            <em>after</em> it (2014 is replayed with a model that saw 2024). Our main scores use a
+            separate test on forecasts from 2021 on that no model trained on (Proof tab).
           </li>
           <li>
-            <strong>Thresholds are proxies.</strong> They are the EA's "property flooding is
+            <strong>Flood levels are approximate.</strong> They are the EA's "property flooding is
             possible" gauge levels, not a flood at your door. At Kings Mill we found no confirmed
             property flooding, only paths, parks and a pub.
           </li>
@@ -166,6 +174,8 @@ export default function About() {
           Times are shown in UK time (Europe/London) with the zone; data is stored in UTC.
         </p>
       </section>
+      <Glossary />
     </div>
+    </>
   );
 }

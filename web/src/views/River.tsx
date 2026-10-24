@@ -12,6 +12,8 @@ import { FixtureNotice, Pending } from "../components/shared/DataNotice";
 import { LOW_CONFIDENCE_N, RiverStrip } from "../components/shared/RiverStrip";
 import { useLive } from "../components/shared/useLive";
 import { liveObserved } from "../components/shared/observed";
+import { TabHeadline } from "../components/shared/TabHeadline";
+import { riverHeadline } from "../lib/headlines";
 
 /** A saved forecast older than this gets the warning style (#103, jargon audit R1). */
 const OLD_FORECAST_H = 6;
@@ -42,6 +44,7 @@ export default function River() {
 
   return (
     <>
+      <TabHeadline h={riverHeadline(forecast, spots.data)} />
       {live.status === "ready" && live.origin !== "api" && (
         // A recent saved forecast is normal (no live API at the judging table): say so neutrally (#103).
         // Warn only when it is old, or sample data.
