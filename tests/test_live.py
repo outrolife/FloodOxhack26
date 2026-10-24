@@ -1,0 +1,308 @@
+"""Live mode (issue #16): 15-min cache, hourly resampling, stale rule, Forecast shape, /api/live.
+
+No network: every EA call goes through a fake fetcher.
+"""
+
+from __future__ import annotations
+
+import json
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import pytest
+from fastapi.testclient import TestClient
+
+from api import main as api_main
+from model import forecast_live as fl
+from pipeline import ingest_live as il
+
+T0 = datetime(2026, 10, 25, 2, 30, tzinfo=UTC)  # just after the UK clocks go back (01:00 UTC)
+
+
+def iso(ts: datetime) -> str:
+    return ts.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def readings_body(times: list[datetime], values: list[float]) -> dict:
+    return {"items": [{"dateTime": iso(t), "value": v} for t, v in zip(times, values, strict=True)]}
+
+
+class FakeEA:
+    """Answers every measure with 15-min readings ending at `last`; counts calls."""
+
+    def __init__(self, last: datetime, hours: int = 72, missing: set[str] | None = None) -> None:
+        self.last, self.hours, self.missing, self.calls = last, hours, missing or set(), 0
+
+    def __call__(self, url: str, params: dict[str, str]) -> dict:
+        self.calls += 1
+        measure = url.rsplit("/", 2)[-2]
+        if any(m in measure for m in self.missing):
+            raise ConnectionError("gauge offline")
+        n = self.hours * 4
+        times = [self.last - timedelta(minutes=15 * i) for i in range(n)][::-1]
+        if "rainfall" in measure:
+            return readings_body(times, [0.2] * n)
+        rng = np.random.default_rng(len(measure))
+        return readings_body(times, list(2.0 + np.cumsum(rng.normal(0, 0.002, n))))
+
+
+# ---------------------------------------------------------------------------------------------
+# 15-minute cache
+# ---------------------------------------------------------------------------------------------
+
+
+def test_cache_ttl_is_15_minutes(tmp_path: Path) -> None:
+    fake = FakeEA(T0)
+    url = f"{il.BASE_URL}/id/measures/{il.LEVEL_MEASURES['osney']}/readings"
+
+    def get(now: datetime) -> datetime:
+        params = {"since": iso(now - timedelta(days=28)), "_sorted": "", "_limit": "10000"}
+        return il._cached_get_json(url, params, now=now, cache_dir=tmp_path, fetch=fake)[1]
+
+    assert get(T0) == T0 and fake.calls == 1
+    assert get(T0 + timedelta(minutes=14, seconds=59)) == T0 and fake.calls == 1  # cached (since moved)
+    assert get(T0 + timedelta(minutes=15)) == T0 + timedelta(minutes=15) and fake.calls == 2
+
+
+def test_cache_used_when_fetch_fails(tmp_path: Path) -> None:
+    url = f"{il.BASE_URL}/id/measures/x/readings"
+    il._cached_get_json(url, {}, now=T0, cache_dir=tmp_path, fetch=FakeEA(T0))
+
+    def down(url: str, params: dict[str, str]) -> dict:
+        raise ConnectionError
+
+    body, received = il._cached_get_json(url, {}, now=T0 + timedelta(hours=1), cache_dir=tmp_path, fetch=down)
+    assert received == T0 and body["items"]
+    with pytest.raises(ConnectionError):
+        il._cached_get_json(url, {}, now=T0, cache_dir=tmp_path / "empty", fetch=down)
+
+
+# ---------------------------------------------------------------------------------------------
+# Hourly resampling across the clock change
+# ---------------------------------------------------------------------------------------------
+
+
+def test_hourly_one_row_per_utc_hour_across_clock_change() -> None:
+    times = [
+        datetime(2026, 10, 25, 0, 30, tzinfo=UTC) + timedelta(minutes=15 * i) for i in range(9)
+    ]  # to 02:30
+    readings = {"osney": il.parse_readings(readings_body(times, [float(i) for i in range(9)]), T0)}
+    hourly = il.to_hourly(readings)
+    assert list(hourly.columns) == [
+        "gauge",
+        "ts_utc",
+        "kind",
+        "level_mean",
+        "level_max",
+        "rain_mm",
+        "filled",
+        "flagged",
+    ]
+    assert set(hourly["kind"]) == {"level"} and hourly["filled"].dtype == bool
+    assert str(hourly["ts_utc"].dtype) == "datetime64[ns, UTC]"
+    assert [t.hour for t in hourly["ts_utc"]] == [0, 1, 2]
+    assert hourly["ts_utc"].is_unique
+    np.testing.assert_allclose(
+        hourly["level_mean"], [0.5, 3.5, 7.0]
+    )  # 00:30,00:45 | 01:00-01:45 | 02:00-02:30
+    np.testing.assert_allclose(hourly["level_max"], [1.0, 5.0, 8.0])
+    # Local Europe/London times of those hours: 01:xx BST twice-ambiguous hour is two distinct UTC rows.
+    local = hourly["ts_utc"].dt.tz_convert("Europe/London")
+    assert list(local.dt.hour) == [1, 1, 2]
+
+
+def test_short_gaps_filled_long_gaps_flagged() -> None:
+    base = datetime(2026, 10, 20, tzinfo=UTC)
+    hours = [0, 1, 4, 5, 9]  # gap of 2 h (2, 3) is filled; gap of 3 h (6, 7, 8) -> 6, 7 filled, 8 NaN
+    times = [base + timedelta(hours=h) for h in hours]
+    hourly = il.to_hourly({"osney": il.parse_readings(readings_body(times, [1.0, 2.0, 3.0, 4.0, 5.0]), T0)})
+    h = hourly.set_index(hourly["ts_utc"].dt.hour)
+    assert h.loc[3, "level_mean"] == 2.0 and h.loc[3, "filled"] and not h.loc[3, "flagged"]
+    assert np.isnan(h.loc[8, "level_mean"]) and h.loc[8, "flagged"]
+    assert len(hourly) == 10
+
+
+def test_rain_catchment_is_mean_of_available_gauges() -> None:
+    base = datetime(2026, 10, 20, tzinfo=UTC)
+    t = [base + timedelta(minutes=15 * i) for i in range(8)]  # two hours
+    a, b = list(il.RAIN_MEASURES)[:2]
+    readings = {
+        a: il.parse_readings(readings_body(t, [0.5] * 8), T0),  # 2.0 mm per hour
+        b: il.parse_readings(readings_body(t[:4], [1.0] * 4), T0),  # 4.0 mm in hour 1 only
+    }
+    hourly = il.to_hourly(readings)
+    rain = hourly[hourly["gauge"] == il.RAIN_KEY]["rain_mm"].to_list()
+    assert rain == [3.0, 2.0]
+    assert set(hourly["gauge"]) == {il.RAIN_KEY, a, b} and a == "256230TP"  # rain keyed by EA ref
+    assert set(hourly["kind"]) == {"rain"} and hourly["level_mean"].isna().all()
+    assert hourly[hourly["gauge"] == b]["rain_mm"].to_list()[0] == 4.0
+
+
+def test_parse_readings_handles_lists_and_junk() -> None:
+    t = [T0 - timedelta(minutes=15 * i) for i in range(3)]
+    body = {
+        "items": [
+            {"dateTime": iso(t[0]), "value": [1.0, 3.0]},
+            {"dateTime": iso(t[1]), "value": "x"},
+            {"dateTime": iso(t[2]), "value": 4.0},
+        ]
+    }
+    df = il.parse_readings(body, T0)
+    assert df["value"].to_list() == [4.0, 2.0]
+    assert df["observed_at"].is_monotonic_increasing
+
+
+# ---------------------------------------------------------------------------------------------
+# Stale rule and Forecast
+# ---------------------------------------------------------------------------------------------
+
+
+def test_stale_after_three_hours_across_clock_change() -> None:
+    as_of = {
+        "osney": "2026-10-24T23:29:00Z",  # 3 h 01 min before 02:30 UTC -> stale
+        "godstow": "2026-10-24T23:31:00Z",  # 2 h 59 min -> fresh (wall clock in London shows 3 h 59 min)
+    }
+    assert fl.stale_gauges(as_of, ["osney", "godstow", "iffley"], T0) == ["iffley", "osney"]
+
+
+def _live(tmp_path: Path, fake: FakeEA, now: datetime) -> tuple[pd.DataFrame, dict]:
+    return il.ingest_live(
+        now,
+        cache_dir=tmp_path / "raw",
+        out_hourly=tmp_path / "h.parquet",
+        out_meta=tmp_path / "m.json",
+        fetch=fake,
+    )
+
+
+def test_forecast_contract_and_persistence_label(tmp_path: Path) -> None:
+    hourly, meta = _live(tmp_path, FakeEA(T0 - timedelta(minutes=15)), T0)
+    fc = fl.build_forecast(hourly, meta, T0)
+    assert set(fc) == {"issuedAt", "dataAsOf", "stale", "spots", "method", "note"}
+    assert fc["issuedAt"] == "2026-10-25T02:30:00Z"
+    assert fc["method"] == "persistence" and "Persistence" in fc["note"]
+    assert fc["stale"] == []
+    assert all(v.endswith("Z") for v in fc["dataAsOf"].values())
+    assert meta["gauges"]["osney"]["measure"] == "1303TH-level-downstage-i-15_min-mASD"  # §4.1 d/s
+    assert set(meta["gauges"]) == set(il.LEVEL_MEASURES)  # rain gauges are not in dataAsOf
+    assert [s["spot"] for s in fc["spots"]] == [s.key for s in fl.DEFAULT_SPOTS]
+    for s in fc["spots"]:
+        assert set(s) == {"spot", "levelNow", "leads", "arrival", "mode"}
+        assert [lead["h"] for lead in s["leads"]] == list(fl.LEADS_H)
+        p = [lead["pFlood"] for lead in s["leads"]]
+        assert p == sorted(p) and all(0 <= x <= 1 for x in p)
+        for lead in s["leads"]:
+            assert list(lead["q"]) == list(fl.QUANT_KEYS)
+            assert list(lead["q"].values()) == sorted(lead["q"].values())
+        assert set(s["arrival"]) == {"p10", "p50", "p90"}
+    json.dumps(fc, allow_nan=False)  # valid JSON, no NaN
+
+
+def test_stale_gauge_blanks_dependent_spot(tmp_path: Path) -> None:
+    hourly, meta = _live(tmp_path, FakeEA(T0 - timedelta(minutes=15)), T0)
+    meta["gauges"]["osney"]["observed_at"] = "2026-10-24T22:00:00Z"
+    del meta["gauges"]["kingsmill"]
+    fc = fl.build_forecast(hourly, meta, T0)
+    assert fc["stale"] == ["kingsmill", "osney"]
+    spots = {s["spot"]: s for s in fc["spots"]}
+    assert spots["osney"]["leads"] == [] and spots["osney"]["arrival"] is None
+    assert spots["wolvercote"]["leads"]  # godstow is fresh
+    assert spots["cherwell"]["leads"] == []  # still listed via the hourly fallback for levelNow
+
+
+def test_model_upstreams_count_as_dependencies(tmp_path: Path) -> None:
+    hourly, meta = _live(tmp_path, FakeEA(T0 - timedelta(minutes=15)), T0)
+    meta["gauges"]["farmoor"]["observed_at"] = "2026-10-24T20:00:00Z"
+
+    class Model(fl.PersistenceForecaster):
+        upstreams = {"osney": ["farmoor", "godstow"]}
+
+    fc = fl.build_forecast(hourly, meta, T0, forecaster=Model())
+    spots = {s["spot"]: s for s in fc["spots"]}
+    assert fc["method"] == "model" and fc["note"] == ""
+    assert spots["osney"]["leads"] == [] and spots["wolvercote"]["leads"]
+
+
+def test_no_live_data_raises() -> None:
+    with pytest.raises(fl.LiveDataUnavailable):
+        fl.build_forecast(pd.DataFrame(columns=["gauge", "ts_utc", "level_mean"]), {"gauges": {}}, T0)
+
+
+def test_no_models_means_persistence(tmp_path: Path) -> None:
+    assert fl.load_model_forecaster(tmp_path / "missing") is None
+    (tmp_path / "models").mkdir()
+    assert fl.load_model_forecaster(tmp_path / "models") is None
+
+
+def test_exceedance_and_arrival() -> None:
+    q = dict(zip(fl.QUANT_KEYS, [1.0, 1.1, 1.25, 1.5, 1.75, 1.9, 2.0], strict=True))
+    assert fl.exceedance_probability(q, 1.5) == pytest.approx(0.5)
+    assert fl.exceedance_probability(q, 1.0) == pytest.approx(0.95)
+    assert fl.exceedance_probability(q, 5.0) == 0.0 and fl.exceedance_probability(q, -5.0) == 1.0
+    flat = dict.fromkeys(fl.QUANT_KEYS, 2.0)
+    assert fl.exceedance_probability(flat, 2.0) == 0.0 and fl.exceedance_probability(flat, 1.9) == 1.0
+    arr = fl.arrival_window(1.0, 3.0, {6: 0.0, 12: 0.2, 24: 0.6, 36: 0.8}, T0)
+    assert arr == {"p10": iso(T0 + timedelta(hours=9)), "p50": iso(T0 + timedelta(hours=21)), "p90": None}
+
+
+# ---------------------------------------------------------------------------------------------
+# /api/live
+# ---------------------------------------------------------------------------------------------
+
+
+def test_api_recomputes_at_most_every_15_minutes() -> None:
+    calls: list[datetime] = []
+
+    def compute(now: datetime) -> dict:
+        calls.append(now)
+        return {"issuedAt": iso(now)}
+
+    cache = api_main.LiveCache(compute)
+    assert cache.get(T0)["issuedAt"] == iso(T0)
+    assert cache.get(T0 + timedelta(minutes=14))["issuedAt"] == iso(T0)
+    assert cache.get(T0 + timedelta(minutes=15))["issuedAt"] == iso(T0 + timedelta(minutes=15))
+    assert len(calls) == 2
+
+
+def test_api_serves_last_forecast_when_recompute_fails() -> None:
+    state = {"fail": False}
+
+    def compute(now: datetime) -> dict:
+        if state["fail"]:
+            raise ConnectionError
+        return {"issuedAt": iso(now)}
+
+    cache = api_main.LiveCache(compute)
+    cache.get(T0)
+    state["fail"] = True
+    assert cache.get(T0 + timedelta(hours=1))["issuedAt"] == iso(T0)
+
+
+def test_api_live_503_and_200(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    client = TestClient(api_main.app)
+
+    def no_data(now: datetime) -> dict:
+        raise fl.LiveDataUnavailable("none")
+
+    monkeypatch.setattr(api_main, "live_cache", api_main.LiveCache(no_data))
+    resp = client.get("/api/live")
+    assert resp.status_code == 503 and resp.json()["detail"] == "Live data unavailable"
+
+    now = datetime.now(UTC)
+    hourly, meta = _live(tmp_path, FakeEA(now - timedelta(minutes=10)), now)
+    monkeypatch.setattr(
+        api_main, "live_cache", api_main.LiveCache(lambda n: fl.build_forecast(hourly, meta, n))
+    )
+    resp = client.get("/api/live")
+    assert resp.status_code == 200 and resp.json()["method"] == "persistence"
+
+
+def test_refresh_without_processed_files_is_unavailable(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(fl, "LIVE_HOURLY", tmp_path / "none.parquet")
+    monkeypatch.setattr(fl, "LIVE_META", tmp_path / "none.json")
+    with pytest.raises(fl.LiveDataUnavailable):
+        fl.refresh(T0, fetch=False)
