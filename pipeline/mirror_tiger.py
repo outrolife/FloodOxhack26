@@ -138,9 +138,11 @@ def schema_sql() -> list[str]:
 
 def timescale_sql() -> list[str]:
     """Hypertable plus a continuous aggregate. Run only when the timescaledb extension is installed."""
+    # No default ts_utc index: the (gauge, ts_utc, source) primary key already serves our queries, and
+    # chunk exclusion handles time ranges. That saves ~15% storage on a small (free-tier) service.
     return [
         f"SELECT create_hypertable('{READINGS_TABLE}', by_range('ts_utc', INTERVAL '{CHUNK_INTERVAL}'), "
-        "if_not_exists => TRUE, migrate_data => TRUE)",
+        "create_default_indexes => FALSE, if_not_exists => TRUE, migrate_data => TRUE)",
         f"""CREATE MATERIALIZED VIEW IF NOT EXISTS {DAILY_VIEW}
 WITH (timescaledb.continuous) AS
 SELECT gauge,
@@ -177,6 +179,28 @@ GROUP BY gauge, source, 3"""
 def refresh_sql() -> str:
     """Materialise the continuous aggregate. Must run outside a transaction block."""
     return f"CALL refresh_continuous_aggregate('{DAILY_VIEW}', NULL, NULL)"
+
+
+COLUMNSTORE_AFTER = "60 days"  # chunks older than this are compressed; recent (live) hours stay row-store
+
+
+def columnstore_sql(already_enabled: bool) -> list[str]:
+    """Opt-in (``--columnstore``): compress old chunks column-wise, one segment per gauge and source.
+
+    Upserts still work on compressed chunks, but they are slower (Timescale decompresses the affected
+    segments), so run this after the history load. A policy keeps compressing chunks as they age.
+    """
+    enable = (
+        f"ALTER TABLE {READINGS_TABLE} SET (timescaledb.compress, "
+        "timescaledb.compress_segmentby = 'gauge, source', timescaledb.compress_orderby = 'ts_utc')"
+    )
+    return [
+        *([] if already_enabled else [enable]),
+        f"SELECT add_compression_policy('{READINGS_TABLE}', INTERVAL '{COLUMNSTORE_AFTER}', "
+        "if_not_exists => TRUE)",
+        f"SELECT count(compress_chunk(c, if_not_compressed => TRUE)) "
+        f"FROM show_chunks('{READINGS_TABLE}', older_than => INTERVAL '{COLUMNSTORE_AFTER}') c",
+    ]
 
 
 def stage_sql() -> list[str]:
@@ -221,10 +245,21 @@ def new_keys_sql() -> str:
 
 
 def readings_upsert_sql() -> str:
-    return upsert_sql(
-        READINGS_TABLE, f"SELECT {', '.join(DB_COLUMNS)} FROM {STAGE_TABLE}", KEY_COLUMNS, VALUE_COLUMNS,
-        DB_COLUMNS,
+    """Upsert only staged rows that are new or changed.
+
+    Identical rows are filtered out *before* the INSERT (a read-only anti-join), so an unchanged re-run
+    writes nothing. That matters on Timescale: an ``ON CONFLICT`` that reaches a compressed chunk makes it
+    decompress the matching rows, even when the ``WHERE`` then skips the update.
+    """
+    keys = " AND ".join(f"t.{c} = s.{c}" for c in KEY_COLUMNS)
+    old = ", ".join(f"t.{c}" for c in VALUE_COLUMNS)
+    new = ", ".join(f"s.{c}" for c in VALUE_COLUMNS)
+    changed = (
+        f"SELECT {', '.join(f's.{c}' for c in DB_COLUMNS)} FROM {STAGE_TABLE} s\n"
+        f"WHERE NOT EXISTS (SELECT 1 FROM {READINGS_TABLE} t\n"
+        f"                  WHERE {keys} AND ({old}) IS NOT DISTINCT FROM ({new}))"
     )
+    return upsert_sql(READINGS_TABLE, changed, KEY_COLUMNS, VALUE_COLUMNS, DB_COLUMNS)
 
 
 def gauges_upsert_sql() -> str:
@@ -394,7 +429,8 @@ def sql_plan(n_gauges: int, sources: Sequence[str]) -> list[str]:
     for s in sources:
         plan += [f"-- 4. {s}: per batch, inside one transaction", *stage_sql(), copy_sql(), new_keys_sql(),
                  readings_upsert_sql()]
-    plan += ["-- 5. Timescale only, outside a transaction", refresh_sql()]
+    plan += ["-- 5. Timescale only, outside a transaction", refresh_sql(),
+             "-- 6. Timescale with --columnstore only", *columnstore_sql(already_enabled=False)]
     return plan
 
 
@@ -472,8 +508,21 @@ def upsert_readings(conn: Any, prep: Prepared, batch_rows: int = BATCH_ROWS) -> 
     return inserted, updated
 
 
+def compress(conn: Any) -> dict[str, Any]:
+    """Run ``columnstore_sql`` and report the hypertable size before and after."""
+    size_sql = f"SELECT pg_size_pretty(hypertable_size('{READINGS_TABLE}'))"
+    before = conn.execute(size_sql).fetchone()[0]
+    enabled = conn.execute(
+        "SELECT compression_enabled FROM timescaledb_information.hypertables WHERE hypertable_name = %s",
+        (READINGS_TABLE,),
+    ).fetchone()[0]
+    for stmt in columnstore_sql(already_enabled=enabled):
+        conn.execute(stmt)
+    return {"size_before": before, "size_after": conn.execute(size_sql).fetchone()[0]}
+
+
 def mirror(url: str, preps: Sequence[Prepared], gauges: Sequence[tuple[Any, ...]],
-           batch_rows: int = BATCH_ROWS) -> dict[str, Any]:
+           batch_rows: int = BATCH_ROWS, columnstore: bool = False) -> dict[str, Any]:
     summary: dict[str, Any] = {}
     with _connect(url) as conn:
         # Never log the URL or host: the URL holds the password.
@@ -486,6 +535,10 @@ def mirror(url: str, preps: Sequence[Prepared], gauges: Sequence[tuple[Any, ...]
                                     "unchanged": prep.n_rows - i - u}
         if summary["timescale"]:
             conn.execute(refresh_sql())
+            if columnstore:
+                summary["columnstore"] = compress(conn)
+        elif columnstore:
+            log.warning("--columnstore needs Timescale; skipped on plain Postgres")
     return summary
 
 
@@ -505,6 +558,8 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
                    help=f"rows per COPY batch (default {BATCH_ROWS})")
     p.add_argument("--since", type=lambda v: pd.Timestamp(v, tz="UTC"), default=None, metavar="YYYY-MM-DD",
                    help="only mirror hours from this UTC date on (keeps a free-tier service small)")
+    p.add_argument("--columnstore", action="store_true",
+                   help=f"Timescale only: compress chunks older than {COLUMNSTORE_AFTER} (after the load)")
     return p.parse_args(argv)
 
 
@@ -534,7 +589,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not url:
         log.error("%s is not set, nor in .env (see docs/tiger-data.md); try --dry-run", ENV_URL)
         return 2
-    summary = mirror(url, preps, gauges, args.batch_rows)
+    summary = mirror(url, preps, gauges, args.batch_rows, args.columnstore)
     log.info("done: %s", summary)
     return 0
 

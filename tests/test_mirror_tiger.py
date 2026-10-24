@@ -95,6 +95,25 @@ def test_readings_upsert_only_updates_changed_rows():
     assert "NOT EXISTS" in new and "t.gauge = s.gauge AND t.ts_utc = s.ts_utc AND t.source = s.source" in new
 
 
+def test_readings_upsert_skips_identical_rows_before_insert():
+    # Unchanged rows must never reach ON CONFLICT: on Timescale that would decompress columnstore chunks.
+    sql = mt.readings_upsert_sql()
+    insert, conflict = sql.split("ON CONFLICT")
+    assert "WHERE NOT EXISTS (SELECT 1 FROM readings_hourly t" in insert
+    assert "IS NOT DISTINCT FROM" in insert
+    for col in mt.VALUE_COLUMNS:
+        assert f"t.{col}" in insert and f"s.{col}" in insert
+
+
+def test_columnstore_sql():
+    first = mt.columnstore_sql(already_enabled=False)
+    assert first[0].startswith("ALTER TABLE readings_hourly SET (timescaledb.compress")
+    assert "compress_segmentby = 'gauge, source'" in first[0] and "compress_orderby = 'ts_utc'" in first[0]
+    assert "add_compression_policy('readings_hourly'" in first[1] and "if_not_exists => TRUE" in first[1]
+    assert "compress_chunk(c, if_not_compressed => TRUE)" in first[2] and "show_chunks" in first[2]
+    assert mt.columnstore_sql(already_enabled=True) == first[1:]  # never re-ALTER a compressed table
+
+
 def test_copy_and_stage_sql():
     assert mt.copy_sql() == (
         "COPY readings_stage (gauge, ts_utc, source, kind, level_mean, level_max, rain_mm, filled, flagged) "
