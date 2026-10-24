@@ -8,7 +8,7 @@
 - **needs**: 
 - **notes**: #111 S4 and #112 a11y merged
 - **branch**: main
-- **head**: e37a40d Merge pull request #131 from outrolife/app/v2-replay
+- **head**: e6e9188 Merge pull request #140 from outrolife/app/ux-one-screen
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T20:15:26Z
+- **updated**: 2026-10-24T20:46:08Z
