@@ -4,11 +4,11 @@
 - **state**: working
 - **issue**: #19
 - **task**: Fill real results into README/Devpost/demo; add docs/judges.md
-- **next**: Read data files and audit comments
+- **next**: Write README travel-time + coverage + Tiger sections
 - **needs**: 
 - **notes**: 
 - **branch**: story/results-pass-1
 - **head**: 0a61018 Merge pull request #67 from outrolife/integration/arrival-at-i
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:27:54Z
+- **updated**: 2026-10-24T17:29:49Z
