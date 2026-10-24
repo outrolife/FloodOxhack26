@@ -3,12 +3,12 @@
 - **role**: PM
 - **state**: working
 - **issue**: 
-- **task**: PM: merged #60-#65 (Tiger, live speed-up, app fixes); #66 proof.json draft fixing CI
-- **next**: Check-in 18:20 BST; README results pass after proof.json
+- **task**: PM: merged #67 (arrival rule, unblocks #39/#66); waiting on #39 ready
+- **next**: Merge #39 as soon as ready, then #66 proof.json
 - **needs**: 
-- **notes**: Core 87%, P0 left: #8 (alfredo). Tiger mirror live (3.29M rows). Vultr dropped
+- **notes**: Core 88%. alfredo: no change needed for arrival; rebase #39 + mark ready
 - **branch**: main
-- **head**: 919f0e0 Merge pull request #64 from outrolife/app/tz-and-axis
+- **head**: 0a61018 Merge pull request #67 from outrolife/integration/arrival-at-i
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:22:10Z
+- **updated**: 2026-10-24T17:24:19Z
