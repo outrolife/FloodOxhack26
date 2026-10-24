@@ -22,7 +22,9 @@ wherever ``spill <= its WSE``, so every issue time and lead costs one comparison
 Draws are stratified (u = (rank + 0.5) / N over a seeded permutation) and paired with the same
 noise fields for every frame, so frames change smoothly with time and runs are reproducible.
 
-Outputs (SPEC §11 contract): transparent PNGs, north-up in EPSG:4326 for a Leaflet imageOverlay,
+Outputs (SPEC §11 contract): transparent RGBA PNGs, a pixelated heatmap of 25 m blocks (mean
+frequency of their 5 m cells, continuous green-yellow-red ramp), north-up in EPSG:4326 for a
+Leaflet imageOverlay (the UI upscales with ``image-rendering: pixelated``),
 under ``web/public/data/spread/{event}/``, plus ``manifest.json``. PNGs are named by content hash,
 so identical frames (often empty ones) share a file. Per-cell rasters (frequency, median depth,
 first tau) for every exported issue time go to ``$RC_DATA_DIR/processed/s3/{event}/cells.npz``
@@ -47,7 +49,7 @@ from scipy import ndimage
 
 from model.probability import ALPHAS, HORIZONS_H, QUANT_KEYS
 from stretch.s3 import fetch
-from stretch.s3.png import RGBA, encode_indexed_png
+from stretch.s3.png import encode_rgba_png
 
 ROOT = Path(__file__).resolve().parents[2]
 PUBLIC = ROOT / "web" / "public" / "data"
@@ -70,15 +72,20 @@ LEVEL_STEP_M = 0.01
 SEED = 42
 TAUS: tuple[int, ...] = HORIZONS_H
 
-# Frequency classes for the PNG (agreed with the S3 UI, PR #95): [lower bound, RGBA].
-# Below 0.10 is transparent; #c6dbef, #6baed6, #2171b5, #08306b.
-CLASSES: list[tuple[float, RGBA]] = [
-    (0.10, (0xC6, 0xDB, 0xEF, 255)),
-    (0.25, (0x6B, 0xAE, 0xD6, 255)),
-    (0.50, (0x21, 0x71, 0xB5, 255)),
-    (0.75, (0x08, 0x30, 0x6B, 255)),
+# PNG style (agreed with the S3 UI, PR #95): a pixelated heatmap. The 5 m frequencies are averaged
+# over 25 m blocks (5x5 cells, EPSG:27700), warped nearest-neighbour to a ~25 m lat/lon grid, and
+# coloured on a continuous ramp (linear in RGB between stops). Below 0.05: transparent.
+BLOCK = 5  # cells per block side -> 25 m blocks
+RAMP_MIN = 0.05
+RAMP: list[tuple[float, tuple[int, int, int]]] = [
+    (0.05, (0x1A, 0x98, 0x50)),  # green
+    (0.30, (0x91, 0xCF, 0x60)),  # yellow-green
+    (0.50, (0xFE, 0xE0, 0x8B)),  # yellow
+    (0.75, (0xFC, 0x8D, 0x59)),  # orange
+    (1.00, (0xD7, 0x30, 0x27)),  # red
 ]
-PALETTE: list[RGBA] = [(0, 0, 0, 0)] + [c for _, c in CLASSES]
+RAMP_ALPHA = round(0.85 * 255)
+FEATHER = (0.25, 0.5, 0.75)  # alpha multipliers for the outer pixels (blocks) of the box, edge inwards
 
 CAVEATS_BASE = [
     "Experimental. A simple terrain fill: ignores channel flow, walls, drains, pumps and defences. "
@@ -89,7 +96,8 @@ CAVEATS_BASE = [
     f"Terrain: {fetch.DTM_SOURCE}. River cells: EA Statutory Main River Map (OGL v3).",
     f"{N_RUNS} runs per frame: forecast level drawn from the River Clock quantiles; terrain "
     f"perturbed by ±{NOISE_SIGMA_M:.2f} m smoothed noise for LiDAR error.",
-    "Shading: share of runs in which a cell is wet. Palest 10-25%, then 25-50%, 50-75%, darkest 75% or more.",
+    "Shading: 25 m squares coloured by the average share of runs in which their 5 m cells are wet: "
+    "green from 5%, yellow at 50%, red at 100%; clear below 5%. River centreline cells are left out.",
 ]
 
 
@@ -333,7 +341,7 @@ def river_cells(grid: Grid) -> np.ndarray:
 
 @dataclass
 class Overlay:
-    """North-up EPSG:4326 grid exactly covering ``BOUNDS_WGS84`` at about 5 m."""
+    """North-up EPSG:4326 grid exactly covering ``BOUNDS_WGS84``, pixels about ``cell_m`` wide."""
 
     width: int
     height: int
@@ -345,22 +353,33 @@ class Overlay:
         return from_bounds(LON_W, LAT_S, LON_E, LAT_N, self.width, self.height)
 
 
-def overlay_grid() -> Overlay:
+def overlay_grid(cell_m: float = CELL_M * BLOCK) -> Overlay:
     mid = math.radians((LAT_S + LAT_N) / 2)
-    w = round((LON_E - LON_W) * 111_320 * math.cos(mid) / CELL_M)
-    h = round((LAT_N - LAT_S) * 111_200 / CELL_M)
+    w = round((LON_E - LON_W) * 111_320 * math.cos(mid) / cell_m)
+    h = round((LAT_N - LAT_S) * 111_200 / cell_m)
     return Overlay(width=w, height=h)
 
 
-def to_wgs84(a: np.ndarray, grid: Grid, ov: Overlay, nodata: float = 0) -> np.ndarray:
-    """Nearest-neighbour reprojection of a model-grid array onto the overlay grid."""
+def block_mean(a: np.ndarray, exclude: np.ndarray, block: int = BLOCK) -> np.ndarray:
+    """Mean of ``a`` over ``block`` x ``block`` cells, ignoring ``exclude`` cells (NaN if all are)."""
+    ny, nx = a.shape
+    if ny % block or nx % block:
+        raise ValueError("grid must be a whole number of blocks")
+    v = np.where(exclude, 0.0, a).reshape(ny // block, block, nx // block, block).sum(axis=(1, 3))
+    n = (~exclude).reshape(ny // block, block, nx // block, block).sum(axis=(1, 3))
+    with np.errstate(invalid="ignore", divide="ignore"):
+        return np.where(n > 0, v / np.maximum(n, 1), np.nan)
+
+
+def to_wgs84(a: np.ndarray, src_transform: Any, ov: Overlay, nodata: float = 0) -> np.ndarray:
+    """Nearest-neighbour reprojection of an EPSG:27700 array onto the overlay grid."""
     from rasterio.warp import Resampling, reproject
 
     dst = np.full((ov.height, ov.width), nodata, dtype=a.dtype)
     reproject(
         source=a,
         destination=dst,
-        src_transform=grid.transform,
+        src_transform=src_transform,
         src_crs="EPSG:27700",
         dst_transform=ov.transform,
         dst_crs="EPSG:4326",
@@ -383,11 +402,33 @@ def in_bbox_mask(grid: Grid) -> np.ndarray:
     return (lon >= LON_W) & (lon <= LON_E) & (lat >= LAT_S) & (lat <= LAT_N)
 
 
-def classify(freq: np.ndarray) -> np.ndarray:
-    idx = np.zeros(freq.shape, dtype=np.uint8)
-    for i, (lo, _) in enumerate(CLASSES, start=1):
-        idx[freq >= lo - 1e-9] = i
-    return idx
+def feather(rgba: np.ndarray, steps: tuple[float, ...] = FEATHER) -> np.ndarray:
+    """Fade alpha over the outer ``len(steps)`` pixels so the box edge doesn't end in a hard line."""
+    h, w = rgba.shape[:2]
+    rows, cols = np.arange(h)[:, None], np.arange(w)[None, :]
+    d = np.minimum(np.minimum(rows, h - 1 - rows), np.minimum(cols, w - 1 - cols))
+    mult = np.ones((h, w))
+    for i, m in enumerate(steps):
+        mult[d == i] = m
+    out = rgba.copy()
+    out[..., 3] = np.round(rgba[..., 3] * mult).astype(np.uint8)
+    out[out[..., 3] == 0] = 0
+    return out
+
+
+def colourise(freq: np.ndarray) -> np.ndarray:
+    """(H, W) frequencies -> (H, W, 4) uint8 RGBA on the ``RAMP``; NaN or < ``RAMP_MIN`` is transparent."""
+    f = np.asarray(freq, dtype=float)
+    stops = np.array([x for x, _ in RAMP])
+    rgb = np.array([c for _, c in RAMP], dtype=float)
+    fc = np.clip(np.nan_to_num(f, nan=0.0), stops[0], stops[-1])
+    out = np.zeros((*f.shape, 4), dtype=np.uint8)
+    for ch in range(3):
+        out[..., ch] = np.round(np.interp(fc, stops, rgb[:, ch])).astype(np.uint8)
+    show = ~np.isnan(f) & (f >= RAMP_MIN)
+    out[..., 3] = np.where(show, RAMP_ALPHA, 0)
+    out[~show] = 0
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -467,10 +508,10 @@ def iou(a: np.ndarray, b: np.ndarray, within: np.ndarray) -> float:
 
 
 def _write_png(
-    out_dir: Path, rel_dir: str, tau: int, idx: np.ndarray, cache: dict[str, str]
+    out_dir: Path, rel_dir: str, tau: int, rgba: np.ndarray, cache: dict[str, str]
 ) -> tuple[str, int]:
     """Write a frame named by lead and content hash; identical images share one file."""
-    data = encode_indexed_png(idx, PALETTE)
+    data = encode_rgba_png(rgba)
     h = hashlib.sha1(data).hexdigest()[:10]
     if h not in cache:
         name = f"tau{tau:02d}_{h}.png"
@@ -585,6 +626,9 @@ def run(event: str, every_h: int = 0, n_runs: int = N_RUNS, seed: int = SEED) ->
     for old in out_dir.glob("*.png"):
         old.unlink()
     ov = overlay_grid()
+    from rasterio.transform import from_origin
+
+    block_transform = from_origin(grid.xmin, grid.ymax, CELL_M * BLOCK, CELL_M * BLOCK)
     cache: dict[str, str] = {}
     frames = []
     proc_dir = fetch.DATA_DIR / "processed" / "s3" / event
@@ -602,9 +646,10 @@ def run(event: str, every_h: int = 0, n_runs: int = N_RUNS, seed: int = SEED) ->
             freq = ens.frequency(wse)
             freqs[tau] = freq
             max_ha = max(max_ha, float(((freq >= 0.5) & within & ~river).sum()) * CELL_M**2 / 1e4)
-            # River centreline cells are seeds of the fill, not results: leave them unpainted.
-            cls = np.where(river, 0, classify(freq)).astype(np.uint8)
-            png, _ = _write_png(out_dir, rel_dir, tau, to_wgs84(cls, grid, ov), cache)
+            # River centreline cells are seeds of the fill, not results: left out of the block means.
+            blocks = block_mean(freq, river).astype(np.float32)
+            warped = to_wgs84(blocks, block_transform, ov, nodata=np.nan)
+            png, _ = _write_png(out_dir, rel_dir, tau, feather(colourise(warped)), cache)
             frames.append({"tau": tau, "issuedAt": issue.issued_at, "png": png})
         cell_freq.append(np.stack([freqs.get(t, np.full(river.shape, np.nan)) for t in TAUS]))
         cell_depth.append(
