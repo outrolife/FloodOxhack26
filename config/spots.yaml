@@ -1,0 +1,217 @@
+# River Clock trouble spots (SPEC §4.2; §9 `Spot`). Owner: Story. Verified 24 Oct 2026 (issue #10).
+#
+# Top-level list. The §9 fields are key, name, gauge, threshold, amber, lat, lon, warningArea, mode.
+# Extra fields (gaugeRef, warningAreaName, warningAreaUrl, evidence, notes) are for humans and the
+# About tab. Leave them out when writing spots.json.
+#
+# How each field was checked:
+# - threshold / amber: GOV.UK check-for-flooding station pages (`/station/<RLOIid>`): "Property flooding
+#   is possible above this level" and "Top of normal range". They match flood-monitoring
+#   `stageScale.typicalRangeHigh` for the trained gauges.
+# - warningArea: EA flood-monitoring `/id/floodAreas?lat=51.755&long=-1.26&dist=5`. Each lat/lon below
+#   lies inside its area's polygon (`/id/floodAreas/<code>/polygon`, point-in-polygon test).
+# - lat/lon: OpenStreetMap (Nominatim + Overpass), placed on the street that floods.
+# - Gauge re-target (SPEC §4.1.1, PR #30): osney → minns and abingdonrd → coldharbour, because the
+#   Osney/Iffley/Godstow downstream stage has no Hydrology history. wolvercote stays on godstow, live only.
+# - Gauge peaks quoted in evidence are EA Hydrology daily maxima (`level-max-86400`) or
+#   15-min values (`level-i-900`), all UTC.
+# - Botley Road was closed for the rail-bridge works Apr 2023 – Sept 2026, so road closures there in
+#   that period are NOT flood evidence. None are used below.
+
+- key: osney
+  name: Osney Island / Binsey
+  gauge: minns
+  gaugeRef: 1635TH            # Seacourt Stream at Minns Estate, RLOI 7074, Hydrology 15-min from 2003-07
+  threshold: 2.90             # GOV.UK: "Property flooding is possible above this level"
+  amber: 2.13                 # GOV.UK top of normal range (= stageScale.typicalRangeHigh)
+  lat: 51.7503
+  lon: -1.2735
+  warningArea: 061FWF23BnsyOsny
+  warningAreaName: River Thames and tributaries in the Binsey, Osney and Osney Island areas in Oxford
+  warningAreaUrl: https://check-for-flooding.service.gov.uk/target-area/061FWF23BnsyOsny
+  mode: probability
+  evidence:
+    - date: "2026-10-24"
+      claim: "GOV.UK Minns Estate page: normal top 2.13 m, property flooding possible above 2.90 m, record 3.12 m on 23 Jul 2007."
+      url: https://check-for-flooding.service.gov.uk/station/7074
+    - date: "2007-07"
+      claim: "South Street homes flooded in July 2007 (resident account). Minns peak 3.117 m on 23 Jul 2007 (gauge record), above 2.90 m from 22 to 26 Jul."
+      url: https://osneyisland.org.uk/wp-content/uploads/2024/02/osney-newsletter-2024-feb.pdf
+    - date: "2014-01-09"
+      claim: "Thames south of Osney Lock reached 3.93 m in Jan/Feb 2014 and some Osney properties came very close to flooding. EA barrier deployed on Osney Island on 8 Jan. Minns first reached 2.90 m at 09:00Z on 6 Jan and peaked at 3.090 m at 12:15Z on 9 Jan."
+      url: https://osneyisland.org.uk/wp-content/uploads/2023/02/osney-newsletter-2023-feb.pdf
+    - date: "2014-01-08"
+      claim: "EA flood barrier deployed on Osney Island (Cherwell newspaper live blog, 8 Jan 2014)."
+      url: https://www.cherwell.org/2014/01/07/update-floods-hit-central-oxford/
+    - date: "2024-01-04"
+      claim: "Evening of 4 Jan 2024: South Street and the Bridge Street extension filled with water within a couple of hours, with rain on top of high river levels. EA pump brought in that night; barriers erected in West Street on 5 Jan. EA flood warnings for 061FWF23BnsyOsny from 09:30 on 6 Jan to 17:10 on 10 Jan. Minns first reached 2.90 m at 05:30Z on 5 Jan and peaked at 2.968 m at 21:45Z on 5 Jan."
+      url: https://osneyisland.org.uk/wp-content/uploads/2024/02/osney-newsletter-2024-feb.pdf
+    - date: "2021-02-03"
+      claim: "Negative or borderline case: winter 2021 was the most serious since 2014 (Osney d/s 3.73 m), with sandbags and a barrier at Bulstake Close but no homes reported flooded. Minns peaked at 2.903 m, just at the threshold."
+      url: https://osneyisland.org.uk/wp-content/uploads/2023/02/osney-newsletter-2023-feb.pdf
+    - date: "2023-01-18"
+      claim: "Negative case: Osney d/s 3.58 m on 18 Jan 2023 with sandbags at Bulstake Close and no property flooding. Minns peaked at 2.682 m (below 2.90)."
+      url: https://osneyisland.org.uk/wp-content/uploads/2023/02/osney-newsletter-2023-feb.pdf
+  notes: >-
+    Minns Estate is a substitute gauge: it is on the Seacourt Stream about 1.2 km west of Osney Island,
+    not on the main Thames channel. Across 2007, 2014, 2021, Jan 2023, Jan 2024 and Feb 2026, Minns
+    peaks rank the same way as the Osney flood severity reported by residents. Minns >= 2.90 m held
+    in every winter with flooding or near-flooding on the island and in none of the quiet ones (the
+    one exception is 2021, which touched 2.903 m). Osney Island flooding is often groundwater and
+    sewer water coming up through floors and manholes before the river overtops (osneyisland.org.uk/flooding/faqs),
+    so the gauge is a proxy for risk rather than a direct measure. Marker moved about 70 m to the
+    Bridge Street / South Street corner, the lowest part of the island and where water first appears.
+
+- key: botley
+  name: Botley Road / New Botley / Hinksey
+  gauge: newbotley
+  gaugeRef: 1645TH            # Bulstake Stream at New Botley, RLOI 7075, Hydrology from 2002-05
+  threshold: 2.76
+  amber: 2.01
+  lat: 51.7525
+  lon: -1.2790
+  warningArea: 061FWF23NwBotley
+  warningAreaName: River Thames and tributaries at New Botley, New Hinksey, North Hinksey, South Hinksey and Grandpont
+  warningAreaUrl: https://check-for-flooding.service.gov.uk/target-area/061FWF23NwBotley
+  mode: probability
+  evidence:
+    - date: "2026-10-24"
+      claim: "GOV.UK New Botley page: normal top 2.01 m, property flooding possible above 2.76 m, record 3.14 m on 25 Jul 2007."
+      url: https://check-for-flooding.service.gov.uk/station/7075
+    - date: "2007-07-25"
+      claim: "July 2007: water spread from Port Meadow and Binsey into Botley and Osney, flooding several hundred houses (written evidence to the Commons EFRA committee, 2007). New Botley peaked at 3.141 m on 25 Jul (gauge record), above 2.76 m from 22 to 28 Jul."
+      url: https://publications.parliament.uk/pa/cm200708/cmselect/cmenvfru/49/49we69.htm
+    - date: "2014-02-09"
+      claim: "ITV Meridian, 9 Feb 2014: Botley Road and Abingdon Road closed, flooding on a scale not seen since 2007 (before the 2023 rail-bridge closure, so valid). New Botley 3.032 m on 9 Jan 2014, above 2.76 m on 11 days between 6 Jan and 12 Feb."
+      url: https://itv.com/news/meridian/2014-02-09/oxfordshire-facing-worse-flooding-since-2007
+    - date: "2021-02-01"
+      claim: "Oxford City Council: flood barrier installed at Bulstake Close off Botley Road; Ferry Hinksey Road flooded (passable with care); EA warning for Botley/New Hinksey/Grandpont. New Botley 2.819 m on 3 Feb 2021 (above 2.76 m on 2–3 Feb)."
+      url: https://www.oxford.gov.uk/news/article/1706/flooding_update_1221
+    - date: "2024-01-05"
+      claim: "Jan 2024 (Storm Henk): EA flood warnings for this area (listed by Culham PC, 5 Jan 2024). New Botley first reached 2.76 m at 18:00Z on 4 Jan and peaked at 2.920 m at 19:30Z on 5 Jan. Botley Road itself was already closed for rail works, so it gives no closure evidence."
+      url: https://culham-pc.gov.uk/?p=70480
+    - date: "2024-02-27"
+      claim: "Late Feb 2024: homes on Botley Road flooded with raw sewage from drains, with a very high water table, and Seacourt Park and Ride underwater 'for weeks' (University of Oxford alumni article, 27 Feb 2024). Context only: Feb 2024 isn't in events.yaml."
+      url: https://alumni.ox.ac.uk/node/3699671
+  notes: >-
+    Strongest spot: the gauge is on the spot, has history from 2002, and crossed the threshold in
+    every major event (2007, 2012, 2014, 2021, Jan 2024, Nov 2024) but not in the near-miss winters
+    (Jan 2023: 2.637 m; Feb 2026: 2.657 m). Marker checked: it falls on Botley Road in New Botley.
+    The Commons evidence page returns 403 to automated fetches; claim taken from the search-engine
+    summary, so check it by hand before quoting.
+
+- key: abingdonrd
+  name: Abingdon Road / Grandpont
+  gauge: coldharbour
+  gaugeRef: 1675TH            # Hinksey Stream at Cold Harbour, RLOI 7076, Hydrology from 2002-05
+  threshold: 2.44             # GOV.UK: "Property flooding is possible above this level"
+  amber: 2.30                 # GOV.UK top of normal range (= stageScale.typicalRangeHigh)
+  lat: 51.7330
+  lon: -1.2493
+  warningArea: 061FWF23NwBotley
+  warningAreaName: River Thames and tributaries at New Botley, New Hinksey, North Hinksey, South Hinksey and Grandpont
+  warningAreaUrl: https://check-for-flooding.service.gov.uk/target-area/061FWF23NwBotley
+  mode: probability
+  evidence:
+    - date: "2026-10-24"
+      claim: "GOV.UK Cold Harbour page: normal top 2.30 m, property flooding possible above 2.44 m, record 2.74 m on 5 Jan 2003."
+      url: https://check-for-flooding.service.gov.uk/station/7076
+    - date: "2024-01-05"
+      claim: "Abingdon Road closed at about 21:30 on Fri 5 Jan 2024 due to rising water; later reopened except Old Abingdon Road to Weirs Lane, where fire crews kept pumping. Cold Harbour first reached 2.44 m at 22:00Z on 4 Jan (about 23 h before the closure) and peaked at 2.659 m at 02:15Z on 6 Jan."
+      url: https://www.highwaysmagazine.co.uk/news/local-road-network/freeze-adds-counties-flooding-woes
+    - date: "2024-01"
+      claim: "Photo: firefighters still pumping water on Abingdon Road near Weirs Lane, Jan 2024."
+      url: https://oxfordhistory.org.uk/floods/2024/index.html
+    - date: "2014-01-08"
+      claim: "Abingdon Road closed on the morning of 8 Jan 2014 and still under water on the evening of 9 Jan. EA said Iffley Lock was at its highest level, 3.6 m. Cold Harbour first reached 2.44 m at 15:30Z on 6 Jan and peaked at 2.699 m at 17:45Z on 9 Jan."
+      url: https://www.cherwell.org/2014/01/07/update-floods-hit-central-oxford/
+    - date: "2014-02-09"
+      claim: "ITV Meridian: Abingdon Road and Botley Road closed, 9 Feb 2014. Cold Harbour above 2.44 m on 7 days between 7 Jan and 10 Feb 2014."
+      url: https://itv.com/news/meridian/2014-02-09/oxfordshire-facing-worse-flooding-since-2007
+    - date: "2012-11-27"
+      claim: "Photos of Abingdon Road flooded, looking north and south, Nov 2012. Cold Harbour first reached 2.44 m at 04:00Z on 27 Nov and peaked at 2.558 m. Iffley d/s 3.58 m on 27 Dec 2012 (Cherwell live blog)."
+      url: https://oxfordhistory.org.uk/floods/2012/index.html
+  notes: >-
+    Marker moved about 1.1 km south, from Grandpont (Newton Road) to the Abingdon Road section between
+    Weirs Lane and Old Abingdon Road. That section is the one closed and pumped in 2024, and it sits
+    beside the Cold Harbour gauge. It's still inside 061FWF23NwBotley, which explicitly includes
+    Grandpont (EA label), so abingdonrd really does share that area with botley; there is no separate
+    Abingdon Road area. The gauge crossed 2.44 m in 2007, 2012, 2014 and Jan 2024 (all with
+    Abingdon Road flooding on record), and briefly in Feb 2021 (2.503 m) and Nov 2024 (2.455 m),
+    for which I found no closure report (not found ≠ no flooding). It didn't cross in Jan 2023
+    (2.088 m) or Feb 2026 (2.120 m). Amber (2.30) and threshold (2.44) are only 0.14 m apart, so
+    expect amber and red to arrive close together.
+
+- key: wolvercote
+  name: Wolvercote / Port Meadow
+  gauge: godstow
+  gaugeRef: 1302TH            # Godstow Lock downstream stage, RLOI 7056; live only (SPEC §4.1.1)
+  threshold: 3.07             # GOV.UK Godstow Lock downstream page
+  amber: 2.57
+  lat: 51.7790
+  lon: -1.2950
+  warningArea: 061FWF23Wlvrcote
+  warningAreaName: River Thames and tributaries at Wolvercote in Oxford
+  warningAreaUrl: https://check-for-flooding.service.gov.uk/target-area/061FWF23Wlvrcote
+  mode: timing_only
+  evidence:
+    - date: "2026-10-24"
+      claim: "GOV.UK Godstow Lock (downstream) page: normal top 2.57 m, property flooding possible above 3.07 m, record 3.11 m on 20 Jul 2007."
+      url: https://check-for-flooding.service.gov.uk/station/7056/downstream
+    - date: "2024-01-04"
+      claim: "EA flood warning for 061FWF23Wlvrcote issued at 22:25 on 4 Jan 2024: property and road flooding possible overnight, especially areas closest to the Thames near Wolvercote. Warnings were reissued until 9 Jan 08:59 (no longer in force). The EA message gives no gauge level."
+      url: https://riverlevels.uk/flood-warning-river-thames-and-tributaries-at-wolvercote-in-oxford/125473
+    - date: "2026-02-17"
+      claim: "Negative case: Godstow d/s about 2.91 m (sampled daily max from the flood-monitoring archive), below 3.07 m. No Wolvercote warning was found for Feb 2026."
+      url: https://environment.data.gov.uk/flood-monitoring/archive
+  notes: >-
+    timing_only because Godstow downstream stage has no usable history (SPEC §4.1.1). The UI shows the
+    live level against 3.07 m with "no forecast: no gauge history". The SPEC marker (51.7770, -1.2800)
+    was outside the Wolvercote warning polygon, on Port Meadow by the canal. I moved it about 1 km to
+    Godstow Road, Lower Wolvercote, near the Airmen's Bridge: inside the polygon and where the
+    houses closest to the river are. No dated news of Wolvercote properties flooding was found;
+    the EA warnings above are the only impact evidence.
+
+- key: cherwell
+  name: Cherwell (Kings Mill)
+  gauge: kingsmill
+  gaugeRef: 1491TH            # River Cherwell at Kings Mill (upstream stage), RLOI 7071, Hydrology from 1998-01
+  threshold: 2.60
+  amber: 2.40
+  lat: 51.7575
+  lon: -1.2395
+  warningArea: 061FWF14CherOxfd
+  warningAreaName: River Cherwell for the Oxford area
+  warningAreaUrl: https://check-for-flooding.service.gov.uk/target-area/061FWF14CherOxfd
+  mode: probability
+  evidence:
+    - date: "2026-10-24"
+      claim: "GOV.UK Kings Mill page: normal top 2.40 m (flood alerts possible), property flooding possible above 2.60 m, record 2.79 m on 27 Nov 2024."
+      url: https://check-for-flooding.service.gov.uk/station/7071
+    - date: "2024-11-26"
+      claim: "EA flood warning for 061FWF14CherOxfd issued 07:26 on 26 Nov 2024 and reissued until 29 Nov 09:35. Kings Mill first reached 2.60 m at 06:30Z on 26 Nov (about 1 h before the warning) and peaked at 2.785 m at 01:15Z on 27 Nov (record)."
+      url: https://riverlevels.uk/flood-warning-river-cherwell-for-the-oxford-area
+    - date: "2024-11-26"
+      claim: "Oxford City Council, 26 Nov 2024: Cherwell flood warning active, barriers deployed, no flooded properties reported at that time. The live page now returns 404; Wayback snapshot linked."
+      url: http://web.archive.org/web/20251015053110/https://www.oxford.gov.uk/news/article/1591/flood-warnings-issued-for-oxford-as-river-levels-continue-to-rise
+    - date: "2024-01-05"
+      claim: "EA flood warning for 061FWF14CherOxfd from 19:26 on 5 Jan to 18:25 on 6 Jan 2024. Kings Mill first reached 2.60 m at 21:00Z on 4 Jan and peaked at 2.643 m at 09:00Z on 5 Jan."
+      url: https://riverlevels.uk/flood-warning-river-cherwell-for-the-oxford-area
+    - date: "2014-01-09"
+      claim: "Victoria Arms, Marston, flooded (photo, 9 Jan 2014); Parks cycle track at the Marston end flooded on 8 Jan. Kings Mill above 2.60 m on 6–9 Jan 2014, peak 2.678 m on 7 Jan."
+      url: https://oxfordhistory.org.uk/floods/2014/index.html
+    - date: "2024-02-22"
+      claim: "Cherwell footpaths submerged and commuters to Marston cycling in wellies; LMH corner of the University Parks underwater (alumni article, photos dated 22 Feb 2024). Context only."
+      url: https://alumni.ox.ac.uk/node/3699671
+  notes: >-
+    Warning area code found: 061FWF14CherOxfd ("River Cherwell at Oxford from Cherwell Bridge to the
+    Thames confluence north of New Hinksey, including parts of Summertown, New Marston and Magdalen
+    Bridge areas"). The parent alert area is 061WAF14LChrwell. The SPEC marker (51.7600, -1.2390,
+    Ferry Road) was just outside the polygon; I moved it about 300 m to Mesopotamia Walk by Kings
+    Mill, about 150 m from the gauge, which floods in each event. Threshold evidence is moderate:
+    crossings of 2.60 m (2012, 2014, 2021, Jan 2024, Nov 2024) coincide with EA flood warnings and
+    path or pub flooding, but I found no confirmed property flooding (the council reported none on
+    26 Nov 2024). Kept on probability because the history runs from 1998 and the threshold is EA's
+    operational property level. Live telemetry has been out since 2026-10-13 14:45Z (last
+    flood-monitoring reading). That doesn't change the mode, because history is unaffected, but
+    live mode will list kingsmill in `stale` and give this spot `leads: []` (SPEC §10.1).
