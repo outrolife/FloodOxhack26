@@ -1,20 +1,53 @@
 """Feature frame per target gauge: everything known at time t, nothing after it (SPEC §7.2).
 
-Issue #6.
+Issue #6. Draft by s-s01s-model, finished by alfredo-features.
+
+Public API
+----------
+::
+
+    TARGETS, UPSTREAMS, HORIZONS_H, MAX_WINDOW_H, RAIN_KEY, DATA_DIR, LAGS_PATH
+
+    compute_gauge_medians(hourly, cutoff_utc, gauges=None) -> dict[str, float]
+    load_lags(path=LAGS_PATH) -> dict[str, dict[str, int]]              # {} if the file is missing
+    upstream_lags_h(upstream, target, lags=None) -> list[int]
+    feature_columns(target, lags=None) -> list[str]
+    build_features(hourly, target, medians, lags=None) -> pd.DataFrame  # index ts_utc
+    build_targets(hourly, target, horizons=HORIZONS_H) -> pd.DataFrame  # y_6h ... y_72h
+    catchment_rain(hourly) -> pd.Series                                 # hourly mean of rain gauges
+    pivot_hourly(hourly, value_col="level_mean") -> pd.DataFrame        # long -> wide, full hourly index
+
+Typical use (training, #8)::
+
+    hourly = pd.read_parquet(DATA_DIR / "processed" / "hourly.parquet")
+    medians = compute_gauge_medians(hourly, "2018-09-30 23:00")  # end of the training split
+    lags = load_lags()
+    X = build_features(hourly, "osney", medians, lags)
+    Y = build_targets(hourly, "osney")  # same index as X
+
+Live mode and replays pass only the rows with ``ts_utc <= t`` and read ``X.loc[t]``. That row is
+identical to the one computed from the full record (the leakage test checks this).
 
 Input
 -----
 The long-format hourly frame written by ``pipeline/clean.py`` (``data/processed/hourly.parquet``),
 one row per (gauge, hour)::
 
-    gauge       str   gauge key (``osney``, ``farmoor``, ...) or the derived ``rain_catchment``
-    ts_utc      tz-aware UTC timestamp, hour start
+    gauge       str   config key (``osney``, ``farmoor``, ...), a rain gauge ref (``256230TP``)
+                      or the derived catchment series ``rain_catchment``
+    ts_utc      tz-aware timestamp, hour start (converted to UTC; naive timestamps are rejected)
+    kind        "level" | "rain"   (optional, see below)
     level_mean  float level (m, that gauge's own datum); NaN for rain
-    level_max   float (not used here)
     rain_mm     float hourly rain total (mm); NaN for levels
-    filled, flagged  bool (not used here)
+    level_max, filled, flagged     (not used here)
 
-The functions take that DataFrame; they never read the file themselves.
+Both proposed variants of the file are accepted. If ``kind`` is present it decides which rows are
+rain. Without it, a row is rain if its gauge is ``rain_catchment``, or if that gauge has no
+``level_mean`` values at all but does have ``rain_mm`` values. Catchment rain (SPEC §4.1) is the
+pipeline's ``rain_catchment`` series if present, else the mean of the rain gauges available in each
+hour (``catchment_rain``).
+
+The functions take that DataFrame; they never read the parquet file themselves.
 
 Time convention (the leakage rule)
 ----------------------------------
@@ -33,6 +66,14 @@ future data. Compute it once with ``compute_gauge_medians(hourly, cutoff_utc)`` 
 training period (SPEC §7.3: 2018-09-30) as the cutoff, and save it with the models so live mode and
 the Time Machine use exactly the same numbers.
 
+Travel-time lags
+----------------
+Each upstream gauge's anomaly is lagged by {0, 6, 12, 24, lag_lo, lag_main, lag_hi} h, deduplicated
+and sorted. The travel-time lags come from ``lags.json`` (issue #7, SPEC §6.3). A pair missing from
+it, or a missing file, falls back to the fixed lags {0, 6, 12, 24} only. The column set therefore
+depends on ``lags``: save ``feature_columns(target, lags)`` with each model, and build live and
+replay features with the same ``lags``.
+
 Windows
 -------
 No window or lag reaches back more than 21 days (``MAX_WINDOW_H``), so live mode works with the
@@ -46,8 +87,10 @@ from __future__ import annotations
 import json
 import logging
 import math
+import os
 from collections.abc import Iterable, Mapping
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -55,7 +98,8 @@ import pandas as pd
 log = logging.getLogger(__name__)
 
 RAIN_KEY = "rain_catchment"
-LAGS_PATH = Path("data/processed/lags.json")
+DATA_DIR = Path(os.environ.get("RC_DATA_DIR", Path(__file__).resolve().parent.parent / "data"))
+LAGS_PATH = DATA_DIR / "processed" / "lags.json"
 
 HORIZONS_H: tuple[int, ...] = (6, 12, 24, 36, 48, 72)  # SPEC §7.1 lead times
 MAX_WINDOW_H = 21 * 24  # 21-day cap on every window and lag (SPEC §7.2)
@@ -65,6 +109,7 @@ TARGET_CHANGE_H: tuple[int, ...] = (1, 3, 6, 24)
 UPSTREAM_FIXED_LAGS_H: tuple[int, ...] = (0, 6, 12, 24)
 UPSTREAM_CHANGE_H: tuple[int, ...] = (3, 24)
 RAIN_SUM_H: tuple[int, ...] = (6, 24, 72, 168, MAX_WINDOW_H)
+TRAVEL_LAG_KEYS: tuple[str, ...] = ("lag_lo", "lag_main", "lag_hi")
 
 # Upstream gauges for each target gauge (SPEC §4.1 flow paths and §6.2 pairs).
 # Thames: farmoor, eynsham, cassington -> godstow -> osney -> iffley.
@@ -78,13 +123,9 @@ UPSTREAMS: dict[str, tuple[str, ...]] = {
     "newbotley": ("farmoor", "eynsham", "cassington", "godstow"),
     "kingsmill": ("enslow", "islip"),
 }
+TARGETS: tuple[str, ...] = tuple(UPSTREAMS)
 
-# PLACEHOLDER travel-time lags (hours), used for any pair missing from data/processed/lags.json.
-# These are NOT measurements. They are a deliberately wide guess consistent with the 48-72 h
-# rain-to-peak catchment response in the EA OFAS hydrology report (SPEC §18): upstream rises reach
-# Oxford within roughly half a day to two days. Replace with lags.json from analysis/travel_times.py
-# (issue #7) as soon as it exists.
-PLACEHOLDER_LAGS: dict[str, int] = {"lag_lo": 12, "lag_main": 24, "lag_hi": 48}
+LagsArg = Mapping[str, Any] | None
 
 
 # ---------------------------------------------------------------------------------------------
@@ -101,6 +142,23 @@ def _utc_ts(ts: pd.Series) -> pd.Series:
     if (ts != ts.dt.floor("h")).any():
         raise ValueError("ts_utc must be hour starts (hourly data from pipeline/clean.py)")
     return ts
+
+
+def _is_rain(hourly: pd.DataFrame) -> pd.Series:
+    """Boolean mask of rain rows (see "Input" in the module docstring)."""
+    if "kind" in hourly.columns:
+        return hourly["kind"].eq("rain")
+    by_gauge = hourly["gauge"]
+    has_level = hourly["level_mean"].notna().groupby(by_gauge).transform("any")
+    if "rain_mm" in hourly.columns:
+        has_rain = hourly["rain_mm"].notna().groupby(by_gauge).transform("any")
+    else:
+        has_rain = pd.Series(False, index=hourly.index)
+    return by_gauge.eq(RAIN_KEY) | (~has_level & has_rain)
+
+
+def _level_rows(hourly: pd.DataFrame) -> pd.DataFrame:
+    return hourly[~_is_rain(hourly)]
 
 
 def pivot_hourly(hourly: pd.DataFrame, value_col: str = "level_mean") -> pd.DataFrame:
@@ -122,6 +180,24 @@ def pivot_hourly(hourly: pd.DataFrame, value_col: str = "level_mean") -> pd.Data
     return wide
 
 
+def catchment_rain(hourly: pd.DataFrame) -> pd.Series:
+    """Hourly catchment rain (mm): mean of the rain gauges available in each hour (SPEC §4.1).
+
+    Uses the pipeline's derived ``rain_catchment`` series if present; otherwise averages every rain
+    gauge in ``hourly`` per hour, skipping gauges that are missing that hour. An hour with no gauge
+    reporting is NaN. Returns an empty Series if there is no rain data at all.
+    """
+    rain_rows = hourly[_is_rain(hourly)]
+    if rain_rows.empty:
+        empty = pd.DatetimeIndex([], tz="UTC", name="ts_utc")
+        return pd.Series(np.nan, index=empty, name=RAIN_KEY, dtype=float)
+    if rain_rows["gauge"].eq(RAIN_KEY).any():
+        rain_rows = rain_rows[rain_rows["gauge"] == RAIN_KEY]
+    wide = pivot_hourly(rain_rows, "rain_mm")
+    log.info("catchment rain from %d gauge(s): %s", wide.shape[1], ", ".join(map(str, wide.columns)))
+    return wide.mean(axis=1, skipna=True).rename(RAIN_KEY)
+
+
 # ---------------------------------------------------------------------------------------------
 # Leak-free per-gauge medians and lags
 # ---------------------------------------------------------------------------------------------
@@ -130,48 +206,70 @@ def pivot_hourly(hourly: pd.DataFrame, value_col: str = "level_mean") -> pd.Data
 def compute_gauge_medians(
     hourly: pd.DataFrame, cutoff_utc: str | pd.Timestamp, gauges: Iterable[str] | None = None
 ) -> dict[str, float]:
-    """Each gauge's median ``level_mean`` over rows with ``ts_utc <= cutoff_utc`` (inclusive).
+    """Each level gauge's median ``level_mean`` over rows with ``ts_utc <= cutoff_utc`` (inclusive).
 
     Use the end of the training period as the cutoff (SPEC §7.3), so the anomaly baseline never
-    contains validation, test or live data. A gauge with no data before the cutoff gets NaN.
+    contains validation, test or live data. A naive cutoff is read as UTC. By default the result
+    covers every level gauge in ``hourly`` plus every gauge in ``UPSTREAMS``; a gauge with no data
+    before the cutoff gets NaN (so its anomaly columns are NaN). Rain gauges are skipped.
     """
     cutoff = pd.Timestamp(cutoff_utc)
     cutoff = cutoff.tz_localize("UTC") if cutoff.tzinfo is None else cutoff.tz_convert("UTC")
-    df = hourly[hourly["gauge"] != RAIN_KEY]
-    df = df[_utc_ts(df["ts_utc"]) <= cutoff]
+    levels = _level_rows(hourly)
+    df = levels[_utc_ts(levels["ts_utc"]) <= cutoff]
     medians = df.groupby("gauge")["level_mean"].median()
-    keys = list(gauges) if gauges is not None else sorted(hourly["gauge"].unique())
-    return {g: float(medians.get(g, np.nan)) for g in keys if g != RAIN_KEY}
+    if gauges is not None:
+        keys = list(gauges)
+    else:
+        configured = {g for ups in UPSTREAMS.values() for g in ups} | set(UPSTREAMS)
+        keys = sorted(set(levels["gauge"].unique()) | configured)
+    return {g: float(medians.get(g, np.nan)) for g in keys}
+
+
+def _normalise_lags(lags: LagsArg) -> dict[str, dict[str, int]]:
+    """Accept lags.json as read from disk (``{"pairs": [...]}``) or as ``{"up->down": {...}}``."""
+    if not lags:
+        return {}
+    if "pairs" in lags:
+        out: dict[str, dict[str, int]] = {}
+        for p in lags["pairs"]:
+            vals = {k: p.get(k) for k in TRAVEL_LAG_KEYS}
+            vals = {k: int(round(float(v))) for k, v in vals.items() if v is not None and np.isfinite(v)}
+            out[f"{p['up']}->{p['down']}"] = vals
+        return out
+    return {
+        pair: {k: int(round(float(v[k]))) for k in TRAVEL_LAG_KEYS if v.get(k) is not None}
+        for pair, v in lags.items()
+    }
 
 
 def load_lags(path: Path | str = LAGS_PATH) -> dict[str, dict[str, int]]:
-    """Read ``lags.json`` (SPEC §6.3): ``{"farmoor->osney": {"lag_lo": .., "lag_main": .., "lag_hi": ..}}``.
+    """Read ``lags.json`` (SPEC §6.3, issue #7) into ``{"farmoor->osney": {"lag_lo": .., ...}}``.
 
-    Returns ``{}`` if the file does not exist yet (then every pair uses ``PLACEHOLDER_LAGS``).
+    File format: ``{"pairs": [{"up", "down", "lag_lo", "lag_main", "lag_hi", "source"}]}`` with
+    integer hours. Returns ``{}`` if the file does not exist yet; then every pair uses only the fixed
+    lags {0, 6, 12, 24}.
     """
     path = Path(path)
     if not path.exists():
-        log.warning("%s not found; using PLACEHOLDER_LAGS for every pair", path)
+        log.warning(
+            "%s not found; upstream anomalies use only the fixed lags %s", path, UPSTREAM_FIXED_LAGS_H
+        )
         return {}
-    raw = json.loads(path.read_text())
-    return {pair: {k: int(round(v[k])) for k in ("lag_lo", "lag_main", "lag_hi")} for pair, v in raw.items()}
+    return _normalise_lags(json.loads(path.read_text(encoding="utf-8")))
 
 
-def upstream_lags_h(
-    upstream: str, target: str, lags: Mapping[str, Mapping[str, float]] | None = None
-) -> list[int]:
+def upstream_lags_h(upstream: str, target: str, lags: LagsArg = None) -> list[int]:
     """Sorted, deduplicated anomaly lags (h) for one pair: {0, 6, 12, 24, lag_lo, lag_main, lag_hi}.
 
-    Travel-time lags come from ``lags["<upstream>-><target>"]``, else ``PLACEHOLDER_LAGS``. Each is
-    rounded to whole hours and clipped to [0, 21 days].
+    Travel-time lags come from ``lags["<upstream>-><target>"]`` (``lags`` as from ``load_lags``, or
+    the raw lags.json dict). A pair that is missing falls back to {0, 6, 12, 24}. Each lag is rounded
+    to whole hours and clipped to [0, 21 days].
     """
     pair = f"{upstream}->{target}"
-    travel = (lags or {}).get(pair)
-    if travel is None:
-        travel = PLACEHOLDER_LAGS
+    travel = _normalise_lags(lags).get(pair, {})
     out = set(UPSTREAM_FIXED_LAGS_H)
-    for key in ("lag_lo", "lag_main", "lag_hi"):
-        lag = int(round(float(travel[key])))
+    for key, lag in travel.items():
         if not 0 <= lag <= MAX_WINDOW_H:
             log.warning("%s %s=%d h outside [0, %d]; clipping", pair, key, lag, MAX_WINDOW_H)
             lag = min(max(lag, 0), MAX_WINDOW_H)
@@ -190,8 +288,10 @@ def _rolling(series: pd.Series, hours: int, how: str) -> pd.Series:
     return roll.sum() if how == "sum" else roll.mean()
 
 
-def feature_columns(target: str, lags: Mapping[str, Mapping[str, float]] | None = None) -> list[str]:
+def feature_columns(target: str, lags: LagsArg = None) -> list[str]:
     """Feature column names, in order, that ``build_features`` returns for ``target``."""
+    if target not in UPSTREAMS:
+        raise ValueError(f"unknown target gauge {target!r}; expected one of {sorted(UPSTREAMS)}")
     cols = ["level_now", *[f"level_change_{k}h" for k in TARGET_CHANGE_H], "level_mean_21d"]
     for up in UPSTREAMS[target]:
         cols += [f"{up}_anom_lag{k}h" for k in upstream_lags_h(up, target, lags)]
@@ -205,40 +305,41 @@ def build_features(
     hourly: pd.DataFrame,
     target: str,
     medians: Mapping[str, float],
-    lags: Mapping[str, Mapping[str, float]] | None = None,
+    lags: LagsArg = None,
 ) -> pd.DataFrame:
     """Feature frame for one target gauge (SPEC §7.2). Row t uses only data labelled <= t.
 
     Args:
         hourly: long hourly frame (see module docstring).
-        target: target gauge key, one of ``UPSTREAMS``.
+        target: target gauge key, one of ``TARGETS``.
         medians: per-gauge long-term median level from ``compute_gauge_medians`` with a training
             cutoff. Must contain every upstream gauge of ``target`` (value may be NaN).
-        lags: travel-time lags as in ``lags.json``; pairs not given use ``PLACEHOLDER_LAGS``.
+        lags: travel-time lags from ``load_lags`` (or the raw lags.json dict); pairs not given use
+            only the fixed lags {0, 6, 12, 24}.
 
     Returns:
         DataFrame indexed by a complete hourly UTC ``ts_utc`` range (spanning all level and rain rows),
-        columns ``feature_columns(target)``.
-        Upstream gauges or rain absent from ``hourly`` give all-NaN columns (stable schema).
+        columns ``feature_columns(target, lags)``, all float. Upstream gauges or rain absent from
+        ``hourly`` give all-NaN columns, so the schema is stable.
     """
     if target not in UPSTREAMS:
         raise ValueError(f"unknown target gauge {target!r}; expected one of {sorted(UPSTREAMS)}")
     missing = [g for g in UPSTREAMS[target] if g not in medians]
     if missing:
         raise KeyError(f"medians missing for upstream gauges {missing}; use compute_gauge_medians()")
+    lags = _normalise_lags(lags)
 
-    levels = pivot_hourly(hourly[hourly["gauge"] != RAIN_KEY], "level_mean")
+    levels = pivot_hourly(_level_rows(hourly), "level_mean")
     if target not in levels.columns:
         raise ValueError(f"no level data for target gauge {target!r}")
-    rain_rows = hourly[hourly["gauge"] == RAIN_KEY]
-    rain = pivot_hourly(rain_rows, "rain_mm")[RAIN_KEY] if not rain_rows.empty else None
+    rain = catchment_rain(hourly)
     # One complete hourly index spanning both levels and rain.
     start, end = levels.index.min(), levels.index.max()
-    if rain is not None:
+    if not rain.empty:
         start, end = min(start, rain.index.min()), max(end, rain.index.max())
     index = pd.date_range(start, end, freq="h", tz="UTC", name="ts_utc")
     levels = levels.reindex(index)
-    rain = rain.reindex(index) if rain is not None else pd.Series(np.nan, index=index)
+    rain = rain.reindex(index)
 
     feats: dict[str, pd.Series] = {}
 
@@ -269,7 +370,7 @@ def build_features(
     feats["doy_cos"] = pd.Series(np.cos(2 * np.pi * doy), index=index)
 
     out = pd.DataFrame(feats, index=index)
-    return out[feature_columns(target, lags)]
+    return out[feature_columns(target, lags)].astype(float)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -280,11 +381,12 @@ def build_features(
 def build_targets(hourly: pd.DataFrame, target: str, horizons: Iterable[int] = HORIZONS_H) -> pd.DataFrame:
     """Training targets ``y_{h}h = level_mean(t + h) - level_mean(t)`` (SPEC §7.1).
 
-    Same hourly UTC index as ``build_features``. NaN where either end is missing or t + h is beyond
-    the data. These columns look into the future by design: join them to the features only for
-    training and evaluation, never feed them to the model as inputs.
+    Indexed by the complete hourly UTC range of the level rows; align to ``build_features`` with
+    ``X.join(Y)`` or ``Y.reindex(X.index)``. NaN where either end is missing or t + h is beyond the
+    data. These columns look into the future by design: join them to the features only for training
+    and evaluation, never feed them to the model as inputs.
     """
-    levels = pivot_hourly(hourly[hourly["gauge"] != RAIN_KEY], "level_mean")
+    levels = pivot_hourly(_level_rows(hourly), "level_mean")
     if target not in levels.columns:
         raise ValueError(f"no level data for target gauge {target!r}")
     level = levels[target]
