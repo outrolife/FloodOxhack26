@@ -98,9 +98,14 @@ def test_arrival_window() -> None:
     assert none == {"p10": None, "p50": None, "p90": None}
     already = arrival_window(T0, HORIZONS_H, [1.0] * 6, level_now=3.9, line=3.79)
     assert already["p50"] == "2014-01-05T00:00:00Z"
-    # above the line now but forecast to fall: only levels some lead reaches are reported
+    # above the line now but forecast to fall: the flood has arrived, all three are the issue time (PR #67)
     falling = arrival_window(T0, HORIZONS_H, [0.6, 0.5, 0.3, 0.2, 0.1, 0.1], level_now=3.9, line=3.79)
-    assert falling["p10"] == falling["p50"] == "2014-01-05T00:00:00Z" and falling["p90"] is None
+    assert falling == dict.fromkeys(("p10", "p50", "p90"), "2014-01-05T00:00:00Z")
+    # at the line to 3 decimals counts as above (matches the published levelNow)
+    assert (
+        arrival_window(T0, HORIZONS_H, [0.0] * 6, level_now=3.7896, line=3.79)["p90"]
+        == "2014-01-05T00:00:00Z"
+    )
 
 
 def test_spot_forecast_shape_and_probabilities() -> None:

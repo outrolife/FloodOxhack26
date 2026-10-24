@@ -13,9 +13,9 @@ Conventions
   above q95 the 0.75-0.95 slope, then clips to [0, 1]. A zero-width tail segment means "no spread",
   so the tail jumps straight to 0 (below) or 1 (above). At tied quantiles F takes the highest
   alpha on the grid.
-- Arrival times: p is anchored at lead 0 by the observation itself (1 if level_now is already at or
-  above the line, else 0), then interpolated linearly between leads. ``None`` if never reached by the
-  last lead.
+- Arrival times (SPEC §7.5 step 5, PR #67): if level_now is already at or above the line, all three are
+  the issue time. Otherwise p is interpolated linearly from 0 at the issue time between leads; ``None``
+  if never reached by the last lead.
 """
 
 from __future__ import annotations
@@ -119,17 +119,19 @@ def _at(issued_at: pd.Timestamp, h: float | None) -> str | None:
 def arrival_window(
     issued_at: pd.Timestamp, leads: Sequence[int], p: Sequence[float], level_now: float, line: float
 ) -> dict[str, str | None]:
-    """Times at which P(level > line) first reaches 0.1, 0.5 and 0.9 (SPEC §7.5 step 5).
+    """Times at which P(level > line) first reaches 0.1, 0.5 and 0.9 (SPEC §7.5 step 5, as of PR #67).
 
-    A level is only reported if some forecast lead reaches it; the observation at lead 0 just anchors
-    the interpolation (so a level already above the line, and forecast to stay there, gives ``issued_at``).
+    If ``level_now`` (as published, to 3 decimals) is already at or above the line, the flood has arrived:
+    all three are ``issued_at``, even if later leads are lower. Otherwise p_x is interpolated from p = 0 at
+    the issue time and is set only if some lead reaches x (``None`` if not reached by the last lead).
     """
-    p0 = 1.0 if level_now >= line else 0.0
-    p_max = np.nanmax(np.asarray(p, dtype=float)) if len(p) and not np.all(np.isnan(p)) else -np.inf
-    out: dict[str, str | None] = {}
-    for k, lv in zip(("p10", "p50", "p90"), ARRIVAL_LEVELS, strict=True):
-        out[k] = _at(issued_at, first_crossing_h(leads, p, lv, p0)) if p_max >= lv else None
-    return out
+    keys = ("p10", "p50", "p90")
+    if round(float(level_now), 3) >= line - 1e-9:
+        return dict.fromkeys(keys, _iso(issued_at))
+    return {
+        k: _at(issued_at, first_crossing_h(leads, p, lv, 0.0))
+        for k, lv in zip(keys, ARRIVAL_LEVELS, strict=True)
+    }
 
 
 def timing_only_arrival(
