@@ -14,6 +14,10 @@ import App from "./App";
 // Not import.meta.url: under jsdom it is an http URL. vitest provides __dirname.
 const DATA = resolve(__dirname, "../public/data") + "/";
 
+// CI runners are slow: the real replays are several MB of JSON. Generous waits; the checks stay the same.
+const WAIT_MS = 15_000;
+const TEST_MS = 40_000;
+
 /** A fetch Response for /data/<file> from web/public/data (404 for anything else, e.g. /api/live). */
 function respond(url: string) {
   const path = new URL(url, "http://localhost/").pathname;
@@ -68,7 +72,7 @@ describe("App smoke test (jsdom)", () => {
     });
     if (existsSync(DATA + "proof.json") && existsSync(DATA + "spots.json")) {
       await waitFor(() => expect(document.querySelector(".ck-score-caption")?.textContent).toMatch(/^Warns at \d+% chance/), {
-        timeout: 5000,
+        timeout: WAIT_MS,
       });
     }
     expect(screen.getByRole("navigation", { name: "What to show" })).toBeTruthy();
@@ -76,7 +80,7 @@ describe("App smoke test (jsdom)", () => {
     if (existsSync(DATA + "spots.json")) {
       // Small identical spot markers, one per spot; no big clock cards and no permanent link labels on the map.
       const spots = JSON.parse(readFileSync(DATA + "spots.json", "utf8")) as unknown[];
-      await waitFor(() => expect(document.querySelectorAll(".rc-hero .rc-dot")).toHaveLength(spots.length));
+      await waitFor(() => expect(document.querySelectorAll(".rc-hero .rc-dot")).toHaveLength(spots.length), { timeout: WAIT_MS });
       expect(document.querySelector(".rc-hero .spot-clock")).toBeNull();
       expect(document.querySelector(".rc-hero .leaflet-tooltip.rc-link-label")).toBeNull();
       expect(document.querySelector(".rc-hero .rc-hero-score .ck-score")).not.toBeNull();
@@ -84,10 +88,10 @@ describe("App smoke test (jsdom)", () => {
     if (existsSync(DATA + "stations.json")) {
       // Every gauge in stations.json is a small gauge icon (upstream, live_only and Oxford targets alike).
       const stations = JSON.parse(readFileSync(DATA + "stations.json", "utf8")) as unknown[];
-      await waitFor(() => expect(document.querySelectorAll(".rc-hero .rc-gauge-icon")).toHaveLength(stations.length));
+      await waitFor(() => expect(document.querySelectorAll(".rc-hero .rc-gauge-icon")).toHaveLength(stations.length), { timeout: WAIT_MS });
     }
     expect(errors).toEqual([]);
-  });
+  }, TEST_MS);
 
   it.skipIf(!existsSync(DATA + "replays/e2014.json"))("plays a past flood (#/e2014) without console errors", async () => {
     const errors: unknown[][] = [];
@@ -100,8 +104,8 @@ describe("App smoke test (jsdom)", () => {
     );
     window.location.hash = "/e2014";
     render(<App />);
-    await waitFor(() => expect(screen.getByRole("button", { name: "2014" }).getAttribute("aria-pressed")).toBe("true"));
-    await waitFor(() => expect(document.querySelector(".ck-play")).not.toBeNull(), { timeout: 5000 });
+    await waitFor(() => expect(screen.getByRole("button", { name: "2014" }).getAttribute("aria-pressed")).toBe("true"), { timeout: WAIT_MS });
+    await waitFor(() => expect(document.querySelector(".ck-play")).not.toBeNull(), { timeout: WAIT_MS });
     // Let playback run a few frames.
     await act(async () => {
       await new Promise((r) => setTimeout(r, 300));
@@ -109,5 +113,5 @@ describe("App smoke test (jsdom)", () => {
     expect(document.querySelectorAll(".rc-hero .rc-dot").length).toBeGreaterThan(0);
     expect(errors).toEqual([]);
     window.location.hash = "";
-  });
+  }, TEST_MS);
 });
