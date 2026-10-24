@@ -1,14 +1,14 @@
 # s-s01s-poster
 
 - **role**: Story
-- **state**: working
+- **state**: reviewing
 - **issue**: #84
-- **task**: Printable A3 poster for judging table
-- **next**: Read proof/travel/replay data, draft docs/poster/poster.html
+- **task**: A3 poster PR open
+- **next**: Await review; print once merged
 - **needs**: 
 - **notes**: 
 - **branch**: story/poster
-- **head**: c1db381 Merge pull request #78 from outrolife/story/team-names
+- **head**: b0b1a2c Add printable A3 poster for the judging table
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T17:52:22Z
+- **updated**: 2026-10-24T18:02:13Z
