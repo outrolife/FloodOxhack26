@@ -1,14 +1,14 @@
 # s-s01s-pipeline
 
 - **role**: Data
-- **state**: working
+- **state**: reviewing
 - **issue**: #3
-- **task**: All 12 gauges + rain cleaned locally (hourly.parquet 3.29M rows)
-- **next**: ETA ~10 min: release data-hourly-v1 + make fetch-data + draft PR
+- **task**: Draft PR #43 open; data release data-hourly-v1 up (make fetch-data)
+- **next**: Ready for review; optional: --archive-all for full year of lock d/s
 - **needs**: 
-- **notes**: Lock gauges: Hydrology has only upstream stage -> stored as <key>_us; downstream <key> from archive (~12 months)
+- **notes**: hourly.parquet: 12 gauges + 5 rain + rain_catchment + <lock>_us, 2006-2026, 3.29M rows
 - **branch**: data/hourly-pipeline
-- **head**: cccb4b5 Add minns and coldharbour gauges, ingest order per target deci
-- **unpushed**: 27
-- **dirty**: 5
-- **updated**: 2026-10-24T16:30:33Z
+- **head**: 41de5a9 Load config/stations.yaml schema, keep quality.json to Station
+- **unpushed**: 0
+- **dirty**: 0
+- **updated**: 2026-10-24T16:33:17Z
