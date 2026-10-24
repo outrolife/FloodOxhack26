@@ -24,6 +24,7 @@
 .ck-score-line.tone-good .ck-mark { color: var(--accent); }
 .ck-score-line.tone-bad .ck-mark { color: #8f3a12; }
 .ck-mark { display: inline-block; min-width: 1.2em; font-weight: 800; }
+.ck-score-caption { margin: 0.3rem 0 0; font-size: 0.875rem; line-height: 1.3; color: var(--ink-2); }
 
 /* Proof footer: one line. */
 .ck-proof { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.75rem; font-size: 0.95rem; color: var(--ink-2); }

@@ -36,7 +36,7 @@ export function Timeline({ event, spot, onTime, t, playing }: TimelineProps) {
   const data = useClockEvent(event, spot);
   if (data.status === "loading") return <div className="ck-timeline ck-pending">Loading…</div>;
   if (data.status === "missing") return <div className="ck-timeline ck-pending">{data.message}</div>;
-  if (data.kind === "now") return <NowTimeline live={data.live} spot={data.spot} onTime={onTime} />;
+  if (data.kind === "now") return <NowTimeline live={data.live} spot={data.spot} pStar={data.pStar} onTime={onTime} />;
   return (
     <ReplayTimeline key={data.replay.eventId} replay={data.replay} spot={data.spot} facts={data.facts} onTime={onTime} t={t} playing={playing} />
   );
@@ -49,12 +49,12 @@ function useLatest<T>(v: T) {
   return r;
 }
 
-export function NowTimeline({ live, spot, onTime }: { live: Forecast; spot: Spot; onTime?: (t: number) => void }) {
+export function NowTimeline({ live, spot, pStar, onTime }: { live: Forecast; spot: Spot; pStar?: number; onTime?: (t: number) => void }) {
   const now = Date.parse(live.issuedAt);
   const cb = useLatest(onTime);
   useEffect(() => cb.current?.(now), [now, cb]);
   const observed = live.observed?.[spot.gauge] ?? [];
-  const sf = live.stale.includes(spot.gauge) ? undefined : live.spots.find((s) => s.spot === spot.key);
+  const sf = (live.stale ?? []).includes(spot.gauge) ? undefined : live.spots?.find((s) => s.spot === spot.key);
   const first = observed.length ? Date.parse(observed[0].t) : now - 7 * 24 * HOUR;
   return (
     <div className="ck-timeline">
@@ -67,7 +67,7 @@ export function NowTimeline({ live, spot, onTime }: { live: Forecast; spot: Spot
           threshold={spot.threshold}
           usualHigh={spot.amber}
           eventRange={[first, now + 84 * HOUR]}
-          markers={nowMarkers(live, spot)}
+          markers={nowMarkers(live, spot, pStar)}
         />
       </div>
       <div className="ck-bar">
@@ -93,7 +93,7 @@ export function ReplayTimeline({
   t?: number;
   playing?: boolean;
 }) {
-  const forecasts = replay.forecasts;
+  const forecasts = replay.forecasts ?? [];
   const last = forecasts.length - 1;
   const times = useMemo(() => forecasts.map((f) => Date.parse(f.issuedAt)), [forecasts]);
   const endT = forecasts[last]?.issuedAt ?? replay.end;
@@ -144,7 +144,7 @@ export function ReplayTimeline({
     <div className="ck-timeline">
       <div className="ck-chart">
         <ReplayChart
-          observed={replay.observed[spot.gauge] ?? []}
+          observed={replay.observed?.[spot.gauge] ?? []}
           now={now}
           seen={times[seenIdx]}
           forecast={sf}

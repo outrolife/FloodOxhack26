@@ -14,10 +14,10 @@ export const shortSpotName = (name: string): string => name.split(" / ")[0].trim
 
 export function clockFor(f: Forecast | null, spot: Pick<Spot, "key" | "name" | "gauge" | "lat" | "lon">): ClockProps {
   const base = { key: spot.key, label: shortSpotName(spot.name), lat: spot.lat, lon: spot.lon };
-  const sf = f?.spots.find((s) => s.spot === spot.key);
+  const sf = f?.spots?.find((s) => s.spot === spot.key);
   if (!f || !sf) return { ...base, prob: null, countdownH: null, state: "noforecast" };
-  if (f.stale.includes(spot.gauge)) return { ...base, prob: null, countdownH: null, state: "stale" };
-  if (sf.mode === "timing_only" || sf.leads.length === 0) return { ...base, prob: null, countdownH: null, state: "noforecast" };
+  if ((f.stale ?? []).includes(spot.gauge)) return { ...base, prob: null, countdownH: null, state: "stale" };
+  if (sf.mode === "timing_only" || !sf.leads?.length) return { ...base, prob: null, countdownH: null, state: "noforecast" };
   let prob: number | null = null;
   for (const l of sf.leads) if (l.pFlood != null) prob = Math.max(prob ?? 0, l.pFlood);
   const p50 = sf.arrival?.p50;

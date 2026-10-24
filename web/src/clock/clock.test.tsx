@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { EventMeta, Forecast, Proof, Replay, Spot } from "../contracts";
 import { HOUR } from "../time";
-import { perEventRow, replayFacts, startIndex, type ReplayFacts } from "../screens/replay/facts";
+import { leadVsOfficialAt, perEventRow, replayFacts, startIndex, type ReplayFacts } from "../screens/replay/facts";
 import { EVENT_CHOICES } from "./choices";
 import {
   MARKER_LABEL,
@@ -30,6 +30,7 @@ const facts = (over: Partial<ReplayFacts>): ReplayFacts => ({
   spot: "botley",
   crossing: null,
   rc50: null,
+  pStar: 0.5,
   rc50AlreadyOn: false,
   leadBeforeFloodH: null,
   official: null,
@@ -65,7 +66,11 @@ describe("replayScore", () => {
     const before = replayScore(flood, T("2014-01-03T00:00:00Z"), end, 0.2);
     expect(before.map((l) => l.text)).toEqual(["Chance of flooding within 3 days: 20%", "EA: no warning yet"]);
     const called = replayScore(flood, T("2014-01-04T06:00:00Z"), end, 0.6);
-    expect(called[0].text).toMatch(/more likely than not/);
+    expect(called[0].text).toBe("River Clock warned: chance of flooding reached 50%");
+    // At a spot's own warn-at level, the words follow it.
+    expect(replayScore({ ...flood, pStar: 0.3 }, T("2014-01-04T06:00:00Z"), "2014-01-10T00:00:00Z", 0.4)[0].text).toBe(
+      "River Clock warned: chance of flooding reached 30%",
+    );
     expect(called[1].text).toBe("EA: no warning yet");
     const both = replayScore(flood, T("2014-01-04T12:00:00Z"), end, 0.7);
     expect(both[1].text).toBe("7 h before the EA warning");
@@ -210,7 +215,8 @@ describe.skipIf(!have)("on the committed data", () => {
     }
     expect(s.rc.hits).toBe(hits);
     expect(s.floods).toBe(hits + misses);
-    expect(s.compared).toBe(proof.perEvent.filter((r) => r.crossed && r.leadVsOfficialH != null).length);
+    // Compared at each spot's warn-at level, as the Scoreboard shows it.
+    expect(s.compared).toBe(proof.perEvent.filter((r) => r.crossed && leadVsOfficialAt(proof, r.eventId, r.spot) != null).length);
     expect(s.earlier).toBeLessThanOrEqual(s.compared);
     const text = proofText(s);
     expect(text.main).toMatch(/^Across \d+ past floods: River Clock caught \d+ \(\d+ false alarms?\) · the official warning caught \d+/);

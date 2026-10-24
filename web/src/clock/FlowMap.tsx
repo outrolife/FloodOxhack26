@@ -79,8 +79,10 @@ export function FlowMap({
   const byKey = useMemo(() => new Map(stations.map((s) => [s.key, s])), [stations]);
   const links = useMemo(() => chainLinks(stations, pairs), [stations, pairs]);
 
-  const maxSpotLat = Math.max(...spots.map((s) => s.lat));
-  const shownUpstream = stations.filter((s) => s.role === "upstream" && s.lat <= maxSpotLat + NORTH_LIMIT);
+  // No spots yet (still loading): no upstream gauges either, rather than Math.max() of nothing (-Infinity).
+  const maxSpotLat = spots.length ? Math.max(...spots.map((s) => s.lat)) : null;
+  const shownUpstream =
+    maxSpotLat == null ? [] : stations.filter((s) => s.role === "upstream" && s.lat <= maxSpotLat + NORTH_LIMIT);
   const bounds = useMemo(
     () => flowBounds([...spots, ...shownUpstream]),
     // Keyed on the gauge lists, not the arrays, so a re-render does not re-fit the map.
