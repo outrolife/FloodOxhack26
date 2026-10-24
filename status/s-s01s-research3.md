@@ -1,14 +1,14 @@
 # s-s01s-research3
 
 - **role**: Model
-- **state**: working
+- **state**: reviewing
 - **issue**: #134
-- **task**: Accuracy research: river walk, older history (counted), features, tweaks
-- **next**: Write docs/research/accuracy.md, comment on #134, open docs PR
+- **task**: Accuracy research posted on #134; docs PR #151
+- **next**: Await PM decision on A-branch / history extension for 02:00 retrain
 - **needs**: 
 - **notes**: 
 - **branch**: docs/accuracy-research
-- **head**: 85e2229 Merge pull request #142 from outrolife/model/warn-at
+- **head**: 874152f Add accuracy research: river walk, per-branch signals, older h
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T21:51:51Z
+- **updated**: 2026-10-24T21:55:37Z
