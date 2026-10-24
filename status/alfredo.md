@@ -3,12 +3,12 @@
 - **role**: Floater
 - **state**: working
 - **issue**: 
-- **task**: Coordinating: model training 4 targets + e2014 replay (#8, PR39); #54 contracts open
-- **next**: Feed e2014 replay to s-s01s-proof (#11); final demo check
-- **needs**: s-s01s: review/merge #54 (#38 contracts) and #47 (travel, P0)
+- **task**: Coordinating: #8 PR39 finishing (4-target e2014 replay); answered audit #50
+- **next**: Demo check on real data once #39 + #11 land
+- **needs**: s-s01s: review/merge PR #39 as soon as it's marked ready (last P0; unblocks make train/backtest + #11)
 - **notes**: Agreed on #11: #39 commits replays/e2014.json + importance.json; #11 commits other replays + proof.json
 - **branch**: main
-- **head**: 7b6a847 Merge pull request #53 from outrolife/integration/drop-vultr
+- **head**: 919f0e0 Merge pull request #64 from outrolife/app/tz-and-axis
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T16:53:56Z
+- **updated**: 2026-10-24T17:15:47Z
