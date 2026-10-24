@@ -1,0 +1,93 @@
+[
+ {
+  "id": "e2007",
+  "name": "July 2007",
+  "start": "2007-07-18T00:00:00Z",
+  "end": "2007-08-02T00:00:00Z",
+  "peak": {
+   "newbotley": 3.141,
+   "kingsmill": 2.575,
+   "minns": 3.117,
+   "coldharbour": 2.69
+  },
+  "headline": false
+ },
+ {
+  "id": "e2012",
+  "name": "Nov–Dec 2012",
+  "start": "2012-11-20T00:00:00Z",
+  "end": "2013-01-05T00:00:00Z",
+  "peak": {
+   "newbotley": 2.901,
+   "kingsmill": 2.722,
+   "minns": 2.927,
+   "coldharbour": 2.558
+  },
+  "headline": false
+ },
+ {
+  "id": "e2014",
+  "name": "Jan–Feb 2014",
+  "start": "2013-12-20T00:00:00Z",
+  "end": "2014-02-20T00:00:00Z",
+  "peak": {
+   "newbotley": 3.032,
+   "kingsmill": 2.678,
+   "minns": 3.09,
+   "coldharbour": 2.699
+  },
+  "headline": true
+ },
+ {
+  "id": "e2021",
+  "name": "Jan–Feb 2021",
+  "start": "2021-01-20T00:00:00Z",
+  "end": "2021-02-20T00:00:00Z",
+  "peak": {
+   "newbotley": 2.819,
+   "kingsmill": 2.663,
+   "minns": 2.903,
+   "coldharbour": 2.503
+  },
+  "headline": false
+ },
+ {
+  "id": "e2024a",
+  "name": "Jan 2024 (Storm Henk)",
+  "start": "2023-12-28T00:00:00Z",
+  "end": "2024-01-15T00:00:00Z",
+  "peak": {
+   "newbotley": 2.92,
+   "kingsmill": 2.643,
+   "minns": 2.968,
+   "coldharbour": 2.659
+  },
+  "headline": false
+ },
+ {
+  "id": "e2024b",
+  "name": "Nov 2024 (Storm Bert)",
+  "start": "2024-11-20T00:00:00Z",
+  "end": "2024-12-05T00:00:00Z",
+  "peak": {
+   "newbotley": 2.788,
+   "kingsmill": 2.785,
+   "minns": 2.819,
+   "coldharbour": 2.455
+  },
+  "headline": false
+ },
+ {
+  "id": "e2026",
+  "name": "Jan–Mar 2026",
+  "start": "2026-01-15T00:00:00Z",
+  "end": "2026-03-10T00:00:00Z",
+  "peak": {
+   "newbotley": 2.657,
+   "kingsmill": 2.291,
+   "minns": 2.742,
+   "coldharbour": 2.12
+  },
+  "headline": false
+ }
+]

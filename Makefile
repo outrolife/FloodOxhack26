@@ -17,12 +17,13 @@ $(VENV)/.installed: pyproject.toml
 	@$(PY) -c "import lightgbm" 2>/dev/null || echo "WARNING: lightgbm can't load. On macOS run: brew install libomp"
 	@touch $@
 
-# Ingest history + warnings, clean, quality report (SPEC §5)
+# Ingest history + warnings, clean, quality report (SPEC §5); export stations/spots/events.json (§9)
 data: setup
 	$(PY) -m pipeline.ingest_history
 	$(PY) -m pipeline.ingest_warnings
 	$(PY) -m pipeline.clean
 	$(PY) -m pipeline.quality_report
+	$(PY) -m pipeline.export_static
 
 # Skip the long download: fetch the cleaned hourly.parquet + provenance.parquet from a GitHub
 # release asset (not in git). Override the tag with `make fetch-data DATA_RELEASE=data-hourly-v2`.
