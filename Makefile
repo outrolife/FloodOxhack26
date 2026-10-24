@@ -1,6 +1,14 @@
 # River Clock. Targets from SPEC §2. Run `make setup` once (needs uv: brew install uv).
+# Windows: run make from Git Bash (recipes use sh); get make with `winget install ezwinports.make`.
 VENV := .venv
-PY   := $(VENV)/bin/python
+ifeq ($(OS),Windows_NT)
+BIN := $(VENV)/Scripts
+EXE := .exe
+else
+BIN := $(VENV)/bin
+EXE :=
+endif
+PY   := $(BIN)/python$(EXE)
 
 # Data root: RC_DATA_DIR env var, else ./data (same rule as pipeline/stations.py)
 DATA_DIR     := $(if $(RC_DATA_DIR),$(RC_DATA_DIR),data)
@@ -56,7 +64,7 @@ live: setup
 	$(PY) -m model.forecast_live
 
 api: setup
-	$(VENV)/bin/uvicorn api.main:app --reload --port 8000
+	$(BIN)/uvicorn$(EXE) api.main:app --reload --port 8000
 
 web:
 	@test -f web/package.json || { echo "web app not scaffolded yet (issue #5)"; exit 1; }
@@ -66,7 +74,7 @@ test: setup
 	$(PY) -m pytest
 
 lint: setup
-	$(VENV)/bin/ruff check .
+	$(BIN)/ruff$(EXE) check .
 
 # Single-container deploy (issue #18; deploy/README.md)
 .PHONY: serve docker
@@ -74,12 +82,13 @@ lint: setup
 # Production-style run without Docker: build the web app, then serve it and the API from one process on :8000
 serve: setup
 	cd web && npm ci && npm run build
-	RIVER_CLOCK_STATIC_DIR=web/dist $(VENV)/bin/uvicorn api.main:app --port 8000
+	RIVER_CLOCK_STATIC_DIR=web/dist $(BIN)/uvicorn$(EXE) api.main:app --port 8000
 
 docker:
 	docker build -f deploy/Dockerfile -t river-clock .
 
 # Optional Tiger Data mirror of hourly + live readings (SPEC §2, P2; docs/tiger-data.md). Needs
 # TIGER_DATABASE_URL and the extra: uv pip install --python .venv/bin/python -r pyproject.toml --extra mirror
+# (.venv/Scripts/python.exe on Windows)
 mirror: setup
 	$(PY) -m pipeline.mirror_tiger --hourly --live
