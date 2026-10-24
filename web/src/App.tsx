@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Disclaimer } from "./components/Disclaimer";
+import { Disclaimer } from "./components/shared/Disclaimer";
 import River from "./views/River";
 import TimeMachine from "./views/TimeMachine";
 import Decide from "./views/Decide";

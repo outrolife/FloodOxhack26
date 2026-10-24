@@ -35,6 +35,7 @@ function fixtureCandidates(file: string): string[] {
     }
   }
   if (file === "live.json") out.push("forecast.json");
+  out.push(`stretch/${file}`); // stretch contracts (SPEC §11) keep fixtures in stretch/
   return out;
 }
 
