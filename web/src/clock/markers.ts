@@ -4,6 +4,7 @@
 import type { Forecast, Spot } from "../contracts";
 import { formatDate } from "../time";
 import type { ClockProps } from "../ui/clockData";
+import type { ReplayFacts } from "../screens/replay/facts";
 
 /** Marker diameter (px). Every spot is the same size; the selected one only gets a thicker outline. */
 export const DOT_PX = 32;
@@ -43,7 +44,37 @@ export function chanceLabel(name: string, prob: number | null): string {
 /** Which side of the marker its name goes: away from the way placement pushed it. */
 export const labelSide = (dx: number): "left" | "right" => (dx < -1 ? "left" : "right");
 
-export type SpotDot = ClockProps & { note: string | null };
+/** A badge under a spot marker in a replay: River Clock vs the EA, once both have happened. */
+export type DotBadge = { text: string; tone: "good" | "bad" | "neutral" };
+
+/** Simulated hours a pulse ring shows after River Clock's warning fires. */
+export const PULSE_H = 12;
+
+const ms = Date.parse;
+
+/**
+ * "Warned 7 h before EA" / "8 h after EA" / "Same time as EA" (honest sign,
+ * proof.json's lead at the spot's warn-at level, ReplayFacts.leadVsOfficialH),
+ * shown only once the playhead `t` has passed both River Clock's warning and
+ * the EA's first Flood Warning. Null otherwise.
+ */
+export function eaBadge(f: Pick<ReplayFacts, "rc50" | "official" | "leadVsOfficialH"> | null | undefined, t: number): DotBadge | null {
+  if (!f?.rc50 || !f.official || f.leadVsOfficialH == null) return null;
+  if (t < Math.max(ms(f.rc50), ms(f.official.issuedAt))) return null;
+  const h = f.leadVsOfficialH;
+  const n = Math.round(Math.abs(h));
+  if (Math.abs(h) < 0.5) return { text: "Same time as EA", tone: "neutral" };
+  return h > 0 ? { text: `Warned ${n} h before EA`, tone: "good" } : { text: `${n} h after EA`, tone: "bad" };
+}
+
+/** True for PULSE_H simulated hours after River Clock's warning fires (replays). */
+export function justWarned(f: Pick<ReplayFacts, "rc50"> | null | undefined, t: number): boolean {
+  if (!f?.rc50) return false;
+  const w = ms(f.rc50);
+  return t >= w && t < w + PULSE_H * 3_600_000;
+}
+
+export type SpotDot = ClockProps & { note: string | null; badge?: DotBadge | null; pulse?: boolean };
 
 /** Clock props plus the quiet note, for each spot. */
 export function spotDots(clocks: ClockProps[], f: Pick<Forecast, "dataAsOf" | "observed"> | null, spots: Pick<Spot, "key" | "gauge">[]): SpotDot[] {

@@ -16,6 +16,8 @@ import { ProofFooter } from "./ProofFooter";
 import { Scoreboard } from "./Scoreboard";
 import { Timeline } from "./Timeline";
 import { useClockEvent } from "./useClockEvent";
+import { eaBadge, justWarned } from "./markers";
+import { replayFactsFor } from "../screens/replay/facts";
 import "./shell.css";
 
 /** Readings are known an hour after they happen (#93), as in the Timeline. */
@@ -106,6 +108,15 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
   // The moment on screen: what the Timeline reported for this event, else its first forecast.
   const t = time?.event === event ? time.t : live ? Date.parse(live.issuedAt) : times.length ? times[0] : null;
 
+  // Replays: every forecast spot's facts at its own warn-at level, for its map badge and warning pulse.
+  const proof = data.status === "ready" ? data.proof : null;
+  const allFacts = useMemo(
+    () => (replay ? spotList.filter((s) => s.mode === "probability").map((s) => replayFactsFor(replay, s, proof)) : []),
+    [replay, spotList, proof],
+  );
+  const marks =
+    replay && t != null ? Object.fromEntries(allFacts.map((f) => [f.spot, { badge: eaBadge(f, t), pulse: justWarned(f, t) }])) : undefined;
+
   let forecast: Forecast | null = null;
   let observed: Record<string, { t: string; level: number }[]> | undefined;
   let levels: Record<string, number | null> = {};
@@ -149,6 +160,7 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
           stale={forecast?.stale ?? []}
           selected={spot}
           onSelect={setSpot}
+          marks={marks}
           t={t}
           lagH={replay ? REPLAY_LAG_H : 0}
         />

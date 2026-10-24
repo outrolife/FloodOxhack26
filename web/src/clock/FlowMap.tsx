@@ -12,7 +12,7 @@ import { BaseMap, useBaseMap, type FitPadding } from "../ui/BaseMap";
 import { clocksFor } from "../ui/clockData";
 import { gaugeName } from "../lib/plain";
 import { FLOW_LOOK, PULSE_DASH, PULSE_PATH_LENGTH, bucketFor, chainLinks, flowBounds, levelFraction, linesByGauge, linkWords, type Bucket } from "./flow";
-import { spotDots } from "./markers";
+import { spotDots, type DotBadge } from "./markers";
 import { SpotDots } from "./SpotDots";
 import { GaugeLayer } from "./GaugeLayer";
 import { gaugeIconSvg, lookFor, type GaugeLook } from "./gauges";
@@ -77,6 +77,7 @@ export function FlowMap({
   stale,
   selected,
   onSelect,
+  marks,
   t = null,
   lagH = 0,
 }: {
@@ -96,6 +97,8 @@ export function FlowMap({
   stale: string[];
   selected: string;
   onSelect: (spot: string) => void;
+  /** Replays: per spot, the River Clock vs EA badge and the warning pulse at the playhead. */
+  marks?: Record<string, { badge: DotBadge | null; pulse: boolean }>;
 }) {
   const base = useBaseMap();
   const byKey = useMemo(() => new Map(stations.map((s) => [s.key, s])), [stations]);
@@ -133,7 +136,7 @@ export function FlowMap({
     return { bucket: bucketFor(levelFraction(v, s.amber, s.threshold)), known: true };
   };
 
-  const dots = spotDots(clocksFor(forecast, spots), forecast, spots);
+  const dots = spotDots(clocksFor(forecast, spots), forecast, spots).map((d) => ({ ...d, ...marks?.[d.key] }));
 
   // Gauge icons: each gauge's own level vs its usual high, and where its water goes next.
   const looks: Record<string, GaugeLook> = {};

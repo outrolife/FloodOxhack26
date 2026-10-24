@@ -1,6 +1,6 @@
 // Spot markers and link words on the flow map (#118 browser feedback).
 import { describe, expect, it } from "vitest";
-import { DOT_BOX, DOT_PX, chanceLabel, labelSide, lastReading, quietNote, ringText, spotDots } from "./markers";
+import { DOT_BOX, DOT_PX, PULSE_H, chanceLabel, eaBadge, justWarned, labelSide, lastReading, quietNote, ringText, spotDots } from "./markers";
 import { linkWords } from "./flow";
 import { CLOCK_BOX, spreadApart } from "../ui/placement";
 
@@ -51,5 +51,29 @@ describe("link words (hover, no permanent labels)", () => {
     expect(linkWords({ tHalfH: 12, n: 1, lowConfidence: true }, "A", "B")).toBe(
       "Water passing A reaches B about 12 h later (only from 1 past rise, so a rough guide)",
     );
+  });
+});
+
+describe("replay badges and the warning pulse", () => {
+  const f = {
+    rc50: "2014-01-04T05:00:00Z",
+    official: { spot: "botley", type: "warning" as const, issuedAt: "2014-01-04T12:00:00Z", precision: "time" as const },
+    leadVsOfficialH: 7.06,
+  };
+  const T = Date.parse;
+  it("shows River Clock vs the EA only once both have happened, with its honest sign", () => {
+    expect(eaBadge(f, T("2014-01-04T06:00:00Z"))).toBeNull();
+    expect(eaBadge(f, T("2014-01-04T12:00:00Z"))).toEqual({ text: "Warned 7 h before EA", tone: "good" });
+    expect(eaBadge({ ...f, leadVsOfficialH: -8.2 }, Infinity)).toEqual({ text: "8 h after EA", tone: "bad" });
+    expect(eaBadge({ ...f, leadVsOfficialH: 0.2 }, Infinity)?.text).toBe("Same time as EA");
+    expect(eaBadge({ ...f, leadVsOfficialH: null }, Infinity)).toBeNull();
+    expect(eaBadge({ ...f, official: null }, Infinity)).toBeNull();
+    expect(eaBadge(null, Infinity)).toBeNull();
+  });
+  it("pulses for 12 simulated hours after River Clock's warning", () => {
+    expect(justWarned(f, T("2014-01-04T04:00:00Z"))).toBe(false);
+    expect(justWarned(f, T("2014-01-04T05:00:00Z"))).toBe(true);
+    expect(justWarned(f, T("2014-01-04T05:00:00Z") + PULSE_H * 3_600_000)).toBe(false);
+    expect(justWarned({ rc50: null }, Infinity)).toBe(false);
   });
 });
