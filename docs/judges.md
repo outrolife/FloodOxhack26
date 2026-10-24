@@ -36,7 +36,7 @@ Oxford floods from the river, slowly: the water that floods Botley Road is alrea
 
 - **We checked the data before the model.** In the first hour we found that the public history for the Osney, Godstow and Iffley lock gauges holds only the *upstream* side. The weir holds that side almost flat in a flood (Osney read 0.19 m at the 2014 peak). Their flood side has 0.7% coverage: 55 days of an archive. So we re-targeted to four gauges whose history matches their thresholds: New Botley, Minns Estate, Cold Harbour and Kings Mill (91.2–99.8% coverage for the gauges with history). <!-- src: SPEC.md §4.1.1; web/public/data/quality.json -->
 - **Leave-one-flood-out.** Each past flood is replayed with a model trained without it (±7 days), issuing a forecast every hour.
-- **A baseline that is hard to beat.** Persistence ("the level stays where it is") scores every forecast. If we lose to it, the Proof tab says so.
+- **A strong baseline.** Persistence ("the level stays where it is") scores every forecast. If we lose to it, the Proof tab says so.
 - **Calibration is measured.** We report interval coverage against nominal and reliability diagrams, and the app flags gaps over 10 points.
 - **Leakage tests.** Tests change future data and check that no input and no replay forecast changes (`tests/test_features.py`, `tests/test_backtest.py`).
 - **Honest counts.** Nine of eleven travel-time pairs rest on at least 3 floods. The other two are labelled "cross-correlation only". Event-level numbers carry 90% bootstrap intervals.
@@ -44,11 +44,17 @@ Oxford floods from the river, slowly: the water that floods Botley Road is alrea
 
 **The 2014 replay (Botley Road, times GMT):** River Clock first reached 50% at 12:00 on 4 Jan, **about 7 h before the EA's Flood Warning** (19:03) and 37 h before New Botley crossed 2.76 m (01:00, 6 Jan). The peak was inside the 5–95% band at every lead from 6 to 72 h. The EA's lower-level Flood Alert (23 Dec) came before our first 10%. <!-- src: web/public/data/replays/e2014.json -->
 
-⏳ *Scores over all events (skill vs persistence, coverage, e2026 near miss) arrive with `proof.json` (PR #66).* <!-- RESULTS (PENDING #66): add 2 headline numbers here, from the file -->
+**Over all seven events:**
+- **Skill vs persistence** is positive at every lead, from +0.39 at 6 h to +0.11 at 72 h (forecasts from Oct 2021 on, which no model saw).
+- **Ranges are too wide:** the 90% range holds 94–97%.
+- **Floods caught at a 50% trigger:** every flood at all four forecast spots, with 0–3 false alarms per spot.
+- **Versus the EA's warning, mixed:** earlier at Osney (+2.9 h) and the Cherwell (+9.2 h), later at Botley (−5.1 h) and Abingdon Road (−13.8 h).
+- **2026 near miss:** our highest flood chance was 28%, so there were no false alarms at triggers of 30% or more. <!-- src: web/public/data/proof.json; replays/e2026.json -->
 
 ## What it can't do
 
 - **Few floods:** seven named events since 2007, one a near miss. Uncertainty is wide.
+- **Not always better:** at Abingdon Road the probability forecast is slightly worse than persistence from 24 h on (Brier score), and at long leads near-certain forecasts are too confident.
 - **No future rain:** it sees water already in the river and rain already fallen.
 - **Stand-ins:** Osney Island uses Minns Estate, about 1.2 km west. Abingdon Road uses Cold Harbour. Wolvercote has no forecast (no gauge history).
 - **Leave-one-flood-out can see later floods:** the 2014 replay's model has seen 2024. Strict time-split results are reported separately.

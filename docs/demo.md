@@ -4,9 +4,9 @@ Judging is science-fair style: 4–5 minutes per judge, at our table. This scrip
 
 All times here are UK local time. Judging is on **Sun 25 Oct 2026, after the clocks went back at 02:00**, so the app and this script are on **GMT (= UTC)**. Past events are labelled with their own zone (Jan 2014 is GMT).
 
-<!-- RESULTS: every "__" below must be filled from the real JSON before rehearsal. If a number isn't there, cut the line. Never say a number we haven't computed. -->
+<!-- Every number below comes from committed JSON (src comments next to each). If the data is regenerated, re-check them before rehearsal. Never say a number we haven't computed. -->
 
-**⏳ = still waits on `proof.json` (PR #66).** Until it is on main, Proof and Decide show "sample data": say so, use the fallback line, and move on. Everything without ⏳ is real today: travel times, data coverage, the e2014 replay (PR #39, merged), live mode, Tiger Data.
+Everything in this script is now real data on main: travel times, data coverage, all seven replays (PR #39, PR #66), `proof.json` (PR #66), live mode and Tiger Data. If a tab still shows "sample data", the build is out of date: say so, use the fallback line, and move on.
 
 ---
 
@@ -36,7 +36,7 @@ No clicks needed.
 1. **River (30 s).** The hook line, then point at the Cassington → New Botley link: "about 9½ hours, over 24 floods". Point at the disclaimer banner.
 2. **Data first (20 s).** "In the first hour we checked the data and found the Osney Lock flood gauge has no public history on its flood side. So we switched to gauges whose history matches their thresholds, and say so on screen."
 3. **Time Machine (40 s).** Play e2014 for a few seconds and pause at our 50% marker: "noon on 4 January, about 7 hours before the EA's flood warning, and 37 hours before the gauge crossed its threshold." <!-- src: web/public/data/replays/e2014.json -->
-4. ⏳ **Proof (20 s).** "Above zero means we beat 'the level stays where it is'. Where we don't, the app says so." If Proof shows sample data, show the travel-time chart instead (real).
+4. **Proof (20 s).** "Above zero means we beat 'the level stays where it is'. We do at every lead: +0.39 at 6 hours, falling to +0.11 at 72. Against the EA it's mixed: we're earlier at Osney and the Cherwell, they're earlier at Botley and Abingdon Road." <!-- src: web/public/data/proof.json skillByLead; tradeoff meanLeadVsOfficialH at pStar 0.5 -->
 5. **Close (10 s).** "One finding, one model, one baseline, honest proof. Not an official warning; a clock you can read."
 
 ---
@@ -79,31 +79,32 @@ No clicks needed.
 
 **Fallback:** if the replay won't play or shows sample data: "The real replay isn't loading, so this is our test fixture. In the real one, we hit 50% at noon on 4 January, 7 hours before the EA's warning." Then move on quickly. If Play stutters, drag the slider by hand.
 
-### 2:30–3:15 · Step 3: Decide ⏳ (backtest costs need `proof.json`, PR #66)
+### 2:30–3:15 · Step 3: Decide
 
 **Click:** Decide tab. Start on **Resident**, then switch to **Commuter**, then **Council**.
 
 **Say:**
 - "Forecasts only help if they change what you do. If acting costs C and getting caught out costs L, it's worth acting once the chance of flooding is above C over L."
 - "A resident moving their car: £20 against £2,000 of damage, so act at 1%. A commuter rerouting: £5 against £100, act at 5%. The council closing a road: £5,000 against £100,000, also 5%." (The bars update instantly when you switch.)
-- ⏳ "The bars are the expected cost over the past floods for River Clock at that trigger, the official warnings, never acting and always acting." Point at the lowest bar and say what it is. <!-- RESULTS (PENDING #66): say which strategy is cheapest for each preset, only from the chart. Until then the tab shows the sample-data notice (PR #60): say "these bars are sample data". -->
+- "The bars are the expected cost over the past floods for River Clock at that trigger, the official warnings, never acting and always acting." Point at the lowest bar and read it off the chart; don't guess it in advance.
+- If asked what's behind the bars: "At a 50% trigger, River Clock caught every flood in the replays at all four forecast spots, with 2 false alarms at Osney, 3 at Botley and none at Abingdon Road or the Cherwell. The EA's Flood Warning, scored the same way, missed 3 at Osney, 2 at Botley, 1 at Abingdon Road and 4 at the Cherwell." <!-- src: web/public/data/proof.json tradeoff pStar 0.5; officialOutcome -->
 - "And for today: 'at your costs, act when P is at least X%. Now it's Y%.'"
 
 **Fallback:** if the live advice line says "Live data unavailable", say: "There's no live feed here, so the advice uses no current reading. The cost comparison is from the replays and works offline."
 
-### 3:15–4:15 · Step 4: Proof ⏳ (skill, reliability, coverage and e2026 need `proof.json`, PR #66; travel times and data quality are real)
+### 3:15–4:15 · Step 4: Proof
 
 **Click:** Proof tab.
 
 **Say:**
-- ⏳ **Skill chart:** "This is the honest test. Our baseline is 'the level stays roughly where it is'. Above zero means we beat it. At 24 hours our skill is __; at 72 hours __." <!-- RESULTS (PENDING #66): skillByLead. If skill is ≤ 0 at some lead, say: "At __ hours we don't beat the baseline, and the app says so." -->
-- ⏳ **Reliability diagram:** "When we say 30%, does it flood about 30% of the time? Points on the diagonal mean yes." <!-- RESULTS (PENDING #66): one-sentence read of the diagram; mention the small counts -->
-- ⏳ **Coverage:** "Our 90% ranges hold the outcome __% of the time." <!-- RESULTS (PENDING #66): coverage; the UI flags gaps over 10 points -->
-- ⏳ **e2026 near miss:** "Last winter the river was high for weeks, but no gauge reached its threshold and the EA issued no Oxford warning. That's our false-alarm test. River Clock __." <!-- RESULTS (PENDING #66): perEvent for e2026: did any spot trigger at p* = 0.5? -->
+- **Skill chart:** "This is the honest test. Our baseline is 'the level stays roughly where it is'. Above zero means we beat it. It's scored on forecasts from October 2021 on, which the models never saw. We beat it at every lead: +0.39 at 6 hours, +0.27 at 24, +0.11 at 72. The edge shrinks with lead time, as you'd expect: beyond the travel times, the water hasn't reached the upstream gauges yet." <!-- src: web/public/data/proof.json skillByLead; testPeriodNote -->
+- **Reliability diagram:** "When we say 30%, does it flood about 30% of the time? Points on the diagonal mean yes. Look at the counts: most middle bins have only a handful of forecasts. At long leads our near-certain forecasts are too confident. At Botley, 72-hour forecasts of about 99% came true 44% of the time, so we're too sure that high water stays high." <!-- src: web/public/data/proof.json reliability botley h72 top bin pPred 0.995, pObs 0.44, n 125 -->
+- **Coverage:** "Our ranges are too wide, not too narrow. The 90% range holds the outcome 94 to 97% of the time, and the 50% range 65 to 78%. That's the safe direction, but it means we could be sharper." <!-- src: web/public/data/proof.json coverage: nominal 0.9 actual 0.938-0.969; nominal 0.5 actual 0.647-0.781 -->
+- **e2026 near miss:** "Last winter the river was high for weeks, but no gauge reached its threshold and the EA issued no Oxford warning. That's our false-alarm test. River Clock's highest chance all winter was 28%, at Botley on 15 February, so at any trigger of 30% or more it raised no false alarm." <!-- src: web/public/data/replays/e2026.json max pFlood 0.2767 at 2026-02-15T14:00Z; proof.json perEvent e2026 crossed false for every spot -->
 - **Travel-time chart** (if time, real data): "Each dot is one past flood. The spread is wide, so the model looks at each upstream gauge over a range of lags, not one fixed lag. Bigger rises don't clearly travel faster here." <!-- src: travel_times.json, tHalf p10–p90 and slopeHoursPerMetre (small, sign changes across pairs) -->
 - **Data-quality table** (if asked): "Nine gauges with history from 2006, 91 to 99.8% of hours covered. The lock gauges have 0.7%: that's the gap we found in the first hour." <!-- src: web/public/data/quality.json coveragePct -->
 
-**Fallback:** if Proof shows sample data: "The full scores are still being computed. This layout is what you'll see. What's real here is the travel-time chart and the data-quality table." Show the travel-time chart. For the scores, say: "We'd rather show you nothing than a made-up number," and go to step 5.
+**Fallback:** if Proof shows sample data (an old build): "This build is showing our test fixture. The real numbers: skill +0.39 at 6 hours down to +0.11 at 72, and our 90% ranges hold 94 to 97%." Then show the travel-time chart. For the scores, say: "We'd rather show you nothing than a made-up number," and go to step 5.
 
 ### 4:15–4:45 · Step 5: Live, today's Oxford
 
@@ -142,18 +143,20 @@ Say the number, then say why. Never hide it, never round it up.
 
 | What the judge sees | What to say |
 |---|---|
-| ⏳ Skill near zero or below at 6–12 h | "That's expected. Rivers move slowly, so 'the level stays where it is' is very hard to beat a few hours ahead. Where the travel times matter, at longer leads, is where the model has to earn its place. The app says where we don't beat the baseline." |
-| ⏳ Skill negative at long leads (48–72 h) | "Beyond the longest travel time the water hasn't left the upstream gauges yet, and we don't use rain forecasts, so there's little to go on. That's our first next step." |
-| ⏳ 90% coverage well under 90% | "That means our ranges are too narrow on these floods. We calibrate on held-out floods, but with only seven events the calibration is rough. The app flags any gap over 10 points." |
-| ⏳ Reliability points far from the diagonal | "Look at the counts: some bins have only a handful of forecasts, so one flood moves the point a lot. That's why we show intervals." |
-| ⏳ EA warning earlier than River Clock | "Then the EA was ahead of us, and that's fine. They have forecasters and more data. We add a probability and a time per spot." |
-| ⏳ False alarm in e2026 | "That's what the near miss is for. The river was high for weeks and nothing flooded. A trigger there costs a resident £20 to move a car, and the Decide tab shows whether that's worth it." |
+| Skill only +0.11 at 72 h | "It's still above zero, but the edge shrinks with lead time. Beyond the longest travel time the water hasn't reached the upstream gauges yet, and we don't use rain forecasts, so there's little to go on. Rain forecasts are our first next step." |
+| Coverage above nominal (the 90% range holds 94–97%) | "Our ranges are too wide: conservative. With only seven floods the calibration is rough, and we'd rather be too wide than too narrow. The app flags any gap over 10 points." |
+| Reliability: near-certain forecasts at 72 h came true 44% of the time (Botley) | "At long leads we're too sure that high water stays high; the river often starts to fall within three days. And look at the counts: most middle bins have only a handful of forecasts." |
+| Abingdon Road Brier score worse than persistence from 24 h | "Yes. At Abingdon Road (the Cold Harbour stand-in gauge) the probability forecast is slightly worse than persistence from 24 hours on (0.0014 vs 0.0012 at 24 h). The Proof tab shows it." |
+| EA warning earlier than River Clock (Botley −5.1 h, Abingdon Road −13.8 h at p* = 0.5) | "Then the EA was ahead of us, and that's fine. They have forecasters and more data. A lower trigger, 20%, is earlier than the EA at every spot, but with more false alarms. We add a probability and a time per spot; we don't replace them." |
+| False alarms at p* = 0.5 (Osney 2, Botley 3) | "That's over seven replayed events. Abingdon Road and the Cherwell had none. The EA's own warnings, scored the same way, had 1 to 3 per spot." |
+| Cherwell mean lead only 9.3 h | "The Cherwell gives the least warning of our four spots. We're still earlier than the EA there, by about 9 h on average." |
+| e2026 would fire at a low trigger | "Yes: the highest chance was 28%, so a resident with a 1% trigger would have moved their car. That costs £20, and it's what a low trigger is for." |
 | Eynsham → New Botley under 1 h | "Only 3 clean floods for that pair, one at 0 h. We don't trust it and don't quote it; its peak-to-peak time is 8 h." |
 | Farmoor → New Botley "cross-correlation only" | "No clean floods matched for that pair, so it falls back to the lag where the two gauges' rises line up best, about 5 h, and the app labels it." |
 | Wide travel-time ranges (e.g. 1–42 h) | "Floods differ: rain falls in different places and the side streams split the flow. That's why the model looks at several lags per gauge, not one." |
 | Cassington, Islip coverage 91–93% | "The EA marks some readings suspect or rejected, and we drop them rather than guess. Missing stays missing." |
 
-<!-- src for the real rows: web/public/data/travel_times.json, web/public/data/quality.json. Rows marked ⏳ are prepared answers: only use one if proof.json (PR #66) actually shows it. -->
+<!-- src: web/public/data/proof.json (skillByLead, coverage, reliability, tradeoff, officialOutcome), web/public/data/replays/e2026.json, web/public/data/travel_times.json, web/public/data/quality.json -->
 
 ---
 
@@ -165,7 +168,7 @@ Short, honest answers. If we don't know, say "we don't know" and say what we'd c
 Oxford has about seven big flood events since 2007. A deep sequence model would need far more floods to learn from, and would be hard to explain. Gradient-boosted quantile models are a strong, well-tested choice for river forecasting with small data (top entries in the DrivenData Water Supply Forecast Rodeo used them), they train in minutes, and we can show which inputs matter. One model, done carefully, beats two done badly.
 
 **Why compare against persistence?**
-"The level stays where it is" is the simplest honest forecast, and rivers change slowly, so it's hard to beat at short lead times. If we can't beat it, the model isn't worth using. The Proof tab says plainly where we do and don't beat it.
+"The level stays where it is" is the simplest honest forecast, and rivers change slowly, so it's a strong rival. If we can't beat it, the model isn't worth using. We do beat it at every lead (+0.39 at 6 h, +0.11 at 72 h), but the edge shrinks as the lead grows. <!-- src: web/public/data/proof.json skillByLead --> The Proof tab says plainly where we do and don't beat it.
 
 **How do you avoid leakage?**
 Every input is computed only from data up to the forecast time, and a test changes the future data and checks that no input changes (`tests/test_features.py`). Each replay uses a model trained without that flood (plus 7 days either side). And a second test checks that replay forecasts don't change when data after their issue time changes (`tests/test_backtest.py`). <!-- src: PR #39, merged --> The one caveat: a replay of 2014 can use a model that saw 2024. Strict time-split results (test period from Oct 2021) are reported separately.
@@ -195,10 +198,10 @@ Yes. The model uses rain that has already fallen (EA rain gauges over the last 6
 They're the EA's "property flooding is possible" levels from the GOV.UK station pages. We checked each against dated reports: news, council updates, residents' newsletters and EA warnings. Botley and Abingdon Road are strong. Cherwell at Kings Mill is moderate: we found paths, parks and a pub flooded, but no confirmed homes.
 
 **How many floods is the proof based on?**
-Seven events from 2007 to 2026, including one near miss (2026) and any extra floods the backtest detects automatically. That's few, so we show 90% bootstrap intervals for event-level numbers. ⏳ <!-- RESULTS (PENDING #66): say the actual n from proof.json --> For travel times we also use smaller rises the analysis detects itself: up to 24 clean floods per pair. <!-- src: travel_times.json n -->
+Seven events from 2007 to 2026, including one near miss (2026). Counting repeat peaks at least 72 h apart as separate floods, that's 7 or 8 floods per spot (2014 had two, in January and February). That's few, so we show 90% bootstrap intervals for event-level numbers. Skill and coverage use every forecast issued from October 2021 on, which no model saw. <!-- src: web/public/data/proof.json tradeoff hits+misses at pStar 0.5 = 7/8/8/7; testPeriodNote --> For travel times we also use smaller rises the analysis detects itself: up to 24 clean floods per pair. <!-- src: travel_times.json n -->
 
 **Are you better than the EA warnings?**
-We compare lead times against the EA's first warning for each spot's area, using their official issue times. In the 2014 replay for Botley Road we reached 50% about 7 hours before the EA's Flood Warning, but their lower-level Flood Alert came days before our first 10%. <!-- src: replays/e2014.json --> ⏳ <!-- RESULTS (PENDING #66): add the all-events answer from proof.json --> Either way, River Clock is not a replacement. The EA has forecasters, more data and a legal duty. We add a probability and a time per street.
+We compare lead times against the EA's first warning for each spot's area, using their official issue times. In the 2014 replay for Botley Road we reached 50% about 7 hours before the EA's Flood Warning, but their lower-level Flood Alert came days before our first 10%. <!-- src: replays/e2014.json --> Across all seven events at a 50% trigger it's mixed: on average we're earlier than the EA's warning at Osney (+2.9 h) and the Cherwell (+9.2 h), and later at Botley (−5.1 h) and Abingdon Road (−13.8 h). In 2014 we were ahead at Osney (+20.9 h) and Botley (+7.1 h) but behind at Abingdon Road (−34.9 h). <!-- src: web/public/data/proof.json tradeoff meanLeadVsOfficialH pStar 0.5; perEvent e2014 --> Either way, River Clock is not a replacement. The EA has forecasters, more data and a legal duty. We add a probability and a time per street.
 
 **Why not use the Botley Road closures as evidence?**
 Botley Road was closed for the railway bridge works from April 2023 to September 2026, so a closure in that period tells you nothing about flooding. We used none.

@@ -1,7 +1,7 @@
 # River Clock: Devpost draft
 
 <!-- Draft for the Devpost submission (deadline Sun 25 Oct 2026, 12:00 GMT). Paste section by section.
-     Fill every RESULTS / TODO marker from web/public/data/proof.json (PR #66) before submitting (the e2014 replay lines are already filled from replays/e2014.json). Don't round up. -->
+     Results are filled from web/public/data/proof.json and replays/*.json (PRs #39, #66). Re-check them if the data is regenerated. Don't round up. -->
 
 **Tagline (max ~200 characters):** Water upstream is Oxford's future. We read it as a clock. River Clock forecasts when, and how likely, five Oxford flood spots will flood in the next 72 hours.
 
@@ -58,7 +58,8 @@ Every screen says: *Decision-support prototype, not an official warning. Check g
 - We checked the data before trusting the plan, and changed course in the first hour rather than at 3 am.
 - Every spot threshold is backed by dated evidence: news reports, residents' newsletters and EA warnings, with links in the config.
 - An honest proof page: skill against a baseline, calibration, and lead time against official warnings. If the model loses somewhere, the page says so.
-- In a leave-one-flood-out replay of January 2014, River Clock reached a 50% chance of flooding for Botley Road at 12:00 GMT on 4 Jan, about **7 hours before the EA's Flood Warning** and 37 hours before the gauge crossed its threshold. That forecast put the 50% arrival at 01:01 on 6 Jan; the gauge crossed at 01:00. The real peak sat inside our 5–95% band at every lead from 6 to 72 hours. (The EA's lower-level Flood Alert came earlier than our first 10%, and we say so.) <!-- src: web/public/data/replays/e2014.json (PR #39). PENDING #66: add the all-events numbers from proof.json -->
+- In a leave-one-flood-out replay of January 2014, River Clock reached a 50% chance of flooding for Botley Road at 12:00 GMT on 4 Jan, about **7 hours before the EA's Flood Warning** and 37 hours before the gauge crossed its threshold. That forecast put the 50% arrival at 01:01 on 6 Jan; the gauge crossed at 01:00. The real peak sat inside our 5–95% band at every lead from 6 to 72 hours. (The EA's lower-level Flood Alert came earlier than our first 10%, and we say so.) <!-- src: web/public/data/replays/e2014.json (PR #39); proof.json perEvent e2014 botley leadVsOfficialH 7.06 -->
+- **Honest scores over seven floods** (2007–2026): skill against persistence is positive at every lead, from +0.39 at 6 h to +0.11 at 72 h, on forecasts from Oct 2021 on that no model saw. At a 50% trigger River Clock caught every flood at all four forecast spots, with 0–3 false alarms per spot. Against the EA's first Flood Warning it's mixed: earlier on average at Osney (+2.9 h) and the Cherwell (+9.2 h), later at Botley (−5.1 h) and Abingdon Road (−13.8 h). Our ranges are too wide rather than too narrow (the 90% range holds 94–97%). In the 2026 near miss, nothing crossed and our highest flood chance was 28%, so there were no false alarms at triggers of 30% and above. <!-- src: web/public/data/proof.json skillByLead, coverage, tradeoff pStar 0.5; replays/e2026.json -->
 - A travel-time finding with honest counts: we quote the links backed by 24 and 6 floods, and label the two that rest on cross-correlation alone. <!-- src: web/public/data/travel_times.json -->
 - Twenty years of Oxford river data in Tiger Data at 35 MB, queryable in SQL. <!-- src: docs/tiger-data.md -->
 - The whole demo runs offline from committed JSON.
@@ -66,7 +67,7 @@ Every screen says: *Decision-support prototype, not an official warning. Check g
 ## What we learned
 
 - Look at the data first. A one-hour check saved the project.
-- A strong simple baseline keeps you honest. "The level stays where it is" is hard to beat at short lead times. <!-- RESULTS (PENDING #66): confirm from proof.json skillByLead; cut this sentence if the data says otherwise -->
+- A strong simple baseline keeps you honest. We beat "the level stays where it is" at every lead, but our edge shrinks from +0.39 at 6 hours to +0.11 at 72. <!-- src: web/public/data/proof.json skillByLead -->
 - With few events, uncertainty is the result, not a footnote.
 - Clear contracts and a shared status board let many AI agents and people work in parallel without stepping on each other.
 - Times are hard. Use UTC everywhere and convert at the edge.

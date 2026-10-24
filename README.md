@@ -259,7 +259,7 @@ All times UTC. Windows are analysis windows, not flood durations. Peaks are prov
 | **e2024b** Nov 2024 (Storm Bert) | 20 Nov – 5 Dec 2024 | Mainly a Cherwell flood: Kings Mill record 2.785 m on 27 Nov. Council reported no flooded properties. | 2.788 / 2.819 / 2.455 / 2.785 |
 | **e2026** Jan–Mar 2026 | 15 Jan – 10 Mar 2026 | **Near miss.** High water for weeks (Osney downstream about 3.54 m on 16 Feb), but no trained gauge reached its threshold and no Oxford warning was issued. Our false-alarm test. | 2.657 / 2.742 / 2.120 / 2.291 |
 
-The backtest also adds floods it detects automatically (any period above the amber line with a clear peak).
+The travel-time analysis also uses smaller rises it detects automatically (any period above the amber line with a clear peak). The backtest and replays use the seven named events above.
 
 ---
 
