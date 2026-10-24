@@ -408,6 +408,7 @@ def score_variant(
                 "falseAlarms": res["falseAlarms"],
                 "meanLeadH": metrics.mean_or_none(res["leads"]),
                 "crossings": [{"t": str(c["t"]), "leadH": c["leadH"]} for c in res["crossings"]],
+                "falseAlarmsAt": [str(a)[:13] for a, _ in res["falseAlarmEpisodes"]],
             }
     cat = {k: {h: np.concatenate(v[h]) for h in HORIZONS_H} for k, v in pooled.items()}
     skill = metrics.skill_by_lead(cat["m"], cat["p"], cat["y"])

@@ -649,7 +649,8 @@ def report(res: Mapping[str, Any]) -> str:
                 o = v["outcomesP50"][spot]
                 lines.append(
                     f"{'':11s} {spot}: Brier 24/48/72 {br[24]:.4f}/{br[48]:.4f}/{br[72]:.4f}; "
-                    f"p*=0.5 hits {o['hits']} miss {o['misses']} FA {o['falseAlarms']} lead {o['meanLeadH']}"
+                    f"p*=0.5 hits {o['hits']} miss {o['misses']} FA {o['falseAlarms']} lead {o['meanLeadH']} "
+                    f"FA at {o.get('falseAlarmsAt', [])}"
                 )
     for block in ("testEvents", "events"):
         lines.append(f"\n## {block} (replays, p* = 0.5)")
