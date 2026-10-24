@@ -62,7 +62,7 @@ All Open Government Licence (OGL) unless noted. Store all timestamps in UTC.
 
 | Source | Access | Use |
 |---|---|---|
-| EA Hydrology API | `https://environment.data.gov.uk/hydrology/` (docs `/hydrology/doc/reference`). 15-min level measures end in `level-i-900`; rainfall measures available. Station records cross-reference flood-monitoring `stationReference` / `RLOIid` | Full history: training, travel times, backtests |
+| EA Hydrology API | `https://environment.data.gov.uk/hydrology/` (docs `/hydrology/doc/reference`). 15-min level measures end in `level-i-900-m-qualified`; rainfall measures available. Station records cross-reference flood-monitoring `stationReference` / `RLOIid` | Full history: training, travel times, backtests |
 | EA flood-monitoring API | `https://environment.data.gov.uk/flood-monitoring/` (docs `/doc/reference`, `/doc/rainfall`). `/id/stations/{ref}`, `/id/stations/{ref}/readings?since=…&_sorted&_limit=10000`, `/data/readings?latest`. ~4 weeks history; no key; poll ≤ every 15 min | Live mode; station metadata incl. `stageScale` (`typicalRangeHigh`, `highestRecent`, `maxOnRecord`) |
 | Flood-monitoring daily archive | `/flood-monitoring/archive/readings-{YYYY-MM-DD}.csv` (~56 MB/day, all England) | Fallback for gaps in specific event windows only |
 | EA Historic Flood Warnings | data.gov.uk dataset `historic-flood-warnings2` (ZIP; alerts, warnings, severe warnings, 26 Jan 2006 → June 2026) | Comparison with official warnings |
@@ -81,24 +81,26 @@ Values from EA public pages. **At ingest, re-read thresholds from API metadata a
 | key | Station | River | Role | Ref | Normal top / amber (m) | Property flooding possible (m) | Record (m) |
 |---|---|---|---|---|---|---|---|
 | farmoor | Farmoor | Thames | upstream | 1100TH | 1.30 | 1.75 | 2.01 (Jul 2007) |
-| eynsham | Eynsham Lock (u/s series, §4.1.1) | Thames | upstream | 1201TH | 2.96 | – | 3.65 (Jul 2007) |
-| cassington | Cassington Weir B | Evenlode | upstream | (7054) | 0.77 | – | 1.29 (Jul 2007) |
-| enslow | Enslow Weir A | Cherwell | upstream | (7064) | 1.29 | – (unreliable) | 2.10 (Apr 1998) |
-| islip | Islip | Ray | upstream | (9082) | 7.80 | 8.85 | 9.33 (Apr 1998) |
-| godstow | Godstow Lock d/s | Thames | live only (§4.1.1) | 1302TH | 2.57 | 3.07 | 3.11 (Jul 2007) |
-| osney | Osney Lock d/s | Thames | live only (§4.1.1) | 1303TH | 3.18 | 3.79 | 3.97 (9 Jan 2014) |
-| iffley | Iffley Lock d/s | Thames | live only (§4.1.1) | (7072) | 2.72 | 3.25 | 3.67 (9 Jan 2014) |
+| eynsham | Eynsham Lock (u/s series, §4.1.1) | Thames | upstream | 1201TH | 0.37 (u/s) | – | 1.187 (u/s) |
+| cassington | Cassington Weir B | Evenlode | upstream | 1290_w2TH | 0.77 | – | 1.29 (Jul 2007) |
+| enslow | Enslow Weir A | Cherwell | upstream | 1460_w1TH | 1.29 | – (unreliable) | 2.10 (Apr 1998) |
+| islip | Islip | Ray | upstream | 1489TH | 7.80 | 8.85 | 9.33 (Apr 1998) |
+| godstow | Godstow Lock d/s | Thames | live_only (§4.1.1) | 1302TH | 2.57 | 3.07 | 3.11 (Jul 2007) |
+| osney | Osney Lock d/s | Thames | live_only (§4.1.1) | 1303TH | 3.18 | 3.79 | 3.97 (9 Jan 2014) |
+| iffley | Iffley Lock d/s | Thames | live_only (§4.1.1) | 1501TH | 2.72 | 3.25 | 3.67 (9 Jan 2014) |
 | kingsmill | Kings Mill u/s | Cherwell | target | 1491TH | 2.40 | 2.60 | 2.79 (27 Nov 2024) |
 | newbotley | New Botley | Bulstake Stream | target (primary) | 1645TH | 2.01 | 2.76 | 3.14 (Jul 2007) |
-| minns | Minns Estate | Seacourt Stream | target | 1635TH | 2.13 | TBC (Story, #10) | 3.117 |
-| coldharbour | Cold Harbour | Hinksey Stream | target | 1675TH | 2.30 | TBC (Story, #10) | 2.738 |
+| minns | Minns Estate | Seacourt Stream | target | 1635TH | 2.13 | 2.90 (GOV.UK; Story to confirm, #10) | 3.117 |
+| coldharbour | Cold Harbour | Hinksey Stream | target | 1675TH | 2.30 | 2.44 (GOV.UK; Story to confirm, #10) | 2.738 |
 
 #### 4.1.1 Downstream-stage history (verified 24 Oct, #2; re-target decided by PM)
 The Hydrology API holds only the **upstream** lock stage for osney, godstow, iffley and eynsham. The d/s series in the table exist only in flood-monitoring (live, about 4 weeks) and the daily archive (from 2025-10-29, so e2026 only). Osney and Godstow u/s stay flat in floods (Osney u/s 0.19 m at the 2014 peak; −0.001 m on 25 Feb 2026 while d/s read 3.34 m), so they can't be proxies. Therefore:
 - **Trained targets:** `newbotley` (primary, 15-min history from 2002), `kingsmill` (1998+), `minns` (2003+), `coldharbour` (2002+).
 - **Live only:** `osney`, `godstow`, `iffley`, shown in the River strip from flood-monitoring live data; not trained or backtested.
 - `eynsham` uses its u/s series as an upstream feature. Anomalies are per-gauge, so the datum doesn't matter.
-- Upstream gauges with matching Hydrology history: farmoor (1992+), cassington (1986+), enslow (1987+), islip (1995+).
+- Upstream gauges with matching Hydrology history: farmoor (1992+), cassington (1986+), enslow (1987+), islip (1995+; use the `-mASD` measure), eynsham u/s (2000+).
+- Refs and measures are resolved in `config/stations.yaml` (#2). Hydrology 15-min level measures end in `level-i-900-m-qualified`. At the locks, flood-monitoring puts the d/s thresholds under `downstageScale`; `stageScale` is the u/s trace.
+- Kings Mill telemetry has been out since 2026-10-13 14:45Z: its history is fine, but live mode shows it as stale.
 
 Rain gauges (EA): Osney `256230TP`, Eynsham `254336TP`, Abingdon `261021TP`, Benson `264254TP`, Wheatley `263541TP`. Catchment rain = mean of available gauges per hour (log which are used).
 
@@ -111,13 +113,13 @@ Coordinates approximate; verify on a map.
 
 | key | Name | EA warning area | Gauge | Threshold (m) | lat, lon |
 |---|---|---|---|---|---|
-| osney | Osney Island / Binsey | 061FWF23BnsyOsny | minns | TBC | 51.7505, -1.2725 |
+| osney | Osney Island / Binsey | 061FWF23BnsyOsny | minns | 2.90 | 51.7505, -1.2725 |
 | botley | Botley Road / New Botley / Hinksey | 061FWF23NwBotley | newbotley | 2.76 | 51.7525, -1.2790 |
-| abingdonrd | Abingdon Road / Grandpont | 061FWF23NwBotley | coldharbour | TBC | 51.7425, -1.2560 |
+| abingdonrd | Abingdon Road / Grandpont | 061FWF23NwBotley | coldharbour | 2.44 | 51.7425, -1.2560 |
 | wolvercote | Wolvercote / Port Meadow | 061FWF23Wlvrcote | godstow | 3.07 | 51.7770, -1.2800 |
-| cherwell | Cherwell (Kings Mill) | Cherwell Oxford area (code TBC) | kingsmill | 2.60 | 51.7600, -1.2390 |
+| cherwell | Cherwell (Kings Mill) | 061FWF14CherOxfd | kingsmill | 2.60 | 51.7600, -1.2390 |
 
-Gauge changes (§4.1.1): osney and abingdonrd use the nearest single-trace gauges with history, minns and coldharbour, as substitutes. Story verifies their GOV.UK property-flooding thresholds. **If either can't be verified by Sat 20:00 UK, that spot becomes `timing_only`.** wolvercote stays on godstow, which is live only: its mode is `timing_only` with `leads: []` and `arrival: null`, and the UI shows the live level against 3.07 m with the note "no forecast: no gauge history".
+Gauge changes (§4.1.1): osney and abingdonrd use the nearest single-trace gauges with history, minns and coldharbour, as substitutes. Their thresholds (2.90 and 2.44 m) come from the GOV.UK station pages (#2); Story confirms them against flood evidence (Minns crosses 2.90 in e2007, e2012, e2014 and e2024a; Cold Harbour crosses 2.44 in every event except e2026). **If either can't be verified by Sat 20:00 UK, that spot becomes `timing_only`.** wolvercote stays on godstow, which is live only: its mode is `timing_only` with `leads: []` and `arrival: null`, and the UI shows the live level against 3.07 m with the note "no forecast: no gauge history".
 
 Each spot has:
 - `amber` = gauge normal-range top (`typicalRangeHigh`).
@@ -143,8 +145,8 @@ Additional events are auto-detected (§6.1) and added to the backtest set.
 
 ### 5.1 Ingest (`pipeline/`)
 - `ea_client.py`: thin, cached wrappers (responses saved under `data/raw/`; never re-download if cached). Retries with backoff; respect the 15-minute polling guidance for live endpoints.
-- `ingest_history.py`: for each gauge and rain gauge, download all available 15-min data from the Hydrology API (2006 → now). **Fallback:** if a gauge is missing from the Hydrology API, use daily archive CSVs for the event windows only.
-- `ingest_warnings.py`: download Historic Flood Warnings; keep Oxford-related codes (061FWF23BnsyOsny, 061FWF23NwBotley, 061FWF23Wlvrcote, 061WAF23Oxford, Cherwell area); output `(area_code, type, issued_at, precision: time|date)`.
+- `ingest_history.py`: for each gauge and rain gauge, download all available 15-min data from the Hydrology API (2006 → now). **Fallback:** if a gauge is missing from the Hydrology API, use daily archive CSVs for the event windows only. Note that the archive is a rolling window starting 2025-10-29, so it reaches e2026 only (#2).
+- `ingest_warnings.py`: download Historic Flood Warnings; keep Oxford-related codes (061FWF23BnsyOsny, 061FWF23NwBotley, 061FWF23Wlvrcote, 061WAF23Oxford, Cherwell 061FWF14CherOxfd / alert 061WAF14LChrwell; these named codes start in Nov 2012, so e2007 needs the legacy codes 061FWF233, 061FWF142 and 061WAFW06). Issue times are recorded to the second, in UK local time: convert to UTC; output `(area_code, type, issued_at, precision: time|date)`.
 - `ingest_live.py`: last 28 days of readings for all gauges + rain gauges from flood-monitoring; record `observed_at` and `received_at`.
 
 ### 5.2 Cleaning (`pipeline/clean.py`)
@@ -256,7 +258,7 @@ All files under `web/public/data/`. Times are ISO 8601 UTC. Levels in metres (ea
 
 ```ts
 // stations.json
-type Station = { key: string; name: string; river: string; role: "upstream" | "target";
+type Station = { key: string; name: string; river: string; role: "upstream" | "target" | "live_only";
   ref: string; lat: number; lon: number; amber: number; threshold: number | null; record: number | null; };
 
 // spots.json

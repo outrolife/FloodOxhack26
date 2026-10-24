@@ -22,7 +22,7 @@ export type Station = {
   key: string; // e.g. "osney"
   name: string; // e.g. "Osney Lock d/s"
   river: string; // e.g. "Thames"
-  role: "upstream" | "target";
+  role: "upstream" | "target" | "live_only"; // live_only: shown live, never forecast (SPEC §4.1.1)
   ref: string; // EA stationReference, e.g. "1303TH"
   lat: number;
   lon: number;
