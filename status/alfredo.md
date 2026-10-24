@@ -8,7 +8,7 @@
 - **needs**: 
 - **notes**: S4 is draft only until S3 merges (PM can veto on #23)
 - **branch**: main
-- **head**: a714e4f Merge pull request #104 from outrolife/app/about-diagram
+- **head**: 4e5779b Merge pull request #105 from outrolife/app/judge-number-fixes
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T18:22:04Z
+- **updated**: 2026-10-24T18:25:13Z
