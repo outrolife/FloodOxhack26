@@ -10,5 +10,5 @@
 - **branch**: integration/scaffold
 - **head**: 9b16854 Scaffold repo layout, Makefile, pyproject and pytest
 - **unpushed**: 0
-- **dirty**: 0
-- **updated**: 2026-10-24T15:59:00Z
+- **dirty**: 1
+- **updated**: 2026-10-24T16:00:36Z
