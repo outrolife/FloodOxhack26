@@ -88,4 +88,26 @@ describe("App smoke test (jsdom)", () => {
     }
     expect(errors).toEqual([]);
   });
+
+  it.skipIf(!existsSync(DATA + "replays/e2014.json"))("plays a past flood (#/e2014) without console errors", async () => {
+    const errors: unknown[][] = [];
+    vi.spyOn(console, "error").mockImplementation((...args: unknown[]) => {
+      errors.push(args);
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => respond(typeof input === "string" ? input : input instanceof URL ? input.href : input.url)),
+    );
+    window.location.hash = "/e2014";
+    render(<App />);
+    await waitFor(() => expect(screen.getByRole("button", { name: "2014" }).getAttribute("aria-pressed")).toBe("true"));
+    await waitFor(() => expect(document.querySelector(".ck-play")).not.toBeNull(), { timeout: 5000 });
+    // Let playback run a few frames.
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 300));
+    });
+    expect(document.querySelectorAll(".rc-hero .rc-dot").length).toBeGreaterThan(0);
+    expect(errors).toEqual([]);
+    window.location.hash = "";
+  });
 });

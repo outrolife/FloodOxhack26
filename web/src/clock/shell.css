@@ -78,6 +78,20 @@ span.rc-dot-btn { cursor: help; }
 .rc-dot-left .rc-dot-name { right: calc(100% + 4px); }
 .rc-dot.selected .rc-dot-name { font-weight: 800; }
 .rc-dot.quiet .rc-dot-name { color: var(--ink-2); font-weight: 500; }
+/* Replays: River Clock vs the EA under the marker, once both have happened; a ripple when the warning fires. */
+.rc-dot-badge {
+  position: absolute; top: calc(100% + 3px); left: 50%; transform: translateX(-50%); white-space: nowrap; pointer-events: none;
+  font-size: 0.7rem; font-weight: 700; line-height: 1.2; padding: 1px 5px; border-radius: 6px;
+  background: rgba(252, 252, 251, 0.95); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18); color: var(--ink);
+}
+.rc-dot-badge.tone-good { color: var(--accent); }
+.rc-dot-badge.tone-bad { color: #8f3a12; }
+@keyframes rc-ripple { from { transform: scale(1); opacity: 0.85; } to { transform: scale(2.4); opacity: 0; } }
+.rc-dot-pulse {
+  position: absolute; inset: 0; border-radius: 50%; border: 3px solid var(--accent); pointer-events: none;
+  animation: rc-ripple 1.4s ease-out infinite;
+}
+@media (prefers-reduced-motion: reduce) { .rc-dot-pulse { animation: none; opacity: 0.7; } }
 .rc-flowkey-ring {
   display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle;
   border: 3px solid #e09b00; border-right-color: #e6e4df; border-bottom-color: #e6e4df;

@@ -105,7 +105,7 @@ export function SpotDots({ dots, selected, onSelect }: { dots: SpotDot[]; select
         const { x: dx, y: dy } = offsets[i] ?? { x: 0, y: 0 };
         const isSel = d.key === selected;
         const quiet = d.note != null;
-        const words = quiet ? `${d.label}: ${d.note}` : chanceLabel(d.label, d.prob);
+        const words = (quiet ? `${d.label}: ${d.note}` : chanceLabel(d.label, d.prob)) + (d.badge ? `. River Clock: ${d.badge.text}` : "");
         const clickable = onSelect != null && !quiet;
         return (
           <PortalMarker key={d.key} position={[d.lat, d.lon]} z={isSel ? 1000 : 0}>
@@ -130,9 +130,18 @@ export function SpotDots({ dots, selected, onSelect }: { dots: SpotDot[]; select
                     <Dot dot={d} selected={isSel} />
                   </span>
                 )}
+                {/* A ring that ripples out when River Clock's warning fires (replays). */}
+                {d.pulse && <span className="rc-dot-pulse" aria-hidden="true" />}
                 <span className="rc-dot-name" aria-hidden="true">
                   {d.label}
                 </span>
+                {/* River Clock vs the EA, once both have happened: words and a shape, not colour alone. */}
+                {d.badge && (
+                  <span className={`rc-dot-badge tone-${d.badge.tone}`} aria-hidden="true">
+                    {d.badge.tone === "good" ? "✓ " : d.badge.tone === "bad" ? "✕ " : ""}
+                    {d.badge.text}
+                  </span>
+                )}
               </div>
             </div>
           </PortalMarker>
