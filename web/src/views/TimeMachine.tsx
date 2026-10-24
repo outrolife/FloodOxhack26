@@ -11,6 +11,7 @@ import {
   formatOfficial,
   matchTier,
   officialLabel,
+  runUpIndex,
   tierSentence,
   type Tier,
   type TierMatch,
@@ -129,9 +130,17 @@ function ReplayPlayer({
     // Headline replay is on newbotley (Botley spot), SPEC §4.3; fall back to osney, then any.
     () => (spotKeys.find((s) => s.key === "botley") ?? spotKeys.find((s) => s.key === "osney") ?? spotKeys[0])?.key ?? "",
   );
+  // Where "Start just before the flood" jumps to for a spot (#103): 72 h before River Clock's 50%.
+  const runUpFor = (key: string): number | null => {
+    const s = spots.find((x) => x.key === key);
+    if (!s) return null;
+    return runUpIndex(forecasts, cachedMatch(replay, s.key, s.threshold, "warning"), cachedMatch(replay, s.key, s.threshold, "alert"));
+  };
   // ?step=N in the URL opens the replay at forecast N (handy for demos and screenshots).
+  // Without it, open just before the flood (#103), so Play tells the story in seconds, not a minute.
   const [idx, setIdx] = useState(() => {
-    const step = Number(new URLSearchParams(window.location.search).get("step")) || 0;
+    const raw = new URLSearchParams(window.location.search).get("step");
+    const step = raw != null && raw !== "" ? Number(raw) || 0 : (runUpFor(spotKey) ?? 0);
     return Math.min(Math.max(step, 0), Math.max(forecasts.length - 1, 0));
   });
   const [seenIdx, setSeenIdx] = useState(0);
@@ -226,6 +235,7 @@ function ReplayPlayer({
   const domain = zoom === "event" ? eventDomain : focusWindow(Date.parse(sliderT), eventDomain);
 
   const endT = forecasts[forecasts.length - 1].issuedAt;
+  const runUp = runUpFor(spot.key);
   const warningSentence = tierSentence(warnMatch, revealed, endT);
   const alertSentence = tierSentence(alertMatch, revealed, endT);
 
@@ -246,6 +256,18 @@ function ReplayPlayer({
           <button className="btn primary" onClick={togglePlay} aria-keyshortcuts="Space">
             {playing ? "Pause" : "Play"}
           </button>
+          {runUp != null && (
+            <button
+              className="btn"
+              onClick={() => {
+                setPlaying(false);
+                setIdx(runUp);
+              }}
+              title={`Jump to ${formatDateTimeYear(forecasts[runUp].issuedAt)}, 3 days before River Clock first gave ${spot.name} a 50% chance (or before the flood), then press Play`}
+            >
+              Start just before the flood
+            </button>
+          )}
           <span className="speed" role="group" aria-label="Playback speed">
             {SPEEDS.map((s) => (
               <button key={s} className="btn" aria-pressed={speed === s} onClick={() => setSpeed(s)}>
@@ -308,8 +330,8 @@ function ReplayPlayer({
             </p>
           )}
           <p className="muted">
-            Grey line: what actually happened, shown only for times the slider has already passed. The
-            model never sees data after its forecast time.
+            Black line: the river level observed so far. Faint grey line: what happened next, shown only
+            after the slider has passed it. The model never sees data after its forecast time.
           </p>
         </div>
       </section>

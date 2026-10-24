@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { formatShort, londonDaysBetween, zoneAt } from "../../time";
 import { liveObserved } from "../shared/observed";
 import { existsSync, readFileSync } from "node:fs";
-import { focusWindow, matchTier, tierSentence, type Official, type ReplayTimeline } from "./timeline";
+import { focusWindow, matchTier, runUpIndex, tierSentence, type Official, type ReplayTimeline } from "./timeline";
 import { countAtOrBefore } from "../shared/series";
 import { arrivalSentence } from "../shared/forecast";
 import type { Forecast, Replay } from "../../contracts";
@@ -47,7 +47,7 @@ describe("matchTier / tierSentence (#82)", () => {
     expect(alert.official).toBeNull();
     expect(alert.rc).toBe("2014-01-04T00:00:00Z"); // first >= 10% inside [c - 72 h, c)
     expect(tierSentence(alert, all, crossing)).toBe(
-      "River Clock reached 10% 49 h before the river crossed the threshold; no EA Flood Alert in the 72 h before it.",
+      "River Clock reached 10% 49 h before the river crossed the threshold; no new EA Flood Alert was issued in the 72 h before the crossing.",
     );
     const warn = matchTier(r, "botley", 2.76, "warning");
     expect(tierSentence(warn, all, crossing)).toBe("River Clock reached 50% 7 h earlier than the EA Flood Warning.");
@@ -99,9 +99,21 @@ describe("matchTier / tierSentence (#82)", () => {
     );
   });
 
-  it("stays hidden until every time it mentions is revealed", () => {
+  it("stays hidden until both markers are revealed, then gives the head start without the outcome (#103)", () => {
     const r = synth(probs, [off("warning", "2014-01-04T19:00:00Z")], [crossing]);
-    expect(tierSentence(matchTier(r, "botley", 2.76, "warning"), upTo("2014-01-05T00:00:00Z"), crossing)).toBeNull();
+    const m = matchTier(r, "botley", 2.76, "warning");
+    expect(tierSentence(m, upTo("2014-01-04T15:00:00Z"), crossing)).toBeNull();
+    const soFar = tierSentence(m, upTo("2014-01-05T00:00:00Z"), crossing)!;
+    expect(soFar).toBe("So far: River Clock reached 50% 7 h earlier than the EA Flood Warning. Keep playing to see what the river did.");
+    expect(soFar).not.toMatch(/cross|flooded|stayed below/);
+  });
+
+  it("starts 'just before the flood' 72 h before River Clock's 50% (#103)", () => {
+    const fc = Array.from({ length: 200 }, (_, i) => ({ issuedAt: new Date(Date.parse("2013-12-20T00:00:00Z") + i * 3_600_000 * 2).toISOString() }));
+    const idx = runUpIndex(fc, { rc: "2014-01-04T12:00:00Z", crossing }, { rc: null });
+    expect(fc[idx!].issuedAt).toBe("2014-01-01T12:00:00.000Z");
+    expect(runUpIndex(fc, { rc: null, crossing: null }, { rc: null })).toBeNull();
+    expect(runUpIndex(fc, { rc: null, crossing: null }, { rc: "2013-12-21T00:00:00Z" })).toBe(0);
   });
 });
 
@@ -122,6 +134,12 @@ describe.skipIf(!e2014)("e2014 replay, Botley (#82)", () => {
       "River Clock reached 50% 7 h earlier than the EA Flood Warning.",
     );
   });
+  it("opens 'just before the flood' at step 150, 1 Jan 2014 12:00 GMT, as in docs/demo.md (#103)", () => {
+    const warn = matchTier(e2014!, "botley", 2.76, "warning");
+    const alert = matchTier(e2014!, "botley", 2.76, "alert");
+    const idx = runUpIndex(e2014!.forecasts, warn, alert)!;
+    expect(e2014!.forecasts[idx].issuedAt).toBe("2014-01-01T12:00:00Z");
+  });
   it("no longer sets the Christmas Flood Alert against the January flood", () => {
     const m = matchTier(e2014!, "botley", 2.76, "alert");
     expect(m.official).toBeNull();
@@ -140,7 +158,7 @@ describe.skipIf(!e2026)("e2026 replay, near miss (#82)", () => {
     const end = e2026!.forecasts.at(-1)!.issuedAt;
     const m = matchTier(e2026!, "botley", 2.76, "alert");
     expect(m.official).toBeNull();
-    expect(tierSentence(m, all, end)).toMatch(/^River Clock reached 10% on .*2026.* and the river stayed below the flood threshold; no EA Flood Alert within 72 h of it\.$/);
+    expect(tierSentence(m, all, end)).toMatch(/^River Clock reached 10% on .*2026.* and the river stayed below the flood threshold; no EA Flood Alert was issued within 72 h of that\.$/);
     expect(tierSentence(m, upTo(m.rc!), end)).toBeNull(); // "stayed below" only once the event is over
   });
 });
