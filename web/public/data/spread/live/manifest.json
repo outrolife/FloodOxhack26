@@ -13,33 +13,33 @@
  "frames": [
   {
    "tau": 6,
-   "issuedAt": "2026-10-24T17:48:00Z",
-   "png": "spread/live/tau06_04b5cf53ef.png"
+   "issuedAt": "2026-10-24T18:07:00Z",
+   "png": "spread/live/tau06_c3266b5698.png"
   },
   {
    "tau": 12,
-   "issuedAt": "2026-10-24T17:48:00Z",
-   "png": "spread/live/tau12_18009477b8.png"
+   "issuedAt": "2026-10-24T18:07:00Z",
+   "png": "spread/live/tau12_c44c6bc519.png"
   },
   {
    "tau": 24,
-   "issuedAt": "2026-10-24T17:48:00Z",
-   "png": "spread/live/tau24_f3f2fae413.png"
+   "issuedAt": "2026-10-24T18:07:00Z",
+   "png": "spread/live/tau24_177191cbb8.png"
   },
   {
    "tau": 36,
-   "issuedAt": "2026-10-24T17:48:00Z",
-   "png": "spread/live/tau36_4ca36a6fed.png"
+   "issuedAt": "2026-10-24T18:07:00Z",
+   "png": "spread/live/tau36_56ac6094cd.png"
   },
   {
    "tau": 48,
-   "issuedAt": "2026-10-24T17:48:00Z",
-   "png": "spread/live/tau48_ba79193e82.png"
+   "issuedAt": "2026-10-24T18:07:00Z",
+   "png": "spread/live/tau48_060cb476f2.png"
   },
   {
    "tau": 72,
-   "issuedAt": "2026-10-24T17:48:00Z",
-   "png": "spread/live/tau72_4011f09340.png"
+   "issuedAt": "2026-10-24T18:07:00Z",
+   "png": "spread/live/tau72_3d84007fc4.png"
   }
  ],
  "validation": null,
@@ -49,6 +49,6 @@
   "Terrain: EA LIDAR Composite DTM 2022 1 m (OGL v3), via the Defra DSP WCS, resampled to 5 m. River cells: EA Statutory Main River Map (OGL v3).",
   "200 runs per frame: forecast level drawn from the River Clock quantiles; terrain perturbed by \u00b10.15 m smoothed noise for LiDAR error.",
   "Shading: share of runs in which a cell is wet. Palest 10-25%, then 25-50%, 50-75%, darkest 75% or more.",
-  "Largest extent wet in at least half the runs, over these frames: 0 ha of the 250 ha box, not counting the mapped river centrelines."
+  "Largest extent wet in at least half the runs, over these frames: 1 ha of the 250 ha box, not counting the mapped river centrelines."
  ]
 }
