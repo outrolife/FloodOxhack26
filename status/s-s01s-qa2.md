@@ -3,12 +3,12 @@
 - **role**: Integration
 - **state**: working
 - **issue**: #50
-- **task**: Re-audit #50 on current main (fresh clone, train/backtest, offline demo)
-- **next**: Fresh clone + make setup test lint
+- **task**: Re-audit #50: train 3.2 min OK, backtest running, offline walk done
+- **next**: Check make demo (#76), compare backtest vs committed, post checklist
 - **needs**: 
 - **notes**: 
-- **branch**: worktree-agent-a9fe86532352e33ae
-- **head**: ad506c6 Ignore internal observer tooling
+- **branch**: HEAD
+- **head**: c1db381 Merge pull request #78 from outrolife/story/team-names
 - **unpushed**: no upstream
 - **dirty**: 0
-- **updated**: 2026-10-24T17:37:05Z
+- **updated**: 2026-10-24T17:45:29Z
