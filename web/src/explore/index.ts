@@ -7,7 +7,7 @@ export * from "./geocode";
 export * from "./risk";
 export * from "./sandbags";
 
-export { SearchBox } from "./SearchBox";
+export { SearchBox, EXAMPLE_PLACE } from "./SearchBox";
 export { PointCard } from "./PointCard";
 export { SandbagCard } from "./SandbagCard";
 export { ExploreLayer, type ExploreLayerProps } from "./ExploreLayer";

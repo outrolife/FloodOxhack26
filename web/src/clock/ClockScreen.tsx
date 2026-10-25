@@ -22,7 +22,7 @@ import { Timeline } from "./Timeline";
 import { useClockEvent } from "./useClockEvent";
 import { eaBadge, justWarned } from "./markers";
 import { replayFactsFor } from "../screens/replay/facts";
-import { PointCard, SearchBox, ZonesLegend, useExplore } from "../explore";
+import { EXAMPLE_PLACE, PointCard, SearchBox, ZonesLegend, useExplore } from "../explore";
 import "./shell.css";
 
 /** Map v3 (#152, MapLibre + deck.gl): its own chunk, loaded only with ?map=gl (or once it is the default). */
@@ -204,7 +204,7 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
           {t != null && <strong className="rc-when-time">{event === "now" ? formatDateTime(t) : formatDateTimeYear(t)}</strong>}
           {note && <span className="rc-when-note">{note}</span>}
         </div>
-        <SearchBox onPick={explore.onPick} />
+        <SearchBox onPick={explore.onPick} example={EXAMPLE_PLACE} />
       </div>
 
       <div className="rc-stage">
