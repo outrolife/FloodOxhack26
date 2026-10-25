@@ -107,14 +107,28 @@ function PinchZoom() {
     const el = map.getContainer();
     let target: number | null = null;
     let idle = 0;
+    let frame = 0;
+    let at: L.Point | null = null;
     const clamp = (z: number) => Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), z));
+    // At most one redraw per frame, at the map's 0.25 zoom steps. An unsnapped zoom that rounds back to
+    // the current one would only shift the centre, so a slow pinch would slide the map instead of zooming.
+    const apply = () => {
+      frame = 0;
+      if (target == null || at == null) return;
+      const z = Math.round(target * 4) / 4;
+      if (z !== map.getZoom()) map.setZoomAround(at, z, { animate: false });
+    };
+    const zoomTo = (z: number, point: L.Point) => {
+      target = clamp(z);
+      at = point;
+      if (!frame) frame = window.requestAnimationFrame(apply);
+    };
     const onWheel = (e: WheelEvent) => {
       if (!e.ctrlKey) return;
       e.preventDefault();
       // Pixel deltas from a trackpad are small and many; line deltas (ctrl + mouse wheel) are coarse.
       const step = e.deltaMode === 1 ? e.deltaY * 0.25 : e.deltaY * 0.012;
-      target = clamp((target ?? map.getZoom()) - step);
-      map.setZoomAround(map.mouseEventToContainerPoint(e), target, { animate: false });
+      zoomTo((target ?? map.getZoom()) - step, map.mouseEventToContainerPoint(e));
       window.clearTimeout(idle);
       idle = window.setTimeout(() => (target = null), 250);
     };
@@ -127,15 +141,21 @@ function PinchZoom() {
     const onGestureChange = (e: Event) => {
       e.preventDefault();
       const g = e as Gesture;
-      map.setZoomAround(map.mouseEventToContainerPoint(g as unknown as MouseEvent), clamp(start + Math.log2(g.scale)), { animate: false });
+      zoomTo(start + Math.log2(g.scale), map.mouseEventToContainerPoint(g as unknown as MouseEvent));
     };
     const block = (e: Event) => e.preventDefault();
     el.addEventListener("wheel", onWheel, { passive: false });
-    el.addEventListener("gesturestart", onGestureStart);
-    el.addEventListener("gesturechange", onGestureChange);
-    el.addEventListener("gestureend", block);
+    // Safari's gesture events are for trackpads here. On iPhone and iPad they also fire for touchscreen
+    // pinches, which Leaflet's touch zoom already handles, so two handlers would fight over one pinch.
+    const trackpadGestures = typeof navigator !== "undefined" && navigator.maxTouchPoints === 0;
+    if (trackpadGestures) {
+      el.addEventListener("gesturestart", onGestureStart);
+      el.addEventListener("gesturechange", onGestureChange);
+      el.addEventListener("gestureend", block);
+    }
     return () => {
       window.clearTimeout(idle);
+      if (frame) window.cancelAnimationFrame(frame);
       el.removeEventListener("wheel", onWheel);
       el.removeEventListener("gesturestart", onGestureStart);
       el.removeEventListener("gesturechange", onGestureChange);
