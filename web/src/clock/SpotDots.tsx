@@ -129,7 +129,7 @@ export function DotBody({
 }) {
   const { x: dx, y: dy } = offset;
   const quiet = d.note != null;
-  const words = (quiet ? `${d.label}: ${d.note}` : chanceLabel(d.label, d.prob)) + (d.badge ? `. River Clock: ${d.badge.text}` : "");
+  const words = (quiet ? `${d.label}: ${d.note}` : chanceLabel(d.label, d.prob)) + (d.badge ? `. FloodClock: ${d.badge.text}` : "");
   const clickable = onSelect != null && !quiet;
   return (
     <div className="rc-dot-anchor">

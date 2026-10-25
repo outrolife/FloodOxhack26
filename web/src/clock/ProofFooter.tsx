@@ -29,7 +29,7 @@ export function ProofFooterView({ summary }: { summary: ProofSummary | null }) {
         </span>
       )}
       <button type="button" className="ck-working-link" onClick={openWorking}>
-        Show the working
+        Info
       </button>
     </div>
   );

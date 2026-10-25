@@ -278,7 +278,7 @@ function Player({
   const lag = OBS_LAG_H * HOUR;
   const revealed = (x: string | null | undefined, obs = false) => x != null && Date.parse(x) + (obs ? lag : 0) <= seen;
   const markers: ChartMarker[] = [];
-  if (revealed(facts.rc50)) markers.push({ t: facts.rc50!, label: "River Clock: likely", colour: "#184f95" });
+  if (revealed(facts.rc50)) markers.push({ t: facts.rc50!, label: "FloodClock: likely", colour: "#184f95" });
   if (facts.official && revealed(facts.official.issuedAt)) markers.push({ t: facts.official.issuedAt, label: "EA warning", colour: "#6250d6" });
   if (revealed(facts.crossing, true)) markers.push({ t: facts.crossing!, label: "River crossed", colour: "#b02a2a" });
 
@@ -302,7 +302,7 @@ function Player({
           <div className="rp-main">
             <div className="rp-mapcol">
               <ReplayMap spots={spots} forecast={f} selected={spot.key} onSelect={onSelectSpot} />
-              <div className="rp-map-caption small">Each clock: chance of flooding within 3 days, as River Clock said at the playhead.</div>
+              <div className="rp-map-caption small">Each clock: chance of flooding within 3 days, as FloodClock said at the playhead.</div>
             </div>
             <div className="rp-chartcol">
               <div className="rp-chart-title">
@@ -369,9 +369,9 @@ function Player({
             {warnSentence && <p>{warnSentence}</p>}
             {alertSentence && <p>{alertSentence}</p>}
             <p className="small muted">
-              The peak row compares the real highest level with the 5–95% range River Clock gave {facts.peakBand?.leadH ?? 72} h
-              before it. Lead vs the EA comes from proof.json (positive: River Clock earlier). The full Time Machine is under{" "}
-              <a href="#/working/time-machine">Show the working → Time Machine</a>.
+              The peak row compares the real highest level with the 5–95% range FloodClock gave {facts.peakBand?.leadH ?? 72} h
+              before it. Lead vs the EA comes from proof.json (positive: FloodClock earlier). The full Time Machine is under{" "}
+              <a href="#/working/time-machine">Info → Time Machine</a>.
             </p>
           </div>
           <div>

@@ -22,7 +22,7 @@ import { travelTrend } from "./travelTrend";
 import { TERM_TIPS, gaugeName } from "../../lib/plain";
 
 /** Why an arrival error is blank on a flooded row (model/proof.py, ARRIVAL_OFFSET_H = 24). */
-export const ARRIVAL_BLANK = "River Clock had not reached 50% 24 h before the river crossed the flood line";
+export const ARRIVAL_BLANK = "FloodClock had not reached 50% 24 h before the river crossed the flood line";
 
 const AXIS = { stroke: "#c3c2b7", tick: { fill: "#52514e", fontSize: 12 } };
 
@@ -354,7 +354,7 @@ export function PerEventTable({
       )}
       {anyPeak && (
         <p className="small muted">
-          ‡ Highest flood chance: for events that did not flood a spot, the highest chance of flooding River Clock
+          ‡ Highest flood chance: for events that did not flood a spot, the highest chance of flooding FloodClock
           gave there at any point in the event (looking up to 72 h ahead). The results summary doesn't store this,
           so the app reads it from that event's replay (replays/&lt;event&gt;.json).
         </p>

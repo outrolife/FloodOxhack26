@@ -35,7 +35,7 @@ const eaTime = (o: NonNullable<ReplayFacts["official"]>) =>
 /** Words for River Clock vs the EA, from proof.perEvent.leadVsOfficialH (positive = River Clock earlier). */
 export function differenceText(h: number): string {
   if (Math.abs(h) < 0.5) return "About the same time as the EA warning";
-  return h > 0 ? `River Clock ${hrs(h)} earlier than the EA warning` : `River Clock ${hrs(h)} after the EA warning`;
+  return h > 0 ? `FloodClock ${hrs(h)} earlier than the EA warning` : `FloodClock ${hrs(h)} after the EA warning`;
 }
 
 /** The five rows for one spot in one replay. `endT` is the replay's last forecast time. */
@@ -47,7 +47,7 @@ export function buildScoreboard(f: ReplayFacts, threshold: number, endT: string)
   if (f.rc50) {
     rows.push({
       key: "rc",
-      label: "River Clock: more likely than not",
+      label: "FloodClock: more likely than not",
       value: formatDateTime(f.rc50),
       detail: f.rc50AlreadyOn ? "Already at 50% or more 3 days before the flood" : undefined,
       at: ms(f.rc50),
@@ -56,7 +56,7 @@ export function buildScoreboard(f: ReplayFacts, threshold: number, endT: string)
   } else if (f.crossing) {
     rows.push({
       key: "rc",
-      label: "River Clock: more likely than not",
+      label: "FloodClock: more likely than not",
       value: "Not before the flood",
       detail: "It stayed under 50% in the 3 days before the river crossed",
       at: seenObs(f.crossing),
@@ -66,7 +66,7 @@ export function buildScoreboard(f: ReplayFacts, threshold: number, endT: string)
     const pc = f.peakChance;
     rows.push({
       key: "rc",
-      label: "River Clock: more likely than not",
+      label: "FloodClock: more likely than not",
       value: pc ? `Never: highest chance ${pctText(pc.p)}` : "No forecast",
       detail: pc ? `Highest at ${formatDateTime(pc.t)}` : undefined,
       at: pc ? ms(pc.t) : end,
@@ -103,7 +103,7 @@ export function buildScoreboard(f: ReplayFacts, threshold: number, endT: string)
     rows.push({
       key: "diff",
       label: "Difference",
-      value: !o ? "No EA warning to compare with" : !f.rc50 ? "River Clock did not reach 50%" : "Not scored",
+      value: !o ? "No EA warning to compare with" : !f.rc50 ? "FloodClock did not reach 50%" : "Not scored",
       at: Math.max(rows[0].at ?? end, rows[1].at ?? end),
       tone: "neutral",
     });
@@ -117,7 +117,7 @@ export function buildScoreboard(f: ReplayFacts, threshold: number, endT: string)
       value: formatDateTime(f.crossing),
       detail:
         f.leadBeforeFloodH != null
-          ? `${hrs(f.leadBeforeFloodH)} after River Clock said more likely than not`
+          ? `${hrs(f.leadBeforeFloodH)} after FloodClock said more likely than not`
           : undefined,
       at: seenObs(f.crossing),
       tone: "neutral",

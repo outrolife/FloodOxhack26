@@ -185,7 +185,7 @@ export function tierSentence(m: TierMatch, revealed: (t: string) => boolean, end
     if (!m.rc || !m.official || m.alreadyOn || !seen(m.rc, m.official.issuedAt)) return null;
     const { h, approx } = gainH(m.rc, m.official);
     const when = Math.abs(h) < 0.5 ? "at about the same time as" : `${hrs(h)} ${h > 0 ? "earlier" : "later"} than`;
-    return `So far: River Clock reached ${pct} ${when} the EA ${noun}${approx}. Keep playing to see what the river did.`;
+    return `So far: FloodClock reached ${pct} ${when} the EA ${noun}${approx}. Keep playing to see what the river did.`;
   };
 
   if (m.crossing) {
@@ -193,26 +193,26 @@ export function tierSentence(m: TierMatch, revealed: (t: string) => boolean, end
     const c = m.crossing;
     // Already at the level when the 72 h window opened: say so, and leads are lower bounds.
     const already = m.alreadyOn
-      ? `River Clock was already at ${pct} or more ${MATCH_WINDOW_H} hours before the river reached flood level`
+      ? `FloodClock was already at ${pct} or more ${MATCH_WINDOW_H} hours before the river reached flood level`
       : null;
     if (m.rc && m.official) {
       const { h, approx } = gainH(m.rc, m.official);
       if (already) return `${already}, at least ${hrs(h)} before the EA ${noun}${approx}.`;
-      if (Math.abs(h) < 0.5) return `River Clock reached ${pct} at about the same time as the EA ${noun}${approx}.`;
-      return `River Clock reached ${pct} ${hrs(h)} ${h > 0 ? "earlier" : "later"} than the EA ${noun}${approx}.`;
+      if (Math.abs(h) < 0.5) return `FloodClock reached ${pct} at about the same time as the EA ${noun}${approx}.`;
+      return `FloodClock reached ${pct} ${hrs(h)} ${h > 0 ? "earlier" : "later"} than the EA ${noun}${approx}.`;
     }
     if (m.rc) {
       const before =
-        already ?? `River Clock reached ${pct} ${hrs(hoursBetween(m.rc, c))} before the river reached flood level`;
+        already ?? `FloodClock reached ${pct} ${hrs(hoursBetween(m.rc, c))} before the river reached flood level`;
       if (m.lateOfficial && seen(m.lateOfficial.issuedAt)) {
         return `${before}; the EA ${officialLabel(m.lateOfficial)} came ${hrs(hoursBetween(c, m.lateOfficial.issuedAt))} after the river reached flood level.`;
       }
       return `${before}; no new EA ${tierNoun} was issued in those ${MATCH_WINDOW_H} hours.`;
     }
     if (m.official) {
-      return `The EA ${noun} came ${hrs(hoursBetween(m.official.issuedAt, c))} before the river reached flood level; River Clock did not reach ${pct} in the ${MATCH_WINDOW_H} hours before that.`;
+      return `The EA ${noun} came ${hrs(hoursBetween(m.official.issuedAt, c))} before the river reached flood level; FloodClock did not reach ${pct} in the ${MATCH_WINDOW_H} hours before that.`;
     }
-    return `Neither River Clock (${pct}) nor an EA ${tierNoun} came in the ${MATCH_WINDOW_H} hours before the river reached flood level.`;
+    return `Neither FloodClock (${pct}) nor an EA ${tierNoun} came in the ${MATCH_WINDOW_H} hours before the river reached flood level.`;
   }
 
   // No crossing in this event.
@@ -222,8 +222,8 @@ export function tierSentence(m: TierMatch, revealed: (t: string) => boolean, end
   if (m.official) {
     const { h, approx } = gainH(m.rc, m.official);
     const when = Math.abs(h) < 0.5 ? "at about the same time as" : `${hrs(h)} ${h > 0 ? "earlier" : "later"} than`;
-    return `River Clock reached ${pct} ${when} the EA ${noun}${approx}, and ${stayed}.`;
+    return `FloodClock reached ${pct} ${when} the EA ${noun}${approx}, and ${stayed}.`;
   }
-  return `River Clock reached ${pct} on ${formatDateTimeYear(m.rc)} and ${stayed}; no EA ${tierNoun} was issued within ${MATCH_WINDOW_H} hours of that.`;
+  return `FloodClock reached ${pct} on ${formatDateTimeYear(m.rc)} and ${stayed}; no EA ${tierNoun} was issued within ${MATCH_WINDOW_H} hours of that.`;
 }
 

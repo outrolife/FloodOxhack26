@@ -210,14 +210,14 @@ export default function Decide() {
           <>
             {o?.clamped && (
               <p className="notice">
-                Your p* is {o.clamped} the backtested triggers, so River Clock's outcomes are those at p* ={" "}
+                Your p* is {o.clamped} the backtested triggers, so FloodClock's outcomes are those at p* ={" "}
                 {formatPct(o.pStarUsed)}. The cost bars still use your C and L.
               </p>
             )}
             {o ? (
               <OutcomesTable o={o} costs={costs} official={official} />
             ) : (
-              <p className="muted">No River Clock backtest outcomes for this spot yet.</p>
+              <p className="muted">No FloodClock backtest outcomes for this spot yet.</p>
             )}
 
             <h3 style={{ marginTop: "1rem" }}>
@@ -231,11 +231,11 @@ export default function Decide() {
             <details className="small muted" style={{ marginTop: "0.5rem" }}>
               <summary>How the costs are counted</summary>
               <p>
-                Each hit or false alarm costs C; each miss costs L. <strong>River Clock</strong>: act when the forecast
+                Each hit or false alarm costs C; each miss costs L. <strong>FloodClock</strong>: act when the forecast
                 reaches p* (outcomes interpolated from the backtest). <strong>Official warnings</strong>: act on every EA
                 Flood Warning for the spot's area (alerts don't count);{" "}
                 {official
-                  ? "scored with the same rules as River Clock (a warning issued after the river went over the flood line is a miss)."
+                  ? "scored with the same rules as FloodClock (a warning issued after the river went over the flood line is a miss)."
                   : "not scored: we have no scored record of official warnings for this spot."}{" "}
                 <strong>Never act</strong>: every flood is a miss.{" "}
                 <strong>Always act</strong>: act on every flood and on every false-alarm episode the most sensitive

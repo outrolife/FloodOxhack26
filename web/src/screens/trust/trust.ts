@@ -410,17 +410,17 @@ export function officialComparison(t: Pick<EarlyTile, "rows">): OfficialComparis
   const oc = ours.floods ? ours.caught / ours.floods : 0;
   const ec = official.floods ? official.caught / official.floods : 0;
   const more =
-    oc > ec ? "River Clock catches more floods" : oc < ec ? "the official warning catches more floods" : "both catch as many floods";
+    oc > ec ? "FloodClock catches more floods" : oc < ec ? "the official warning catches more floods" : "both catch as many floods";
   const fewer =
     ours.falseAlarms > official.falseAlarms
       ? "the official warning raises fewer false alarms"
       : ours.falseAlarms < official.falseAlarms
-        ? "River Clock raises fewer false alarms"
+        ? "FloodClock raises fewer false alarms"
         : "both raise as many false alarms";
   return {
     ours,
     official,
-    oursText: `River Clock caught ${ours.caught} of ${ours.floods} ${plural(ours.floods, "flood")} (${alarms(ours.falseAlarms)})`,
+    oursText: `FloodClock caught ${ours.caught} of ${ours.floods} ${plural(ours.floods, "flood")} (${alarms(ours.falseAlarms)})`,
     officialText: `the official warning caught ${official.caught} of ${official.floods} (${alarms(official.falseAlarms)})`,
     verdict: `${more[0].toUpperCase()}${more.slice(1)}; ${fewer}.`,
   };

@@ -13,7 +13,7 @@ describe("Decide takeaway (#103)", () => {
     const t = costTakeaway([s("riverClock", 420), s("official", 4160), s("neverAct", 16000), s("alwaysAct", 500)], 0.01)!;
     expect(t).toMatch(/^Cheap action \(act at 1% chance or more\): act early, even on a small chance\./);
     expect(t).toContain("Acting every time costs about the same (£500)");
-    expect(t).toContain("Acting on River Clock costs £420 here, against £4,160 for waiting for the official warning.");
+    expect(t).toContain("Acting on FloodClock costs £420 here, against £4,160 for waiting for the official warning.");
   });
 
   it("costly action: wait until likely, and name the false alarms saved", () => {
@@ -24,15 +24,15 @@ describe("Decide takeaway (#103)", () => {
 
   it("is honest when the official warnings would have cost less", () => {
     const t = costTakeaway([s("riverClock", 900), s("official", 600), s("alwaysAct", 2000)], 0.05)!;
-    expect(t).toContain("acting on the official warnings (£600) would have cost less than River Clock (£900)");
+    expect(t).toContain("acting on the official warnings (£600) would have cost less than FloodClock (£900)");
   });
 
-  it("returns nothing when acting never pays or River Clock has no score", () => {
+  it("returns nothing when acting never pays or FloodClock has no score", () => {
     expect(costTakeaway([s("riverClock", 100)], 1)).toBeNull();
     expect(costTakeaway([s("riverClock", null), s("official", 5)], 0.1)).toBeNull();
   });
 
-  it("marks ties as joint lowest rather than crowning River Clock alone", () => {
+  it("marks ties as joint lowest rather than crowning FloodClock alone", () => {
     expect(lowestKeys([s("riverClock", 110000), s("official", 200000), s("alwaysAct", 110000)])).toEqual(["riverClock", "alwaysAct"]);
     expect(lowestKeys([s("riverClock", 1), s("official", null)])).toEqual(["riverClock"]);
   });

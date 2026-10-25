@@ -66,10 +66,10 @@ describe("replayScore", () => {
     const before = replayScore(flood, T("2014-01-03T00:00:00Z"), end, 0.2);
     expect(before.map((l) => l.text)).toEqual(["Chance of flooding within 3 days: 20%", "EA: no warning yet"]);
     const called = replayScore(flood, T("2014-01-04T06:00:00Z"), end, 0.6);
-    expect(called[0].text).toBe("River Clock warned: chance of flooding reached 50%");
+    expect(called[0].text).toBe("FloodClock warned: chance of flooding reached 50%");
     // At a spot's own warn-at level, the words follow it.
     expect(replayScore({ ...flood, pStar: 0.3 }, T("2014-01-04T06:00:00Z"), "2014-01-10T00:00:00Z", 0.4)[0].text).toBe(
-      "River Clock warned: chance of flooding reached 30%",
+      "FloodClock warned: chance of flooding reached 30%",
     );
     expect(called[1].text).toBe("EA: no warning yet");
     const both = replayScore(flood, T("2014-01-04T12:00:00Z"), end, 0.7);
@@ -78,11 +78,11 @@ describe("replayScore", () => {
     // The crossing is seen 1 h after it happens (#93).
     expect(replayScore(flood, T("2014-01-05T12:30:00Z"), end, 0.9)[0].text).not.toMatch(/31 h/);
     const after = replayScore(flood, Infinity, end, null);
-    expect(after.map((l) => l.text)).toEqual(["River Clock warned 31 h before the flood", "7 h before the EA warning"]);
+    expect(after.map((l) => l.text)).toEqual(["FloodClock warned 31 h before the flood", "7 h before the EA warning"]);
     expect(after[0].tone).toBe("good");
   });
 
-  it("shows a later River Clock honestly", () => {
+  it("shows a later FloodClock honestly", () => {
     expect(eaDifference(-5.9)).toEqual({ text: "6 h after the EA warning", tone: "bad" });
     expect(eaDifference(0.2).text).toBe("Same time as the EA warning");
     const late = replayScore({ ...flood, leadVsOfficialH: -30.1 }, Infinity, end, null);
@@ -97,7 +97,7 @@ describe("replayScore", () => {
     expect(replayScore(fa, Infinity, end, null)[0]).toEqual({ text: "False alarm: reached 62%, no flood", tone: "bad" });
     const missed = facts({ crossing: "2014-01-05T12:00:00Z", crossed: true });
     expect(replayScore(missed, Infinity, end, null).map((l) => l.text)).toEqual([
-      "Flooded before River Clock reached 50%",
+      "Flooded before FloodClock reached 50%",
       "No EA warning before the flood",
     ]);
   });
@@ -135,7 +135,7 @@ describe("nowScore", () => {
     expect(nowScore(live(1.5, [1, 1, 1, 1, 1, 1]), spot)[0].text).toBe("Above flood level now");
     expect(nowScore({ ...live(1, [0, 0, 0, 0, 0, 0]), stale: ["newbotley"] }, spot)[0].text).toBe("No forecast here right now");
   });
-  it("marks River Clock's call and a recent flood", () => {
+  it("marks FloodClock's call and a recent flood", () => {
     expect(nowMarkers(live(1.2, [0.1, 0.2, 0.5, 0.6, 0.6, 0.6]), spot).map((m) => m.label)).toEqual([MARKER_LABEL.rc]);
     expect(nowMarkers(live(1.5, [1, 1, 1, 1, 1, 1]), spot).map((m) => m.label)).toEqual([MARKER_LABEL.flood]);
     expect(firstCrossing([{ t: "2026-01-01T00:00:00Z", level: 2 }], 1.4, T("2025-12-31T00:00:00Z"))).toBeNull();
@@ -155,12 +155,12 @@ describe("views", () => {
     );
     expect(html.match(/<p /g)).toHaveLength(2);
     expect(html).toContain("✓");
-    expect(html).toContain("In River Clock&#x27;s favour");
+    expect(html).toContain("In FloodClock&#x27;s favour");
     expect(html).not.toContain(">C<");
   });
-  it("the footer has the Show the working action", () => {
+  it("the footer has the Info action", () => {
     const html = renderToStaticMarkup(<ProofFooterView summary={null} />);
-    expect(html).toContain("Show the working");
+    expect(html).toMatch(/<button[^>]*class="ck-working-link"[^>]*>Info<\/button>/);
   });
 });
 
@@ -185,7 +185,7 @@ describe.skipIf(!have)("on the committed data", () => {
     const f = replayFacts(r, botley, row);
     const end = r.forecasts.at(-1)!.issuedAt;
     const final = replayScore(f, Infinity, end, null);
-    expect(final[0].text).toBe(`River Clock warned ${Math.round(f.leadBeforeFloodH!)} h before the flood`);
+    expect(final[0].text).toBe(`FloodClock warned ${Math.round(f.leadBeforeFloodH!)} h before the flood`);
     const h = row!.leadVsOfficialH!;
     expect(final[1].text).toBe(`${Math.round(Math.abs(h))} h ${h > 0 ? "before" : "after"} the EA warning`);
     // At the start of the story nothing is given away.
@@ -220,7 +220,7 @@ describe.skipIf(!have)("on the committed data", () => {
     expect(s.compared).toBe(proof.perEvent.filter((r) => r.crossed && leadVsOfficialAt(proof, r.eventId, r.spot) != null).length);
     expect(s.earlier).toBeLessThanOrEqual(s.compared);
     const text = proofText(s);
-    expect(text.main).toMatch(/^Across \d+ past floods: River Clock caught \d+ \(\d+ false alarms?\) · the official warning caught \d+/);
+    expect(text.main).toMatch(/^Across \d+ past floods: FloodClock caught \d+ \(\d+ false alarms?\) · the official warning caught \d+/);
     const html = renderToStaticMarkup(<ProofFooterView summary={s} />);
     expect(html).toContain(`Across ${s.floods} past floods`);
     console.log("Footer:", text.main, "·", text.earlier);
