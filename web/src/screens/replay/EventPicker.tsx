@@ -22,7 +22,7 @@ const Trace = memo(function Trace({ points, threshold }: { points: { level: numb
   const d = vals.map((v, i) => `${i ? "L" : "M"}${((i / (vals.length - 1)) * W).toFixed(1)} ${y(v).toFixed(1)}`).join("");
   return (
     <svg className="rp-thumb-trace" width={W} height={HT} viewBox={`0 0 ${W} ${HT}`} aria-hidden="true">
-      <line x1={0} x2={W} y1={y(threshold)} y2={y(threshold)} stroke="#d03b3b" strokeDasharray="4 3" strokeWidth={1.5} />
+      <line x1={0} x2={W} y1={y(threshold)} y2={y(threshold)} stroke="var(--fc-risk-high)" strokeDasharray="4 3" strokeWidth={1.5} />
       <path d={d} fill="none" stroke="#0b0b0b" strokeWidth={1.5} />
     </svg>
   );

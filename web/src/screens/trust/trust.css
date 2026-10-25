@@ -1,30 +1,30 @@
-/* How good is it? (#123). Scoped to .trust-*; tokens from styles.css / ui.css.
+/* How good is it? (#123). Scoped to .trust-*; tokens from ui/tokens.css.
    Blue (--series-1) = River Clock, orange (--series-2) = the "nothing changes" baseline. */
 .trust-tiles {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-  gap: var(--ui-gap, 1rem); padding: var(--ui-gap, 1rem); align-items: start;
+  gap: var(--fc-space-4); padding: var(--fc-space-4); align-items: start;
 }
-.trust-tile { display: flex; flex-direction: column; gap: 0.55rem; min-width: 0; }
+.trust-tile { display: flex; flex-direction: column; gap: var(--fc-space-2); min-width: 0; }
 .trust-kicker {
-  font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2);
-  margin: 0; padding-bottom: 0.35rem; border-bottom: 1px solid var(--grid);
+  font-size: var(--fc-text-xs); font-weight: var(--fc-weight-bold); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2);
+  margin: 0; padding-bottom: var(--fc-space-2); border-bottom: 1px solid var(--grid);
 }
 .trust-big {
-  font-size: var(--ui-stat, 3rem); font-weight: 750; line-height: 1.05; font-variant-numeric: tabular-nums;
+  font-size: var(--ui-stat, 3rem); font-weight: var(--fc-weight-bold); letter-spacing: -0.02em; line-height: 1.05; font-variant-numeric: tabular-nums;
   display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.2em 0.35em;
 }
-.trust-big.is-model { color: var(--accent); }
-.trust-big-unit { font-size: 1rem; font-weight: 600; color: var(--ink); }
+.trust-big.is-model { color: var(--fc-ink); }
+.trust-big-unit { font-size: var(--fc-text-md); font-weight: var(--fc-weight-medium); color: var(--ink); }
 .trust-big-arrow { color: var(--muted); font-weight: 400; }
-.trust-caption { font-size: 1.05rem; margin: 0; color: var(--ink); }
-.trust-note { font-size: 0.85rem; color: var(--ink-2); margin: 0; }
-.trust-sub { font-size: 0.95rem; margin: 0.5rem 0 0; }
+.trust-caption { font-size: var(--fc-text-md); margin: 0; color: var(--ink); }
+.trust-note { font-size: var(--fc-text-sm); color: var(--ink-2); margin: 0; }
+.trust-sub { font-size: var(--fc-text-md); margin: var(--fc-space-2) 0 0; }
 
 /* Horizontal bars (tile 1, warning time in tile 3). */
-.trust-bars { display: flex; flex-direction: column; gap: 0.4rem; }
-.trust-bar-row { display: grid; grid-template-columns: 11rem minmax(0, 1fr); align-items: center; gap: 0.5rem; font-size: 0.9rem; }
-.trust-bar-track { position: relative; display: block; height: 18px; background: var(--page); border-radius: 4px; }
-.trust-bar { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 4px 4px 0; }
+.trust-bars { display: flex; flex-direction: column; gap: var(--fc-space-2); }
+.trust-bar-row { display: grid; grid-template-columns: 11rem minmax(0, 1fr); align-items: center; gap: var(--fc-space-2); font-size: var(--fc-text-sm); }
+.trust-bar-track { position: relative; display: block; height: 18px; background: var(--fc-surface-2); border-radius: var(--fc-radius-sm); }
+.trust-bar { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 var(--fc-radius-sm) var(--fc-radius-sm) 0; transition: width var(--fc-dur-slow) var(--fc-ease); }
 .trust-bar.is-model { background: var(--series-1); }
 .trust-bar.is-baseline { background: var(--series-2); }
 .trust-bar.is-official { background: var(--unknown); }
@@ -48,37 +48,37 @@
 .trust-diagonal { stroke: var(--ink-2); stroke-width: 1.5; stroke-dasharray: 5 4; }
 .trust-dot { fill: var(--series-1); fill-opacity: 0.55; stroke: var(--surface); stroke-width: 2; }
 .trust-dot.is-chosen { fill-opacity: 1; stroke: var(--ink); stroke-width: 2; }
-.trust-select { font-size: 0.9rem; color: var(--ink-2); }
-.trust-select select { font: inherit; padding: 0.2rem 0.4rem; }
+.trust-select { font-size: var(--fc-text-sm); color: var(--ink-2); }
+.trust-select select { font: inherit; }
 
 /* Per-spot lists (tile 3). */
-.trust-spots, .trust-diverge, .trust-vs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.trust-spots, .trust-diverge, .trust-vs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--fc-space-2); }
 .trust-spots li, .trust-vs li {
   display: grid; grid-template-columns: 7.5rem minmax(0, 1fr) 3.6rem; grid-template-areas: "name bar value" ". meta meta";
-  align-items: center; column-gap: 0.5rem; font-size: 0.9rem;
+  align-items: center; column-gap: var(--fc-space-2); font-size: var(--fc-text-sm);
 }
 .trust-spots .trust-spot-name, .trust-vs .trust-spot-name { grid-area: name; }
 .trust-spots .trust-bar-track, .trust-vs .trust-bar-track { grid-area: bar; }
 .trust-spots .trust-spot-value, .trust-vs .trust-spot-value { grid-area: value; }
 .trust-spots .trust-spot-meta, .trust-vs .trust-spot-meta { grid-area: meta; }
 .trust-spots li.is-none .trust-span { grid-column: 2 / -1; grid-row: 1; }
-.trust-spot-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trust-spot-name { font-weight: var(--fc-weight-bold); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trust-spot-value { font-variant-numeric: tabular-nums; font-weight: 650; text-align: right; }
-.trust-spot-meta { color: var(--ink-2); font-size: 0.8rem; }
+.trust-spot-meta { color: var(--ink-2); font-size: var(--fc-text-xs); }
 
-.trust-diverge li { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr) 7rem; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
-.trust-diverge .trust-spot-value { font-weight: 600; font-size: 0.85rem; }
-.trust-diverge-track { position: relative; height: 18px; background: var(--page); border-radius: 4px; }
+.trust-diverge li { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr) 7rem; align-items: center; gap: var(--fc-space-2); font-size: var(--fc-text-sm); }
+.trust-diverge .trust-spot-value { font-weight: var(--fc-weight-bold); font-size: var(--fc-text-sm); }
+.trust-diverge-track { position: relative; height: 18px; background: var(--fc-surface-2); border-radius: var(--fc-radius-sm); }
 .trust-diverge-mid { position: absolute; left: 50%; top: -3px; bottom: -3px; border-left: 2px solid var(--ink-2); }
 .trust-diverge-bar { position: absolute; top: 2px; bottom: 2px; }
-.trust-diverge-bar.is-ahead { background: var(--series-1); border-radius: 0 4px 4px 0; }
-.trust-diverge-bar.is-behind { background: var(--unknown); border-radius: 4px 0 0 4px; }
+.trust-diverge-bar.is-ahead { background: var(--series-1); border-radius: 0 var(--fc-radius-sm) var(--fc-radius-sm) 0; }
+.trust-diverge-bar.is-behind { background: var(--unknown); border-radius: var(--fc-radius-sm) 0 0 var(--fc-radius-sm); }
 .trust-legend { display: inline-block; width: 0.9em; height: 0.9em; border-radius: 2px; vertical-align: -0.1em; }
 .trust-legend.is-ahead { background: var(--series-1); }
 .trust-legend.is-behind { background: var(--unknown); }
 
-.trust-table { border-collapse: collapse; width: 100%; font-size: 0.9rem; margin-bottom: 0.5rem; }
-.trust-table th, .trust-table td { text-align: left; padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--grid); }
+.trust-table { border-collapse: collapse; width: 100%; font-size: var(--fc-text-sm); margin-bottom: var(--fc-space-2); }
+.trust-table th, .trust-table td { text-align: left; padding: var(--fc-space-1) var(--fc-space-2); border-bottom: 1px solid var(--grid); }
 .trust-table td { font-variant-numeric: tabular-nums; }
 
 @media (max-width: 480px) {

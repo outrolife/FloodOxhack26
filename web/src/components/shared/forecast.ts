@@ -10,9 +10,9 @@ export type Level = "low" | "elevated" | "high" | "unknown";
  *  colour blindness, it stays distinct from red (which reads as olive-brown). */
 export const LEVEL_STYLE: Record<Level, { colour: string; label: string }> = {
   // Plain words plus the numbers (#103). Never the EA's "Flood Alert/Warning" names for our outputs.
-  low: { colour: "#009e73", label: "Unlikely (under 1 in 10)" },
-  elevated: { colour: "#fab219", label: "Possible (1 in 10 to 1 in 2)" },
-  high: { colour: "#d03b3b", label: "Likely (1 in 2 or more)" },
+  low: { colour: "var(--fc-risk-low)", label: "Unlikely (under 1 in 10)" },
+  elevated: { colour: "var(--fc-risk-medium)", label: "Possible (1 in 10 to 1 in 2)" },
+  high: { colour: "var(--fc-risk-high)", label: "Likely (1 in 2 or more)" },
   unknown: { colour: "#898781", label: "No forecast right now" },
 };
 
