@@ -11,4 +11,4 @@
 - **head**: edaf55e Add shared types for the Explore map (click/search, risk, sand
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T07:41:27Z
+- **updated**: 2026-10-25T07:45:31Z
