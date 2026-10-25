@@ -46,7 +46,7 @@ export function ZonesLegend({ zones, show, onToggle }: { zones: ZonesState; show
           <ul className={show ? undefined : "is-off"}>
             {ZONE_BANDS.map((b) => (
               <li key={b}>
-                <span className="fc-x-swatch" style={{ background: `var(--fc-risk-${bandToken(b)}, ${BAND_HEX[b]})` }} aria-hidden="true" />
+                <span className="fc-x-swatch" style={{ background: `var(--fc-risk-${bandToken(b)}, ${BAND_HEX[b].fill})` }} aria-hidden="true" />
                 <span>
                   <strong>{BAND_INFO[b].label}</strong> <small>{BAND_YEARLY[b]}</small>
                 </span>

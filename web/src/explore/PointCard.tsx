@@ -148,8 +148,8 @@ export function PointCard({
             <span
               className={`fc-x-badge fc-x-badge-${bandToken(risk.risk.band)}`}
               style={{
-                background: `var(--fc-risk-${bandToken(risk.risk.band)}, ${risk.risk.colour})`,
-                color: `var(--fc-risk-${bandToken(risk.risk.band)}-ink, ${risk.risk.textColour})`,
+                background: risk.risk.colour,
+                color: risk.risk.textColour,
               }}
             >
               <span className="fc-x-badge-dot" aria-hidden="true" />

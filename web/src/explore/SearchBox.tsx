@@ -4,11 +4,12 @@
 // one. Arrow keys move through the suggestions, Enter picks, Esc closes (and a
 // second Esc clears). A failed lookup shows a friendly line, never a crash.
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { geocoder as defaultGeocoder } from "./logic";
+import { MIN_QUERY, geocoder as defaultGeocoder } from "./logic";
 import { GeocodeError, type Geocoder, type Place } from "./types";
 
 export const DEBOUNCE_MS = 300;
-export const MIN_CHARS = 2;
+/** The geocoder answers [] below this, so don't ask. */
+export const MIN_CHARS = MIN_QUERY;
 
 export const NOT_FOUND_TEXT = "We couldn't find that address. Try a postcode like OX2 0HA.";
 export const OFFLINE_TEXT = "You seem to be offline, so we can't look up addresses right now.";

@@ -25,7 +25,7 @@ const isPhone = () => typeof window !== "undefined" && window.innerWidth <= PHON
 const PANEL_PX = 396;
 
 export function zoneStyle(band: unknown, hover = false): L.PathOptions {
-  const colour = isBand(band) ? BAND_HEX[band] : BAND_HEX.none;
+  const colour = (isBand(band) ? BAND_HEX[band] : BAND_HEX.none).fill;
   return {
     pane: ZONES_PANE,
     color: colour,

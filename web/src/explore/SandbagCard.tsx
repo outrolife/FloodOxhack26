@@ -2,23 +2,21 @@
 // sensible defaults, the total counted up (instant with reduced motion), and
 // "How we calculated this" with the formula and the worked example in words.
 import { useId, useMemo, useState } from "react";
-import { DEFAULT_INPUTS, FORMULA_PLAIN, estimateSandbags } from "./logic";
+import { DEFAULT_INPUTS, DOORS_MAX, DOORS_MIN, FLOOR_LABEL, FORMULA_PLAIN, WIDTH_MAX_M, WIDTH_MIN_M, estimateSandbags } from "./logic";
 import { useCountUp } from "./motion";
 import type { FloorLevel, PropertyInputs, RiskBand } from "./types";
 
 export const GOV_FLOOD_GUIDANCE = "https://www.gov.uk/prepare-for-flooding";
 
-export const FLOOR_OPTIONS: { value: FloorLevel; label: string }[] = [
-  { value: "street", label: "At street level" },
-  { value: "one_step", label: "One step up" },
-  { value: "raised", label: "Raised (several steps)" },
-  { value: "upper", label: "Upper-floor flat" },
-];
+const FLOORS: FloorLevel[] = ["street", "one_step", "raised", "upper"];
+const WIDTH_MIN = WIDTH_MIN_M;
+const WIDTH_MAX = WIDTH_MAX_M;
 
-export const DOORS_MIN = 1;
-export const DOORS_MAX = 8;
-export const WIDTH_MIN = 0.6;
-export const WIDTH_MAX = 2.4;
+/** A worked-example line without its "3. " number (the list numbers it) and with **bold** as <strong>. */
+export function StepText({ text }: { text: string }) {
+  const parts = text.replace(/^\d+\.\s+/, "").split(/\*\*(.+?)\*\*/g);
+  return <>{parts.map((p, i) => (i % 2 ? <strong key={i}>{p}</strong> : p))}</>;
+}
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
@@ -116,9 +114,9 @@ export function SandbagCard({ band, initial = DEFAULT_INPUTS }: { band: RiskBand
             Floor level
           </label>
           <select id={`${id}-f`} className="fc-x-select" value={inputs.floorLevel} onChange={(e) => set("floorLevel", e.target.value as FloorLevel)}>
-            {FLOOR_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
+            {FLOORS.map((f) => (
+              <option key={f} value={f}>
+                {FLOOR_LABEL[f]}
               </option>
             ))}
           </select>
@@ -144,10 +142,18 @@ export function SandbagCard({ band, initial = DEFAULT_INPUTS }: { band: RiskBand
 
       <details className="fc-x-how">
         <summary>How we calculated this</summary>
-        <p>{FORMULA_PLAIN}</p>
+        <h4 className="fc-x-h4">The formula</h4>
+        <ul>
+          {FORMULA_PLAIN.map((s, i) => (
+            <li key={i}>{s}</li>
+          ))}
+        </ul>
+        <h4 className="fc-x-h4">With your numbers</h4>
         <ol>
           {est.steps.map((s, i) => (
-            <li key={i}>{s}</li>
+            <li key={i}>
+              <StepText text={s} />
+            </li>
           ))}
         </ol>
       </details>
