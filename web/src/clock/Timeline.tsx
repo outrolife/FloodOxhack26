@@ -34,7 +34,12 @@ export type TimelineProps = {
 
 export function Timeline({ event, spot, onTime, t, playing }: TimelineProps) {
   const data = useClockEvent(event, spot);
-  if (data.status === "loading") return <div className="ck-timeline ck-pending">Loading…</div>;
+  if (data.status === "loading")
+    return (
+      <div className="ck-timeline ck-pending is-loading" aria-busy="true">
+        Loading…
+      </div>
+    );
   if (data.status === "missing") return <div className="ck-timeline ck-pending">{data.message}</div>;
   if (data.kind === "now") return <NowTimeline live={data.live} spot={data.spot} pStar={data.pStar} onTime={onTime} />;
   return (

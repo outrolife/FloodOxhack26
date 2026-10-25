@@ -137,7 +137,7 @@ export const ReplayChart = memo(function ReplayChart({
     <div className="rp-chart" role="img" aria-label="River level so far and FloodClock's forecast range from the playhead">
       <ResponsiveContainer>
         <ComposedChart data={data} margin={{ top: 8, right: 20, bottom: 4, left: 4 }}>
-          <CartesianGrid stroke="#e1e0d9" vertical={false} />
+          <CartesianGrid stroke="var(--grid)" vertical={false} />
           <XAxis
             dataKey="t"
             type="number"
@@ -146,14 +146,14 @@ export const ReplayChart = memo(function ReplayChart({
             ticks={dayTicks(domain)}
             allowDataOverflow
             tickFormatter={(t: number) => formatDayMonth(t)}
-            stroke="#c3c2b7"
-            tick={{ fill: "#52514e", fontSize: 13 }}
+            stroke="var(--axis)"
+            tick={{ fill: "var(--fc-ink-2)", fontSize: 13 }}
           />
           <YAxis
             domain={[yMin, yMax]}
             allowDataOverflow
-            stroke="#c3c2b7"
-            tick={{ fill: "#52514e", fontSize: 13 }}
+            stroke="var(--axis)"
+            tick={{ fill: "var(--fc-ink-2)", fontSize: 13 }}
             tickFormatter={(v: number) => `${v.toFixed(1)} m`}
             width={54}
           />
@@ -164,16 +164,16 @@ export const ReplayChart = memo(function ReplayChart({
           <Line dataKey="obs" stroke="#0b0b0b" strokeWidth={3} dot={false} isAnimationActive={false} connectNulls />
           <ReferenceLine
             y={threshold}
-            stroke="#d03b3b"
+            stroke="var(--fc-risk-high)"
             strokeWidth={2}
             strokeDasharray="7 4"
-            label={{ value: `Flood level ${threshold.toFixed(2)} m`, position: "insideBottomRight", fill: "#b02a2a", fontSize: 13, fontWeight: 700 }}
+            label={{ value: `Flood level ${threshold.toFixed(2)} m`, position: "insideBottomRight", fill: "var(--fc-risk-high)", fontSize: 13, fontWeight: 700 }}
           />
           <ReferenceLine
             y={usualHigh}
-            stroke="#e09b00"
+            stroke="var(--fc-risk-medium)"
             strokeDasharray="3 3"
-            label={{ value: `Usual high ${usualHigh.toFixed(2)} m`, position: "insideBottomRight", fill: "#7a5200", fontSize: 13 }}
+            label={{ value: `Usual high ${usualHigh.toFixed(2)} m`, position: "insideBottomRight", fill: "var(--fc-ink-2)", fontSize: 13 }}
           />
           {markers.map((m, i) => (
             <ReferenceLine key={m.label} x={Date.parse(m.t)} stroke={m.colour} strokeWidth={2} label={markerLabel(m.label, m.colour, i)} />
