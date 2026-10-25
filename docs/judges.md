@@ -1,10 +1,10 @@
-# River Clock: one page for judges
+# FloodClock: one page for judges
 
 > **Decision-support prototype, not an official warning. Check [gov.uk/check-flooding](https://www.gov.uk/check-flooding).**
 
 <!-- Every number is read from committed JSON on main (src comments). Re-check them if `make train backtest` runs again. -->
 
-## River Clock in 30 seconds
+## FloodClock in 30 seconds
 
 Oxford floods from the river, slowly: the water that floods Botley Road is upstream a day or more before it arrives. We measured how long it takes. On the Cherwell, a rise at **Enslow reaches Kings Mill in about 18.6 h (15–23 h, over 6 floods)**. <!-- src: web/public/data/travel_times.json enslow->kingsmill tHalf median 18.6, p10 15.0, p90 22.8, n 6 --> One LightGBM model uses those travel times to make a **prediction for five Oxford trouble spots: the chance of flooding and the arrival time, hour by hour, for the next 72 h**. A cost–loss rule turns that into a **decision**: is it worth acting yet? Every score is against a "nothing changes" baseline.
 
@@ -13,16 +13,16 @@ Oxford floods from the river, slowly: the water that floods Botley Road is upstr
 | Part | What you see |
 |---|---|
 | **The map** (hero) | Oxford's rivers flowing and rising as the water comes, with a **clock face for each trouble spot** that fills as its chance of flooding rises, and a countdown to when the water is likely to arrive. |
-| **The timeline** (under the map) | Our forecast range against the real river level, with three markers: **River Clock warned · EA warned · Flooded**. Press play and it runs hour by hour, revealing each reading only after it happened. |
-| **The scoreboard** (2 lines) | For the chosen flood: when River Clock warned, when the EA warned, when it flooded. |
+| **The timeline** (under the map) | Our forecast range against the real river level, with three markers: **FloodClock warned · EA warned · Flooded**. Press play and it runs hour by hour, revealing each reading only after it happened. |
+| **The scoreboard** (2 lines) | For the chosen flood: when FloodClock warned, when the EA warned, when it flooded. |
 | **The switch** (top) | **Now \| 2014 \| Henk \| Bert \| 2026** (Henk = Jan 2024, Bert = Nov 2024, 2026 = the near miss). Today's live forecast, or a past flood replayed with a model trained without it. |
-| **The proof footer** (1 line) | Across all 30 floods we replayed: how many River Clock caught, and how many the official warning caught. |
+| **The proof footer** (1 line) | Across all 30 floods we replayed: how many FloodClock caught, and how many the official warning caught. |
 
 Sandbag screening, the accuracy charts and the cost–loss calculator are behind **Show the working**. Presenter keys: **Space** plays, **1–5** switch flood, **P** presenter mode.
 
 ## The headline: January 2014, Botley Road (times GMT)
 
-River Clock first said **more likely than not (60%) at 10:00 on Sat 4 Jan**: **9 h before the EA's Flood Warning** (19:03) and **39 h before** New Botley crossed 2.76 m (01:00, Mon 6 Jan). The peak, **3.03 m** on 9 Jan, was **inside the 2.63–3.16 m range** it gave 72 h before. That's one flood: averaged over all floods at Botley, at its alarm level, we and the EA's warning are level (the EA 0.9 h earlier). <!-- src: web/public/data/replays/e2014.json (botley first pFlood >= 0.5 and >= 0.6 (warnAt) at 2014-01-04T10:00Z, 0.6043; official warning 2014-01-04T19:03:30Z; crossing 2014-01-06T01:00Z; newbotley peak 3.027 m at 2014-01-09T09:00Z; forecast 2014-01-06T08:00Z h72 q05 2.627, q95 3.157); proof.json perEvent e2014 botley leadVsOfficialH 9.06; tradeoff botley pStar 0.6 (warnAt) meanLeadVsOfficialH -0.92 -->
+FloodClock first said **more likely than not (60%) at 10:00 on Sat 4 Jan**: **9 h before the EA's Flood Warning** (19:03) and **39 h before** New Botley crossed 2.76 m (01:00, Mon 6 Jan). The peak, **3.03 m** on 9 Jan, was **inside the 2.63–3.16 m range** it gave 72 h before. That's one flood: averaged over all floods at Botley, at its alarm level, we and the EA's warning are level (the EA 0.9 h earlier). <!-- src: web/public/data/replays/e2014.json (botley first pFlood >= 0.5 and >= 0.6 (warnAt) at 2014-01-04T10:00Z, 0.6043; official warning 2014-01-04T19:03:30Z; crossing 2014-01-06T01:00Z; newbotley peak 3.027 m at 2014-01-09T09:00Z; forecast 2014-01-06T08:00Z h72 q05 2.627, q95 3.157); proof.json perEvent e2014 botley leadVsOfficialH 9.06; tradeoff botley pStar 0.6 (warnAt) meanLeadVsOfficialH -0.92 -->
 
 ## How good is it? (the final numbers)
 

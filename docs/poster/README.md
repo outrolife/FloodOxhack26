@@ -1,4 +1,4 @@
-# River Clock poster (A3)
+# FloodClock poster (A3)
 
 `poster.html` is a one-page A3 portrait poster for the judging table. It is self-contained: inline CSS and SVG, no fonts, images or scripts loaded from anywhere, so it opens offline.
 
@@ -37,6 +37,6 @@ uv run --no-project --with segno python docs/poster/make_qr.py
 
 ## Design rules
 
-- App palette from `web/src/styles.css`: blue (`--series-1`) is River Clock, orange (`--series-2`) is persistence. Status colours are not used.
+- App palette from `web/src/styles.css`: blue (`--series-1`) is FloodClock, orange (`--series-2`) is persistence. Status colours are not used.
 - System font stack. No GOV.UK or EA branding: the poster must never look like an official warning.
 - The disclaimer stays on the poster: "Decision-support prototype, not an official warning. Check gov.uk/check-flooding."

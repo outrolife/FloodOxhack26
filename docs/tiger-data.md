@@ -1,6 +1,6 @@
 # Tiger Data mirror (optional, P2)
 
-River Clock can copy its hourly river and rain readings into a [Tiger Data](https://www.tigerdata.com/)
+FloodClock can copy its hourly river and rain readings into a [Tiger Data](https://www.tigerdata.com/)
 (Timescale / Postgres) service, so they can be queried with SQL. Issue #17, SPEC §2.
 
 **It is a one-way mirror.** `hourly.parquet` and `live_hourly.parquet` stay the source of truth. The app,
@@ -165,7 +165,7 @@ newbotley  | target   | 2014-01-09 09:00+00:00 | 3.032  | 0
 ```
 
 The Evenlode (Cassington) peaked three and a half days before New Botley, and the Thames at Farmoor more
-than a day before. That lead is what River Clock's forecast is built on (the travel-time analysis, SPEC §6,
+than a day before. That lead is what FloodClock's forecast is built on (the travel-time analysis, SPEC §6,
 does this properly with cross-correlation over all events).
 
 ### c. Upstream vs target over a window, each against its own normal (time_bucket)
