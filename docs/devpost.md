@@ -1,9 +1,9 @@
-# River Clock: Devpost draft
+# FloodClock: Devpost draft
 
 <!-- Draft for the Devpost submission (deadline Sun 25 Oct 2026, 12:00 GMT). Paste section by section.
      Every number is read from committed JSON on main (src comments). If `make train backtest` runs again (#125), re-check each src before submitting. Don't round up. -->
 
-**Tagline (max ~200 characters):** Water upstream is Oxford's future. We read it as a clock. River Clock predicts when, and how likely, five Oxford flood spots will flood in the next 72 hours, so people can decide in time.
+**Tagline (max ~200 characters):** Water upstream is Oxford's future. We read it as a clock. FloodClock predicts when, and how likely, five Oxford flood spots will flood in the next 72 hours, so people can decide in time.
 
 ---
 
@@ -15,12 +15,12 @@ We wanted to turn the river upstream into a clock that Oxford can read: a predic
 
 ## What it does
 
-River Clock gives five Oxford trouble spots (Osney Island, Botley Road, Abingdon Road, Wolvercote and the Cherwell at Kings Mill) a chance of flooding and an arrival time, hour by hour, for the next 72 hours. It's one screen:
+FloodClock gives five Oxford trouble spots (Osney Island, Botley Road, Abingdon Road, Wolvercote and the Cherwell at Kings Mill) a chance of flooding and an arrival time, hour by hour, for the next 72 hours. It's one screen:
 
 - **A map of the rivers flowing and rising**, with a clock face for each spot that fills as the flood chance rises and counts down to when the water is likely to arrive. The water travels: on the Cherwell, a rise at Enslow reaches Kings Mill about 19 hours later. <!-- src: web/public/data/travel_times.json enslow->kingsmill tHalf median 18.6, n 6 -->
-- **A timeline** of our forecast against the real river level, with three markers: **River Clock warned · EA warned · Flooded**. Press play and it runs hour by hour, with the model seeing only what was known at each moment.
+- **A timeline** of our forecast against the real river level, with three markers: **FloodClock warned · EA warned · Flooded**. Press play and it runs hour by hour, with the model seeing only what was known at each moment.
 - **A two-line scoreboard** and a switch: **Now | 2014 | Henk | Bert | 2026** (Storm Henk, Jan 2024; Storm Bert, Nov 2024; the 2026 near miss).
-- **A one-line proof footer:** across 30 floods, River Clock caught 29 (6 false alarms) and the official warning 24 (1 false alarm). <!-- src: web/public/data/proof.json tradeoff at each spot's warnAt pStar (hits 7+7+8+7, falseAlarms 3+2+1+0), as web/src/clock/story.ts proofSummary; officialOutcome hits 5+8+8+3, falseAlarms 1 -->
+- **A one-line proof footer:** across 30 floods, FloodClock caught 29 (6 false alarms) and the official warning 24 (1 false alarm). <!-- src: web/public/data/proof.json tradeoff at each spot's warnAt pStar (hits 7+7+8+7, falseAlarms 3+2+1+0), as web/src/clock/story.ts proofSummary; officialOutcome hits 5+8+8+3, falseAlarms 1 -->
 - **Show the working** holds everything else: sandbag screening for Osney and Botley (where 500 bags would do the most good, and by when), the accuracy charts, a cost–loss calculator for residents, commuters and the council, and the data-quality report.
 
 The screen always says: *Decision-support prototype, not an official warning. Check gov.uk/check-flooding.* It runs fully offline.
@@ -48,7 +48,7 @@ The screen always says: *Decision-support prototype, not an official warning. Ch
 
 **The gauge we planned to forecast had no usable history.** Our plan was built around the Osney Lock gauge, whose flood threshold is on its downstream side. In the first hour we checked the EA data before writing any model code. The public history holds only the *upstream* side of the lock, which the weir keeps almost flat: 0.19 m at the 2014 peak. A model trained on that would have learned nothing about floods. We re-targeted to four gauges whose history matches their thresholds: New Botley, Minns Estate, Cold Harbour and Kings Mill. For Osney Island we use Minns Estate, about 1.2 km west, as a stand-in, checked against residents' flood reports. We say so on screen.
 
-**Scoring ourselves honestly against the EA.** It's easy to make a forecast look good by scoring it loosely. We fixed three things before the final run: a forecast at time t may only use readings up to t − 1 h, an EA warning counts as in force until 24 h after its last update, and both River Clock and the EA are scored on the same floods with the same rules. Some of our best-looking numbers got worse, and we kept the new ones.
+**Scoring ourselves honestly against the EA.** It's easy to make a forecast look good by scoring it loosely. We fixed three things before the final run: a forecast at time t may only use readings up to t − 1 h, an EA warning counts as in force until 24 h after its last update, and both FloodClock and the EA are scored on the same floods with the same rules. Some of our best-looking numbers got worse, and we kept the new ones.
 
 **The clocks go back during the hackathon.** UK time changed from BST to GMT at 02:00 on Sunday morning, in the middle of our overnight run. The EA's historic warnings are in naive UK local time, with one repeated hour every autumn. We store and compute everything in UTC, convert only in the UI, and have a test for timestamps across the change.
 
@@ -58,9 +58,9 @@ The screen always says: *Decision-support prototype, not an official warning. Ch
 
 ## Accomplishments that we're proud of
 
-- **The 2014 replay.** River Clock first said Botley Road was more likely than not to flood (60%) at 10:00 GMT on Sat 4 Jan 2014: **9 hours before the EA's Flood Warning** and **39 hours before the river crossed** the flood line. The peak, 3.03 m, was inside the 2.63–3.16 m range it gave 72 hours before. That's one flood: averaged over all floods at Botley, at its alarm level, we and the EA's warning are level (the EA 0.9 h earlier). <!-- src: web/public/data/replays/e2014.json (botley pFlood first >= 0.5 and >= 0.6 (warnAt) at 2014-01-04T10:00Z, 0.6043; EA warning 2014-01-04T19:03:30Z; crossing 2014-01-06T01:00Z; peak 3.027 m; forecast 2014-01-06T08:00Z h72 q05 2.627 q95 3.157); proof.json perEvent e2014 botley leadVsOfficialH 9.06; tradeoff botley pStar 0.6 (warnAt) meanLeadVsOfficialH -0.92 -->
-- **Honest scores.** On forecasts from Oct 2021 on that no model saw, River Clock is **39% more accurate than "nothing changes" at 6 h, 29% at 24 h and 12% at 72 h** (pooled over four gauges). <!-- src: web/public/data/proof.json skillByLead 0.3943, 0.2890, 0.1150 -->
-- **Early, without crying wolf.** Across seven events, at each spot's alarm level (chosen on pre-2021 floods only) River Clock caught **29 of 30 floods with 6 false alarms**, about 36 hours before the river crossed on average. The EA's warnings, scored the same way: **24 of 30 with 1 false alarm**. We were earlier than the EA at 12 of the 19 floods where both warned; it's not a clean sweep, and we don't claim to beat the EA. The one miss is the July 2007 summer storm at Botley (at a flat 50% trigger, Osney misses it too): a sudden summer downpour, which an upstream river signal can't see coming. <!-- src: proof.json tradeoff at warnAt pStar osney 0.3 / botley 0.6 / abingdonrd 0.2 / cherwell 0.3 (hits 7+7+8+7, misses 0+1+0+0, falseAlarms 3+2+1+0, meanLeadH weighted 35.9); warnAt[spot].perEvent leadVsOfficialH: 12 of 19 positive (|h| < 72 h, as proofSummary); warnAt.botley.perEvent e2007 misses 1; tradeoff pStar 0.5 osney/botley misses 1; officialOutcome (hits 5+8+8+3, falseAlarms 1) -->
+- **The 2014 replay.** FloodClock first said Botley Road was more likely than not to flood (60%) at 10:00 GMT on Sat 4 Jan 2014: **9 hours before the EA's Flood Warning** and **39 hours before the river crossed** the flood line. The peak, 3.03 m, was inside the 2.63–3.16 m range it gave 72 hours before. That's one flood: averaged over all floods at Botley, at its alarm level, we and the EA's warning are level (the EA 0.9 h earlier). <!-- src: web/public/data/replays/e2014.json (botley pFlood first >= 0.5 and >= 0.6 (warnAt) at 2014-01-04T10:00Z, 0.6043; EA warning 2014-01-04T19:03:30Z; crossing 2014-01-06T01:00Z; peak 3.027 m; forecast 2014-01-06T08:00Z h72 q05 2.627 q95 3.157); proof.json perEvent e2014 botley leadVsOfficialH 9.06; tradeoff botley pStar 0.6 (warnAt) meanLeadVsOfficialH -0.92 -->
+- **Honest scores.** On forecasts from Oct 2021 on that no model saw, FloodClock is **39% more accurate than "nothing changes" at 6 h, 29% at 24 h and 12% at 72 h** (pooled over four gauges). <!-- src: web/public/data/proof.json skillByLead 0.3943, 0.2890, 0.1150 -->
+- **Early, without crying wolf.** Across seven events, at each spot's alarm level (chosen on pre-2021 floods only) FloodClock caught **29 of 30 floods with 6 false alarms**, about 36 hours before the river crossed on average. The EA's warnings, scored the same way: **24 of 30 with 1 false alarm**. We were earlier than the EA at 12 of the 19 floods where both warned; it's not a clean sweep, and we don't claim to beat the EA. The one miss is the July 2007 summer storm at Botley (at a flat 50% trigger, Osney misses it too): a sudden summer downpour, which an upstream river signal can't see coming. <!-- src: proof.json tradeoff at warnAt pStar osney 0.3 / botley 0.6 / abingdonrd 0.2 / cherwell 0.3 (hits 7+7+8+7, misses 0+1+0+0, falseAlarms 3+2+1+0, meanLeadH weighted 35.9); warnAt[spot].perEvent leadVsOfficialH: 12 of 19 positive (|h| < 72 h, as proofSummary); warnAt.botley.perEvent e2007 misses 1; tradeoff pStar 0.5 osney/botley misses 1; officialOutcome (hits 5+8+8+3, falseAlarms 1) -->
 - **The near miss.** In winter 2026 the river came within 11 cm of Botley's flood line. Our highest chance was just under 30%, below every spot's alarm level, so it raised no false alarm. <!-- src: web/public/data/replays/e2026.json botley max pFlood 0.2994 (warnAt 0.6), newbotley peak 2.647 m vs 2.76 m; warnAt[spot].perEvent e2026 falseAlarms 0 -->
 - **Sandbag screening** (in Show the working). A map whose 2014 flood spread overlaps the EA's recorded outline at 68% (intersection-over-union), with every caveat on screen. <!-- src: web/public/data/spread/e2014/manifest.json validation.iou 0.681 -->
 - Every spot threshold is backed by dated evidence: news reports, residents' newsletters and EA warnings, with links in the config.
@@ -74,7 +74,7 @@ The screen always says: *Decision-support prototype, not an official warning. Ch
 - With few events, uncertainty is the result, not a footnote.
 - Clear contracts and a shared status board let many AI agents and people work in parallel without stepping on each other.
 
-## What's next for River Clock
+## What's next for FloodClock
 
 - **Rain forecasts.** We already tested real archived ECMWF rain forecasts (2024 on): 72 h accuracy against the simple guess rose from +11% to +28%, but they added 3 false alarms and the test window holds only one flood, so they're not switched on. Next: train the model to trust the forecast less, and score it on more floods. <!-- src: issue #100 results comment (72 h +0.114 -> +0.278; Botley FA 1 -> 3, Osney 0 -> 1) -->
 - Get the downstream lock histories from the EA, so Osney, Godstow and Iffley can be forecast directly instead of through stand-ins.
@@ -93,7 +93,7 @@ Substitute gauges (Osney uses a gauge 1.2 km west; Abingdon Road uses Cold Harbo
 
 ## Prizes we're entering
 
-- **[HRT] Best Use of Data for Predictions and Decision Making.** River Clock is a prediction that ends in a decision. It forecasts a probability and an arrival time per street-level spot from 20 years of open EA data, proves it against a baseline and against the official warnings scored the same way, then turns it into a decision: a cost–loss trigger per user (move the car at 1%, close a road at 5%) and, in Show the working, where sandbags should go and by when.
+- **[HRT] Best Use of Data for Predictions and Decision Making.** FloodClock is a prediction that ends in a decision. It forecasts a probability and an arrival time per street-level spot from 20 years of open EA data, proves it against a baseline and against the official warnings scored the same way, then turns it into a decision: a cost–loss trigger per user (move the car at 1%, close a road at 5%) and, in Show the working, where sandbags should go and by when.
 - **[MLH] Best Use of Tiger Data.** Built and measured (#17, PR #63). `make mirror` copies all 3,287,615 hourly river and rain rows (2006–2026) and the live readings into a `readings_hourly` hypertable (180-day chunks), with a `gauges` table and a `readings_daily` continuous aggregate. Re-runs are idempotent. Columnstore compression: 434 MB → 35 MB (12.4×). Example query: upstream peak times before New Botley's Jan 2014 peak (Cassington 84 h, Farmoor 28 h, Eynsham 9 h). Setup and five real queries: `docs/tiger-data.md`. <!-- src: docs/tiger-data.md -->
 
 ## Links

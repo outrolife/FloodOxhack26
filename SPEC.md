@@ -1,4 +1,4 @@
-# River Clock: Specification v3
+# FloodClock: Specification v3
 
 **Context:** OxHack 2026, Oxford. Hacking ends Sun 25 Oct 12:00; code freeze 11:00. UK clocks go back 02:00→01:00 BST→GMT on Sun 25 Oct. Judging is science-fair style, 4–5 minutes per judge.
 **This document is the source of truth.** If something here proves impossible (e.g. data unavailable), apply the stated fallback; if none is stated, stop and ask a human.
@@ -7,7 +7,7 @@
 
 ## 1. Overview
 
-River Clock forecasts **when, and how likely,** five Oxford flood trouble spots will flood in the next 72 hours, and turns that into timed decisions.
+FloodClock forecasts **when, and how likely,** five Oxford flood trouble spots will flood in the next 72 hours, and turns that into timed decisions.
 
 It is built from:
 1. **A finding:** from past Oxford floods, measure how long the flood wave takes to travel from upstream river gauges to Oxford.
@@ -370,16 +370,16 @@ Stretch contracts are in §11.
 - **Upstream chain:** links from `travel_times.json` (best pair per upstream gauge), with pulses moving at the measured travel time and the travel time in words on hover.
 - **Gauges:** every gauge in `stations.json` (upstream, targets, live_only, and the #146 catchment ring) as a small level-gauge icon, with a compact card on hover or tap. Names show from zoom 14.
 - **River walk:** the selected spot's upstream path (`riverWalk` over `travel_times.json`) is drawn bright and the rest dimmed.
-- **Spots:** small identical round markers. The ring fills with the chance of flooding in the next 3 days, with the percentage inside from 1%. In replays, a badge under the marker shows River Clock vs the EA once both have happened, and a ripple marks River Clock's warning.
+- **Spots:** small identical round markers. The ring fills with the chance of flooding in the next 3 days, with the percentage inside from 1%. In replays, a badge under the marker shows FloodClock vs the EA once both have happened, and a ripple marks FloodClock's warning.
 - **Spot visibility rule (#146, #152):** a spot shows only when it has data. Wolvercote (timing only, live-only gauge, no forecast) is hidden. Cherwell is hidden in Now while Kings Mill telemetry is offline (§4.1.1), and shown in replays.
 
 **Map v3 (in progress, #152, behind `?map=gl`):** MapLibre uses the offline PMTiles basemap (release `basemap-v1`, unpacked to `web/public/tiles/` by `make tiles`), with deck.gl flow that follows the routed river paths (`geo/river-paths.geojson`, `geo/catchment-rivers.geojson`). Without the tiles it falls back to a plain background and the GeoJSON layers; without WebGL it falls back to Leaflet. The Leaflet map remains the default until the MapLibre worker is verified in production. Both maps provide Oxford and Catchment presets that bound panning and zoom to the selected area.
 
-**Timeline (`clock/Timeline.tsx`, under the map).** For the selected spot: River Clock's forecast fan from the playhead (middle line and likely range), the real level (solid up to the playhead − 1 h, #93), the flood level and usual high as labelled lines, and the markers **River Clock warned · EA warned · Flooded** once the playhead has passed them. In a replay the playhead plays hour by hour, and a flood at the selected spot auto-plays when it loads. No reading is shown before the playhead reaches it (§8). Now shows the recent readings (up to 7 days) and the live forecast.
+**Timeline (`clock/Timeline.tsx`, under the map).** For the selected spot: FloodClock's forecast fan from the playhead (middle line and likely range), the real level (solid up to the playhead − 1 h, #93), the flood level and usual high as labelled lines, and the markers **FloodClock warned · EA warned · Flooded** once the playhead has passed them. In a replay the playhead plays hour by hour, and a flood at the selected spot auto-plays when it loads. No reading is shown before the playhead reaches it (§8). Now shows the recent readings (up to 7 days) and the live forecast.
 
-**Scoreboard (`clock/Scoreboard.tsx`, on the map).** At most two lines for the selected spot. Replay: when River Clock warned before the flood, and how that compares with the EA warning, with its honest sign (✓ / ✕ and words, not colour alone), each line filled only once the playhead has passed it. Calm events: "Stayed calm: highest chance X%". Now: "No flood expected in the next 3 days" or "X% chance of flooding by <time>". Caption: the spot's warn-at level (`proof.warnAt[spot].pStar`, chosen on validation floods only; else 50%) and, for a spot measured against another spot's EA warning area, which one. Never "we always beat the EA".
+**Scoreboard (`clock/Scoreboard.tsx`, on the map).** At most two lines for the selected spot. Replay: when FloodClock warned before the flood, and how that compares with the EA warning, with its honest sign (✓ / ✕ and words, not colour alone), each line filled only once the playhead has passed it. Calm events: "Stayed calm: highest chance X%". Now: "No flood expected in the next 3 days" or "X% chance of flooding by <time>". Caption: the spot's warn-at level (`proof.warnAt[spot].pStar`, chosen on validation floods only; else 50%) and, for a spot measured against another spot's EA warning area, which one. Never "we always beat the EA".
 
-**Proof footer (`clock/ProofFooter.tsx`).** One line summed at runtime from `proof.tradeoff` (River Clock at each spot's warn-at level) and `proof.officialOutcome` (EA Flood Warnings), scored on the same rules, plus a "Show the working" button.
+**Proof footer (`clock/ProofFooter.tsx`).** One line summed at runtime from `proof.tradeoff` (FloodClock at each spot's warn-at level) and `proof.officialOutcome` (EA Flood Warnings), scored on the same rules, plus a "Show the working" button.
 
 **Show the working (`clock/Drawer.tsx`, `#/working/<tab>`).** A drawer over the screen, each tab loaded only when opened: How good is it? (trust tiles and charts), Protect (sandbag screening, S4, labelled "Screening, not instructions" and "Experimental"), Live gauges, Time Machine, Decide (cost–loss), Proof, About and credits. Esc or × closes it.
 
@@ -504,7 +504,7 @@ Record results in the team chat and update `config/stations.yaml`.
 ## 17. Demo requirements
 The app must support this 4–5 minute walkthrough without network access:
 1. River strip with travel times ("the water is already on its way").
-2. Time Machine on e2014: play, forecast fan narrows, River Clock ≥ 50% marker, then the official-warning marker, then the real peak inside the band.
+2. Time Machine on e2014: play, forecast fan narrows, FloodClock ≥ 50% marker, then the official-warning marker, then the real peak inside the band.
 3. Decide: switch presets; expected-cost bars update instantly.
 4. Proof: skill vs persistence, reliability diagram, e2026 near-miss outcome.
 5. Live: today's Oxford (or a clear "live data unavailable" state).

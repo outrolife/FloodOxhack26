@@ -1,4 +1,4 @@
-# River Clock: demo plan B (print this page)
+# FloodClock: demo plan B (print this page)
 
 Judging: **Sun 25 Oct 2026, after code freeze (11:00)**. The clocks went back at 02:00, so the app shows **GMT (= UTC)**. The main walkthrough is `docs/demo.md`; this page is what to do when something goes wrong. Fill the blanks the night before.
 
@@ -48,7 +48,7 @@ git push origin --tags
 
 <!-- src for every number: docs/demo.md (each has its src comment there). -->
 
-- **2014 (0:00–0:20):** "This is Botley Road in January 2014, replayed hour by hour with only what was known at the time. Ten in the morning on 4 January: River Clock says more likely than not. The EA's warning came nine hours later; the river crossed 39 hours after our call."
+- **2014 (0:00–0:20):** "This is Botley Road in January 2014, replayed hour by hour with only what was known at the time. Ten in the morning on 4 January: FloodClock says more likely than not. The EA's warning came nine hours later; the river crossed 39 hours after our call."
 - **The map (0:20–0:32):** "Oxford floods slowly, from upstream: a rise at Enslow reaches Kings Mill about 19 hours later. Each spot is a clock that fills as the chance of flooding rises, with a countdown. It's a prototype, not an official warning."
 - **Nov 2024 (0:32–0:42):** "Here the EA warned about 29 hours before us. We show that too: over all floods we were earlier at 12 of the 19 where both warned."
 - **Proof footer (0:42–0:55):** "At each spot's alarm level, 29 of 30 floods with 6 false alarms; the EA's warnings, scored the same way, 24 of 30 with 1."
