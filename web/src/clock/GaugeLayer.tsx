@@ -23,14 +23,17 @@ const ROLE_RANK: Record<string, number> = { upstream: 0, target: 1, live_only: 2
  * Which gauge icons and names to leave out at this zoom so nothing piles up
  * (#152 feedback: the catchment view overlapped badly). Gauges are placed in
  * priority order (the selected river walk, then upstream, target, live-only).
- * An icon is dropped if it would sit on a spot ring or on an icon already
- * placed (upstream gauges, where the flow links end, give way only to rings). A name is
- * dropped if it would cross a spot (ring and label), an icon or another name.
+ * Icons first: one is dropped if it would sit on a spot ring or on an icon
+ * already placed (close in, upstream gauges, where the flow links end, give
+ * way only to rings). Then names, for gauges whose name shows at this zoom
+ * (`showsName`): one is dropped if it would cross a spot (ring and label), any
+ * icon or a name already placed.
  */
 export function declutter(
   gauges: { key: string; role: string; name: string; p: Pt; emph: boolean }[],
   spots: Pt[],
   far: boolean,
+  showsName: (g: { role: string }) => boolean = () => true,
 ): { hidden: Set<string>; nameless: Set<string> } {
   const k = far ? 0.8 : 1; // icon scale under .rc-far
   const iw = 14 * k;
@@ -42,23 +45,28 @@ export function declutter(
   const order = [...gauges].sort(
     (a, b) => Number(b.emph) - Number(a.emph) || (ROLE_RANK[a.role] ?? 3) - (ROLE_RANK[b.role] ?? 3) || a.key.localeCompare(b.key),
   );
-  const icons: Box[] = [];
-  const names: Box[] = [];
   const hidden = new Set<string>();
   const nameless = new Set<string>();
+  const placed: { g: (typeof order)[number]; box: Box }[] = [];
   for (const g of order) {
     const box = { x0: g.p.x - iw / 2, y0: g.p.y - ih / 2, x1: g.p.x + iw / 2, y1: g.p.y + ih / 2 };
     const core = { x0: box.x0 + 2, y0: box.y0 + 2, x1: box.x1 - 2, y1: box.y1 - 2 };
-    // Upstream gauges stay unless a spot ring covers them (the links end at them); the rest also give way to icons placed first.
     const onRing = rings.some((r) => overlaps(core, r));
-    if (onRing || (g.role !== "upstream" && icons.some((r) => overlaps(core, r)))) {
+    const onIcon = (far || g.role !== "upstream") && placed.some((q) => overlaps(core, q.box));
+    if (onRing || onIcon) {
       hidden.add(g.key);
+      nameless.add(g.key);
+    } else placed.push({ g, box });
+  }
+  const icons = placed.map((q) => q.box);
+  const names: Box[] = [];
+  for (const { g, box } of placed) {
+    if (!showsName(g)) {
       nameless.add(g.key);
       continue;
     }
-    icons.push(box);
     const label = { x0: box.x1 + 2, y0: g.p.y - 7, x1: box.x1 + 4 + g.name.length * (far ? 5.6 : 6.3), y1: g.p.y + 7 };
-    const blocked = [...rings, ...spotNames, ...icons.slice(0, -1), ...names].some((r) => overlaps(label, r));
+    const blocked = [...rings, ...spotNames, ...icons.filter((b) => b !== box), ...names].some((r) => overlaps(label, r));
     if (blocked) nameless.add(g.key);
     else names.push(label);
   }
@@ -151,7 +159,6 @@ function GaugeMarker({
     <Marker
       position={[station.lat, station.lon]}
       icon={iconFor(look, name, emphasis, station.role, hidden, nameless)}
-      interactive={!hidden}
       title={words}
       alt={words}
       zIndexOffset={-500}
@@ -221,6 +228,8 @@ export function GaugeLayer({
       })),
       avoid.map(([lat, lon]) => pt(lat, lon)),
       map.getZoom() < FAR_BELOW_ZOOM,
+      // Names show close in (.rc-near), and for upstream gauges in the catchment view (shell.css).
+      (g) => map.getZoom() >= NAMES_FROM_ZOOM || (g.role === "upstream" && map.getContainer().closest(".rc-catchment") != null),
     );
     // Screen positions change only with zoom and size (a pan moves everything together).
     // eslint-disable-next-line react-hooks/exhaustive-deps
