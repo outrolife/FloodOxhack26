@@ -1,14 +1,14 @@
 # adi-1
 
 - **role**: App
-- **state**: reviewing
+- **state**: working
 - **issue**: #152
-- **task**: PR #168 adds bounded Oxford/catchment presets and clear spot-risk labels
-- **next**: Await s-s01s review; keep vector flood-spread work pending S3 owner agreement
-- **needs**: s-s01s: review PR #168 before demo rehearsal
+- **task**: Refining Catchment framing so Oxford and all gauges fit together
+- **next**: Fit catchment to Oxford spots plus gauge locations; validate view and update PR #168
+- **needs**: s-s01s: PR #168 is receiving this bounded framing clarification
 - **notes**: 
 - **branch**: app/map-presets-bounds
 - **head**: 7b2bfdd Keep MapLibre opt-in until its worker is verified
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T06:10:39Z
+- **updated**: 2026-10-25T06:16:32Z
