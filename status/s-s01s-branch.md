@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: working
 - **issue**: #125
-- **task**: Seed check of A (newbotley first, then minns), seeds 42/7/123
-- **next**: post newbotley table on #125 (machine overloaded, ETA ~00:30 GMT)
+- **task**: Seed check of A: newbotley posted (keep A); minns 36/48 h + newbotley 24 h seeds 7/123 training
+- **next**: post part 2 on #125 (~01:20 GMT)
 - **needs**: 
 - **notes**: 
 - **branch**: model/branch-signals
-- **head**: 30e7d8b Record #134 A-branch results: not adopted (within seed noise)
+- **head**: 1561133 Add per-lead training and scoring for the A seed check
 - **unpushed**: 0
-- **dirty**: 3
-- **updated**: 2026-10-24T23:36:03Z
+- **dirty**: 2
+- **updated**: 2026-10-25T00:51:53Z
