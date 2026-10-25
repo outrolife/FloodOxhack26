@@ -3,12 +3,12 @@
 - **role**: App
 - **state**: working
 - **issue**: #118
-- **task**: Design tokens (PR #173) then token sweep across web CSS
-- **next**: app/design-sweep PR by 09:40
+- **task**: Token sweep on app/design-sweep (styles, shell, screens done)
+- **next**: ui.css + header after #172 merges; PR by 09:40
 - **needs**: 
 - **notes**: 
-- **branch**: app/design-tokens
-- **head**: 484c69b Add design tokens (colour, space, radii, shadows, type, motion
+- **branch**: app/design-sweep
+- **head**: 77a744a Sweep the one-screen shell onto tokens: neutral controls, mobi
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T07:45:48Z
+- **updated**: 2026-10-25T08:01:49Z
