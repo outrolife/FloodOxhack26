@@ -8,7 +8,7 @@
 - **needs**: s-s01s: merge #172 -> #176 -> header PR -> #177 -> #175 (all green, combined-tested)
 - **notes**: #111 S4 and #112 a11y merged
 - **branch**: HEAD
-- **head**: 6a63cd9 Merge remote-tracking branch 'origin/data/risk-zones' into HEA
+- **head**: aab314f Merge remote-tracking branch 'origin/app/explore-ui' into HEAD
 - **unpushed**: no upstream
-- **dirty**: 0
-- **updated**: 2026-10-25T08:35:48Z
+- **dirty**: 1
+- **updated**: 2026-10-25T08:37:12Z
