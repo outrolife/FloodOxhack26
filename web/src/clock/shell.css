@@ -76,7 +76,8 @@ html.presenter .rc-hero { height: 64vh; }
 
 /* Water that flows: white dashes moving along each line (OSM draws waterways downstream). */
 @keyframes rc-flow { to { stroke-dashoffset: -18; } }
-.rc-flow { animation: rc-flow linear infinite; animation-duration: 6s; }
+/* One pixel per step (the dash period is 18 px), not 60 repaints a second of the whole river layer (map perf). */
+.rc-flow { animation: rc-flow steps(18) infinite; animation-duration: 6s; }
 .rc-flow-b0 { animation-duration: 6s; }
 .rc-flow-b1 { animation-duration: 4.5s; }
 .rc-flow-b2 { animation-duration: 3.2s; }
@@ -89,7 +90,7 @@ html.presenter .rc-hero { height: 64vh; }
 /* Pulses along the upstream links: two round dots per link (pathLength 100, dash "0 50"),
    one link length per animation, towards Oxford. The duration is set per link (real travel time). */
 @keyframes rc-pulse { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -100; } }
-.rc-pulse { animation: rc-pulse linear infinite; animation-duration: 8s; }
+.rc-pulse { animation: rc-pulse steps(100) infinite; animation-duration: 8s; }
 @media (prefers-reduced-motion: reduce) { .rc-pulse { animation: none; } }
 
 /* Hover words on the upstream links and gauges (no permanent labels). */
@@ -161,7 +162,7 @@ span.rc-dot-btn { cursor: help; }
   .rc-hero { height: 62vh; min-height: 380px; }
   .rc-hero-score {
     position: absolute; z-index: 5; top: var(--fc-space-3); right: var(--fc-space-3); width: min(330px, calc(100% - 24px));
-    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.92); /* no backdrop blur: it re-blurs the moving map on every frame (map perf) */
     border: 1px solid var(--fc-border); border-radius: var(--fc-radius-md); padding: var(--fc-space-2) var(--fc-space-3); box-shadow: var(--fc-shadow-3);
   }
   .rc-hero-score:hover { background: rgba(255, 255, 255, 0.98); }
