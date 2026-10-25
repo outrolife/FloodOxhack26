@@ -22,6 +22,7 @@ import {
   skillTrendText,
   topBinNote,
   tradeoffAt,
+  triggerPhrase,
   triggerWords,
   vsOfficialLabel,
   vsOfficialSummary,
@@ -198,6 +199,14 @@ describe("tile 3: early, without crying wolf", () => {
     expect(t.typicalLeadH).toBeCloseTo((17 * 7 + 28 * 8) / 15, 6);
     expect(caughtText(t)).toBe("15 of 15 floods caught");
     expect(t.noForecast.map((s) => s.spot)).toEqual(["wolvercote"]);
+  });
+
+  it("counts each spot at its own trigger when given one per spot (as the footer does)", () => {
+    const perSpot = earlyTile({ tradeoff }, spots, (spot) => (spot === "botley" ? 0.8 : 0.5));
+    expect(perSpot.pStar).toBeNull();
+    expect(perSpot.rows.map((r) => r.pStar)).toEqual([0.5, tradeoffAt(tradeoff.botley, 0.8)!.pStar]);
+    expect(triggerPhrase(perSpot.pStar)).toBe("each spot's own warning level");
+    expect(triggerPhrase(0.5)).toBe("a 1-in-2 chance");
   });
 
   it("says the EA comparison as mixed when it is mixed", () => {

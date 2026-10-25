@@ -238,7 +238,8 @@ export type SpotEarly = {
 };
 
 export type EarlyTile = {
-  pStar: number;
+  /** The one trigger used, or null when each spot uses its own warn-at level. */
+  pStar: number | null;
   rows: SpotEarly[];
   floods: number;
   caught: number;
@@ -254,10 +255,15 @@ export function tradeoffAt(rows: TradeoffRow[], pStar = TRIGGER_P): TradeoffRow 
   return rows.find((r) => Math.abs(r.pStar - pStar) < 1e-6) ?? nearestBy(rows, (r) => r.pStar, pStar) ?? null;
 }
 
+/**
+ * The floods-caught tile. `pStar` is one trigger for every spot, or a per-spot
+ * one (the app passes each spot's warn-at level, as the footer counts, so the
+ * two never disagree); then the tile's own `pStar` is null.
+ */
 export function earlyTile(
   proof: Pick<Proof, "tradeoff" | "officialOutcome">,
   spots: Pick<Spot, "key" | "name" | "mode">[],
-  pStar = TRIGGER_P,
+  pStar: number | ((spot: string) => number) = TRIGGER_P,
 ): EarlyTile {
   const trade = proof.tradeoff ?? {};
   const spotOrder = spots.map((s) => s.key);
@@ -268,7 +274,7 @@ export function earlyTile(
   });
   const rows: SpotEarly[] = [];
   for (const k of keys) {
-    const r = tradeoffAt(trade[k], pStar);
+    const r = tradeoffAt(trade[k], typeof pStar === "function" ? pStar(k) : pStar);
     if (!r) continue;
     rows.push({
       spot: k,
@@ -287,7 +293,7 @@ export function earlyTile(
   const withLead = rows.filter((r) => r.leadH !== null && r.hits > 0);
   const leadHits = withLead.reduce((s, r) => s + r.hits, 0);
   return {
-    pStar: rows[0]?.pStar ?? pStar,
+    pStar: typeof pStar === "function" ? null : (rows[0]?.pStar ?? pStar),
     rows,
     floods: rows.reduce((s, r) => s + r.floods, 0),
     caught: rows.reduce((s, r) => s + r.hits, 0),
@@ -303,6 +309,11 @@ export function earlyTile(
 export function triggerWords(pStar: number): string {
   const inv = 1 / pStar;
   return Math.abs(inv - Math.round(inv)) < 1e-6 ? `1-in-${Math.round(inv)}` : `${pct(pStar)}%`;
+}
+
+/** "a 1-in-2 chance", or "each spot's own warning level" for a per-spot trigger. */
+export function triggerPhrase(pStar: number | null): string {
+  return pStar === null ? "each spot's own warning level" : `a ${triggerWords(pStar)} chance`;
 }
 
 /** "30 of 30 floods caught" (or "all 30"); false alarms said separately. */

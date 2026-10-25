@@ -19,7 +19,7 @@ import {
   reliabilitySpots,
   shortName,
   topBinNote,
-  triggerWords,
+  triggerPhrase,
   vsOfficialLabel,
   vsOfficialSummary,
   type BeatsTile as BeatsData,
@@ -246,7 +246,7 @@ export function EarlyTile({ data, proof }: { data: EarlyData; proof: Proof }) {
       <p className="trust-caption">
         {caughtText(data)}, with {data.falseAlarms} false {data.falseAlarms === 1 ? "alarm" : "alarms"}
         {data.typicalLeadH !== null && <>, and about {Math.round(data.typicalLeadH)} hours of warning before the river crossed (average)</>}.
-        Alarm when the chance reaches {triggerWords(data.pStar)}.
+        Alarm at {triggerPhrase(data.pStar)}.
       </p>
 
       <h3 className="trust-sub">Warning time before the river crossed</h3>
@@ -372,7 +372,7 @@ export function OfficialOutcome({ data }: { data: EarlyData }) {
       </table>
       <p className="small muted">
         Both are scored on the same floods, hours and rules (how an official warning counts as in force is in the note
-        at the bottom). River Clock alarms at a {triggerWords(data.pStar)} chance; a lower trigger catches more and cries
+        at the bottom). River Clock alarms at {triggerPhrase(data.pStar)}; a lower trigger catches more and cries
         wolf more often.
       </p>
     </div>

@@ -4,15 +4,17 @@ import type { ReactNode } from "react";
 import type { Proof, Spot } from "../../contracts";
 import { Headline, Screen } from "../../ui";
 import { BeatsTile, EarlyTile, OddsTile, OfficialOutcome } from "./Tiles";
-import { TILE_LEAD_H, beatsTile, earlyTile, headline, pooledNote, triggerWords } from "./trust";
+import { TILE_LEAD_H, beatsTile, earlyTile, headline, pooledNote, triggerPhrase } from "./trust";
+import { warnAtFor } from "../replay/facts";
 import "./trust.css";
 
 export function TrustView({ proof, spots, working }: { proof: Proof; spots: Spot[]; working?: ReactNode }) {
   const beats = beatsTile(proof, TILE_LEAD_H);
-  const early = earlyTile(proof, spots);
+  // Each spot at its own warn-at level, as the footer counts (proofSummary).
+  const early = earlyTile(proof, spots, (spot) => warnAtFor(proof, spot));
   const sub = [
     beats ? `Accuracy ${pooledNote(proof)}` : null,
-    early.floods ? `floods counted per trouble spot, alarm at a ${triggerWords(early.pStar)} chance` : null,
+    early.floods ? `floods counted per trouble spot, alarm at ${triggerPhrase(early.pStar)}` : null,
   ]
     .filter(Boolean)
     .join("; ");
