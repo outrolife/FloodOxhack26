@@ -11,8 +11,10 @@ export default function About() {
         <ol>
           <li>
             <strong>Measure the clock.</strong> From past Oxford floods we measure how long the
-            flood wave takes to travel from upstream gauges (Farmoor, Eynsham, Cassington, Enslow,
-            Islip) to Oxford: the half-rise travel time <em>T½</em>.
+            flood wave takes to travel from upstream gauges to Oxford (Farmoor, Eynsham, Cassington,
+            Enslow and Islip; for Botley Road and Osney Island also Shifford and Hannington on the
+            Thames, Worsham on the Windrush and Shipton on the Evenlode): the half-rise travel time{" "}
+            <em>T½</em>.
           </li>
           <li>
             <strong>Read the upstream gauges.</strong> Each river gauge is compared only with its
@@ -131,6 +133,24 @@ export default function About() {
             map tiles, the bundled offline basemap (water, rivers, roads, railways, parks and Osney/Botley
             buildings, via the Overpass API), and Nominatim and Overpass for placing each spot on the street that floods. ©
             OpenStreetMap contributors. Open Database Licence (ODbL).
+          </li>
+          <li>
+            EA LIDAR Composite DTM 2022 (1 m) and the Statutory Main River Map, via the Defra Data
+            Services Platform: terrain and river cells for the experimental flood spread. EA Recorded
+            Flood Outlines: checking that spread against the winter 2013/14 outline. Open Government
+            Licence v3.0. © Environment Agency.
+          </li>
+          <li>
+            EA Risk of Flooding from Rivers and Sea and Risk of Flooding from Surface Water map
+            layers (optional, shown live from the EA map service when switched on). Open Government
+            Licence v3.0. © Environment Agency.
+          </li>
+          <li>
+            <a href="https://protomaps.com/" target="_blank" rel="noreferrer">
+              Protomaps
+            </a>{" "}
+            offline vector basemap (built from OpenStreetMap data, © OpenStreetMap contributors, ODbL)
+            and its Noto Sans fonts (SIL Open Font Licence), drawn with MapLibre GL and deck.gl.
           </li>
           <li>
             <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">
