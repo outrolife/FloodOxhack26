@@ -115,6 +115,7 @@
 @keyframes fc-x-pulse { 0% { transform: scale(0.3, 0.12); opacity: 0.7; } 100% { transform: scale(1.6, 0.6); opacity: 0; } }
 
 /* ---------- Zones ---------- */
+.leaflet-container path.fc-x-zone:focus { outline: none; }
 .fc-x-zone { cursor: crosshair; transition: fill-opacity var(--fc-dur-fast, 150ms) var(--fc-ease, ease), stroke-width var(--fc-dur-fast, 150ms) var(--fc-ease, ease); }
 .leaflet-tooltip.fc-x-zone-tip {
   font-family: var(--fc-font, inherit); font-size: var(--fc-text-sm, 0.875rem); font-weight: var(--fc-weight-medium, 600);
@@ -307,3 +308,7 @@
   .fc-x-pin-pulse { display: none; }
   .fc-x-skel { animation: none; }
 }
+
+/* In the map screen's top bar (ClockScreen .rc-top), right of the event switch. */
+.rc-top > .fc-x-search { flex: 1 1 280px; max-width: 440px; margin-left: auto; }
+@media (max-width: 700px) { .rc-top > .fc-x-search { flex-basis: 100%; margin-left: 0; order: -1; } }

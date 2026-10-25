@@ -156,7 +156,7 @@ export function PointCard({
               {risk.risk.label}
             </span>
             <p className="fc-x-sentence">{risk.risk.sentence}</p>
-            {risk.risk.nearby && (
+            {risk.risk.nearby && risk.risk.nearby.prob3d != null && (
               <p className="fc-x-nearby">
                 <span className="fc-x-nearby-mark" aria-hidden="true" />
                 <span>

@@ -20,6 +20,7 @@ import { Timeline } from "./Timeline";
 import { useClockEvent } from "./useClockEvent";
 import { eaBadge, justWarned } from "./markers";
 import { replayFactsFor } from "../screens/replay/facts";
+import { PointCard, SearchBox, ZonesLegend, useExplore } from "../explore";
 import "./shell.css";
 
 /** Map v3 (#152, MapLibre + deck.gl): its own chunk, loaded only with ?map=gl (or once it is the default). */
@@ -140,6 +141,9 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
     levels = gaugeLevelsAt({ stations: stationList, observed, t, lagH: REPLAY_LAG_H });
   }
 
+  // Explore (#118): any point's river flood risk and a sandbag estimate. "FloodClock now" only from the live forecast.
+  const explore = useExplore({ spots: spotList, forecast: live });
+
   const mapProps = {
     spots: spotList,
     stations: stationList,
@@ -155,6 +159,7 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
     lagH: replay ? REPLAY_LAG_H : 0,
     mapView,
     onMapViewChange: setMapView,
+    explore: explore.layer,
   };
 
   const label = event === "now" ? "Now" : (names[event] ?? event);
@@ -174,6 +179,7 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
     <div className="rc-screen">
       <div className="rc-top">
         <EventSwitch value={event} onChange={onEvent} names={names} />
+        <SearchBox onPick={explore.onPick} />
       </div>
 
       <div className="rc-hero">
@@ -205,6 +211,8 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
           {spotName && <div className="rc-hero-score-spot">{spotName}</div>}
           <Scoreboard event={event} spot={spot} t={t ?? undefined} />
         </div>
+        {!gl && <ZonesLegend zones={explore.zones} show={explore.showZones} onToggle={explore.setShowZones} />}
+        {explore.selection && <PointCard selection={explore.selection} risk={explore.risk} onClose={explore.close} onRetry={explore.retry} />}
       </div>
 
       <div className="rc-below">
