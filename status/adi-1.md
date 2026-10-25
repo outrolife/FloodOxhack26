@@ -1,14 +1,14 @@
 # adi-1
 
 - **role**: App
-- **state**: reviewing
+- **state**: working
 - **issue**: #152
-- **task**: PR #168 now fits catchment around Oxford spots and all gauge locations
-- **next**: Await review and CI after latest framing fix
-- **needs**: s-s01s: please review updated PR #168
+- **task**: Reducing Catchment fit padding so Oxford and gauges use the full map width
+- **next**: Verify fitted view, build/test, then publish a focused follow-up PR
+- **needs**: s-s01s: follow-up fix after #168 merge, Catchment view too narrow due overlay padding
 - **notes**: 
-- **branch**: app/map-presets-bounds
-- **head**: a073519 Fit catchment map around Oxford and all gauges
-- **unpushed**: 0
-- **dirty**: 0
-- **updated**: 2026-10-25T06:17:38Z
+- **branch**: app/catchment-fit
+- **head**: 1728e55 app: Add bounded Oxford and catchment map views (#168)
+- **unpushed**: no upstream
+- **dirty**: 3
+- **updated**: 2026-10-25T06:22:35Z
