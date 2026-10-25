@@ -3,8 +3,21 @@ import type { AsyncState, Source } from "../../data";
 /** Renders loading / error states; null when everything is ready. */
 export function Pending({ states }: { states: AsyncState<unknown>[] }) {
   const err = states.find((s) => s.status === "error");
-  if (err && err.status === "error") return <div className="notice warn">Data unavailable: {err.error}</div>;
-  if (states.some((s) => s.status === "loading")) return <p className="muted">Loading…</p>;
+  if (err && err.status === "error")
+    return (
+      <div className="notice warn" role="alert">
+        Data unavailable: {err.error}
+      </div>
+    );
+  if (states.some((s) => s.status === "loading"))
+    return (
+      <div className="fc-loading" role="status">
+        <span className="fc-skeleton" aria-hidden="true" />
+        <span className="fc-skeleton" aria-hidden="true" />
+        <span className="fc-skeleton" aria-hidden="true" />
+        <p className="muted">Loading…</p>
+      </div>
+    );
   return null;
 }
 

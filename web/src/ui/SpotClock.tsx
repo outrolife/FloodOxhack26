@@ -21,9 +21,9 @@ export function stateFor(prob: number | null | undefined): ClockState {
 
 /** Colour, plain label and shape per state. Status colours are for flood state only. */
 export const CLOCK_STYLE: Record<ClockState, { colour: string; label: string; shape: string }> = {
-  calm: { colour: "#009e73", label: "Unlikely", shape: "●" },
-  watch: { colour: "#e09b00", label: "Possible", shape: "▲" },
-  likely: { colour: "#d03b3b", label: "Likely", shape: "■" },
+  calm: { colour: "var(--fc-risk-low)", label: "Unlikely", shape: "●" },
+  watch: { colour: "var(--fc-risk-medium)", label: "Possible", shape: "▲" },
+  likely: { colour: "var(--fc-risk-high)", label: "Likely", shape: "■" },
   noforecast: { colour: "#898781", label: "No forecast", shape: "○" },
   stale: { colour: "#898781", label: "Gauge offline", shape: "⊘" },
 };
