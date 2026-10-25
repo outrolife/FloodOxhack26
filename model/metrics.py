@@ -117,8 +117,13 @@ def skill_by_lead(
     persistence_q: Mapping[int, np.ndarray],
     y: Mapping[int, np.ndarray],
     nd: int = 4,
+    nd_pinball: int = 6,
 ) -> list[dict[str, float]]:
-    """``Proof.skillByLead``: one row per lead h, scored on the same rows for model and persistence."""
+    """``Proof.skillByLead``: one row per lead h, scored on the same rows for model and persistence.
+
+    Pinball losses are only a few mm at short leads (0.0033 m at 6 h), so 4 decimals would lose
+    ~1.5% of each and make ``skill`` irreproducible from the two columns; they keep 6.
+    """
     rows = []
     for h in sorted(model_q):
         m = pinball_loss(model_q[h], y[h])
@@ -127,8 +132,8 @@ def skill_by_lead(
         rows.append(
             {
                 "h": int(h),
-                "pinballModel": round(m, nd),
-                "pinballPersistence": round(p, nd),
+                "pinballModel": round(m, nd_pinball),
+                "pinballPersistence": round(p, nd_pinball),
                 "skill": round(s, nd),
             }
         )
