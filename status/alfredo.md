@@ -11,4 +11,4 @@
 - **head**: 6a63cd9 Merge remote-tracking branch 'origin/data/risk-zones' into HEA
 - **unpushed**: no upstream
 - **dirty**: 0
-- **updated**: 2026-10-25T08:35:39Z
+- **updated**: 2026-10-25T08:35:48Z
