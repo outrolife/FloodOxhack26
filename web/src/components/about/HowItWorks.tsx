@@ -31,7 +31,7 @@ export function stages(t: TravelExample | null): Stage[] {
     {
       label: "Upstream EA river gauges",
       title: ["Upstream", "EA river gauges"],
-      detail: ["Farmoor, Eynsham,", "Cassington, Enslow, Islip"],
+      detail: ["Thames, Windrush, Evenlode", "and Cherwell gauges"],
       plain: ["Water already in the river", "upstream of Oxford."],
     },
     {

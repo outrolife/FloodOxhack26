@@ -11,7 +11,7 @@ type Point = { t: string; level: number };
 // Flow paths from SPEC §4.1 / §4.1.1, upstream first. Gauges missing from
 // stations.json are skipped, so this works with both old and new gauge sets.
 const BRANCHES: { title: string; gauges: string[] }[] = [
-  { title: "Thames (west and south Oxford streams)", gauges: ["farmoor", "eynsham", "cassington", "newbotley", "minns", "coldharbour"] },
+  { title: "Thames (west and south Oxford streams)", gauges: ["hannington", "shifford", "worsham", "shipton", "farmoor", "eynsham", "cassington", "newbotley", "minns", "coldharbour"] },
   { title: "Cherwell", gauges: ["enslow", "islip", "kingsmill"] },
   { title: "Thames main channel (live levels, no forecast)", gauges: ["godstow", "osney", "iffley"] },
 ];
