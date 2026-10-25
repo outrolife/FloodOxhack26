@@ -1,14 +1,14 @@
 # fc-explore-ui
 
 - **role**: App
-- **state**: working
+- **state**: reviewing
 - **issue**: #118
-- **task**: Explore UI: search, fly-to, click pin, point card, sandbags, risk zones
-- **next**: Build components in web/src/explore/ on app/explore-ui
+- **task**: Explore UI PR #175 open (search, pin, zones, point card, sandbags)
+- **next**: Await review; zones data from fc-zones still pending
 - **needs**: 
 - **notes**: 
 - **branch**: app/explore-ui
-- **head**: edaf55e Add shared types for the Explore map (click/search, risk, sand
+- **head**: 4001d21 Explore UI: phone bottom sheet over the page, focus ring fix, 
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T07:42:09Z
+- **updated**: 2026-10-25T08:07:46Z
