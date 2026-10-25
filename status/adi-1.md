@@ -6,9 +6,9 @@
 - **task**: 
 - **next**: 
 - **needs**: 
-- **notes**: OpenMP fixed (Homebrew libomp 23.1.4); focused model tests 102 passed. Reproduced #100 rain forecasts from archived data across ECMWF/GFS/ICON; none met all adoption gates. No tracked model changes; follow-up requires Model owner coordination.
-- **branch**: main
-- **head**: 254ab67 Merge pull request #174 from outrolife/app/screen-layout
+- **notes**: Checked out Alfredo’s integration/ui-stack locally; includes branding, design refresh, risk zones and Explore map. Web tests 414 passed; build passed. Waiting on in-progress map performance work before next update.
+- **branch**: integration/ui-stack
+- **head**: aab314f Merge remote-tracking branch 'origin/app/explore-ui' into HEAD
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T08:28:57Z
+- **updated**: 2026-10-25T08:45:27Z
