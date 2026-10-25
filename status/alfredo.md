@@ -3,12 +3,12 @@
 - **role**: Floater
 - **state**: working
 - **issue**: #118
-- **task**: #171/#173/#174 merged; #172 rename ready; explore (zones+logic done-ish, UI integrating) + design sweep in progress
-- **next**: Review explore PR ~09:30, sweep ~09:40
-- **needs**: s-s01s: merge #172 when CI green (conflict pre-resolved)
+- **task**: UI queue verified combined: #172 -> #176 -> zones PR -> #175 (44 files/413 tests green)
+- **next**: Explore crash review ~08:40; zones PR ~08:25
+- **needs**: s-s01s: merge #172 then #176 now; #175 after review note (~08:40)
 - **notes**: #111 S4 and #112 a11y merged
-- **branch**: app/explore
-- **head**: edaf55e Add shared types for the Explore map (click/search, risk, sand
-- **unpushed**: 0
-- **dirty**: 0
-- **updated**: 2026-10-25T07:57:04Z
+- **branch**: HEAD
+- **head**: 7a1ac04 Merge remote-tracking branch 'origin/app/explore-ui' into HEAD
+- **unpushed**: no upstream
+- **dirty**: 1
+- **updated**: 2026-10-25T08:12:55Z
