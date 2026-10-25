@@ -126,19 +126,19 @@ const e2014 = loadReplay("e2014");
 const e2026 = loadReplay("e2026");
 
 describe.skipIf(!e2014)("e2014 replay, Botley (#82)", () => {
-  it("matches the Flood Warning to the 6 Jan flood, about 7 hours after River Clock's 50% (proof +7.06 h)", () => {
+  it("matches the Flood Warning to the 6 Jan flood, about 9 hours after River Clock's 50% (proof +9.06 h)", () => {
     const m = matchTier(e2014!, "botley", 2.76, "warning");
     expect(m.crossing).toBe("2014-01-06T01:00:00Z");
     expect(m.official?.issuedAt).toBe("2014-01-04T19:03:30Z");
     expect(tierSentence(m, all, e2014!.forecasts.at(-1)!.issuedAt)).toBe(
-      "River Clock reached 50% 7 hours earlier than the EA Flood Warning.",
+      "River Clock reached 50% 9 hours earlier than the EA Flood Warning.",
     );
   });
-  it("opens 'just before the flood' at step 150, 1 Jan 2014 12:00 GMT, as in docs/demo.md (#103)", () => {
+  it("opens 'just before the flood' 3 days before the 50% call, 1 Jan 2014 10:00 GMT (#103, #162)", () => {
     const warn = matchTier(e2014!, "botley", 2.76, "warning");
     const alert = matchTier(e2014!, "botley", 2.76, "alert");
     const idx = runUpIndex(e2014!.forecasts, warn, alert)!;
-    expect(e2014!.forecasts[idx].issuedAt).toBe("2014-01-01T12:00:00Z");
+    expect(e2014!.forecasts[idx].issuedAt).toBe("2014-01-01T10:00:00Z");
   });
   it("no longer sets the Christmas Flood Alert against the January flood", () => {
     const m = matchTier(e2014!, "botley", 2.76, "alert");

@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { EventMeta, Forecast, Proof, Replay, Spot } from "../contracts";
 import { HOUR } from "../time";
-import { leadVsOfficialAt, perEventRow, replayFacts, startIndex, type ReplayFacts } from "../screens/replay/facts";
+import { leadVsOfficialAt, perEventRow, replayFacts, startIndex, warnAtFor, type ReplayFacts } from "../screens/replay/facts";
 import { EVENT_CHOICES } from "./choices";
 import {
   MARKER_LABEL,
@@ -208,8 +208,9 @@ describe.skipIf(!have)("on the committed data", () => {
     const s = proofSummary(proof);
     let hits = 0;
     let misses = 0;
-    for (const rows of Object.values(proof.tradeoff)) {
-      const r = rows.find((x) => x.pStar === 0.5)!;
+    // At each spot's warn-at level, as proofSummary sums it (not p* = 0.5: they differ since #162).
+    for (const [spot, rows] of Object.entries(proof.tradeoff)) {
+      const r = rows.find((x) => x.pStar === warnAtFor(proof, spot))!;
       hits += r.hits;
       misses += r.misses;
     }
