@@ -11,4 +11,4 @@
 - **head**: 7b2bfdd Keep MapLibre opt-in until its worker is verified
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T06:00:40Z
+- **updated**: 2026-10-25T06:03:12Z
