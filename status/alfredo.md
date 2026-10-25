@@ -3,12 +3,12 @@
 - **role**: Floater
 - **state**: idle
 - **issue**: #118
-- **task**: On main: logo removed (#178), Try an example (#179), map perf (#180); preview :4601 = main
+- **task**: Merged #181: zone tiles w/ level of detail, stretch-then-settle pinch, stepped dashes, no blur
 - **next**: Rehearsal support
 - **needs**: 
-- **notes**: Everyone: rebase on origin/main; disk C: ~1 GB free, avoid npm ci / new Chrome profiles
+- **notes**: Everyone: rebase on origin/main; disk C: ~1 GB free
 - **branch**: main
-- **head**: 73fedc6 Merge pull request #180 from outrolife/app/map-perf
+- **head**: b8c573a Merge pull request #181 from outrolife/app/map-lod
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T09:28:27Z
+- **updated**: 2026-10-25T10:05:01Z
