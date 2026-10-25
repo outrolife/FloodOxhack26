@@ -103,6 +103,7 @@ type Pinchable = L.Map & {
   _animateZoom(center: L.LatLng, zoom: number, startAnim: boolean, noUpdate?: unknown): void;
   _resetView(center: L.LatLng, zoom: number): void;
   _limitZoom(zoom: number): number;
+  _limitCenter(center: L.LatLng, zoom: number, bounds?: L.LatLngBounds): L.LatLng;
 };
 
 /** A pinch has ended when no wheel event has come for this long (ms). */
@@ -132,7 +133,13 @@ function PinchZoom() {
     let frame = 0;
     let idle = 0;
     const clamp = (z: number) => Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), z));
-    const centreFor = (z: number) => map.unproject(map.project(anchor, z).subtract(anchorPt.subtract(map.getSize().divideBy(2))), z);
+    // Kept inside the map's bounds at every step (as setZoomAround does), so the map never jumps
+    // back into them when the pinch ends.
+    const centreFor = (z: number) => {
+      const c = map.unproject(map.project(anchor, z).subtract(anchorPt.subtract(map.getSize().divideBy(2))), z);
+      const mb = map.options.maxBounds;
+      return mb ? m._limitCenter(c, z, mb instanceof L.LatLngBounds ? mb : L.latLngBounds(mb as L.LatLngExpression[])) : c;
+    };
     const begin = (pt: L.Point) => {
       if (pinching) return;
       m._stop();
