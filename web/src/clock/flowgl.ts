@@ -18,11 +18,12 @@ import { SECONDS_PER_HOUR, type ChainLink } from "./flow";
 // ---------------------------------------------------------------- which map
 
 export type MapFlavour = "gl" | "leaflet";
+export type MapView = "oxford" | "catchment";
 
-/** The map drawn when the URL doesn't say. Flip to "gl" once map v3 is signed off (#152). */
-export const DEFAULT_MAP: MapFlavour = "leaflet";
+/** MapLibre is the only view with the full offline catchment basemap and river network. */
+export const DEFAULT_MAP: MapFlavour = "gl";
 
-/** `?map=gl` or `?map=leaflet` (anything else: the default). */
+/** `?map=gl` or `?map=leaflet` (anything else: MapLibre). */
 export function mapFlavour(search: string): MapFlavour {
   const v = new URLSearchParams(search).get("map");
   return v === "gl" || v === "leaflet" ? v : DEFAULT_MAP;

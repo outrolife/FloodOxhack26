@@ -1,5 +1,5 @@
 // Map v3 (#152): the hero flow map on MapLibre GL, a drop-in for FlowMap
-// (same props), behind ?map=gl and loaded as its own chunk.
+// (same props), loaded as its own chunk.
 //
 // - Basemap: the offline Protomaps PMTiles archive (/tiles/oxon.pmtiles, local
 //   fonts), muted so the water stands out. Without it (a fresh clone): a plain
@@ -181,6 +181,7 @@ function FlowMapGLInner({
   marks,
   t = null,
   lagH = 0,
+  mapView = "oxford",
 }: FlowMapGLProps) {
   const mapRef = useRef<MapRef | null>(null);
   const [basemap, setBasemap] = useState<BasemapProbe | null>(null);
@@ -366,19 +367,32 @@ function FlowMapGLInner({
   const [tick, setTick] = useState(0);
   const [moving, setMoving] = useState(false);
   const [zoom, setZoom] = useState(10);
-  const bounds: LngLatBounds = useMemo(
-    () => geoBounds(riversFc ?? null) ?? toLngLat(flowBounds([...spots, ...stations])),
+  const cityBounds = useMemo(() => toLngLat(flowBounds(spots, 0.025)), [spots.map((s) => s.key).join()]);
+  const catchmentBounds = useMemo(
+    () => {
+      const riverBounds = geoBounds(riversFc ?? null);
+      const gaugeBounds = toLngLat(flowBounds([...spots, ...stations], 0.02));
+      if (!riverBounds) return gaugeBounds;
+      return [
+        [Math.min(riverBounds[0][0], gaugeBounds[0][0]), Math.min(riverBounds[0][1], gaugeBounds[0][1])],
+        [Math.max(riverBounds[1][0], gaugeBounds[1][0]), Math.max(riverBounds[1][1], gaugeBounds[1][1])],
+      ] as LngLatBounds;
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [riversFc, spots.map((s) => s.key).join(), stations.map((s) => s.key).join()],
   );
+  const bounds = mapView === "oxford" ? cityBounds : catchmentBounds;
   const boundsKey = bounds.flat().join();
   const [loaded, setLoaded] = useState(false);
   useEffect(() => {
     const map = mapRef.current?.getMap();
     if (!map || !loaded) return;
     try {
-      map.setMaxBounds(padBounds(bounds, 1.5));
-      map.fitBounds(bounds, { padding: fitPadding(), duration: 600 });
+      const padding = fitPadding();
+      const camera = map.cameraForBounds(bounds, { padding });
+      if (camera?.zoom != null) map.setMinZoom(Math.max(0, camera.zoom - 0.25));
+      map.setMaxBounds(padBounds(bounds, 0.08));
+      map.fitBounds(bounds, { padding, duration: 600, maxZoom: 16 });
     } catch {
       // Not laid out yet: the initial view stands.
     }
@@ -447,12 +461,13 @@ function FlowMapGLInner({
 
   const initialBounds = bounds;
   return (
-    <div className={`ui-basemap rc-flowmap rc-gl${walking ? " rc-walking" : ""}${zoom >= NAMES_FROM_ZOOM ? " rc-near" : ""}`}>
+    <div className={`ui-basemap rc-flowmap rc-gl${walking ? " rc-walking" : ""}${mapView === "catchment" ? " rc-catchment" : ""}${zoom >= NAMES_FROM_ZOOM ? " rc-near" : ""}`}>
       <MapGL
         ref={mapRef}
         mapStyle={style}
         initialViewState={{ bounds: initialBounds, fitBoundsOptions: { padding: fitPadding() } }}
         style={{ position: "absolute", inset: 0 }}
+        maxZoom={16}
         cooperativeGestures
         dragRotate={false}
         pitchWithRotate={false}
@@ -636,7 +651,7 @@ function GaugeMarkerGL({
     <Marker longitude={station.lon} latitude={station.lat} anchor="center" style={{ zIndex: 1 }}>
       <button
         type="button"
-        className={`rc-gauge-icon rc-gauge-${look}${emphasis === "normal" ? "" : ` ${emphasis}`}`}
+        className={`rc-gauge-icon rc-gauge-${look}${emphasis === "normal" ? "" : ` ${emphasis}`}${station.role === "upstream" ? " rc-gauge-upstream" : ""}`}
         aria-label={words}
         title={words}
         onMouseEnter={() => onHover(true)}

@@ -11,9 +11,9 @@ export const DOT_PX = 32;
 /** Footprint for the shared placement rule: the marker plus a small gap (labels sit beside it). */
 export const DOT_BOX = { w: DOT_PX + 4, h: DOT_PX + 4 } as const;
 
-/** Text inside the ring: the whole percentage, only from 1% (a rounded 0% would read as "impossible"). */
+/** Whole-number percentage shown inside the ring. The accessible label explains the rounding. */
 export function ringText(prob: number | null | undefined): string | null {
-  if (prob == null || !Number.isFinite(prob) || prob < 0.01) return null;
+  if (prob == null || !Number.isFinite(prob) || prob < 0) return null;
   return `${Math.round(Math.min(prob, 1) * 100)}%`;
 }
 
@@ -38,7 +38,9 @@ export function quietNote(state: ClockProps["state"], last: string | null): stri
 /** Screen-reader and hover text for a marker with a forecast. */
 export function chanceLabel(name: string, prob: number | null): string {
   const t = ringText(prob);
-  return `${name}: ${t ?? "under 1%"} chance of flooding in the next 3 days`;
+  if (t == null) return `${name}: no flood probability available`;
+  const estimate = (Math.min(prob ?? 0, 1) * 100).toFixed(2);
+  return `${name}: ${t} chance of flooding in the next 3 days, rounded to the nearest whole percent (model estimate ${estimate}%)`;
 }
 
 /** Which side of the marker its name goes: away from the way placement pushed it. */

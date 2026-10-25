@@ -5,6 +5,7 @@
 // online. Children are overlays (spot clocks, spread heatmap, pins).
 import { Component, type ReactNode, useEffect, useState } from "react";
 import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
+import L from "leaflet";
 import type { FeatureCollection } from "geojson";
 import type { PathOptions } from "leaflet";
 import { loadData } from "../data";
@@ -86,7 +87,10 @@ function MapSizer({ bounds, pad = DEFAULT_PAD }: { bounds: Bounds; pad?: FitPadd
       try {
         // Padding wider than the map would leave no room: fall back to the default.
         const p = pad.topLeft[0] + pad.bottomRight[0] < el.clientWidth - 80 && pad.topLeft[1] + pad.bottomRight[1] < el.clientHeight - 80 ? pad : DEFAULT_PAD;
+        map.setMinZoom(0);
         map.fitBounds(bounds, { paddingTopLeft: p.topLeft, paddingBottomRight: p.bottomRight });
+        map.setMinZoom(map.getZoom());
+        map.setMaxBounds(L.latLngBounds(bounds).pad(0.08));
         fitted = true;
       } catch {
         // Not laid out yet; the next resize tries again.
@@ -159,6 +163,8 @@ export function BaseMap({
         dragging={interactive}
         doubleClickZoom={interactive}
         zoomControl={interactive}
+        maxZoom={16}
+        maxBoundsViscosity={1}
         attributionControl
       >
         {tiles && (

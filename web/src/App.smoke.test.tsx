@@ -53,6 +53,7 @@ describe("App smoke test (jsdom)", () => {
     });
     vi.stubGlobal("fetch", fetchStub);
 
+    window.history.replaceState(null, "", "/?map=leaflet#/now");
     render(<App />);
     // Let effects run and timers fire while every fetch is still pending.
     await act(async () => {
@@ -111,6 +112,7 @@ describe("App smoke test (jsdom)", () => {
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => respond(typeof input === "string" ? input : input instanceof URL ? input.href : input.url)),
     );
+    window.history.replaceState(null, "", "/?map=leaflet#/e2014");
     window.location.hash = "/e2014";
     render(<App />);
     await waitFor(() => expect(screen.getByRole("button", { name: "2014" }).getAttribute("aria-pressed")).toBe("true"), { timeout: WAIT_MS });
