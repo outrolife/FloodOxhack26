@@ -3,12 +3,12 @@
 - **role**: App
 - **state**: working
 - **issue**: #118
-- **task**: Explore pure logic: geocode/risk/sandbags on app/explore-logic
-- **next**: Push first version by 08:15
+- **task**: Explore logic pushed (42ecadf) on app/explore-logic
+- **next**: Polish on feedback from fc-explore-ui
 - **needs**: 
 - **notes**: 
 - **branch**: app/explore-logic
-- **head**: edaf55e Add shared types for the Explore map (click/search, risk, sand
+- **head**: 42ecadf Add Explore pure logic: geocoder, risk band lookup, sandbag es
 - **unpushed**: 0
-- **dirty**: 7
-- **updated**: 2026-10-25T07:47:50Z
+- **dirty**: 0
+- **updated**: 2026-10-25T07:55:35Z
