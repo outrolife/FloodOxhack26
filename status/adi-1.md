@@ -11,4 +11,4 @@
 - **head**: b603e65 Fit the full catchment when switching map views
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T06:28:08Z
+- **updated**: 2026-10-25T07:12:53Z
