@@ -166,7 +166,13 @@ describe("App smoke test, map v3 (?map=gl)", () => {
     expect(mapViewCalls.maxBounds[0][0]).not.toEqual(oxfordBounds);
     await act(async () => screen.getByRole("button", { name: "Catchment" }).click());
     await waitFor(() => expect(mapViewCalls.fitBounds.length).toBeGreaterThan(1), { timeout: WAIT_MS });
-    expect(mapViewCalls.fitBounds.at(-1)?.[0]).not.toEqual(oxfordBounds);
+    const catchmentBounds = mapViewCalls.fitBounds.at(-1)?.[0] as [[number, number], [number, number]];
+    expect(catchmentBounds).not.toEqual(oxfordBounds);
+    const points = [...spots, ...read<{ lat: number; lon: number }[]>("stations.json")];
+    expect(catchmentBounds).toEqual([
+      [Math.min(...points.map((p) => p.lon)) - 0.032, Math.min(...points.map((p) => p.lat)) - 0.02],
+      [Math.max(...points.map((p) => p.lon)) + 0.032, Math.max(...points.map((p) => p.lat)) + 0.02],
+    ]);
     expect(screen.getByRole("button", { name: "Catchment" }).getAttribute("aria-pressed")).toBe("true");
     expect(screen.getByRole("button", { name: "Oxford" }).getAttribute("aria-pressed")).toBe("false");
     // Wolvercote (timing only, no forecast) is never on the map; the hidden spots are named in Show the working.

@@ -53,7 +53,6 @@ import {
   copyTimestamps,
   coursesFrom,
   flowPathFor,
-  geoBounds,
   linkKey,
   padBounds,
   probeBasemap,
@@ -62,7 +61,6 @@ import {
   tripClock,
   type BasemapProbe,
   type FlowPath,
-  type LngLatBounds,
 } from "./flowgl";
 import { BASEMAP_SOURCE, RIVER_LAYOUT, basemapLayers, baseStyle, fallbackLayers, riverPaint } from "./glstyle";
 import { GAUGE_LOOK, gaugeCard, gaugeIconSvg, lookFor, type GaugeLook } from "./gauges";
@@ -369,17 +367,9 @@ function FlowMapGLInner({
   const [zoom, setZoom] = useState(10);
   const cityBounds = useMemo(() => toLngLat(flowBounds(spots, 0.025)), [spots.map((s) => s.key).join()]);
   const catchmentBounds = useMemo(
-    () => {
-      const riverBounds = geoBounds(riversFc ?? null);
-      const gaugeBounds = toLngLat(flowBounds([...spots, ...stations], 0.02));
-      if (!riverBounds) return gaugeBounds;
-      return [
-        [Math.min(riverBounds[0][0], gaugeBounds[0][0]), Math.min(riverBounds[0][1], gaugeBounds[0][1])],
-        [Math.max(riverBounds[1][0], gaugeBounds[1][0]), Math.max(riverBounds[1][1], gaugeBounds[1][1])],
-      ] as LngLatBounds;
-    },
+    () => toLngLat(flowBounds([...spots, ...stations], 0.02)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [riversFc, spots.map((s) => s.key).join(), stations.map((s) => s.key).join()],
+    [spots.map((s) => s.key).join(), stations.map((s) => s.key).join()],
   );
   const bounds = mapView === "oxford" ? cityBounds : catchmentBounds;
   const boundsKey = bounds.flat().join();
