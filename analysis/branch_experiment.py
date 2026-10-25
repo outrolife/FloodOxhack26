@@ -130,13 +130,20 @@ def merge(name: str, target: str) -> GaugeModel:
     return m
 
 
-def train(arms: Sequence[str], targets: Sequence[str], jobs: int) -> None:
+def train(arms: Sequence[str], targets: Sequence[str], jobs: int, leads: Sequence[int] | None = None) -> None:
     from model.probability import HORIZONS_H
 
-    work = [(a, t, h) for a in arms for t in targets for h in sorted(HORIZONS_H, reverse=True)]
+    hs = sorted(leads or HORIZONS_H, reverse=True)
+    work = (
+        [(a, t, h) for h in hs for a in arms for t in targets]
+        if leads
+        else [(a, t, h) for a in arms for t in targets for h in hs]
+    )
     with ProcessPoolExecutor(max_workers=jobs) as ex:
         for msg in ex.map(_train_job, work):
             log.info(msg)
+    if leads:  # a subset of leads: parts only, scored with ``score_leads``
+        return
     for a in arms:
         for t in targets:
             merge(a, t)
@@ -182,7 +189,7 @@ def evaluate(arms: Sequence[str]) -> dict[str, Any]:
         res: dict[str, Any] = {}
         with arm(name):
             ups = features.UPSTREAMS
-            for p_star in sorted({0.5, *WARN_AT.values()}):
+            for p_star in sorted({0.5, *(WARN_AT[s["key"]] for s in spots if s["key"] in WARN_AT)}):
                 ue.P_STAR = p_star
                 res[f"full@{p_star}"] = ue.score_variant(name, models, hourly, spots, rows, period, ups)
                 res[f"events@{p_star}"] = ue.event_variant(name, models, hourly, spots, ev_ids, ups)
@@ -195,6 +202,45 @@ def evaluate(arms: Sequence[str]) -> dict[str, Any]:
         res["nCols"] = {g: len(m.feature_cols) for g, m in models.items()}
         out["variants"][name] = res
         log.info("scored %s", name)
+    return out
+
+
+def score_leads(arms: Sequence[str], target: str, leads: Sequence[int]) -> dict[str, Any]:
+    """Pinball skill and Brier per lead from per-lead parts (``train --leads``), test rows only.
+
+    For a quick seed check when full models are too slow to train. ``baseline`` is read from the
+    full ``exp134b/baseline/<target>`` model; other arms from ``exp134b/<arm>/<target>/parts/h<h>``.
+    """
+
+    from analysis import upstream_experiment as ue
+    from model import backtest, metrics
+    from model.probability import exceedance
+    from model.train import build_xy
+
+    hourly = ue.load_hourly_ext()
+    spot = next(s for s in backtest.load_spots() if s["gauge"] == target and s.get("mode") == "probability")
+    thr = float(spot["threshold"])
+    out: dict[str, Any] = {}
+    for name in arms:
+        res = {}
+        for h in leads:
+            d = OUT_DIR / name / target
+            d = d if name == "baseline" else d / "parts" / f"h{h}"
+            if not (d / "meta.json").exists():
+                continue
+            m = GaugeModel.load(d)
+            with arm(name):
+                X, Y = build_xy(hourly, target, m.medians, m.lags)
+            X = X[(X.index >= m.splits.test_start) & X["level_now"].notna()]
+            y = Y.reindex(X.index)[f"y_{h}h"].to_numpy(dtype=float)
+            q = m.predict(X)[h]
+            qp = m.persistence(len(X))[h]
+            sk = metrics.skill_by_lead({h: q}, {h: qp}, {h: y})[0]
+            lv = X["level_now"].to_numpy(dtype=float)
+            pr = exceedance(lv[:, None, None], q[:, None, :], thr)[:, 0]
+            br = metrics.brier_score(pr, metrics.exceedance_outcome(lv + y, thr))
+            res[h] = {"skill": sk["skill"], "brier": round(br, 5)}
+        out[name] = res
     return out
 
 
@@ -212,7 +258,7 @@ def report(res: Mapping[str, Any]) -> str:
             )
         for spot, br in full["brier"].items():
             lines.append(f"  {spot} Brier " + " ".join(f"{h}h {b:.5f}" for h, b in br.items()))
-        for p_star in sorted({0.5, *WARN_AT.values()}):
+        for p_star in sorted(float(k.split("@")[1]) for k in v if k.startswith("full@")):
             f = v[f"full@{p_star}"]["outcomesP50"]
             for spot, o in f.items():
                 if p_star != 0.5 and WARN_AT.get(spot) != p_star:
@@ -242,14 +288,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     t.add_argument("--arms", nargs="+", default=list(ARMS))
     t.add_argument("--targets", nargs="+", default=list(TARGETS))
     t.add_argument("--jobs", type=int, default=4)
+    t.add_argument("--leads", nargs="+", type=int, default=None)
     e = sub.add_parser("evaluate")
     e.add_argument("--arms", nargs="+", default=list(ARMS))
+    e.add_argument("--targets", nargs="+", default=list(TARGETS))
     e.add_argument("--out", default=str(OUT_PATH))
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     if args.cmd == "train":
-        train(args.arms, args.targets, args.jobs)
+        train(args.arms, args.targets, args.jobs, args.leads)
     else:
+        globals()["TARGETS"] = tuple(args.targets)
         res = evaluate(args.arms)
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)
         Path(args.out).write_text(json.dumps(res, indent=1, default=str), encoding="utf-8")
