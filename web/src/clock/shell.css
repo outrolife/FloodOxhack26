@@ -1,52 +1,63 @@
-/* River Clock one screen (#118). Palette from styles.css: blue = water and
-   River Clock; status colours only for flood state, on the clocks (with shape
-   and label). */
-.rc-screen { display: flex; flex-direction: column; gap: 0.75rem; }
+/* FloodClock one screen (#118). Palette from styles.css: blue = water and
+   FloodClock; status colours only for flood state, on the clocks (with shape
+   and label). Cards: surface, a hairline border, 12 px corners, a soft shadow. */
+.rc-screen { --rc-radius: 12px; --rc-shadow: 0 1px 2px rgba(11, 11, 11, 0.06), 0 4px 16px rgba(11, 11, 11, 0.06); display: flex; flex-direction: column; gap: 0.75rem; }
 
-/* The one switch */
-.rc-top { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-.rc-switch { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
-.rc-switch-btn, .rc-switch-more {
-  font: inherit; font-size: 1.05rem; font-weight: 650; padding: 0.4rem 1rem; border-radius: 999px; cursor: pointer;
-  background: var(--surface); color: var(--ink); border: 2px solid var(--border);
+/* The controls bar above the map: what to show, the map view, the moment on screen. */
+.rc-controls {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1.4rem; padding: 0.55rem 0.8rem;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--rc-radius); box-shadow: var(--rc-shadow);
 }
-.rc-switch-btn:hover, .rc-switch-more:hover { border-color: var(--series-1-light); }
-.rc-switch-btn[aria-pressed="true"], .rc-switch-more.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-.rc-switch-btn:focus-visible, .rc-switch-more:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-.rc-switch-more { font-weight: 500; }
+.rc-field { display: inline-flex; align-items: center; gap: 0.55rem; min-width: 0; }
+.rc-field-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.rc-select-wrap { position: relative; display: inline-flex; min-width: 0; }
+.rc-select {
+  appearance: none; -webkit-appearance: none; font: inherit; font-size: 1.05rem; font-weight: 650; color: var(--ink); cursor: pointer;
+  width: 16.5rem; max-width: 100%; padding: 0.45rem 2.4rem 0.45rem 0.85rem; border: 1px solid var(--axis); border-radius: 10px;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23184f95' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.85rem center;
+  box-shadow: 0 1px 2px rgba(11, 11, 11, 0.06); transition: border-color 0.15s, box-shadow 0.15s;
+}
+.rc-select:hover { border-color: var(--series-1); }
+.rc-select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-color: var(--accent); }
+.rc-select optgroup { font-weight: 700; color: var(--ink-2); }
+.rc-select option { font-weight: 500; color: var(--ink); }
 
-/* Hero map: full bleed (edge to edge, through main's side padding), about 62% of the viewport,
-   an explicit height so Leaflet always has a size. */
-.rc-hero {
-  position: relative; height: 62vh; min-height: 380px; margin: 0 -1.2rem;
-  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); overflow: hidden; background: #f2efe9;
+/* Map view: a segmented control. */
+.rc-seg { display: inline-flex; gap: 2px; padding: 3px; background: var(--page); border: 1px solid var(--border); border-radius: 10px; }
+.rc-seg button {
+  font: inherit; font-size: 0.92rem; font-weight: 600; padding: 0.32rem 0.85rem; border: 0; border-radius: 7px;
+  background: transparent; color: var(--ink-2); cursor: pointer; transition: background 0.15s, color 0.15s;
 }
+.rc-seg button:hover { color: var(--ink); background: rgba(24, 79, 149, 0.08); }
+.rc-seg button[aria-pressed="true"] { background: var(--accent); color: #fff; box-shadow: 0 1px 3px rgba(11, 11, 11, 0.2); }
+.rc-seg button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* The moment on screen, right-aligned in the bar. */
+.rc-when { margin-left: auto; display: inline-flex; align-items: center; flex-wrap: wrap; gap: 0.2rem 0.55rem; font-variant-numeric: tabular-nums; min-width: 0; }
+.rc-when-tag {
+  font-size: 0.72rem; font-weight: 750; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.15rem 0.55rem; border-radius: 999px;
+  background: var(--series-1-faint); color: var(--accent);
+}
+.rc-when-tag.live { background: var(--accent); color: #fff; }
+.rc-when-time { font-size: 1.05rem; }
+.rc-when-note { font-size: 0.85rem; color: var(--ink-2); }
+
+/* The map card: the map, the Scoreboard over its top right, the key along its bottom edge. */
+.rc-stage {
+  position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--rc-radius);
+  box-shadow: var(--rc-shadow); overflow: hidden;
+}
+/* An explicit height so Leaflet always has a size; isolate keeps Leaflet's z-indexes inside the map. */
+.rc-hero { position: relative; isolation: isolate; height: 62vh; min-height: 380px; overflow: hidden; background: #f2efe9; }
 .rc-hero .ui-basemap { position: absolute; inset: 0; height: auto; min-height: 0; }
 html.presenter .rc-hero { height: 64vh; }
+/* Street tiles, toned down so the water lines, pulses and markers read first. */
+.rc-flowmap .leaflet-tile-pane { filter: saturate(0.45) contrast(0.92) brightness(1.04); }
 
-.rc-badge {
-  position: absolute; z-index: 700; top: 10px; left: 56px; max-width: calc(100% - 180px); /* right of the zoom buttons */
-  background: rgba(252, 252, 251, 0.72); backdrop-filter: blur(3px); border-radius: 8px; padding: 0.35rem 0.7rem; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
-  font-size: 1rem; font-variant-numeric: tabular-nums;
-}
-.rc-badge-note { color: var(--ink-2); font-size: 0.85rem; }
-.rc-map-views {
-  position: absolute; z-index: 750; top: 54px; left: 56px; display: flex; gap: 0.2rem;
-  padding: 0.2rem; border-radius: 8px; background: rgba(252, 252, 251, 0.72); backdrop-filter: blur(3px); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
-}
-.rc-map-views button {
-  border: 1px solid transparent; border-radius: 6px; padding: 0.3rem 0.6rem; background: transparent;
-  color: var(--ink); font: inherit; font-size: 0.8rem; cursor: pointer;
-}
-.rc-map-views button[aria-pressed="true"] { background: var(--accent); color: #fff; }
-.rc-map-views button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .rc-flowkey {
-  position: absolute; z-index: 700; left: 10px; bottom: 22px; max-width: min(420px, calc(100% - 20px));
-  display: flex; flex-wrap: wrap; gap: 0.15rem 0.8rem; font-size: 0.78rem; color: var(--ink-2);
-  background: rgba(252, 252, 251, 0.62); backdrop-filter: blur(3px); border-radius: 8px; padding: 0.35rem 0.6rem; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  transition: background 0.2s;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 1.2rem; padding: 0.45rem 0.9rem;
+  font-size: 0.8rem; color: var(--ink-2); background: var(--surface); border-top: 1px solid var(--border);
 }
-.rc-flowkey:hover { background: rgba(252, 252, 251, 0.94); }
 .rc-flowkey-sw { display: inline-block; width: 20px; height: 0; vertical-align: middle; border-top: 3px solid; }
 
 /* Water that flows: white dashes moving along each line (OSM draws waterways downstream). */
@@ -92,7 +103,7 @@ span.rc-dot-btn { cursor: help; }
 .rc-dot-left .rc-dot-name { right: calc(100% + 4px); }
 .rc-dot.selected .rc-dot-name { font-weight: 800; }
 .rc-dot.quiet .rc-dot-name { color: var(--ink-2); font-weight: 500; }
-/* Replays: River Clock vs the EA under the marker, once both have happened; a ripple when the warning fires. */
+/* Replays: FloodClock vs the EA under the marker, once both have happened; a ripple when the warning fires. */
 .rc-dot-badge {
   position: absolute; top: calc(100% + 3px); left: 50%; transform: translateX(-50%); white-space: nowrap; pointer-events: none;
   font-size: 0.7rem; font-weight: 700; line-height: 1.2; padding: 1px 5px; border-radius: 6px;
@@ -111,19 +122,29 @@ span.rc-dot-btn { cursor: help; }
   border: 3px solid #e09b00; border-right-color: #e6e4df; border-bottom-color: #e6e4df;
 }
 
-/* The Scoreboard on the map, top right (under the basemap toggle). */
+/* The Scoreboard over the map's top right (wide screens): compact, nearly opaque, a card like the others. */
 .rc-hero-score {
-  position: absolute; z-index: 700; top: 46px; right: 10px; width: min(360px, calc(100% - 20px));
-  background: rgba(252, 252, 251, 0.74); backdrop-filter: blur(4px); border-radius: 10px; padding: 0.5rem 0.75rem; box-shadow: 0 1px 6px rgba(0, 0, 0, 0.14);
-  transition: background 0.2s;
+  position: absolute; z-index: 5; top: 10px; right: 10px; width: min(330px, calc(100% - 20px));
+  background: rgba(252, 252, 251, 0.92); backdrop-filter: blur(4px); border: 1px solid var(--border); border-radius: 10px;
+  padding: 0.45rem 0.7rem; box-shadow: 0 2px 10px rgba(11, 11, 11, 0.12);
 }
-.rc-hero-score:hover { background: rgba(252, 252, 251, 0.95); }
-.rc-hero-score-spot { font-size: 0.8rem; font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.1rem; }
-.rc-hero-score .ck-score-main { font-size: clamp(1.1rem, 1.7vw, 1.45rem); }
-.rc-hero-score .ck-score-sub { font-size: clamp(0.95rem, 1.2vw, 1.1rem); }
+.rc-hero-score-spot { font-size: 0.75rem; font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.1rem; }
+.rc-hero-score .ck-score-main { font-size: clamp(1.05rem, 1.5vw, 1.35rem); }
+.rc-hero-score .ck-score-sub { font-size: clamp(0.92rem, 1.1vw, 1.05rem); }
+.rc-hero-score .ck-score-caption { font-size: 0.8rem; }
 @media (max-width: 700px) {
-  .rc-hero-score { top: auto; bottom: 8px; left: 8px; right: 8px; width: auto; }
-  .rc-flowkey { display: none; }
+  .rc-controls { gap: 0.5rem 0.9rem; padding: 0.5rem 0.6rem; }
+  .rc-event { flex: 1 1 100%; }
+  .rc-event .rc-select-wrap { flex: 1; }
+  .rc-select { width: 100%; }
+  .rc-when { margin-left: 0; }
+  .rc-hero { height: 52vh; min-height: 300px; }
+  /* Phones: the Scoreboard sits under the map, so it hides none of it. */
+  .rc-hero-score {
+    position: static; width: auto; border: 0; border-top: 1px solid var(--border); border-radius: 0;
+    box-shadow: none; backdrop-filter: none; background: var(--surface); padding: 0.55rem 0.8rem;
+  }
+  .rc-flowkey { font-size: 0.75rem; gap: 0.2rem 0.9rem; padding: 0.45rem 0.8rem; }
 }
 
 /* Gauge icons (GaugeLayer): discreet 14 x 18 px level gauges; names only when zoomed in (.rc-near). */

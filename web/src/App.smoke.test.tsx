@@ -61,8 +61,8 @@ describe("App smoke test (jsdom)", () => {
     });
     expect(fetchStub).toHaveBeenCalled();
     expect(screen.getByRole("banner").textContent).toContain("River Clock");
-    expect(screen.getByRole("navigation", { name: "What to show" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Now" }).getAttribute("aria-pressed")).toBe("true");
+    expect((screen.getByRole("combobox", { name: "What to show" }) as HTMLSelectElement).value).toBe("now");
+    expect(document.querySelector(".ui-basemap-toggle")).toBeNull(); // street map by default, no toggle
     expect(document.querySelector(".ui-basemap .leaflet-container")).not.toBeNull();
     expect(screen.getAllByText(/not an official warning/i).length).toBeGreaterThan(0);
     expect(errors).toEqual([]);
@@ -76,8 +76,9 @@ describe("App smoke test (jsdom)", () => {
         timeout: WAIT_MS,
       });
     }
-    expect(screen.getByRole("navigation", { name: "What to show" })).toBeTruthy();
+    expect(screen.getByRole("combobox", { name: "What to show" })).toBeTruthy();
     expect(document.querySelector(".ui-basemap .leaflet-container")).not.toBeNull();
+    expect(document.querySelector(".rc-stage > .rc-flowkey")).not.toBeNull(); // the key is under the map, not on it
     if (existsSync(DATA + "spots.json")) {
       // Small identical spot markers, one per spot with data (no-forecast / offline spots are left off,
       // markers.withData); no big clock cards and no permanent link labels on the map.
@@ -89,7 +90,7 @@ describe("App smoke test (jsdom)", () => {
       }, { timeout: WAIT_MS });
       expect(document.querySelector(".rc-hero .spot-clock")).toBeNull();
       expect(document.querySelector(".rc-hero .leaflet-tooltip.rc-link-label")).toBeNull();
-      expect(document.querySelector(".rc-hero .rc-hero-score .ck-score")).not.toBeNull();
+      expect(document.querySelector(".rc-stage .rc-hero-score .ck-score")).not.toBeNull();
     }
     if (existsSync(DATA + "stations.json")) {
       // Every gauge in stations.json is a small gauge icon (upstream, live_only and Oxford targets alike).
@@ -120,7 +121,7 @@ describe("App smoke test (jsdom)", () => {
     window.history.replaceState(null, "", "/?map=leaflet#/e2014");
     window.location.hash = "/e2014";
     render(<App />);
-    await waitFor(() => expect(screen.getByRole("button", { name: "2014" }).getAttribute("aria-pressed")).toBe("true"), { timeout: WAIT_MS });
+    await waitFor(() => expect((screen.getByRole("combobox", { name: "What to show" }) as HTMLSelectElement).value).toBe("e2014"), { timeout: WAIT_MS });
     await waitFor(() => expect(document.querySelector(".ck-play")).not.toBeNull(), { timeout: WAIT_MS });
     // Let playback run a few frames.
     await act(async () => {
