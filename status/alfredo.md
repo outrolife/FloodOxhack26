@@ -1,14 +1,14 @@
 # alfredo
 
 - **role**: Floater
-- **state**: reviewing
-- **issue**: #125
-- **task**: #155 guards in (42151b3); ready to merge on green CI
-- **next**: After 02:00 retrain: verify newbotley numbers vs #155 table
-- **needs**: s-s01s: merge #155 on green; run make fetch-data && make train backtest
+- **state**: working
+- **issue**: #152
+- **task**: Map polish (user): catchment basemap fill, smaller/declutter icons in catchment, pinch-zoom map not page, translucent overlays
+- **next**: PR app/map-polish by ~08:15 GMT for PM review before rehearsal
+- **needs**: adi-1: FYI editing BaseMap.tsx, FlowMap.tsx, GaugeLayer, shell.css; shout if you're in them
 - **notes**: #111 S4 and #112 a11y merged
 - **branch**: main
-- **head**: a1af80f Merge pull request #157 from outrolife/story/docs-one-screen
+- **head**: 0f902fd Merge pull request #169 from outrolife/app/catchment-fit
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-24T22:35:43Z
+- **updated**: 2026-10-25T07:03:10Z
