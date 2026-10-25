@@ -1,0 +1,120 @@
+/* River Clock design tokens (#118). Imported first (main.tsx), so every other
+   stylesheet can use them. Rules:
+   - Chrome is neutral (near-white surfaces, soft greys, deep ink).
+   - The risk ramp below is the ONLY colour in the chrome. It is ordered by
+     lightness (very low = lightest, high = darkest), so it still reads in
+     grey-scale and for colour-blind users, and it always comes with a label.
+   - Each *-ink colour is the text colour to use on its risk fill (>= 4.5:1).
+   - River water on the map may stay blue: that is map content, not chrome. */
+:root {
+  /* Neutral chrome */
+  --fc-bg: #f4f4f2;          /* page */
+  --fc-surface: #ffffff;     /* cards, panels */
+  --fc-surface-2: #efefec;   /* wells, tracks, hover fills */
+  --fc-ink: #16171a;         /* body text: 16.3:1 on --fc-bg */
+  --fc-ink-2: #45464a;       /* secondary text: 8.2:1 on --fc-surface-2 */
+  --fc-ink-3: #68696d;       /* muted text: 4.8:1 on --fc-surface-2, 5.5:1 on white */
+  --fc-border: rgba(22, 23, 26, 0.12);
+  --fc-focus: #16171a;       /* focus ring: strong neutral ink */
+
+  /* Risk ramp (the only colours). Fill / text-on-fill, WCAG contrast in the comment. */
+  --fc-risk-high: #b3261e;      --fc-risk-high-ink: #ffffff;    /* 6.5:1 */
+  --fc-risk-medium: #e07b16;    --fc-risk-medium-ink: #1a1a1a;  /* 5.8:1 */
+  --fc-risk-low: #f2c94c;       --fc-risk-low-ink: #1a1a1a;     /* 11.0:1 */
+  --fc-risk-verylow: #d7e6cf;   --fc-risk-verylow-ink: #1a1a1a; /* 13.4:1 */
+  --fc-risk-none: #e4e3de;      --fc-risk-none-ink: #3d3c38;    /* 8.6:1 */
+
+  /* Space: 4 8 12 16 24 32 48 64 px */
+  --fc-space-1: 4px;
+  --fc-space-2: 8px;
+  --fc-space-3: 12px;
+  --fc-space-4: 16px;
+  --fc-space-5: 24px;
+  --fc-space-6: 32px;
+  --fc-space-7: 48px;
+  --fc-space-8: 64px;
+
+  /* Radii */
+  --fc-radius-sm: 6px;
+  --fc-radius-md: 10px;
+  --fc-radius-lg: 16px;
+  --fc-radius-pill: 999px;
+
+  /* Shadows: soft and layered (a tight contact shadow plus a wide ambient one) */
+  --fc-shadow-1: 0 1px 2px rgba(16, 18, 20, 0.06), 0 1px 1px rgba(16, 18, 20, 0.04);
+  --fc-shadow-2: 0 1px 3px rgba(16, 18, 20, 0.06), 0 6px 16px rgba(16, 18, 20, 0.08);
+  --fc-shadow-3: 0 4px 10px rgba(16, 18, 20, 0.07), 0 18px 44px rgba(16, 18, 20, 0.16);
+
+  /* Type: system UI stack (no web-font download, works offline); fluid, mobile-first scale */
+  --fc-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --fc-text-xs: clamp(0.75rem, 0.72rem + 0.1vw, 0.8rem);
+  --fc-text-sm: clamp(0.8125rem, 0.79rem + 0.12vw, 0.875rem);
+  --fc-text-md: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+  --fc-text-lg: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  --fc-text-xl: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  --fc-text-2xl: clamp(1.625rem, 1.3rem + 1.5vw, 2.25rem);
+  --fc-weight-regular: 400;
+  --fc-weight-medium: 560;
+  --fc-weight-bold: 700;
+  --fc-leading: 1.45;
+
+  /* Motion */
+  --fc-dur-fast: 150ms;
+  --fc-dur: 250ms;
+  --fc-dur-slow: 400ms;
+  --fc-ease: cubic-bezier(.2, .8, .2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --fc-dur-fast: 0.01ms;
+    --fc-dur: 0.01ms;
+    --fc-dur-slow: 0.01ms;
+  }
+}
+
+/* Keyboard focus: one clear ring everywhere (a white halo keeps it visible on dark fills). */
+:focus-visible {
+  outline: 2px solid var(--fc-focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--fc-surface);
+}
+
+/* Shared utility classes */
+.fc-card {
+  background: var(--fc-surface);
+  border: 1px solid var(--fc-border);
+  border-radius: var(--fc-radius-lg);
+  box-shadow: var(--fc-shadow-1);
+  padding: var(--fc-space-4);
+  transition: box-shadow var(--fc-dur) var(--fc-ease), transform var(--fc-dur) var(--fc-ease),
+    border-color var(--fc-dur) var(--fc-ease);
+}
+.fc-card:is(a, button, [tabindex]):hover { box-shadow: var(--fc-shadow-2); }
+
+/* Loading placeholder: a soft shimmer (static under reduced motion). */
+.fc-skeleton {
+  display: block;
+  min-height: 1em;
+  border-radius: var(--fc-radius-sm);
+  background: linear-gradient(90deg, var(--fc-surface-2) 0%, #f8f8f6 45%, var(--fc-surface-2) 90%) 0 0 / 300% 100%;
+  animation: fc-shimmer 1.4s linear infinite;
+  color: transparent;
+}
+@keyframes fc-shimmer { from { background-position: 100% 0; } to { background-position: -50% 0; } }
+@media (prefers-reduced-motion: reduce) { .fc-skeleton { animation: none; } }
+
+/* Empty and error states: words first, never colour alone. */
+.fc-empty, .fc-error {
+  display: grid;
+  gap: var(--fc-space-2);
+  justify-items: center;
+  text-align: center;
+  padding: var(--fc-space-6) var(--fc-space-4);
+  border-radius: var(--fc-radius-lg);
+  font-size: var(--fc-text-sm);
+  color: var(--fc-ink-2);
+}
+.fc-empty { background: var(--fc-surface-2); border: 1px dashed var(--fc-border); }
+.fc-error { background: var(--fc-surface); border: 1px solid var(--fc-border); border-left: 4px solid var(--fc-risk-high); }
+.fc-empty strong, .fc-error strong { color: var(--fc-ink); font-size: var(--fc-text-md); }
