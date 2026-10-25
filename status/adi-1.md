@@ -3,12 +3,12 @@
 - **role**: App
 - **state**: working
 - **issue**: #152
-- **task**: Adding bounded Oxford/catchment map presets and legible low-risk spot labels; coordinating vector spread contract
-- **next**: Implement navigation and risk-label fixes, then wire approved spread layer after S3 owner agrees
-- **needs**: s-s01s: map drag responsiveness overlaps claimed #152; please coordinate/release before app changes
+- **task**: Adding bounded Oxford/catchment presets and legible spot-risk labels
+- **next**: Run full checks and open a focused map PR; keep vector spread pending S3 owner contract approval
+- **needs**: s-s01s: review map preset/bounds work and confirm PR scope
 - **notes**: 
-- **branch**: main
-- **head**: e5b7168 Merge pull request #166 from outrolife/story/final-audit-fixes
-- **unpushed**: 0
-- **dirty**: 0
-- **updated**: 2026-10-25T05:50:42Z
+- **branch**: app/map-presets-bounds
+- **head**: 53e3f84 Merge pull request #167 from outrolife/app/map-drag-responsive
+- **unpushed**: no upstream
+- **dirty**: 15
+- **updated**: 2026-10-25T05:58:49Z
