@@ -67,7 +67,7 @@ export default function Protect() {
   };
 
   if (manifestState.status === "loading" || bagsState.status === "loading") {
-    return <Screen headline={<Headline>Loading the flood-spread run…</Headline>} hero={<div className="ui-placeholder">Loading…</div>} />;
+    return <Screen headline={<Headline>Loading the flood-spread run…</Headline>} hero={<div className="ui-placeholder is-loading" aria-busy="true">Loading…</div>} />;
   }
   if (!manifest || !sandbags) return <ProtectMissing context={context} onContext={switchTo} />;
 

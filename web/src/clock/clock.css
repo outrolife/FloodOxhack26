@@ -1,36 +1,42 @@
-/* One-screen UI components (#135). Palette: blue = River Clock (--accent),
-   grey = the EA, black = what the river really did. Always with words. */
+/* One-screen UI components (#135). Chart palette: blue = River Clock,
+   grey = the EA, black = what the river really did. Chrome is neutral
+   (tokens.css); good / bad outcomes are told by a mark and words, not colour. */
 .ck-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* Timeline: wide and short. The shell sets the width; the height is ours. */
-.ck-timeline { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; width: 100%; }
-.ck-pending { min-height: 200px; display: grid; place-items: center; color: var(--muted); font-size: 1.1rem; }
+.ck-timeline { display: flex; flex-direction: column; gap: var(--fc-space-1); min-width: 0; width: 100%; }
+.ck-pending {
+  min-height: 200px; display: grid; place-items: center; color: var(--fc-ink-3); font-size: var(--fc-text-lg);
+  background: var(--fc-surface-2); border-radius: var(--fc-radius-lg);
+}
 .ck-chart { width: 100%; }
 .ck-chart .rp-chart { width: 100%; height: clamp(180px, 26vh, 260px); }
-.ck-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.75rem; }
-.ck-play { min-width: 6.5rem; font-size: 1.05rem; padding: 0.4rem 0.9rem; }
+.ck-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--fc-space-2) var(--fc-space-3); }
+.ck-play { min-width: 6.5rem; font-size: var(--fc-text-md); padding: var(--fc-space-2) var(--fc-space-4); border-radius: var(--fc-radius-pill); }
 .ck-scrub { flex: 1 1 12rem; min-width: 8rem; }
-.ck-when { font-variant-numeric: tabular-nums; font-weight: 650; color: var(--ink); white-space: nowrap; }
-.ck-key { display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; color: var(--ink-2); }
-.ck-sw { display: inline-block; width: 18px; height: 0; vertical-align: middle; margin-right: 0.25rem; border-top: 3px solid #0b0b0b; }
+.ck-when { font-variant-numeric: tabular-nums; font-weight: var(--fc-weight-bold); color: var(--fc-ink); white-space: nowrap; }
+.ck-key { display: flex; flex-wrap: wrap; gap: var(--fc-space-1) var(--fc-space-4); color: var(--fc-ink-2); font-size: var(--fc-text-sm); }
+.ck-sw { display: inline-block; width: 18px; height: 0; vertical-align: middle; margin-right: var(--fc-space-1); border-top: 3px solid #0b0b0b; }
 .ck-sw-band { height: 10px; border: 0; background: linear-gradient(#cde2fb 0 25%, #86b6ef 25% 75%, #cde2fb 75%); }
 .ck-sw-mid { border-top: 2px dashed #184f95; }
 
 /* Scoreboard: two lines, big type. */
-.ck-score { display: grid; gap: 0.15rem; }
+.ck-score { display: grid; gap: 2px; }
 .ck-score-line { margin: 0; line-height: 1.2; font-variant-numeric: tabular-nums; }
-.ck-score-main { font-size: clamp(1.3rem, 2.4vw, 2rem); font-weight: 750; color: var(--ink); }
-.ck-score-sub { font-size: clamp(1.05rem, 1.6vw, 1.35rem); font-weight: 600; color: var(--ink-2); }
-.ck-score-line.tone-good .ck-mark { color: var(--accent); }
-.ck-score-line.tone-bad .ck-mark { color: #8f3a12; }
+.ck-score-main { font-size: var(--fc-text-2xl); font-weight: var(--fc-weight-bold); color: var(--fc-ink); letter-spacing: -0.01em; }
+.ck-score-sub { font-size: var(--fc-text-lg); font-weight: var(--fc-weight-medium); color: var(--fc-ink-2); }
+.ck-score-line.tone-good .ck-mark { color: var(--fc-ink); }
+.ck-score-line.tone-bad .ck-mark { color: var(--fc-ink-2); }
 .ck-mark { display: inline-block; min-width: 1.2em; font-weight: 800; }
-.ck-score-caption { margin: 0.3rem 0 0; font-size: 0.875rem; line-height: 1.3; color: var(--ink-2); }
+.ck-score-caption { margin: var(--fc-space-1) 0 0; font-size: var(--fc-text-sm); line-height: 1.3; color: var(--fc-ink-2); }
 
 /* Proof footer: one line. */
-.ck-proof { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.75rem; font-size: 0.95rem; color: var(--ink-2); }
+.ck-proof { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--fc-space-1) var(--fc-space-3); font-size: var(--fc-text-sm); color: var(--fc-ink-2); }
 .ck-proof-text { min-width: 0; }
 .ck-working-link {
-  font: inherit; font-weight: 650; color: var(--accent); background: none; border: 0; padding: 0;
-  text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
+  font: inherit; font-weight: var(--fc-weight-bold); color: var(--fc-ink); background: none; border: 0; padding: 0;
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; cursor: pointer;
+  transition: text-decoration-thickness var(--fc-dur-fast) var(--fc-ease);
 }
-.ck-working-link:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+.ck-working-link:hover { text-decoration-thickness: 2px; }
+.ck-working-link:focus-visible { border-radius: 2px; }

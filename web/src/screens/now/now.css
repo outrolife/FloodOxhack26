@@ -1,26 +1,27 @@
-/* Now screen (#119). Palette from styles.css: blue = model / water, status
+/* Now screen (#119). Tokens from ui/tokens.css: blue = model / water, risk
    colours only for flood state (via the kit's SpotClock, always with a shape and label). */
 
 /* Hero: river strip on the left edge, the map filling the rest. */
-.now-hero { display: grid; grid-template-columns: 250px minmax(0, 1fr); height: 100%; min-height: 64vh; }
-.now-map { position: relative; min-height: 64vh; }
+/* Mobile first: strip above the map; side by side from 761 px. */
+.now-hero { display: grid; grid-template-columns: minmax(0, 1fr); height: 100%; min-height: 64vh; }
+.now-map { position: relative; min-height: 60vh; }
 .now-map .ui-basemap { position: absolute; inset: 0; height: auto; min-height: 0; }
-@media (max-width: 760px) {
-  .now-hero { grid-template-columns: minmax(0, 1fr); }
-  .now-map { min-height: 60vh; }
+@media (min-width: 761px) {
+  .now-hero { grid-template-columns: 250px minmax(0, 1fr); }
+  .now-map { min-height: 64vh; }
 }
 
 /* River strip */
-.now-strip { padding: 0.8rem 0.8rem 0.6rem; border-right: 1px solid var(--border); background: var(--surface); overflow-y: auto; }
-.now-strip-title { font-size: 1.05rem; margin: 0 0 0.25rem; }
-.now-strip-sub { font-size: 0.8rem; color: var(--ink-2); margin: 0 0 0.6rem; }
-.now-chain + .now-chain { margin-top: 0.6rem; }
-.now-chain-river { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-2); margin: 0 0 0.2rem; }
+.now-strip { padding: var(--fc-space-3) var(--fc-space-3) var(--fc-space-2); border-right: 1px solid var(--border); background: var(--surface); overflow-y: auto; }
+.now-strip-title { font-size: var(--fc-text-md); margin: 0 0 var(--fc-space-1); }
+.now-strip-sub { font-size: var(--fc-text-xs); color: var(--ink-2); margin: 0 0 var(--fc-space-2); }
+.now-chain + .now-chain { margin-top: var(--fc-space-2); }
+.now-chain-river { font-size: var(--fc-text-xs); text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-2); margin: 0 0 var(--fc-space-1); }
 .now-links { list-style: none; margin: 0; padding: 0; }
-.now-link { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 0.5rem; align-items: center; }
+.now-link { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: var(--fc-space-2); align-items: center; }
 .now-link-svg { display: block; overflow: visible; }
 .now-link-line { stroke: var(--series-1-light); stroke-width: 3; stroke-linecap: round; }
-.now-node { fill: #fff; stroke: var(--accent); stroke-width: 2; }
+.now-node { fill: var(--fc-surface); stroke: var(--accent); stroke-width: 2; }
 .now-node.down { fill: var(--accent); }
 .now-pulse {
   fill: var(--series-1); opacity: 0;
@@ -32,9 +33,9 @@
   92% { opacity: 1; }
   100% { transform: translateY(44px); opacity: 0; }
 }
-.now-link-label { font-size: 0.88rem; line-height: 1.25; }
-.now-link-hours { font-size: 1rem; white-space: nowrap; }
-.now-link-basis { font-size: 0.75rem; color: var(--ink-2); }
+.now-link-label { font-size: var(--fc-text-sm); line-height: 1.25; }
+.now-link-hours { font-size: var(--fc-text-md); white-space: nowrap; }
+.now-link-basis { font-size: var(--fc-text-xs); color: var(--ink-2); }
 /* Fewer than 5 past rises: greyed, dashed, labelled (never hidden). */
 .now-link.low .now-link-label, .now-link.low .now-link-hours { color: var(--muted); font-weight: 400; }
 .now-link.low .now-link-line { stroke: var(--axis); stroke-dasharray: 3 4; }
@@ -47,33 +48,35 @@
 
 /* Spot card */
 .now-card { margin: 0; }
-.now-card-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.6rem; align-items: start; }
-.now-card-title { font-size: 1.1rem; margin: 0.2rem 0 0.2rem; }
-.now-card-gauge { font-size: 0.85rem; color: var(--ink-2); margin: 0; }
+.now-card-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--fc-space-2); align-items: start; }
+.now-card-title { font-size: var(--fc-text-lg); margin: var(--fc-space-1) 0; }
+.now-card-gauge { font-size: var(--fc-text-sm); color: var(--ink-2); margin: 0; }
 .now-card-close {
-  font: inherit; font-size: 1.3rem; line-height: 1; width: 2rem; height: 2rem; border: 1px solid var(--axis);
-  border-radius: 6px; background: #fff; cursor: pointer;
+  font: inherit; font-size: var(--fc-text-xl); line-height: 1; width: 2.25rem; height: 2.25rem; border: 1px solid var(--fc-border); color: var(--fc-ink);
+  border-radius: var(--fc-radius-pill); background: var(--fc-surface); cursor: pointer;
+  transition: background var(--fc-dur-fast) var(--fc-ease), border-color var(--fc-dur-fast) var(--fc-ease);
 }
-.now-card-arrival { margin: 0.6rem 0; }
-.now-card-note { font-size: 0.8rem; color: var(--ink-2); margin: 0.4rem 0 0; }
-.now-advice { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.4rem; }
-.now-advice-line { font-size: 0.95rem; line-height: 1.35; }
+.now-card-close:hover { background: var(--fc-surface-2); border-color: var(--fc-ink-3); }
+.now-card-arrival { margin: var(--fc-space-3) 0; }
+.now-card-note { font-size: var(--fc-text-xs); color: var(--ink-2); margin: var(--fc-space-2) 0 0; }
+.now-advice { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--fc-space-2); }
+.now-advice-line { font-size: var(--fc-text-md); line-height: 1.35; }
 .now-advice-tag {
-  display: inline-block; min-width: 4.6rem; text-align: center; padding: 0 0.4rem; margin-right: 0.2rem;
-  border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--axis); vertical-align: 1px;
+  display: inline-block; min-width: 4.6rem; text-align: center; padding: 0 var(--fc-space-2); margin-right: var(--fc-space-1);
+  border-radius: var(--fc-radius-pill); font-size: var(--fc-text-xs); font-weight: var(--fc-weight-bold); border: 1px solid var(--axis); vertical-align: 1px;
 }
-.now-advice-tag.act { background: var(--accent); color: #fff; border-color: var(--accent); }
-.now-advice-tag.wait { background: #fff; color: var(--ink-2); }
-.now-advice-tag.none { background: #fff; color: var(--muted); border-style: dashed; }
+.now-advice-tag.act { background: var(--fc-ink); color: var(--fc-surface); border-color: var(--fc-ink); }
+.now-advice-tag.wait { background: var(--fc-surface); color: var(--ink-2); }
+.now-advice-tag.none { background: var(--fc-surface); color: var(--muted); border-style: dashed; }
 
 /* Fan */
-.now-fan { margin: 0.6rem 0 0; }
-.now-fan-caption { font-size: 0.75rem; color: var(--ink-2); }
-.now-fan-chances { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.2rem; margin: 0.4rem 0 0; text-align: center; }
-.now-fan-chances dt { font-size: 0.7rem; color: var(--ink-2); }
-.now-fan-chances dd { margin: 0; font-size: 0.8rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.now-fan { margin: var(--fc-space-3) 0 0; }
+.now-fan-caption { font-size: var(--fc-text-xs); color: var(--ink-2); }
+.now-fan-chances { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--fc-space-1); margin: var(--fc-space-2) 0 0; text-align: center; }
+.now-fan-chances dt { font-size: var(--fc-text-xs); color: var(--ink-2); }
+.now-fan-chances dd { margin: 0; font-size: var(--fc-text-xs); font-weight: 650; font-variant-numeric: tabular-nums; }
 
 /* Nothing selected */
-.now-pick-text { font-size: 1rem; font-weight: 600; }
-.now-legend { font-size: 0.85rem; color: var(--ink-2); }
-.now-legend ul { list-style: none; padding: 0; margin: 0.4rem 0 0; display: grid; gap: 0.15rem; }
+.now-pick-text { font-size: var(--fc-text-md); font-weight: var(--fc-weight-bold); }
+.now-legend { font-size: var(--fc-text-sm); color: var(--ink-2); }
+.now-legend ul { list-style: none; padding: 0; margin: var(--fc-space-2) 0 0; display: grid; gap: 2px; }
