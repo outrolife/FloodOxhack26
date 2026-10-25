@@ -11,4 +11,4 @@
 - **head**: dfa7f35 Pause map animations while panning
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T05:28:08Z
+- **updated**: 2026-10-25T05:28:16Z
