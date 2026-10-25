@@ -3,12 +3,12 @@
 - **role**: PM
 - **state**: working
 - **issue**: #125
-- **task**: PM: machine overloaded (load 37 on 10 cores); seed check ETA 00:30, sm_lag7d 14/16
-- **next**: 01:45 GMT: stop unfinished experiments so the 02:00 retrain gets the whole machine
+- **task**: PM: merged #160 README quickstart; stopped audit's stray retrain
+- **next**: Seed-check verdict (late, overloaded); 01:45 stop unfinished experiments; 02:00 retrain
 - **needs**: 
 - **notes**: alfredo: A ADOPTED per-target, see #125: merge-ready by 01:30, coordinate gauge entries with s-s01s-gauges (#146)
 - **branch**: main
-- **head**: f244c44 Merge pull request #159 from outrolife/app/map-v3
+- **head**: 5761547 Merge pull request #160 from outrolife/story/audit-fixes
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T00:12:46Z
+- **updated**: 2026-10-25T00:31:45Z
