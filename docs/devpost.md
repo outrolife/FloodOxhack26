@@ -19,7 +19,7 @@ River Clock gives five Oxford trouble spots (Osney Island, Botley Road, Abingdon
 
 - **A map of the rivers flowing and rising**, with a clock face for each spot that fills as the flood chance rises and counts down to when the water is likely to arrive. The water travels: on the Cherwell, a rise at Enslow reaches Kings Mill about 19 hours later. <!-- src: web/public/data/travel_times.json enslow->kingsmill tHalf median 18.6, n 6 -->
 - **A timeline** of our forecast against the real river level, with three markers: **River Clock warned · EA warned · Flooded**. Press play and it runs hour by hour, with the model seeing only what was known at each moment.
-- **A two-line scoreboard** and a switch: **Now | 2014 | Jan 2024 | Nov 2024 | 2026 near miss**.
+- **A two-line scoreboard** and a switch: **Now | 2014 | Henk | Bert | 2026** (Storm Henk, Jan 2024; Storm Bert, Nov 2024; the 2026 near miss).
 - **A one-line proof footer:** across 30 floods, River Clock caught 29 (6 false alarms) and the official warning 24 (1 false alarm). <!-- src: web/public/data/proof.json tradeoff at each spot's warnAt pStar (hits 7+7+8+7, falseAlarms 3+2+1+0), as web/src/clock/story.ts proofSummary; officialOutcome hits 5+8+8+3, falseAlarms 1 -->
 - **Show the working** holds everything else: sandbag screening for Osney and Botley (where 500 bags would do the most good, and by when), the accuracy charts, a cost–loss calculator for residents, commuters and the council, and the data-quality report.
 
@@ -32,7 +32,7 @@ The screen always says: *Decision-support prototype, not an official warning. Ch
 3. **One baseline.** Probabilistic persistence: "the level stays where it is, give or take the usual change". Every accuracy score is relative to it.
 4. **Proof.** Leave-one-flood-out replays of seven events from 2007 to 2026, tests that no data after the issue time leaks into the inputs or the replays, and a strict time split (from Oct 2021) for the accuracy scores. The EA's own historic warnings are scored with exactly the same rules.
 5. **Decisions.** A cost–loss rule: act when the chance of flooding is above cost ÷ loss. It drives the advice lines and the alarm level.
-6. **Protect.** The forecast level, pushed 200 times through the EA's 1 m LiDAR terrain, gives a wet-frequency map; buildings are ranked for sandbags, and the map is checked against the EA's recorded 2014 outline.
+6. **Protect.** The forecast level, pushed 200 times through the EA's LiDAR terrain (1 m, resampled to 5 m), gives a wet-frequency map; buildings are ranked for sandbags, and the map is checked against the EA's recorded 2014 outline.
 
 **Stack:** Python 3.11 (pandas, NumPy, SciPy, LightGBM, DuckDB, Parquet), FastAPI for the live endpoint, and React + TypeScript + Vite with Leaflet for the app, with a bundled OpenStreetMap basemap so it needs no network.
 

@@ -32,7 +32,7 @@ The app is a single screen, **River Clock**. It answers three questions at a gla
 | **The map** (hero) | Oxford's rivers flowing and rising as the water comes, every river gauge as a small icon (hover for its level), and a **ring for each trouble spot** that fills as its chance of flooding in the next 3 days rises. Pick a spot and its **river walk** lights up: the upstream gauges its water comes from, with the measured travel time on each link. |
 | **The timeline** (under the map) | Our forecast range against the real river level, with three markers: **River Clock warned · EA warned · Flooded**. Press play and it runs hour by hour, revealing each reading only after it happened. |
 | **The scoreboard** (2 lines) | For the chosen flood: when River Clock warned, when the EA warned, when it flooded. |
-| **The switch** (top) | **Now \| 2014 \| Henk (Jan 2024) \| Bert (Nov 2024) \| 2026 near miss**, with 2007, 2012 and 2021 under More. Today's live forecast, or a past flood replayed with a model trained without it. |
+| **The switch** (top) | **Now \| 2014 \| Henk \| Bert \| 2026** (Henk = Jan 2024, Bert = Nov 2024, 2026 = the near miss), with 2007, 2012 and 2021 under More. Today's live forecast, or a past flood replayed with a model trained without it. |
 | **The proof footer** (1 line) | Across all 30 floods we replayed: how many River Clock caught, and how many the official warning caught. |
 
 A spot appears on the map only when we have data for it: Wolvercote has no forecast and is hidden, and the Cherwell is hidden in Now while the Kings Mill gauge is offline (it is shown in the replays).
@@ -96,8 +96,8 @@ For each past flood and each pair of gauges (for example Farmoor → New Botley)
 
 How to read it:
 - The link we quote first is **Enslow → Kings Mill, about 18.6 h (6 floods, and a tight 15–23 h range)**. Its half-rise and peak times tell the same story.
-- **Cassington → New Botley** has the most floods (24), but read it with care. New Botley often jumps quickly from local runoff before the routed wave arrives, which pulls the half-rise median down to 9.5 h and spreads it over 1–42 h. Its peak-to-peak time is 32 h. On the Thames side, the 2014 peak sequence (below) is the clearer picture.
-- Nine of the eleven pairs have at least 3 clean floods. The two Farmoor pairs don't, so the model uses the cross-correlation peak lag ±6 h for them, and the app labels them "cross-correlation only".
+- **Cassington → New Botley** has the most floods (24, tied with the river-walk pair Hannington → New Botley), but read it with care. New Botley often jumps quickly from local runoff before the routed wave arrives, which pulls the half-rise median down to 9.5 h and spreads it over 1–42 h. Its peak-to-peak time is 32 h. On the Thames side, the 2014 peak sequence (below) is the clearer picture.
+- 17 of the 19 pairs (these 11 plus 8 river-walk pairs from Shifford, Hannington, Worsham and Shipton) have at least 3 clean floods. The two Farmoor pairs don't, so the model uses the cross-correlation peak lag ±6 h for them, and the app labels them "cross-correlation only".
 - Eynsham → New Botley has only 3 floods and a median under 1 h. That is not a travel time we trust, and we don't quote it. Its peak-to-peak time (8 h) looks more physical.
 - The ranges are wide. That is why the model takes each upstream gauge at its 10th, 50th and 90th percentile lags, not at one fixed lag.
 - Whether bigger rises travel faster isn't settled by our data: the fitted slopes change sign from pair to pair. The steepest, Cassington → New Botley (−43 h per metre of rise), rests on a few slow floods, so we don't lean on it. <!-- src: travel_times.json slopeHoursPerMetre (cassington->newbotley -43.48; enslow->kingsmill 0.59; eynsham->coldharbour 35.84) -->

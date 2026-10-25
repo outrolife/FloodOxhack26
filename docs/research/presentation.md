@@ -61,7 +61,7 @@ Keep the leave-one-flood-out caveat (the 2014 model has seen 2024) and the relia
 - Don't use return periods ("1-in-100-year"); people hear "once a century" [22]. Our "1 in 3" is a chance for this event, so always say "chance".
 - Don't show a single centre line without its range; people fixate on the line [23], or read the range as a fixed value [24].
 - Don't rely on colour alone [19]. Don't say "accuracy" for a probability score.
-- Don't let the 2014 example suggest we always beat the EA. Averaged over all seven events, at Botley the EA was earlier.
+- Don't let the 2014 example suggest we always beat the EA. Averaged over all seven events, at its alarm level Botley is level with the EA (the EA 0.9 h earlier).
 
 ## What the research says (short)
 

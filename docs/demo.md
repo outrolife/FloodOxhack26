@@ -1,6 +1,6 @@
 # River Clock: demo script (4 minutes)
 
-Judging is science-fair style: about 4 minutes per judge, at our table. The app is **one screen, "River Clock"**: a map of Oxford's rivers with a clock for each spot, a timeline under it, a 2-line scoreboard, a switch along the top (**Now | 2014 | Jan 2024 | Nov 2024 | 2026 near miss**) and a one-line proof footer. Everything else (sandbag screening, the accuracy charts, the cost–loss calculator, data quality) is behind **Show the working**. It must work with **no network**.
+Judging is science-fair style: about 4 minutes per judge, at our table. The app is **one screen, "River Clock"**: a map of Oxford's rivers with a clock for each spot, a timeline under it, a 2-line scoreboard, a switch along the top (**Now | 2014 | Henk | Bert | 2026**: Henk is Jan 2024, Bert is Nov 2024, 2026 is the near miss) and a one-line proof footer. Everything else (sandbag screening, the accuracy charts, the cost–loss calculator, data quality) is behind **Show the working**. It must work with **no network**.
 
 All times are UK local time. Judging is on **Sun 25 Oct 2026, after the clocks went back at 02:00**, so the app and this script are on **GMT (= UTC)**. January events are GMT too.
 
@@ -20,7 +20,7 @@ All times are UK local time. Judging is on **Sun 25 Oct 2026, after the clocks w
 
 | Key | Does |
 |---|---|
-| **1 · 2 · 3 · 4 · 5** | Now · 2014 · Jan 2024 · Nov 2024 · 2026 near miss |
+| **1 · 2 · 3 · 4 · 5** | Now · 2014 · Henk (Jan 2024) · Bert (Nov 2024) · 2026 (near miss) |
 | **Space** | Play / pause the timeline |
 | **P** | Presenter mode: bigger type, no chrome |
 

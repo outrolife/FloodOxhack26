@@ -15,7 +15,7 @@ Oxford floods from the river, slowly: the water that floods Botley Road is upstr
 | **The map** (hero) | Oxford's rivers flowing and rising as the water comes, with a **clock face for each trouble spot** that fills as its chance of flooding rises, and a countdown to when the water is likely to arrive. |
 | **The timeline** (under the map) | Our forecast range against the real river level, with three markers: **River Clock warned · EA warned · Flooded**. Press play and it runs hour by hour, revealing each reading only after it happened. |
 | **The scoreboard** (2 lines) | For the chosen flood: when River Clock warned, when the EA warned, when it flooded. |
-| **The switch** (top) | **Now \| 2014 \| Jan 2024 \| Nov 2024 \| 2026 near miss**. Today's live forecast, or a past flood replayed with a model trained without it. |
+| **The switch** (top) | **Now \| 2014 \| Henk \| Bert \| 2026** (Henk = Jan 2024, Bert = Nov 2024, 2026 = the near miss). Today's live forecast, or a past flood replayed with a model trained without it. |
 | **The proof footer** (1 line) | Across all 30 floods we replayed: how many River Clock caught, and how many the official warning caught. |
 
 Sandbag screening, the accuracy charts and the cost–loss calculator are behind **Show the working**. Presenter keys: **Space** plays, **1–5** switch flood, **P** presenter mode.
