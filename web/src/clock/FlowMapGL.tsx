@@ -473,7 +473,7 @@ function FlowMapGLInner({
           setTick((x) => x + 1);
         }}
         onZoomEnd={(e) => setZoom(e.target.getZoom())}
-        onError={(e) => console.warn("River Clock map:", e.error?.message ?? e)}
+        onError={(e) => console.warn("FloodClock map:", e.error?.message ?? e)}
       >
         <NavigationControl position="top-left" showCompass={false} />
         <AttributionControl

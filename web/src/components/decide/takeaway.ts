@@ -32,15 +32,15 @@ export function costTakeaway(strategies: StrategyCost[], pStar: number): string 
     official === null
       ? ""
       : rc < official
-        ? ` Acting on River Clock costs ${formatGBP(rc)} here, against ${formatGBP(official)} for waiting for the official warning.`
+        ? ` Acting on FloodClock costs ${formatGBP(rc)} here, against ${formatGBP(official)} for waiting for the official warning.`
         : rc > official
-          ? ` Here, acting on the official warnings (${formatGBP(official)}) would have cost less than River Clock (${formatGBP(rc)}).`
-          : ` Here River Clock and the official warnings cost the same (${formatGBP(rc)}).`;
+          ? ` Here, acting on the official warnings (${formatGBP(official)}) would have cost less than FloodClock (${formatGBP(rc)}).`
+          : ` Here FloodClock and the official warnings cost the same (${formatGBP(rc)}).`;
 
   if (pStar <= CHEAP_TRIGGER) {
     const alwaysNote =
       always !== null && similar(rc, always)
-        ? ` Acting every time costs about the same (${formatGBP(always)}), so River Clock's value shows when you compare it with the official warning.`
+        ? ` Acting every time costs about the same (${formatGBP(always)}), so FloodClock's value shows when you compare it with the official warning.`
         : "";
     return `Cheap action (act at ${formatPct(pStar)} chance or more): act early, even on a small chance.${alwaysNote}${vsOfficial}`;
   }

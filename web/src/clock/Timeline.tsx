@@ -183,7 +183,7 @@ export function TimelineKey() {
         <i className="ck-sw ck-sw-real" /> Real level
       </span>
       <span>
-        <i className="ck-sw ck-sw-band" /> River Clock: likely range
+        <i className="ck-sw ck-sw-band" /> FloodClock: likely range
       </span>
       <span>
         <i className="ck-sw ck-sw-mid" /> middle

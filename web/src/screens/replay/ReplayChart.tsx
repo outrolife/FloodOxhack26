@@ -134,7 +134,7 @@ export const ReplayChart = memo(function ReplayChart({
   });
 
   return (
-    <div className="rp-chart" role="img" aria-label="River level so far and River Clock's forecast range from the playhead">
+    <div className="rp-chart" role="img" aria-label="River level so far and FloodClock's forecast range from the playhead">
       <ResponsiveContainer>
         <ComposedChart data={data} margin={{ top: 8, right: 20, bottom: 4, left: 4 }}>
           <CartesianGrid stroke="#e1e0d9" vertical={false} />
@@ -191,7 +191,7 @@ export function ChartKey() {
     <div className="rp-key small">
       <span><i className="rp-sw rp-sw-obs" /> River level so far</span>
       <span><i className="rp-sw rp-sw-faint" /> What happened next (once passed)</span>
-      <span><i className="rp-sw rp-sw-band" /> River Clock's forecast: likely range, wide range (5–95%), dashed middle</span>
+      <span><i className="rp-sw rp-sw-band" /> FloodClock's forecast: likely range, wide range (5–95%), dashed middle</span>
     </div>
   );
 }

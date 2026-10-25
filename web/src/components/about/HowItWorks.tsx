@@ -101,7 +101,7 @@ export function HowItWorksDiagram({ travel }: { travel: TravelExample | null }) 
         aria-labelledby={`${titleId} ${descId}`}
         style={{ width: "100%", minWidth: 860, height: "auto", display: "block" }}
       >
-        <title id={titleId}>How River Clock works</title>
+        <title id={titleId}>How FloodClock works</title>
         <desc id={descId}>{desc}</desc>
         <defs>
           <marker id={markerId} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
@@ -181,7 +181,7 @@ export default function HowItWorks() {
       <h2 id="hiw-heading">How it works at a glance</h2>
       <HowItWorksDiagram travel={example} />
       <p className="small muted" style={{ marginTop: "0.6rem", marginBottom: 0 }}>
-        River Clock reads water already in the river and rain that has already fallen; it does not
+        FloodClock reads water already in the river and rain that has already fallen; it does not
         forecast rain still to come. It is a decision-support prototype that sits alongside official
         Environment Agency warnings, not in place of them.
       </p>

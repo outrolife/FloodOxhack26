@@ -32,7 +32,7 @@ describe("Decide official warnings (#99 item 1)", () => {
     expect(html).toContain(`+${row.meanLeadVsOfficialH} h`); // tradeoff[].meanLeadVsOfficialH
     // The old local estimate (our lead − our gain) must not appear.
     expect(html).not.toContain(`${row.meanLeadH! - row.meanLeadVsOfficialH!} h`);
-    expect(html).toContain("scored with the same rules as River Clock");
+    expect(html).toContain("scored with the same rules as FloodClock");
   });
 
   it("says official warnings are not scored when officialOutcome is missing, instead of guessing", () => {
@@ -48,7 +48,7 @@ describe("Decide official warnings (#99 item 1)", () => {
     for (const gone of ["officialFromReplays", "officialFromPerEvent", "officialMeanLeadH"]) expect(mod[gone]).toBeUndefined();
   });
 
-  it("says when River Clock's numbers are interpolated between backtested triggers", () => {
+  it("says when FloodClock's numbers are interpolated between backtested triggers", () => {
     const o = interpolateTradeoff(proof.tradeoff.osney, 0.03)!;
     const html = renderToStaticMarkup(<OutcomesTable o={o} costs={resident} official={null} />);
     expect(html).toContain("between two that we tested (2% and 5%)");

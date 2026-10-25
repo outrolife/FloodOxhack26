@@ -114,7 +114,7 @@ describe("replayFacts", () => {
 });
 
 describe("startIndex", () => {
-  it("starts a flood 72 h before River Clock's 50%", () => {
+  it("starts a flood 72 h before FloodClock's 50%", () => {
     const r = synthetic();
     const f = replayFacts(r, SPOT, row());
     expect(r.forecasts[startIndex(r, SPOT, f)].issuedAt).toBe(iso(60 - 72 < 0 ? 0 : 60 - 72));
@@ -152,17 +152,17 @@ describe("scoreboard", () => {
   it("states the times in UK time with the zone", () => {
     expect(rows[0].value).toBe("Fri 3 Jan, 12:00 GMT");
     expect(rows[3].value).toMatch(/GMT$/);
-    expect(rows[3].detail).toBe("37 h after River Clock said more likely than not");
+    expect(rows[3].detail).toBe("37 h after FloodClock said more likely than not");
     expect(rows[4].value).toBe("Predicted 2.60 m–3.10 m · actual 3.00 m");
     expect(rows[4].detail).toMatch(/^Inside the wide range \(5–95%\) given 72 h before/);
   });
 
   it("says the difference honestly, in both directions", () => {
-    expect(differenceText(7.06)).toBe("River Clock 7 h earlier than the EA warning");
-    expect(differenceText(-29.14)).toBe("River Clock 29 h after the EA warning");
+    expect(differenceText(7.06)).toBe("FloodClock 7 h earlier than the EA warning");
+    expect(differenceText(-29.14)).toBe("FloodClock 29 h after the EA warning");
     expect(differenceText(0.06)).toBe("About the same time as the EA warning");
     const late = buildScoreboard(replayFacts(synthetic(), SPOT, row({ leadVsOfficialH: -5 })), SPOT.threshold, iso(239));
-    expect(late[2]).toMatchObject({ value: "River Clock 5 h after the EA warning", tone: "bad" });
+    expect(late[2]).toMatchObject({ value: "FloodClock 5 h after the EA warning", tone: "bad" });
   });
 
   it("for a near miss says it stayed below, by how much, and the highest chance", () => {
@@ -175,7 +175,7 @@ describe("scoreboard", () => {
     expect(b[3].detail).toBe("Highest 2.65 m, 11 cm under the flood level");
   });
 
-  it("never uses the EA's words for River Clock's own outputs", () => {
+  it("never uses the EA's words for FloodClock's own outputs", () => {
     for (const r of rows) {
       const ours = `${r.value} ${r.detail ?? ""}`.replace(/EA (Flood )?[Ww]arning/g, "");
       expect(ours).not.toMatch(/Flood (Warning|Alert)/);
@@ -188,7 +188,7 @@ describe("badge and headline", () => {
     const f = replayFacts(synthetic(), SPOT, row());
     expect(badgeText(outcomeOf(f))).toBe("Called 37 h before the flood");
     expect(headlineText(f, SPOT.name, SPOT.threshold, "Jan–Feb 2014")).toBe(
-      "January 2014: River Clock said Botley Road would likely flood 37 hours before it did.",
+      "January 2014: FloodClock said Botley Road would likely flood 37 hours before it did.",
     );
   });
 
@@ -197,13 +197,13 @@ describe("badge and headline", () => {
     const f = replayFacts(r, SPOT, row({ crossed: false, peakObs: 2.65 }));
     expect(badgeText(outcomeOf(f))).toBe("Stayed calm: highest chance 28%");
     expect(headlineText(f, SPOT.name, SPOT.threshold, "x")).toBe(
-      "January 2014: the river at Botley Road came within 11 cm of flood level, and River Clock never went above 28%.",
+      "January 2014: the river at Botley Road came within 11 cm of flood level, and FloodClock never went above 28%.",
     );
   });
 
   it("a miss and a false alarm are said plainly", () => {
     const miss = replayFacts(synthetic({ pAt: () => 0.3 }), SPOT, row());
-    expect(badgeText(outcomeOf(miss))).toBe("Flooded before River Clock reached 50%");
+    expect(badgeText(outcomeOf(miss))).toBe("Flooded before FloodClock reached 50%");
     const fa = replayFacts(synthetic({ cross: false, pAt: () => 0.7, peak: 2.7 }), SPOT, row({ crossed: false }));
     expect(badgeText(outcomeOf(fa))).toBe("False alarm: reached 70%, no flood");
   });
@@ -249,7 +249,7 @@ describe.skipIf(!haveData)("committed replays", () => {
     existsSync(new URL(`replays/${id}.json`, DATA)),
   );
 
-  it.each(ids)("%s: River Clock's 50% time agrees with proof's lead vs the EA at every spot", (id) => {
+  it.each(ids)("%s: FloodClock's 50% time agrees with proof's lead vs the EA at every spot", (id) => {
     const replay = read<Replay>(`replays/${id}.json`);
     for (const spot of spots.filter((s) => s.mode === "probability")) {
       const r = perEventRow(proof, id, spot.key);

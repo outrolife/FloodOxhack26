@@ -23,7 +23,7 @@ import { indexAt } from "../screens/replay/playback";
 /** The palette: blue = River Clock, grey = the EA, black = what the river really did. Always with a label. */
 export const COLOURS = { rc: "#184f95", ea: "#6b6a65", real: "#0b0b0b" } as const;
 
-export const MARKER_LABEL = { rc: "River Clock warned", ea: "EA warned", flood: "Flooded" } as const;
+export const MARKER_LABEL = { rc: "FloodClock warned", ea: "EA warned", flood: "Flooded" } as const;
 
 /**
  * River Clock "warns" at its first chance at or above the spot's warn-at level
@@ -151,7 +151,7 @@ export function replayScore(f: ReplayFacts, t: number, endT: string, chanceNow: 
       ? { text: "No forecast at this time", tone: "neutral" }
       : { text: `Chance of flooding within 3 days: ${pctPlain(chanceNow)}`, tone: "neutral" };
   const level = pctPlain(f.pStar ?? WARN_AT);
-  const calling: ScoreLine = { text: `River Clock warned: chance of flooding reached ${level}`, tone: "neutral" };
+  const calling: ScoreLine = { text: `FloodClock warned: chance of flooding reached ${level}`, tone: "neutral" };
 
   // Line 1: River Clock against the river.
   let first: ScoreLine;
@@ -159,8 +159,8 @@ export function replayScore(f: ReplayFacts, t: number, endT: string, chanceNow: 
     if (floodSeen) {
       first =
         f.rc50 && f.leadBeforeFloodH != null
-          ? { text: `River Clock warned ${f.rc50AlreadyOn ? "at least " : ""}${hrs(f.leadBeforeFloodH)} before the flood`, tone: "good" }
-          : { text: `Flooded before River Clock reached ${level}`, tone: "bad" };
+          ? { text: `FloodClock warned ${f.rc50AlreadyOn ? "at least " : ""}${hrs(f.leadBeforeFloodH)} before the flood`, tone: "good" }
+          : { text: `Flooded before FloodClock reached ${level}`, tone: "bad" };
     } else first = rcSeen ? calling : soFar;
   } else if (atEnd) {
     first = f.rc50
@@ -265,7 +265,7 @@ const falseAlarms = (n: number) => `${n} false alarm${n === 1 ? "" : "s"}`;
 export function proofText(s: ProofSummary): { main: string; earlier: string | null } {
   const ea = s.ea ? ` · the official warning caught ${s.ea.hits} (${falseAlarms(s.ea.falseAlarms)})` : "";
   return {
-    main: `Across ${s.floods} past floods: River Clock caught ${s.rc.hits} (${falseAlarms(s.rc.falseAlarms)})${ea}`,
+    main: `Across ${s.floods} past floods: FloodClock caught ${s.rc.hits} (${falseAlarms(s.rc.falseAlarms)})${ea}`,
     earlier:
       s.compared > 0 ? `earlier than the official warning at ${s.earlier} of ${s.compared} floods where both warned` : null,
   };

@@ -21,7 +21,7 @@ describe("HowItWorksDiagram", () => {
   it("renders the five stages in order, as an accessible SVG", () => {
     const html = renderToStaticMarkup(<HowItWorksDiagram travel={travelExample([pair("enslow", "kingsmill", 18.6)])} />);
     expect(html).toContain('role="img"');
-    expect(html).toMatch(/<title id="[^"]+">How River Clock works<\/title>/);
+    expect(html).toMatch(/<title id="[^"]+">How FloodClock works<\/title>/);
     expect(html).toContain("<desc");
     expect((html.match(/class="hiw-stage"/g) ?? []).length).toBe(5);
     const order = ["Upstream EA river gauges", "Travel times", "LightGBM quantile forecasts", "Calibrated flood probability", "Decide: act when P ≥ C/L"];

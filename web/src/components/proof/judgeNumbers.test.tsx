@@ -110,7 +110,7 @@ describe("peak flood probability for non-flooded events (#99 item 4)", () => {
 describe("arrival-error blanks (#99 item 6)", () => {
   it("explains a blank arrival error in a footnote and a tooltip", () => {
     const html = renderToStaticMarkup(<PerEventTable proof={proof} events={events} spots={spots} dateOnly={new Set()} />);
-    expect(ARRIVAL_BLANK).toBe("River Clock had not reached 50% 24 h before the river crossed the flood line");
+    expect(ARRIVAL_BLANK).toBe("FloodClock had not reached 50% 24 h before the river crossed the flood line");
     expect(html).toContain(`blank (–) = ${ARRIVAL_BLANK}`);
     const crossedBlank: Proof = { ...proof, perEvent: [{ ...proof.perEvent[0], arrivalErrH: null }] };
     expect(renderToStaticMarkup(<PerEventTable proof={crossedBlank} events={events} spots={spots} dateOnly={new Set()} />)).toContain(
