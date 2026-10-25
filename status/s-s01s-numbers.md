@@ -1,14 +1,14 @@
 # s-s01s-numbers
 
 - **role**: Story
-- **state**: working
+- **state**: reviewing
 - **issue**: #19
-- **task**: Update doc numbers to final retrain (#162)
-- **next**: Verify numbers from proof.json, edit docs
+- **task**: PR #163: docs numbers for the final retrain (stacked on #162)
+- **next**: PM retargets #163 to main after #162 merges
 - **needs**: 
 - **notes**: 
 - **branch**: story/numbers-final
-- **head**: 1760c01 Update web test pins for the retrained e2014 replay and warn-a
+- **head**: da707d4 Update docs to the final retrain's numbers (#162)
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T03:51:14Z
+- **updated**: 2026-10-25T04:08:41Z
