@@ -251,7 +251,10 @@
   border: 1px solid var(--fc-border, rgba(22, 23, 26, 0.12)); border-radius: var(--fc-radius-sm, 6px); background: var(--fc-surface, #fff);
   font-size: var(--fc-text-sm, 0.875rem); color: var(--fc-ink-2, #45464a);
 }
-.fc-x-num input { width: 3.4em; border: 0; outline: none; background: transparent; font: inherit; font-size: var(--fc-text-md, 1rem); color: var(--fc-ink, #16171a); font-variant-numeric: tabular-nums; }
+.fc-x-num input[type="number"] { width: 5.5ch; min-width: 5.5ch; padding: 0; margin: 0; border: 0; border-radius: 0; box-shadow: none; outline: none; background: transparent; font: inherit; font-size: var(--fc-text-md, 1rem); color: var(--fc-ink, #16171a); font-variant-numeric: tabular-nums; text-align: right; appearance: textfield; -moz-appearance: textfield; }
+/* No spinner arrows: the slider beside it does the stepping. */
+.fc-x-num input::-webkit-outer-spin-button, .fc-x-num input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.fc-x-num input[type="number"]:focus-visible { outline: none; box-shadow: none; }
 .fc-x-num:focus-within { outline: 2px solid var(--fc-focus, #16171a); outline-offset: 1px; }
 .fc-x-select {
   font: inherit; font-size: var(--fc-text-md, 1rem); height: 38px; padding: 0 10px; color: var(--fc-ink, #16171a);
