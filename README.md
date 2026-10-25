@@ -304,7 +304,7 @@ You need Python 3.11 (installed by `uv`), Node.js and, on macOS, `libomp` for Li
 
 ```bash
 # macOS
-brew install uv node libomp
+brew install uv node libomp gh
 
 git clone https://github.com/outrolife/FloodOxhack26.git
 cd FloodOxhack26
@@ -313,6 +313,15 @@ make setup     # creates .venv with Python 3.11 and installs dependencies
 make test      # Python tests, including the leakage tests
 make web       # installs web dependencies and starts the app at http://localhost:5173
 ```
+
+**Run the demo (what we show judges).** One process serves the built app, its data and the API, offline (the first run needs a network once, for `npm ci`):
+
+```bash
+make demo        # builds the app if needed and serves it at http://127.0.0.1:8080 (DEMO_PORT=8090 make demo if 8080 is busy)
+make preflight   # in a second terminal: checks data, build, port and time zone (same DEMO_PORT)
+```
+
+`make demo` also tries to download the optional offline basemap for the new map (`?map=gl`, `make tiles`); this needs `gh auth login`, and without it the demo still runs (default map) after a warning. `make fetch-data` downloads the cleaned river history from the GitHub release instead of the long `make data` download (needed only to rerun `make travel`, `make train` or `make backtest`), also with `gh`. The full checklist and fallbacks are in [`docs/demo-backup.md`](docs/demo-backup.md).
 
 **The app runs offline.** It reads committed JSON from `web/public/data/`. If a file is missing, it falls back to the matching sample in `tests/fixtures/` and shows a "sample data" notice. The basemap is bundled (`web/public/data/geo/`), so the map works with no network; OpenStreetMap tiles are only an optional layer on top.
 
