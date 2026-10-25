@@ -134,13 +134,14 @@ We score:
 - **A flood** is an up-crossing of the spot's threshold. Crossings less than 72 h after the previous one count as the same flood, because a level hovering at the line crosses it many times.
 - **A trigger** at p* is a forecast whose flood chance (the highest over its leads) is at least p* **while the gauge is still below the line**. Once the river is over the line the flood is here, so a forecast issued then is neither a warning nor a false alarm.
 - **Hit:** a trigger in the 72 h before a flood starts. **Lead** = flood start minus the first such trigger, so it is at most 72 h. **Miss:** a flood with no trigger in that window. **False alarm:** a run of triggers (less than 24 h apart) with no crossing from its first trigger to 72 h after its last.
-- **Versus the EA:** lead vs official = EA Flood Warning issue time minus our first trigger, at p* = 0.5. Positive means River Clock was earlier.
+- **Versus the EA:** lead vs official = EA Flood Warning issue time minus our first trigger. Positive means River Clock was earlier.
+- **Warn-at level:** each spot's own trigger, chosen on the pre-2021 replays only (the lowest p* with at most 1 false alarm in every validation flood), then frozen and scored on the later floods: Osney 30%, Botley 60%, Abingdon Road 20%, the Cherwell 30%. The app's markers and proof footer, and our headline numbers, use it. <!-- src: proof.json warnAt[spot].pStar 0.3 / 0.6 / 0.2 / 0.3, warnAt.rule -->
 - **Uncertainty:** bootstrap over events (1,000 resamples, seed 42), 90% intervals.
 <!-- src: model/metrics.py docstring; model/proof.py PER_EVENT_P_STAR = 0.5; proof.json testPeriodNote -->
 
 ### Decisions: cost–loss
 
-Three presets: **Resident** (move the car: C = £20, L = £2,000), **Commuter** (reroute: C = £5, L = £100) and **Council** (close a road or put up barriers: C = £5,000, L = £100,000). The best trigger is p* = C / L. The "River Clock warned" marker uses a one-in-two trigger. The calculator itself, with the expected cost over the replayed floods for River Clock, the official warnings, "never act" and "always act", is under Show the working.
+Three presets: **Resident** (move the car: C = £20, L = £2,000), **Commuter** (reroute: C = £5, L = £100) and **Council** (close a road or put up barriers: C = £5,000, L = £100,000). The best trigger is p* = C / L. The "River Clock warned" marker uses each spot's warn-at level (above). The calculator itself, with the expected cost over the replayed floods for River Clock, the official warnings, "never act" and "always act", is under Show the working.
 
 ### Protect: sandbag screening (experimental, in Show the working)
 
@@ -177,16 +178,18 @@ For **Botley Road** (New Botley gauge, threshold 2.76 m):
 | What | When (GMT) |
 |---|---|
 | EA Flood **Alert** for the area (the lower level) | 19:27, Mon 23 Dec 2013 |
-| River Clock first ≥ 10% (at the 72 h lead) | 04:00, Thu 26 Dec 2013 |
-| **River Clock first ≥ 50%** (59% at the 72 h lead) | **12:00, Sat 4 Jan 2014** |
-| EA Flood **Warning** for the area | 19:03, Sat 4 Jan 2014: **about 7 h after River Clock reached 50%** |
-| New Botley passes 2.76 m | 01:00, Mon 6 Jan 2014: 37 h after River Clock reached 50% |
+| River Clock first ≥ 10% (at the 48 and 72 h leads) | 06:00, Fri 27 Dec 2013 |
+| **River Clock first ≥ 50%** (60% at the 72 h lead, so also Botley's 60% warn-at level) | **10:00, Sat 4 Jan 2014** |
+| EA Flood **Warning** for the area | 19:03, Sat 4 Jan 2014: **about 9 h after River Clock reached 50%** |
+| New Botley passes 2.76 m | 01:00, Mon 6 Jan 2014: 39 h after River Clock reached 50% |
 | New Botley peak (hourly mean 3.027 m) | 09:00, Thu 9 Jan 2014 |
 
-- The forecast issued at 12:00 on 4 Jan put the 50% arrival time at **21:39 on 5 Jan**, about 3 h before the gauge crossed. <!-- src: replays/e2014.json botley 2014-01-04T12:00Z arrival.p50 2014-01-05T21:39Z -->
-- The peak, **3.03 m**, was **inside the 2.62–3.15 m range** (5–95%) that River Clock gave 72 h before it. <!-- src: replays/e2014.json forecast 2014-01-06T08:00Z botley h72 q05 2.622, q95 3.152; observed newbotley 3.027 m at 2014-01-09T09:00Z -->
-- The EA's lower-level Flood Alert came out more than two days before River Clock's first 10%. We are ahead of the Flood Warning, not the Alert.
-- One flood is one data point. `proof.json` agrees: Botley's e2014 lead vs the EA warning is +7.1 h (`perEvent`). But averaged over all floods at Botley, the EA's warning was earlier (below).
+<!-- src: replays/e2014.json botley: first max-lead pFlood >= 0.1 at 2013-12-27T06:00Z (h48 0.160, h72 0.196); first >= 0.5 and >= 0.6 at 2014-01-04T10:00Z (h72 0.6043); official warning 2014-01-04T19:03:30Z; crossing 2014-01-06T01:00Z -->
+
+- The forecast issued at 10:00 on 4 Jan put the 50% arrival time at **01:01 on 6 Jan**, a minute after the gauge crossed. <!-- src: replays/e2014.json botley 2014-01-04T10:00Z arrival.p50 2014-01-06T01:01Z -->
+- The peak, **3.03 m**, was **inside the 2.63–3.16 m range** (5–95%) that River Clock gave 72 h before it. <!-- src: replays/e2014.json forecast 2014-01-06T08:00Z botley h72 q05 2.627, q95 3.157; observed newbotley 3.027 m at 2014-01-09T09:00Z -->
+- The EA's lower-level Flood Alert came out more than three days before River Clock's first 10%. We are ahead of the Flood Warning, not the Alert.
+- One flood is one data point. `proof.json` agrees: Botley's e2014 lead vs the EA warning is +9.1 h (`perEvent`, and the same at the 60% warn-at level). Averaged over all floods at Botley, at its warn-at level, River Clock and the EA's warning are level (−0.9 h, below).
 
 ### Scores over all events (real, `proof.json`)
 
@@ -196,40 +199,44 @@ For **Botley Road** (New Botley gauge, threshold 2.76 m):
 
 | Lead | 6 h | 12 h | 24 h | 36 h | 48 h | 72 h |
 |---|---|---|---|---|---|---|
-| Skill (above 0 = better than persistence) | +0.39 | +0.35 | +0.27 | +0.22 | +0.18 | +0.11 |
+| Skill (above 0 = better than persistence) | +0.39 | +0.36 | +0.29 | +0.24 | +0.19 | +0.12 |
 
-In words: **39% more accurate than "the river stays where it is" at 6 h, 27% at 24 h and 11% at 72 h.** That's pooled. An earlier per-gauge check (#8, before the final retrain) found the edge at Kings Mill about zero from 36 h and Cold Harbour slightly below zero from 48 h. <!-- src: proof.json skillByLead 0.3915, 0.3469, 0.2664, 0.2162, 0.1751, 0.1079 -->
+In words: **39% more accurate than "the river stays where it is" at 6 h, 29% at 24 h and 12% at 72 h.** That's pooled. In the final retrain's per-gauge check (#162) the edge at Kings Mill is about zero from 36 h, and Cold Harbour's is about zero at 36 h and below zero after (−0.11 at 48 h, −0.32 at 72 h); New Botley and Minns Estate stay above +0.27 at every lead. <!-- src: proof.json skillByLead 0.3943, 0.3562, 0.2890, 0.2381, 0.1903, 0.1150; per-gauge figures from PR #162 (not in proof.json) -->
 
 **Interval coverage: our ranges are too wide.** The actual coverage is above nominal at every lead. That is the safe direction, but it means the ranges are wider than they need to be:
 
 | Interval | 6 h | 24 h | 72 h |
 |---|---|---|---|
-| 50% | 65% | 72% | 78% |
-| 80% | 88% | 90% | 93% |
-| 90% | 94% | 95% | 97% |
+| 50% | 65% | 73% | 80% |
+| 80% | 88% | 91% | 94% |
+| 90% | 94% | 97% | 98% |
 
-Most test hours are calm. Inside flood windows the 90% range holds 86–91% and the 80% range 76–82% across leads, close to nominal and slightly narrow at long leads. <!-- src: proof.json coverage; testPeriodNote -->
+Most test hours are calm. Inside flood windows the 90% range holds 87–89% and the 80% range 76–79% across leads, close to nominal and slightly narrow. <!-- src: proof.json coverage (h6/h24/h72: 0.6544/0.7289/0.7963, 0.8787/0.9085/0.9442, 0.9372/0.9652/0.9755); testPeriodNote -->
 
-**Reliability** (Brier score, test period, "did the level reach the line at some time in the next h hours"): the model's Brier score is as good as or better than persistence at every spot and lead. It ties at 6 h at Botley and Abingdon Road, and at 24 h at Abingdon Road. In the middle of the range it under-calls: pooled at 24 h, forecasts of about 25% flooded 59% of the time, but that dot holds only 32 forecast hours from a few floods. <!-- src: proof.json reliability brier vs brierPersistence; pooled h24 bin 0.2: pPred 0.245, pObs 0.594, n 32 -->
+**Reliability** (Brier score, test period, "did the level reach the line at some time in the next h hours"): the model's Brier score is as good as or better than persistence at every spot and lead. It ties at 6 h at Botley and Abingdon Road, and at 24 h at Abingdon Road. In the middle of the range it under-calls: pooled at 24 h, forecasts of about 24% flooded 55% of the time, but that dot holds only 22 forecast hours from a few floods. <!-- src: proof.json reliability brier vs brierPersistence; h24 bins with pPred in [0.2, 0.3) pooled over the four spots, weighted by n: pPred 0.241, pObs 0.545, n 22 -->
 
-**Floods caught at a 1-in-2 trigger (p* = 0.5)** (seven replayed events; "floods" are threshold crossings at least 72 h apart). **River Clock caught 30 of 30 with 5 false alarms. The EA's Flood Warnings, scored with the same rules on the same floods, caught 24 of 30 with 1 false alarm.** A warning counts as in force from its issue time until 24 h after its last update.
+**Floods caught at each spot's warn-at level** (seven replayed events; "floods" are threshold crossings at least 72 h apart). **River Clock caught 29 of 30 with 6 false alarms. The EA's Flood Warnings, scored with the same rules on the same floods, caught 24 of 30 with 1 false alarm.** A warning counts as in force from its issue time until 24 h after its last update. This is the line in the app's proof footer.
 
-| Spot | Hits | Misses | False alarms | Mean lead before the crossing (90% CI) | EA Flood Warning, same rules: hits / misses / false alarms, mean lead |
+| Spot (warn-at level) | Hits | Misses | False alarms | Mean lead before the crossing (90% CI) | EA Flood Warning, same rules: hits / misses / false alarms, mean lead |
 |---|---|---|---|---|---|
-| Osney Island (Minns) | 7 | 0 | 2 | 16.9 h (10.0–21.0) | 5 / 2 / 0, 24.3 h |
-| Botley Road (New Botley) | 8 | 0 | 3 | 27.1 h (15.3–36.0) | 8 / 0 / 0, 37.8 h |
-| Abingdon Road (Cold Harbour) | 8 | 0 | 0 | 22.4 h (10.0–34.3) | 8 / 0 / 0, 42.0 h |
-| Cherwell (Kings Mill) | 7 | 0 | 0 | 8.3 h (4.3–10.7) | 3 / 4 / 1, 3.0 h |
+| Osney Island (Minns), 30% | 7 | 0 | 3 | 43.4 h (27.5–54.7) | 5 / 2 / 0, 24.3 h |
+| Botley Road (New Botley), 60% | 7 | 1 | 2 | 40.4 h (29.5–50.7) | 8 / 0 / 0, 37.8 h |
+| Abingdon Road (Cold Harbour), 20% | 8 | 0 | 1 | 37.6 h (22.2–49.9) | 8 / 0 / 0, 42.0 h |
+| Cherwell (Kings Mill), 30% | 7 | 0 | 0 | 21.9 h (11.7–30.2) | 3 / 4 / 1, 3.0 h |
 
-<!-- src: proof.json tradeoff[spot] pStar 0.5 (hits, misses, falseAlarms, meanLeadH, ci90); officialOutcome (hits, misses, falseAlarms, meanLeadH); testPeriodNote (EA warning in force until 24 h after its last Update) -->
+Pooled over the 29 hits, River Clock's first trigger came **about 36 h** before the river crossed. <!-- src: proof.json tradeoff[spot] at warnAt[spot].pStar (hits, misses, falseAlarms, meanLeadH, ci90); pooled (7*43.43 + 7*40.43 + 8*37.62 + 7*21.86) / 29 = 35.9; officialOutcome (hits, misses, falseAlarms, meanLeadH); testPeriodNote (EA warning in force until 24 h after its last Update) -->
+
+**At a single 1-in-2 trigger (p* = 0.5) for every spot** it is 28 of 30 with 5 false alarms (Osney 6/7, 2; Botley 7/8, 3; Abingdon Road 8/8, 0; Cherwell 7/7, 0), about 30 h before the crossing on average. <!-- src: proof.json tradeoff pStar 0.5; pooled meanLeadH weighted by hits 29.5 -->
+
+**The one miss, honestly: the July 2007 summer storm at Botley.** At 50% we also miss it at Osney, and at Osney's 30% level we call it only 1 h ahead. It was a sudden summer downpour, which an upstream river signal can't see coming. <!-- src: proof.json warnAt.botley.perEvent e2007 misses 1; warnAt.osney.perEvent e2007 meanLeadH 1.0; tradeoff pStar 0.5 osney/botley misses 1 (both e2007, PR #162) -->
 
 Part of the EA's misses is a definitional mismatch: we score their warnings against our gauge's threshold, not against theirs.
 
-**Versus the EA's first Flood Warning: mixed.** At p* = 0.5 the mean lead vs official is **+2.1 h at Osney and +8.2 h at the Cherwell** (River Clock earlier), but **−5.9 h at Botley and −14.6 h at Abingdon Road** (the EA earlier). A lower trigger, p* = 0.2, is earlier than the EA at every spot (+16.6 / +48.3 / +37.8 / +18.3 h), at the cost of more false alarms (6 / 13 / 1 / 5). We do not claim to beat the EA. <!-- src: proof.json tradeoff meanLeadVsOfficialH and falseAlarms at pStar 0.5 and 0.2 (osney / botley / abingdonrd / cherwell) -->
+**Versus the EA's first Flood Warning.** At the warn-at levels River Clock was earlier at **12 of the 19 floods where both warned** (the app footer's count). The mean lead vs official is **+22.1 h at Osney, −0.9 h at Botley (level), +37.8 h at Abingdon Road and +25.2 h at the Cherwell**. Abingdon Road's mean is flattered by one 2014 trigger nine days early, an earlier false alarm matched to the EA warning (+225 h); without it, it is level (+0.3 h). At a single p* = 0.5 the means are +8.4 / +8.4 / −14.6 / +8.2 h. We do not claim to beat the EA. <!-- src: proof.json tradeoff meanLeadVsOfficialH at warnAt (osney 0.3: 22.13, botley 0.6: -0.92, abingdonrd 0.2: 37.75, cherwell 0.3: 25.16) and at pStar 0.5 (8.38, 8.41, -14.58, 8.16); warnAt[spot].perEvent leadVsOfficialH, crossed floods with |h| < 72 h: 12 of 19 positive (as web/src/clock/story.ts proofSummary); abingdonrd e2014 225.06, the other five average 0.29 -->
 
-In the **e2014** replay, River Clock was ahead of the EA warning at Osney (+20.9 h) and Botley (+7.1 h), and behind at Abingdon Road (−34.9 h). The EA issued no Cherwell warning in that event. <!-- src: proof.json perEvent e2014 leadVsOfficialH -->
+In the **e2014** replay (at 50%), River Clock was ahead of the EA warning at Osney (+40.9 h) and Botley (+9.1 h), and behind at Abingdon Road (−34.9 h). The EA issued no Cherwell warning in that event. <!-- src: proof.json perEvent e2014 leadVsOfficialH 40.94, 9.06, -34.94 -->
 
-**e2026 near miss:** no gauge crossed its threshold; New Botley peaked at 2.65 m, 11 cm under its 2.76 m line. River Clock's highest flood chance in the whole event was 28% (Botley, 15 Feb 2026), so a 1-in-2 trigger raised **no false alarm** (nor any trigger of 30% or more). At lower triggers it would have fired, which a resident at p* = 0.01 accepts by design. <!-- src: replays/e2026.json botley max pFlood 0.2767 on 2026-02-15, observed newbotley peak 2.647 m; perEvent e2026 crossed false at every spot -->
+**e2026 near miss:** no gauge crossed its threshold; New Botley peaked at 2.65 m, 11 cm under its 2.76 m line. River Clock's highest flood chance in the whole event was 29.9% (Botley, 15 Feb 2026), below every spot's warn-at level, so it raised **no false alarm** (nor at any trigger of 30% or more). At lower triggers it would have fired, which a resident at p* = 0.01 accepts by design. <!-- src: replays/e2026.json max pFlood botley 0.2994 (2026-02-15T12:00Z, warnAt 0.6), osney 0.2295 (0.3), abingdonrd 0.1202 (0.2), cherwell 0.0645 (0.3); observed newbotley peak 2.647 m; warnAt[spot].perEvent e2026 falseAlarms 0; perEvent e2026 crossed false at every spot -->
 
 Pooled over our four gauges the model beats persistence at every lead on the test period, and its edge shrinks with lead time. Show the working says where it loses.
 
