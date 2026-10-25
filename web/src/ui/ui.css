@@ -17,7 +17,7 @@ body { background: var(--page); }
 
 .ui-app { min-height: 100vh; display: flex; flex-direction: column; }
 
-/* Header: logo mark + wordmark with the tagline under it, and the Info link.
+/* Header: the wordmark with the tagline under it (no logo), and the Info link.
    Neutral deep ink (colour is reserved for risk levels, #118). On the ink:
    white 14-19:1, the "Clock" half of the wordmark 8.5-11:1, the tagline about 9.8:1 or better. */
 .ui-header {
@@ -33,11 +33,10 @@ body { background: var(--page); }
 }
 .ui-brand {
   display: inline-flex; align-items: center; gap: var(--fc-space-2); color: #fff; text-decoration: none;
-  border-radius: var(--fc-radius-sm); padding: 2px var(--fc-space-1) 2px 2px; margin-left: -2px; min-width: 0;
+  border-radius: var(--fc-radius-sm); padding: 2px var(--fc-space-1); margin-left: calc(-1 * var(--fc-space-1)); min-width: 0;
 }
 /* Phones: brand and Info share one row (the tagline wraps); roomier from 701 px. */
 @media (min-width: 701px) { .ui-header { gap: var(--fc-space-4); padding: var(--fc-space-1) var(--fc-space-4); } }
-.ui-logo { flex: none; display: block; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)); }
 .ui-brand-text { display: flex; flex-direction: column; line-height: 1.1; }
 .ui-wordmark { font-weight: 800; font-size: var(--fc-text-lg); letter-spacing: -0.01em; }
 .ui-wordmark-accent { color: #c9cace; font-weight: var(--fc-weight-medium); }
