@@ -10,6 +10,10 @@ import { BAND_HEX, BAND_INFO } from "./logic";
 import { prefersReducedMotion } from "./motion";
 import type { RiskBand } from "./types";
 import type { FlyTarget } from "./useExplore";
+import { mercatorUnit } from "./mercator";
+import { buildZoneIndex, drawZoneTile, zoneAt, type BandPaint, type Zone, type ZoneIndex } from "./zoneTiles";
+
+export { mercatorUnit };
 
 export const ZONES_PANE = "fc-zones";
 /** Below the overlay pane (400), where the rivers, links and spot rings are drawn. */
@@ -113,15 +117,6 @@ function onEachZone(f: Feature, layer: L.Layer) {
  * Web Mercator part never changes, so it is computed once per ring; a zoom then only scales it.
  * Same arithmetic as L.CRS.EPSG3857.latLngToPoint and the same rounding, so the pixels match.
  */
-const MERC_R = 6378137;
-const MERC_MAX_LAT = 85.0511287798;
-const MERC_K = 0.5 / (Math.PI * MERC_R);
-/** A point's position on the Web Mercator square [0, 1] (multiply by crs.scale(zoom) for pixels). */
-export function mercatorUnit(lat: number, lng: number): [number, number] {
-  const d = Math.PI / 180;
-  const sin = Math.sin(Math.max(Math.min(MERC_MAX_LAT, lat), -MERC_MAX_LAT) * d);
-  return [MERC_K * (MERC_R * lng * d) + 0.5, -MERC_K * ((MERC_R * Math.log((1 + sin) / (1 - sin))) / 2) + 0.5];
-}
 const unitRings = new WeakMap<L.LatLng[], Float64Array>();
 function unitRing(ring: L.LatLng[]): Float64Array {
   let u = unitRings.get(ring);
@@ -185,37 +180,149 @@ class ZonesBoundary extends Component<{ children: ReactNode }, { failed: boolean
 
 const canDrawCanvas = () => L.Browser.canvas && !(typeof navigator !== "undefined" && /jsdom/i.test(navigator.userAgent));
 
-const ZonesLayer = memo(function ZonesLayer({ zones }: { zones: FeatureCollection }) {
+/** One zones pane, below the rivers and spot rings. */
+function useZonesPane(): boolean {
   const map = useMap();
-  const [paneReady, setPaneReady] = useState(() => !!map.getPane(ZONES_PANE));
+  const [ready, setReady] = useState(() => !!map.getPane(ZONES_PANE));
   useEffect(() => {
     if (!map.getPane(ZONES_PANE)) {
       const pane = map.createPane(ZONES_PANE);
       pane.style.zIndex = String(ZONES_Z);
     }
-    setPaneReady(true);
+    setReady(true);
   }, [map]);
-  // Thousands of polygons: one canvas, not thousands of SVG paths (map perf). Every pan and zoom
-  // re-clips each path; on a canvas that is a redraw, not thousands of DOM updates and repaints.
-  // Hover, tooltips and clicks still work per zone (tolerance: a few px of slack at the edges).
-  // The test DOM (jsdom) has no 2D canvas: there the zones stay SVG.
-  const renderer = useMemo(() => (canDrawCanvas() ? L.canvas({ pane: ZONES_PANE, tolerance: 3 }) : undefined), []);
-  useEffect(() => () => void (renderer && map.removeLayer(renderer)), [map, renderer]);
-  // The renderer rides in the style: it is applied before each path is added to the map.
-  const style = useMemo(() => (f?: Feature): L.PathOptions => ({ ...zoneFeatureStyle(f), renderer }), [renderer]);
+  return ready;
+}
+
+/** rgba() from "#rrggbb" and an opacity. */
+function rgba(hex: string, a: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+}
+const PAINT = new Map<string, BandPaint>(
+  ZONE_BANDS.map((b) => {
+    const st = zoneStyle(b);
+    return [b, { fill: rgba(st.fillColor!, st.fillOpacity!), stroke: rgba(st.color!, st.opacity!) }];
+  }),
+);
+const paintFor = (band: string) => PAINT.get(band) ?? null;
+
+/** Tiles waiting to be drawn, drawn a few per frame (about 8 ms) so a zoom or pan never freezes. */
+type Job = { canvas: HTMLCanvasElement; x: number; y: number; z: number; done: () => void };
+const FRAME_BUDGET_MS = 8;
+
+/** Built once per data set, even when the layer is hidden and shown again. */
+const indexes = new WeakMap<FeatureCollection, ZoneIndex>();
+function indexOnce(fc: FeatureCollection): ZoneIndex {
+  let ix = indexes.get(fc);
+  if (!ix) {
+    ix = buildZoneIndex(fc);
+    indexes.set(fc, ix);
+  }
+  return ix;
+}
+
+/**
+ * The zones as cached canvas tiles with level of detail (zoneTiles.ts), the way a web map
+ * draws streets: drawn once per tile and zoom level, then only moved and scaled while you
+ * zoom and pan. Hover highlights the zone under the pointer and shows its tooltip.
+ */
+function ZoneTiles({ zones }: { zones: FeatureCollection }) {
+  const map = useMap();
+  useEffect(() => {
+    const index = indexOnce(zones);
+    const queue: Job[] = [];
+    let frame = 0;
+    const work = () => {
+      frame = 0;
+      const t0 = performance.now();
+      while (queue.length && performance.now() - t0 < FRAME_BUDGET_MS) {
+        const job = queue.shift()!;
+        if (!job.canvas.isConnected) continue; // pruned before it was drawn
+        const ctx = job.canvas.getContext("2d");
+        if (ctx) {
+          const k = job.canvas.width / 256;
+          ctx.setTransform(k, 0, 0, k, 0, 0);
+          drawZoneTile(ctx, index, job.x, job.y, job.z, 256, paintFor);
+        }
+        job.done();
+      }
+      if (queue.length) frame = requestAnimationFrame(work);
+    };
+    const Tiles = L.GridLayer.extend({
+      createTile(coords: L.Coords, done: L.DoneCallback) {
+        const canvas = document.createElement("canvas");
+        const k = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = canvas.height = 256 * k;
+        queue.push({ canvas, x: coords.x, y: coords.y, z: coords.z, done: () => done(undefined, canvas) });
+        if (!frame) frame = requestAnimationFrame(work);
+        return canvas;
+      },
+    });
+    // updateWhenZooming false: during a zoom the drawn tiles are scaled; new ones come after it.
+    const layer: L.GridLayer = new (Tiles as unknown as new (o: L.GridLayerOptions) => L.GridLayer)({ pane: ZONES_PANE, updateWhenZooming: false, keepBuffer: 3, className: "fc-x-zone-tiles" });
+    layer.addTo(map);
+
+    // Hover: the zone under the pointer (one lookup per frame), outlined, with its tooltip.
+    let outline: L.Polygon | null = null;
+    let current: Zone | null = null;
+    const tip = L.tooltip({ sticky: true, direction: "top", offset: [0, -10], className: "fc-x-zone-tip", opacity: 1 });
+    let pending: L.LeafletMouseEvent | null = null;
+    let hoverFrame = 0;
+    const clear = () => {
+      current = null;
+      outline?.remove();
+      outline = null;
+      map.closeTooltip(tip);
+    };
+    const hover = () => {
+      hoverFrame = 0;
+      const e = pending;
+      pending = null;
+      if (!e) return;
+      const t = e.originalEvent?.target ?? null;
+      if (!dropsPin(t)) return clear(); // over a gauge, a spot ring, a card or a control
+      const [ux, uy] = mercatorUnit(e.latlng.lat, e.latlng.lng);
+      const z = zoneAt(index, ux, uy);
+      if (!z) return clear();
+      if (z !== current) {
+        current = z;
+        outline?.remove();
+        outline = L.polygon(z.latlngs, { ...zoneStyle(z.band, true), interactive: false }).addTo(map);
+        tip.setContent(zoneLabel(z.band));
+      }
+      tip.setLatLng(e.latlng);
+      if (!map.hasLayer(tip)) map.openTooltip(tip);
+    };
+    const onMove = (e: L.LeafletMouseEvent) => {
+      pending = e;
+      if (!hoverFrame) hoverFrame = requestAnimationFrame(hover);
+    };
+    const onOut = () => clear();
+    map.on("mousemove", onMove);
+    map.on("mouseout zoomstart movestart", onOut);
+    return () => {
+      cancelAnimationFrame(frame);
+      cancelAnimationFrame(hoverFrame);
+      queue.length = 0;
+      map.off("mousemove", onMove);
+      map.off("mouseout zoomstart movestart", onOut);
+      clear();
+      layer.remove();
+    };
+  }, [map, zones]);
+  return null;
+}
+
+const ZonesLayer = memo(function ZonesLayer({ zones }: { zones: FeatureCollection }) {
+  const paneReady = useZonesPane();
   const parts = useMemo(() => explodedOnce(zones), [zones]);
   // A new key per data set: react-leaflet's GeoJSON reads its data only once.
   const key = useMemo(() => `zones-${parts.features.length}-${Math.random().toString(36).slice(2, 7)}`, [parts]);
   if (!paneReady) return null;
-  return (
-    <GeoJSON
-      key={key}
-      data={parts}
-      pane={ZONES_PANE}
-      style={style}
-      onEachFeature={onEachZone}
-    />
-  );
+  // Browsers: cached tiles with level of detail. The test DOM (jsdom) has no 2D canvas: SVG there.
+  if (canDrawCanvas()) return <ZoneTiles zones={zones} />;
+  return <GeoJSON key={key} data={parts} pane={ZONES_PANE} style={zoneFeatureStyle} onEachFeature={onEachZone} />;
 });
 
 const PIN_HTML = `

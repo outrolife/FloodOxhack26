@@ -130,7 +130,7 @@
 /* ---------- Legend ---------- */
 .fc-x-legend {
   position: absolute; z-index: 750; right: var(--fc-space-3, 12px); bottom: 28px; width: 256px;
-  background: color-mix(in srgb, var(--fc-surface, #fff) 92%, transparent); backdrop-filter: blur(6px);
+  background: color-mix(in srgb, var(--fc-surface, #fff) 92%, transparent); /* no backdrop blur (map perf) */
   border: 1px solid var(--fc-border, rgba(22, 23, 26, 0.12)); border-radius: var(--fc-radius-md, 10px);
   box-shadow: var(--fc-shadow-2, 0 4px 12px rgba(0, 0, 0, 0.12)); font-family: var(--fc-font, inherit); color: var(--fc-ink, #16171a);
   transition: box-shadow var(--fc-dur, 250ms) var(--fc-ease, ease);
