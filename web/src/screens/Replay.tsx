@@ -280,7 +280,7 @@ function Player({
   const markers: ChartMarker[] = [];
   if (revealed(facts.rc50)) markers.push({ t: facts.rc50!, label: "FloodClock: likely", colour: "#184f95" });
   if (facts.official && revealed(facts.official.issuedAt)) markers.push({ t: facts.official.issuedAt, label: "EA warning", colour: "#6250d6" });
-  if (revealed(facts.crossing, true)) markers.push({ t: facts.crossing!, label: "River crossed", colour: "#b02a2a" });
+  if (revealed(facts.crossing, true)) markers.push({ t: facts.crossing!, label: "River crossed", colour: "var(--fc-risk-high)" });
 
   const eventRange: [number, number] = [Date.parse(replay.start), Math.max(Date.parse(replay.end), times[last] + 72 * HOUR)];
 

@@ -63,7 +63,16 @@ export function Drawer({ tab, onTab, onClose }: { tab: WorkingId; onTab: (id: Wo
               .
             </p>
           )}
-          <Suspense fallback={<p className="muted">Loading…</p>}>
+          <Suspense
+            fallback={
+              <div className="fc-loading" role="status">
+                <span className="fc-skeleton" aria-hidden="true" />
+                <span className="fc-skeleton" aria-hidden="true" />
+                <span className="fc-skeleton" aria-hidden="true" />
+                <p className="muted">Loading…</p>
+              </div>
+            }
+          >
             <View />
           </Suspense>
         </div>

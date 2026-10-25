@@ -1,7 +1,6 @@
-/* River Clock visual kit (#118). Builds on the palette in styles.css:
-   blue = model (--series-1), orange = baseline (--series-2), status colours
-   only for flood state and always with a shape or label.
-   Type scale (rem): 0.8 small · 1 body · 1.25 lead · 1.75 headline · 3 stat. */
+/* FloodClock visual kit (#118). Builds on ui/tokens.css: neutral chrome, the
+   risk ramp only for flood state (always with a shape or label); in charts
+   blue = model (--series-1), orange = baseline (--series-2). Type: --fc-text-*. */
 :root {
   --ui-header-h: 52px;
   --ui-footer-h: 34px;
@@ -18,51 +17,55 @@ body { background: var(--page); }
 
 .ui-app { min-height: 100vh; display: flex; flex-direction: column; }
 
-/* Header: logo mark + wordmark with the tagline under it, and the Info link.
-   Every colour here is at least 4.5:1 on the darkest and lightest end of the
-   gradient (white ≈ 8.6:1, tagline ≈ 6.7:1, the light-blue "Clock" ≈ 5.6:1). */
+/* Header: the wordmark with the tagline under it (no logo), and the Info link.
+   Neutral deep ink (colour is reserved for risk levels, #118). On the ink:
+   white 14-19:1, the "Clock" half of the wordmark 8.5-11:1, the tagline about 9.8:1 or better. */
 .ui-header {
-  position: relative; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
-  min-height: var(--ui-header-h); padding: 0.3rem 1.2rem; color: #fff;
-  background: #0d366b linear-gradient(100deg, #0a2a55 0%, #0d366b 45%, #134a8c 100%);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 2px 8px rgba(8, 30, 60, 0.28);
+  position: relative; display: flex; align-items: center; gap: var(--fc-space-3); flex-wrap: nowrap;
+  min-height: var(--ui-header-h); padding: var(--fc-space-1) var(--fc-space-3); color: #fff;
+  background: var(--fc-ink) linear-gradient(100deg, #111215 0%, var(--fc-ink) 45%, #2a2c31 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, var(--fc-shadow-2);
 }
-/* A thin "water line" along the bottom edge. */
+/* A thin hairline along the bottom edge. */
 .ui-header::after {
-  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; pointer-events: none;
-  background: linear-gradient(90deg, rgba(143, 208, 255, 0) 0%, rgba(143, 208, 255, 0.7) 30%, rgba(143, 208, 255, 0.25) 100%);
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; pointer-events: none;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.28) 30%, rgba(255, 255, 255, 0.08) 100%);
 }
 .ui-brand {
-  display: inline-flex; align-items: center; gap: 0.6rem; color: #fff; text-decoration: none;
-  border-radius: 8px; padding: 0.15rem 0.35rem 0.15rem 0.1rem; margin-left: -0.1rem;
+  display: inline-flex; align-items: center; gap: var(--fc-space-2); color: #fff; text-decoration: none;
+  border-radius: var(--fc-radius-sm); padding: 2px var(--fc-space-1); margin-left: calc(-1 * var(--fc-space-1)); min-width: 0;
 }
-.ui-logo { flex: none; display: block; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)); }
+/* Phones: brand and Info share one row (the tagline wraps); roomier from 701 px. */
+@media (min-width: 701px) { .ui-header { gap: var(--fc-space-4); padding: var(--fc-space-1) var(--fc-space-4); } }
 .ui-brand-text { display: flex; flex-direction: column; line-height: 1.1; }
-.ui-wordmark { font-weight: 800; font-size: 1.3rem; letter-spacing: -0.01em; }
-.ui-wordmark-accent { color: #9fd4ff; }
-.ui-tagline { color: rgba(255, 255, 255, 0.88); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.02em; }
+.ui-wordmark { font-weight: 800; font-size: var(--fc-text-lg); letter-spacing: -0.01em; }
+.ui-wordmark-accent { color: #c9cace; font-weight: var(--fc-weight-medium); }
+.ui-tagline { color: rgba(255, 255, 255, 0.82); font-size: var(--fc-text-xs); font-weight: var(--fc-weight-medium); letter-spacing: 0.02em; }
 .ui-header-link {
-  margin-left: auto; display: inline-flex; align-items: center; gap: 0.4rem;
-  color: #fff; font-size: 0.9rem; font-weight: 600; text-decoration: none;
-  padding: 0.35rem 0.85rem; border: 1px solid rgba(255, 255, 255, 0.45); border-radius: 999px;
+  margin-left: auto; flex: none; display: inline-flex; align-items: center; gap: var(--fc-space-2);
+  color: #fff; font-size: var(--fc-text-sm); font-weight: var(--fc-weight-bold); text-decoration: none;
+  min-height: 2.25rem; padding: var(--fc-space-1) var(--fc-space-3); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: var(--fc-radius-pill);
   background: rgba(255, 255, 255, 0.06);
+  transition: background var(--fc-dur-fast) var(--fc-ease), border-color var(--fc-dur-fast) var(--fc-ease);
 }
 .ui-header-link:hover { background: rgba(255, 255, 255, 0.16); border-color: #fff; }
 .ui-header-link-icon { flex: none; }
 .ui-brand:hover .ui-wordmark { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 2px; }
-.ui-header a:focus-visible, .ui-header button:focus-visible { outline: 3px solid #ffd166; outline-offset: 2px; }
+/* The token focus ring, inverted for the dark header: white ring, ink halo. */
+.ui-header a:focus-visible, .ui-header button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 4px var(--fc-ink); }
 .ui-nav-item, .ui-presenter-toggle {
   display: inline-flex; align-items: center; gap: 0.35rem;
-  background: transparent; color: #fff; border: 1px solid transparent; border-radius: 6px;
-  padding: 0.35rem 0.75rem; font: inherit; cursor: pointer;
+  background: transparent; color: #fff; border: 1px solid transparent; border-radius: var(--fc-radius-pill);
+  padding: var(--fc-space-1) var(--fc-space-3); font: inherit; cursor: pointer;
+  transition: background var(--fc-dur-fast) var(--fc-ease), color var(--fc-dur-fast) var(--fc-ease);
 }
 .ui-nav-item:hover, .ui-presenter-toggle:hover { background: rgba(255, 255, 255, 0.12); }
-.ui-nav-item[aria-current="page"] { background: #fff; color: #0d366b; font-weight: 650; }
+.ui-nav-item[aria-current="page"] { background: #fff; color: var(--fc-ink); font-weight: var(--fc-weight-bold); }
 .ui-presenter-toggle { border-color: rgba(255, 255, 255, 0.4); font-size: 0.85rem; }
-.ui-presenter-toggle[aria-pressed="true"] { background: #fff; color: #0d366b; }
+.ui-presenter-toggle[aria-pressed="true"] { background: #fff; color: var(--fc-ink); }
 .ui-key {
   display: inline-grid; place-items: center; min-width: 1.15rem; height: 1.15rem; padding: 0 0.2rem;
-  border: 1px solid currentColor; border-radius: 4px; font: 600 0.7rem/1 system-ui, sans-serif; opacity: 0.75;
+  border: 1px solid currentColor; border-radius: 4px; font: 600 0.7rem/1 var(--fc-font); opacity: 0.75;
 }
 
 main.ui-main { flex: 1; max-width: none; margin: 0; padding: var(--fc-space-3) var(--fc-space-3) var(--fc-space-5); }

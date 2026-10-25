@@ -11,23 +11,6 @@ import { WORKING_EVENT } from "./clock/ProofFooter";
 import { EVENT_CHOICES } from "./clock/choices";
 import "./ui/ui.css";
 
-/** The brand mark: a water drop with a clock face inside. Inline SVG, so it works offline. */
-function LogoMark() {
-  return (
-    <svg className="ui-logo" viewBox="0 0 32 32" width="34" height="34" aria-hidden="true" focusable="false">
-      <defs>
-        <linearGradient id="ui-logo-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#8fd0ff" />
-          <stop offset="1" stopColor="#2a78d6" />
-        </linearGradient>
-      </defs>
-      <path d="M16 2.5C16 2.5 6 13.6 6 20a10 10 0 0 0 20 0C26 13.6 16 2.5 16 2.5Z" fill="url(#ui-logo-fill)" stroke="#fff" strokeWidth="1.4" />
-      <circle cx="16" cy="20" r="6.2" fill="#0d366b" stroke="#fff" strokeWidth="1.2" />
-      <path d="M16 16.3V20l2.7 1.7" fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 function InfoIcon() {
   return (
     <svg className="ui-header-link-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
@@ -73,7 +56,6 @@ export default function App() {
     <div className="ui-app">
       <header className="ui-header">
         <a className="ui-brand" href={`#/${NOW}`} onClick={() => setEvent(NOW)}>
-          <LogoMark />
           <span className="ui-brand-text">
             <span className="ui-wordmark">
               Flood<span className="ui-wordmark-accent">Clock</span>

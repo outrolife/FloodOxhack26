@@ -9,6 +9,12 @@
   min-height: 200px; display: grid; place-items: center; color: var(--fc-ink-3); font-size: var(--fc-text-lg);
   background: var(--fc-surface-2); border-radius: var(--fc-radius-lg);
 }
+/* Loading (aria-busy): the shared skeleton shimmer behind the words. */
+.ck-pending.is-loading {
+  background: linear-gradient(90deg, var(--fc-surface-2) 0%, #f8f8f6 45%, var(--fc-surface-2) 90%) 0 0 / 300% 100%;
+  animation: fc-shimmer 1.4s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .ck-pending.is-loading { animation: none; } }
 .ck-chart { width: 100%; }
 .ck-chart .rp-chart { width: 100%; height: clamp(180px, 26vh, 260px); }
 .ck-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--fc-space-2) var(--fc-space-3); }
