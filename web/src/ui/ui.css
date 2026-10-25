@@ -109,10 +109,6 @@ main.ui-main { flex: 1; max-width: none; margin: 0; padding: var(--ui-gap) 1.2re
    position: absolute + inset: 0 override it (the parent then sets the size). */
 .ui-basemap { position: relative; width: 100%; height: 60vh; min-height: 360px; }
 .ui-basemap .leaflet-container { position: absolute; inset: 0; height: 100%; width: 100%; background: #f2efe9; }
-.ui-basemap-toggle {
-  position: absolute; z-index: 600; top: 10px; right: 10px; font: inherit; font-size: 0.8rem;
-  padding: 0.25rem 0.6rem; border: 1px solid var(--axis); border-radius: 6px; background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(3px); cursor: pointer;
-}
 /* Town names on the catchment layer (BaseMap): quiet, under everything else. */
 .leaflet-marker-icon.ui-town { background: none; border: 0; overflow: visible; pointer-events: none; }
 .ui-town span {

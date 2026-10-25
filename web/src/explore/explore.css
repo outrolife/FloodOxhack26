@@ -309,9 +309,9 @@
   .fc-x-skel { animation: none; }
 }
 
-/* In the map screen's top bar (ClockScreen .rc-top), right of the event switch. */
-.rc-top > .fc-x-search { flex: 1 1 280px; max-width: 440px; margin-left: auto; }
-@media (max-width: 700px) { .rc-top > .fc-x-search { flex-basis: 100%; margin-left: 0; order: -1; } }
+/* In the map screen's controls bar (ClockScreen .rc-controls), after the time. */
+.rc-controls > .fc-x-search { flex: 0 1 340px; min-width: 220px; }
+@media (max-width: 700px) { .rc-controls > .fc-x-search { flex: 1 1 100%; order: -1; } }
 .fc-x-h4 { margin: 4px 14px 6px; font-size: var(--fc-text-xs, 0.75rem); font-weight: var(--fc-weight-bold, 700); letter-spacing: 0.05em; text-transform: uppercase; color: var(--fc-ink-3, #68696d); }
 .fc-x-how > ul { margin: 0; padding: 0 14px 10px 30px; font-size: var(--fc-text-sm, 0.875rem); line-height: 1.5; color: var(--fc-ink-2, #45464a); }
 .fc-x-how[open] > ul { animation: fc-x-fade var(--fc-dur, 250ms) var(--fc-ease, ease) both; }

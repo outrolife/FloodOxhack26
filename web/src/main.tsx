@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import "./ui/tokens.css";
 import "leaflet/dist/leaflet.css";
 import "./styles.css";
 import App from "./App";

@@ -4,6 +4,7 @@
 // risk badge (colour plus words), one plain sentence, the FloodClock forecast
 // at a nearby flood spot, and the sandbag estimate.
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { createPortal } from "react-dom";
 import { SandbagCard } from "./SandbagCard";
 import type { RiskState, Selection } from "./useExplore";
 import type { NearbySpot, RiskBand } from "./types";
@@ -30,6 +31,22 @@ const distanceWords = (m: number) => (m < 1000 ? `${Math.round(m / 10) * 10} m a
 const SWIPE_CLOSE_PX = 80;
 const EXIT_MS = 220;
 
+const PHONE_QUERY = "(max-width: 700px)";
+
+/** True on phone-width screens (the card becomes a bottom sheet), kept up to date on resize. */
+export function useIsPhone(): boolean {
+  const mq = () => (typeof window !== "undefined" && typeof window.matchMedia === "function" ? window.matchMedia(PHONE_QUERY) : null);
+  const [phone, setPhone] = useState(() => mq()?.matches ?? false);
+  useEffect(() => {
+    const m = mq();
+    if (!m) return;
+    const on = () => setPhone(m.matches);
+    m.addEventListener?.("change", on);
+    return () => m.removeEventListener?.("change", on);
+  }, []);
+  return phone;
+}
+
 export function PointCard({
   selection,
   risk,
@@ -45,9 +62,15 @@ export function PointCard({
   const [drag, setDrag] = useState(0);
   const start = useRef<number | null>(null);
   const headRef = useRef<HTMLHeadingElement>(null);
+  const exit = useRef(0);
+  const phone = useIsPhone();
 
   // A new point re-opens the card (cancels a close in progress).
-  useEffect(() => setClosing(false), [selection.id]);
+  useEffect(() => {
+    window.clearTimeout(exit.current);
+    setClosing(false);
+  }, [selection.id]);
+  useEffect(() => () => window.clearTimeout(exit.current), []);
 
   // Esc closes the card.
   useEffect(() => {
@@ -61,12 +84,12 @@ export function PointCard({
   const close = () => {
     if (closing) return;
     setClosing(true);
-    window.setTimeout(onClose, EXIT_MS);
+    exit.current = window.setTimeout(onClose, EXIT_MS);
   };
 
   // Swipe down on the sheet's handle or header (phones).
   const onDown = (e: ReactPointerEvent) => {
-    if (e.pointerType === "mouse") return;
+    if (e.pointerType === "mouse" || (e.target as Element).closest?.("button")) return;
     start.current = e.clientY;
     (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
   };
@@ -85,7 +108,7 @@ export function PointCard({
   const title = place?.label ?? (selection.status === "error" ? "Dropped pin" : null);
   const coords = `${selection.lat.toFixed(5)}, ${selection.lon.toFixed(5)}`;
 
-  return (
+  const card = (
     <aside
       className={`fc-x-card${closing ? " is-closing" : ""}${drag ? " is-dragging" : ""}`}
       style={drag ? { transform: `translateY(${drag}px)` } : undefined}
@@ -180,4 +203,6 @@ export function PointCard({
       </div>
     </aside>
   );
+  // Phones: a bottom sheet over the whole page, outside the map's stacking context.
+  return phone && typeof document !== "undefined" ? createPortal(card, document.body) : card;
 }

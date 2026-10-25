@@ -1,8 +1,10 @@
-// River Clock, the one screen (#118): the event switch on top, the flow map as
-// the full-width hero (rivers rise and flow, small spot markers) with the
-// two-line Scoreboard for the selected spot on it, the Timeline underneath at
-// full width (#135), and a one-line proof footer. "Now" reads the live forecast; a past flood loads only its own
-// replay, on demand (useClockEvent, shared with the Timeline, so one fetch).
+// FloodClock, the one screen (#118): a controls bar on top (what to show, the
+// map view, the moment on screen), the flow map as the full-width hero (rivers
+// rise and flow, small spot markers) with the two-line Scoreboard for the
+// selected spot, the map key as a strip under the map, the Timeline underneath
+// at full width (#135), and a one-line proof footer. "Now" reads the live
+// forecast; a past flood loads only its own replay, on demand (useClockEvent,
+// shared with the Timeline, so one fetch).
 import { Suspense, lazy, useCallback, useMemo, useState } from "react";
 import type { EventsFile, Forecast, Spot, StationsFile, TravelTimesFile } from "../contracts";
 import { mapFlavour } from "./flowgl";
@@ -35,10 +37,13 @@ const NONE_SPOTS: Spot[] = [];
 const NONE_PAIRS: TravelTimesFile = [];
 const NONE_STALE: string[] = [];
 
-/** The switch: choices on it, and the rest under "More". Keys 1–5 pick the ones on it, in order. */
+/** The featured choices (the old switch) and the rest. */
 export const SWITCH = EVENT_CHOICES.filter((c) => !c.more);
 export const MORE = EVENT_CHOICES.filter((c) => c.more);
+/** Number keys 1-9 pick these, in order: 1-5 the featured ones (as before), then the rest. */
+export const KEY_ORDER: readonly EventChoice[] = [...SWITCH, ...MORE];
 
+/** The one dropdown: what the screen shows. A native <select> (keyboard, touch and screen readers for free), grouped. */
 export function EventSwitch({
   value,
   onChange,
@@ -46,43 +51,56 @@ export function EventSwitch({
 }: {
   value: string;
   onChange: (id: string) => void;
-  /** Full event names from events.json, for tooltips and the More menu. */
+  /** Full event names from events.json. */
   names: Record<string, string>;
 }) {
-  const inMore = MORE.find((o) => o.id === value);
-  const title = (c: EventChoice) => (c.id === "now" ? "The live forecast" : (names[c.id] ?? c.label));
+  const name = (c: EventChoice) => (c.id === "now" ? "Now: live forecast" : (names[c.id] ?? c.label));
+  const option = (c: EventChoice) => (
+    <option key={c.id} value={c.id}>
+      {name(c)}
+    </option>
+  );
+  const live = SWITCH.filter((c) => c.id === "now");
+  const featured = SWITCH.filter((c) => c.id !== "now");
   return (
-    <nav className="rc-switch" aria-label="What to show">
-      {SWITCH.map((c, i) => (
-        <button
-          key={c.id}
-          type="button"
-          className="rc-switch-btn"
-          aria-pressed={c.id === value}
-          aria-keyshortcuts={String(i + 1)}
-          title={`${title(c)} (key ${i + 1})`}
-          onClick={() => onChange(c.id)}
-        >
-          {c.label}
-        </button>
-      ))}
-      {MORE.length > 0 && (
+    <label className="rc-field rc-event">
+      <span className="rc-field-label">Showing</span>
+      <span className={`rc-select-wrap${value === "now" ? " live" : ""}`}>
         <select
-          className={`rc-switch-more${inMore ? " active" : ""}`}
-          aria-label="More past floods"
-          value={inMore ? inMore.id : ""}
-          onChange={(e) => e.target.value && onChange(e.target.value)}
+          className="rc-select"
+          aria-label="What to show"
+          title={`A live forecast or a past flood (keys 1-${KEY_ORDER.length})`}
+          aria-keyshortcuts={KEY_ORDER.map((_, i) => String(i + 1)).join(" ")}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
         >
-          <option value="">More…</option>
-          {MORE.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.label}
-              {names[c.id] && names[c.id] !== c.label ? ` (${names[c.id]})` : ""}
-            </option>
-          ))}
+          <optgroup label="Live">{live.map(option)}</optgroup>
+          <optgroup label="Past floods (replays)">{featured.map(option)}</optgroup>
+          {MORE.length > 0 && <optgroup label="Earlier floods (replays)">{MORE.map(option)}</optgroup>}
         </select>
-      )}
-    </nav>
+      </span>
+    </label>
+  );
+}
+
+/** Oxford or the whole catchment: a two-way segmented control (two choices read faster as buttons than a menu). */
+function MapViewSwitch({ value, onChange }: { value: MapView; onChange: (v: MapView) => void }) {
+  return (
+    <div className="rc-field">
+      <span className="rc-field-label" id="rc-mapview-label">
+        Map
+      </span>
+      <div className="rc-seg" role="group" aria-labelledby="rc-mapview-label">
+        {([
+          ["oxford", "Oxford"],
+          ["catchment", "Catchment"],
+        ] as const).map(([view, label]) => (
+          <button key={view} type="button" aria-pressed={value === view} onClick={() => onChange(view)}>
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -100,7 +118,7 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
   const onTime = useCallback((t: number) => setTime({ event, t }), [event]);
 
   usePickKeys((n) => {
-    const c = SWITCH[n - 1];
+    const c = KEY_ORDER[n - 1];
     if (c) onEvent(c.id);
   });
 
@@ -177,42 +195,38 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
 
   return (
     <div className="rc-screen">
-      <div className="rc-top">
+      {/* The controls bar: what to show, the map view and the moment on screen, all off the map. */}
+      <div className="rc-controls">
         <EventSwitch value={event} onChange={onEvent} names={names} />
+        <MapViewSwitch value={mapView} onChange={setMapView} />
+        <div className="rc-when" aria-live="polite">
+          <span className={`rc-when-tag${event === "now" ? " live" : ""}`}>{event === "now" ? "Live" : "Replay"}</span>
+          {t != null && <strong className="rc-when-time">{event === "now" ? formatDateTime(t) : formatDateTimeYear(t)}</strong>}
+          {note && <span className="rc-when-note">{note}</span>}
+        </div>
         <SearchBox onPick={explore.onPick} />
       </div>
 
-      <div className="rc-hero">
-        {gl ? (
-          <Suspense fallback={<div className="ui-basemap rc-flowmap rc-gl" aria-busy="true" />}>
-            <FlowMapGL {...mapProps} />
-          </Suspense>
-        ) : (
-          <FlowMap {...mapProps} />
-        )}
-        <div className="rc-map-views" role="group" aria-label="Map view">
-          {([
-            ["oxford", "Oxford"],
-            ["catchment", "Catchment"],
-          ] as const).map(([view, label]) => (
-            <button key={view} type="button" aria-pressed={mapView === view} onClick={() => setMapView(view)}>
-              {label}
-            </button>
-          ))}
+      <div className="rc-stage">
+        <div className="rc-hero">
+          {gl ? (
+            <Suspense fallback={<div className="ui-basemap rc-flowmap rc-gl" aria-busy="true" />}>
+              <FlowMapGL {...mapProps} />
+            </Suspense>
+          ) : (
+            <FlowMap {...mapProps} />
+          )}
+          {/* Explore (#118): the zones key and the point card sit over the map. */}
+          {!gl && <ZonesLegend zones={explore.zones} show={explore.showZones} onToggle={explore.setShowZones} />}
+          {explore.selection && <PointCard selection={explore.selection} risk={explore.risk} onClose={explore.close} onRetry={explore.retry} />}
         </div>
-        <div className="rc-badge" aria-live="polite">
-          <strong>{label}</strong>
-          {t != null && <span> · {event === "now" ? formatDateTime(t) : formatDateTimeYear(t)}</span>}
-          {note && <span className="rc-badge-note"> · {note}</span>}
-        </div>
-        <FlowKey />
-        {/* The Scoreboard sits on the map (top right), so the map keeps the full width. */}
+        {/* The Scoreboard: over the map's top right on wide screens, under the map on phones. */}
         <div className="rc-hero-score">
           {spotName && <div className="rc-hero-score-spot">{spotName}</div>}
           <Scoreboard event={event} spot={spot} t={t ?? undefined} />
         </div>
-        {!gl && <ZonesLegend zones={explore.zones} show={explore.showZones} onToggle={explore.setShowZones} />}
-        {explore.selection && <PointCard selection={explore.selection} risk={explore.risk} onClose={explore.close} onRetry={explore.retry} />}
+        {/* The key: a strip along the map's bottom edge, outside the map. */}
+        <FlowKey />
       </div>
 
       <div className="rc-below">

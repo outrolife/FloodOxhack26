@@ -1,8 +1,9 @@
-// BaseMap (#118): a readable Oxford map that works fully offline. The base is
-// a bundled vector GeoJSON (data/geo/oxford-base.geojson: OSM water, rivers,
-// main roads, railways and buildings; © OpenStreetMap contributors, ODbL),
-// drawn as Leaflet vector layers. OSM raster tiles are an optional extra when
-// online. Children are overlays (spot clocks, spread heatmap, pins).
+// BaseMap (#118): a readable Oxford map that works fully offline. Online, it
+// shows the OSM street tiles. Offline, or once tiles fail to load, it falls
+// back by itself (no toggle) to a bundled vector GeoJSON
+// (data/geo/oxford-base.geojson: OSM water, rivers, main roads, railways and
+// buildings; © OpenStreetMap contributors, ODbL), drawn as Leaflet vector
+// layers. Children are overlays (spot clocks, spread heatmap, pins).
 // Under it, a catchment-wide layer (data/geo/catchment-base.geojson: OSM main
 // roads, railways, lakes, built-up areas and town names across the upper
 // Thames and Cherwell) fills the map out to the furthest upstream gauges.
@@ -107,14 +108,28 @@ function PinchZoom() {
     const el = map.getContainer();
     let target: number | null = null;
     let idle = 0;
+    let frame = 0;
+    let at: L.Point | null = null;
     const clamp = (z: number) => Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), z));
+    // At most one redraw per frame, at the map's 0.25 zoom steps. An unsnapped zoom that rounds back to
+    // the current one would only shift the centre, so a slow pinch would slide the map instead of zooming.
+    const apply = () => {
+      frame = 0;
+      if (target == null || at == null) return;
+      const z = Math.round(target * 4) / 4;
+      if (z !== map.getZoom()) map.setZoomAround(at, z, { animate: false });
+    };
+    const zoomTo = (z: number, point: L.Point) => {
+      target = clamp(z);
+      at = point;
+      if (!frame) frame = window.requestAnimationFrame(apply);
+    };
     const onWheel = (e: WheelEvent) => {
       if (!e.ctrlKey) return;
       e.preventDefault();
       // Pixel deltas from a trackpad are small and many; line deltas (ctrl + mouse wheel) are coarse.
       const step = e.deltaMode === 1 ? e.deltaY * 0.25 : e.deltaY * 0.012;
-      target = clamp((target ?? map.getZoom()) - step);
-      map.setZoomAround(map.mouseEventToContainerPoint(e), target, { animate: false });
+      zoomTo((target ?? map.getZoom()) - step, map.mouseEventToContainerPoint(e));
       window.clearTimeout(idle);
       idle = window.setTimeout(() => (target = null), 250);
     };
@@ -127,15 +142,21 @@ function PinchZoom() {
     const onGestureChange = (e: Event) => {
       e.preventDefault();
       const g = e as Gesture;
-      map.setZoomAround(map.mouseEventToContainerPoint(g as unknown as MouseEvent), clamp(start + Math.log2(g.scale)), { animate: false });
+      zoomTo(start + Math.log2(g.scale), map.mouseEventToContainerPoint(g as unknown as MouseEvent));
     };
     const block = (e: Event) => e.preventDefault();
     el.addEventListener("wheel", onWheel, { passive: false });
-    el.addEventListener("gesturestart", onGestureStart);
-    el.addEventListener("gesturechange", onGestureChange);
-    el.addEventListener("gestureend", block);
+    // Safari's gesture events are for trackpads here. On iPhone and iPad they also fire for touchscreen
+    // pinches, which Leaflet's touch zoom already handles, so two handlers would fight over one pinch.
+    const trackpadGestures = typeof navigator !== "undefined" && navigator.maxTouchPoints === 0;
+    if (trackpadGestures) {
+      el.addEventListener("gesturestart", onGestureStart);
+      el.addEventListener("gesturechange", onGestureChange);
+      el.addEventListener("gestureend", block);
+    }
     return () => {
       window.clearTimeout(idle);
+      if (frame) window.cancelAnimationFrame(frame);
       el.removeEventListener("wheel", onWheel);
       el.removeEventListener("gesturestart", onGestureStart);
       el.removeEventListener("gesturechange", onGestureChange);
@@ -229,6 +250,25 @@ function MapSizer({ bounds, pad = DEFAULT_PAD }: { bounds: Bounds; pad?: FitPadd
   return null;
 }
 
+/** Failed tiles before the map falls back to the bundled vector basemap. */
+export const TILE_ERRORS_TO_FALL_BACK = 3;
+
+/** navigator.onLine, kept up to date by the browser's online / offline events. */
+function useOnline(): boolean {
+  const [online, setOnline] = useState(() => (typeof navigator === "undefined" ? false : navigator.onLine));
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
+    };
+  }, []);
+  return online;
+}
+
 /** A map failure shows a note instead of unmounting the whole page. */
 class MapErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
@@ -244,14 +284,14 @@ export function BaseMap({
   bounds = OXFORD_BOUNDS,
   children,
   className,
-  tiles: tilesDefault = false,
+  tiles: wantTiles = true,
   interactive = true,
   fitPadding,
 }: {
   bounds?: [[number, number], [number, number]];
   children?: ReactNode;
   className?: string;
-  /** Start with OSM raster tiles on (only shown when online). */
+  /** Use the OSM street tiles when online (default true); false = always the bundled vector basemap. */
   tiles?: boolean;
   /** Allow pan and zoom (default true). Scroll-wheel zoom is off; a trackpad pinch zooms the map (PinchZoom). */
   interactive?: boolean;
@@ -260,8 +300,14 @@ export function BaseMap({
 }) {
   const base = useBaseMap();
   const catchBase = useCatchBase();
-  const online = typeof navigator === "undefined" ? false : navigator.onLine;
-  const [tiles, setTiles] = useState(tilesDefault && online);
+  const online = useOnline();
+  // Tiles that fail to load (no network behind a "connected" Wi-Fi, a blocked server) switch to the
+  // bundled basemap. A few failures, not one, so a single dropped tile doesn't swap the whole map.
+  const [tileErrors, setTileErrors] = useState(0);
+  useEffect(() => {
+    if (online) setTileErrors(0); // back online: try the tiles again
+  }, [online]);
+  const tiles = wantTiles && online && tileErrors < TILE_ERRORS_TO_FALL_BACK;
   const fit = safeBounds(bounds);
   // Start from a centre and zoom, never from bounds: fitting bounds in a container that has no size yet
   // gives a NaN zoom. MapSizer fits the bounds once the container is laid out.
@@ -285,7 +331,7 @@ export function BaseMap({
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            eventHandlers={{ tileerror: () => setTiles(false) }}
+            eventHandlers={{ tileerror: () => setTileErrors((n) => n + 1) }}
           />
         )}
         {!tiles &&
@@ -318,11 +364,6 @@ export function BaseMap({
         {children}
       </MapContainer>
       </MapErrorBoundary>
-      {online && (
-        <button className="ui-basemap-toggle" onClick={() => setTiles((t) => !t)} aria-pressed={tiles}>
-          {tiles ? "Simple map" : "Street map"}
-        </button>
-      )}
       {base.status === "none" && !tiles && <div className="ui-basemap-note">The Oxford basemap could not be loaded (data/geo/oxford-base.geojson).</div>}
     </div>
   );

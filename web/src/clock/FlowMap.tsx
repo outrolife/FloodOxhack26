@@ -26,9 +26,11 @@ import { ExploreLayer, type ExploreLayerProps } from "../explore";
  * narrow ones) and the key (bottom left). Matches shell.css.
  */
 function fitPadding(mapView: MapView): FitPadding {
+  // [x, y] px. Left: clear of the zoom buttons. Right (wide screens, Oxford): clear of the Scoreboard card.
+  // Phones put the Scoreboard and the key under the map, so nothing else covers it.
   const wide = typeof window === "undefined" || window.innerWidth > 700;
-  if (wide) return { topLeft: [24, 56], bottomRight: [mapView === "catchment" ? 24 : 390, 24] };
-  return { topLeft: [16, 56], bottomRight: [16, 150] };
+  if (wide) return { topLeft: [56, 20], bottomRight: [mapView === "catchment" ? 24 : 360, 20] };
+  return { topLeft: [48, 16], bottomRight: [16, 16] };
 }
 
 /** "Islip (Cherwell)" → "Islip". */
@@ -120,7 +122,7 @@ export function FlowMap({
   stale: string[];
   selected: string;
   onSelect: (spot: string) => void;
-  /** Replays: per spot, the River Clock vs EA badge and the warning pulse at the playhead. */
+  /** Replays: per spot, the FloodClock vs EA badge and the warning pulse at the playhead. */
   marks?: Record<string, { badge: DotBadge | null; pulse: boolean }>;
 }) {
   const base = useBaseMap();
@@ -285,7 +287,8 @@ export function FlowMap({
 export function FlowKey() {
   const order: Bucket[] = [0, 2, 4];
   return (
-    <div className="rc-flowkey" aria-label="How to read the rivers">
+    <div className="rc-flowkey" role="note" aria-label="How to read the rivers">
+      <span className="rc-field-label">Key</span>
       {order.map((b) => (
         <span key={b}>
           <i className="rc-flowkey-sw" style={{ borderTopColor: FLOW_LOOK[b].colour, borderTopWidth: 2 + FLOW_LOOK[b].widthX * 1.5 }} />{" "}
