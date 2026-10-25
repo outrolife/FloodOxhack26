@@ -2,10 +2,10 @@
 // rises and flows, the upstream chain as schematic links whose dashes move at
 // the real travel time (pulses; words on hover), and small identical spot
 // markers (SpotDots, shared placement rule). Everything is read from the data at time t.
-import { Fragment, useMemo } from "react";
+import { Fragment, useEffect, useMemo } from "react";
 import type { FeatureCollection } from "geojson";
 import type { Path, PathOptions } from "leaflet";
-import { GeoJSON, Polyline, Tooltip } from "react-leaflet";
+import { GeoJSON, Polyline, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import type { Forecast, Spot, Station, TravelPair } from "../contracts";
 import type { Point } from "../components/shared/series";
 import { BaseMap, useBaseMap, type FitPadding } from "../ui/BaseMap";
@@ -35,6 +35,16 @@ const NEAR_DEG = 0.04;
 const NO_READING = "#b7c3cc";
 
 const baseWeight = (kind: unknown) => (kind === "river" ? 4 : 2.2);
+
+function FlowMotion() {
+  const map = useMap();
+  useMapEvents({
+    movestart: () => map.getContainer().classList.add("rc-map-moving"),
+    moveend: () => map.getContainer().classList.remove("rc-map-moving"),
+  });
+  useEffect(() => () => map.getContainer().classList.remove("rc-map-moving"), [map]);
+  return null;
+}
 
 /** How a link is drawn: as usual, bright on the selected spot's river walk, or dimmed off it. */
 type LinkMode = "normal" | "walk" | "dim";
@@ -226,6 +236,7 @@ export function FlowMap({
 
   return (
     <BaseMap bounds={bounds} className={`rc-flowmap${walking ? " rc-walking" : ""}`} fitPadding={fitPadding()}>
+      <FlowMotion />
       {Object.entries(groups).map(([g, fc]) => {
         const { bucket, known } = bucketOf(g);
         return <Water key={`${g}|${oxfordKey}`} fc={fc} bucket={bucket} known={known} dim={walking && !walk.gauges.has(g)} />;

@@ -45,6 +45,8 @@ html.presenter .rc-hero { height: 64vh; }
 .rc-flow-b2 { animation-duration: 3.2s; }
 .rc-flow-b3 { animation-duration: 2.2s; }
 .rc-flow-b4 { animation-duration: 1.5s; }
+.rc-flowmap .leaflet-container.rc-map-moving .rc-flow,
+.rc-flowmap .leaflet-container.rc-map-moving .rc-pulse { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .rc-flow { animation: none; } }
 
 /* Pulses along the upstream links: two round dots per link (pathLength 100, dash "0 50"),

@@ -22,6 +22,10 @@ const WAIT_MS = 15_000;
 const TEST_MS = 40_000;
 
 const deck = vi.hoisted(() => ({ props: [] as { layers?: { props: Record<string, unknown> }[] }[] }));
+const mapCallbacks = vi.hoisted(() => ({
+  onMoveStart: null as (() => void) | null,
+  onMoveEnd: null as (() => void) | null,
+}));
 
 vi.mock("maplibre-gl", () => ({ addProtocol: vi.fn() }));
 vi.mock("pmtiles", () => ({ Protocol: class { tile = vi.fn(); } }));
@@ -52,8 +56,15 @@ vi.mock("react-map-gl/maplibre", async () => {
     fitBounds: () => {},
     touchZoomRotate: { disableRotation: () => {} },
   };
-  type P = { children?: React.ReactNode; onLoad?: (e: { target: typeof map }) => void };
-  const MapGL = React.forwardRef<unknown, P>(function MapGL({ children, onLoad }, ref) {
+  type P = {
+    children?: React.ReactNode;
+    onLoad?: (e: { target: typeof map }) => void;
+    onMoveStart?: () => void;
+    onMoveEnd?: () => void;
+  };
+  const MapGL = React.forwardRef<unknown, P>(function MapGL({ children, onLoad, onMoveStart, onMoveEnd }, ref) {
+    mapCallbacks.onMoveStart = onMoveStart ?? null;
+    mapCallbacks.onMoveEnd = onMoveEnd ?? null;
     React.useImperativeHandle(ref, () => ({ getMap: () => map }));
     React.useEffect(() => onLoad?.({ target: map }), []); // eslint-disable-line react-hooks/exhaustive-deps
     return h("div", { className: "maplibregl-map" }, children);
@@ -101,6 +112,8 @@ const urlOf = (input: RequestInfo | URL) => (typeof input === "string" ? input :
 
 beforeEach(() => {
   deck.props = [];
+  mapCallbacks.onMoveStart = null;
+  mapCallbacks.onMoveEnd = null;
   // jsdom has no WebGL: say it does, so the GL map (stand-ins) is drawn rather than the Leaflet fallback.
   vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({} as never);
 });
@@ -144,6 +157,12 @@ describe("App smoke test, map v3 (?map=gl)", () => {
     }
     // The flow layers are drawn, and no path anywhere is a straight two-point line.
     await waitFor(() => expect(deck.props.length).toBeGreaterThan(0), { timeout: WAIT_MS });
+    act(() => mapCallbacks.onMoveStart?.());
+    const pausedAt = deck.props.length;
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    expect(deck.props).toHaveLength(pausedAt);
+    act(() => mapCallbacks.onMoveEnd?.());
+    await waitFor(() => expect(deck.props.length).toBeGreaterThan(pausedAt), { timeout: WAIT_MS });
     for (const p of deck.props.slice(-3)) {
       for (const layer of p.layers ?? []) {
         for (const d of (layer.props.data as { path: unknown[] }[]) ?? []) expect(d.path.length).toBeGreaterThanOrEqual(3);
