@@ -59,8 +59,10 @@
 .rc-hero { position: relative; isolation: isolate; height: 52vh; min-height: 300px; overflow: hidden; background: #f2efe9; }
 .rc-hero .ui-basemap { position: absolute; inset: 0; height: auto; min-height: 0; }
 html.presenter .rc-hero { height: 64vh; }
-/* Street tiles, toned down so the water lines, pulses and markers read first. */
-.rc-flowmap .leaflet-tile-pane { filter: saturate(0.45) contrast(0.92) brightness(1.04); }
+/* Street tiles, toned down so the water lines, pulses and markers read first. Opacity over the warm
+   page colour, not a CSS filter: a filter on the tile pane is re-run on every frame of a pan or zoom
+   (map perf); group opacity is composited almost for free. */
+.rc-flowmap .leaflet-tile-pane { opacity: 0.68; }
 .rc-hero .leaflet-fade-anim .leaflet-popup { transition: opacity var(--fc-dur) var(--fc-ease); }
 .rc-hero .leaflet-control-zoom { border: 1px solid var(--fc-border); border-radius: var(--fc-radius-md); box-shadow: var(--fc-shadow-2); overflow: hidden; }
 .rc-hero .leaflet-control-zoom a { color: var(--fc-ink); transition: background var(--fc-dur-fast) var(--fc-ease); }
