@@ -230,7 +230,7 @@ function ReplayPlayer({
     markers.push({ t: officialAlert.issuedAt, label: `Official ${officialLabel(officialAlert)}${at(officialAlert.issuedAt)}`, colour: "#a8336a" });
   if (officialWarning && revealed(officialWarning.issuedAt))
     markers.push({ t: officialWarning.issuedAt, label: `Official ${officialLabel(officialWarning)}${at(officialWarning.issuedAt)}`, colour: "#6250d6" });
-  if (crossing && revealed(crossing)) markers.push({ t: crossing, label: `River reached flood level${at(crossing)}`, colour: "#d03b3b" });
+  if (crossing && revealed(crossing)) markers.push({ t: crossing, label: `River reached flood level${at(crossing)}`, colour: "var(--fc-risk-high)" });
 
   const lastF = Date.parse(forecasts[forecasts.length - 1].issuedAt);
   const eventDomain: [number, number] = [Date.parse(replay.start), Math.max(Date.parse(replay.end), lastF + 72 * HOUR)];
