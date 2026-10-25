@@ -4,7 +4,7 @@
 // by band with a hover highlight and tooltip, and a search result is flown to.
 import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
-import type { Feature, FeatureCollection } from "geojson";
+import type { Feature, FeatureCollection, Polygon } from "geojson";
 import { GeoJSON, Marker, useMap, useMapEvents } from "react-leaflet";
 import { BAND_HEX, BAND_INFO } from "./logic";
 import { prefersReducedMotion } from "./motion";
@@ -54,6 +54,35 @@ export function dropsPin(target: EventTarget | null): boolean {
   return true;
 }
 
+/**
+ * One Polygon feature per part, so hovering a zone highlights that zone only,
+ * not every zone of its band (#177 stores one MultiPolygon per band). The data
+ * file is unchanged; this runs once per data set.
+ */
+export function explodeZones(fc: FeatureCollection): FeatureCollection<Polygon> {
+  const features: Feature<Polygon>[] = [];
+  for (const f of fc.features ?? []) {
+    const g = f?.geometry;
+    if (!g) continue;
+    const parts = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : [];
+    for (const coordinates of parts) {
+      if (coordinates?.length) features.push({ type: "Feature", properties: { band: f.properties?.band ?? null }, geometry: { type: "Polygon", coordinates } });
+    }
+  }
+  return { type: "FeatureCollection", features };
+}
+
+/** Explode each data set once, even when the layer is hidden and shown again. */
+const exploded = new WeakMap<FeatureCollection, FeatureCollection<Polygon>>();
+function explodedOnce(fc: FeatureCollection): FeatureCollection<Polygon> {
+  let out = exploded.get(fc);
+  if (!out) {
+    out = explodeZones(fc);
+    exploded.set(fc, out);
+  }
+  return out;
+}
+
 function ZonesLayer({ zones }: { zones: FeatureCollection }) {
   const map = useMap();
   const [paneReady, setPaneReady] = useState(() => !!map.getPane(ZONES_PANE));
@@ -65,14 +94,15 @@ function ZonesLayer({ zones }: { zones: FeatureCollection }) {
     setPaneReady(true);
   }, [map]);
   const ref = useRef<L.GeoJSON | null>(null);
+  const parts = useMemo(() => explodedOnce(zones), [zones]);
   // A new key per data set: react-leaflet's GeoJSON reads its data only once.
-  const key = useMemo(() => `zones-${zones.features.length}-${Math.random().toString(36).slice(2, 7)}`, [zones]);
+  const key = useMemo(() => `zones-${parts.features.length}-${Math.random().toString(36).slice(2, 7)}`, [parts]);
   if (!paneReady) return null;
   return (
     <GeoJSON
       key={key}
       ref={ref}
-      data={zones}
+      data={parts}
       pane={ZONES_PANE}
       style={(f?: Feature) => zoneStyle(f?.properties?.band)}
       onEachFeature={(f, layer) => {

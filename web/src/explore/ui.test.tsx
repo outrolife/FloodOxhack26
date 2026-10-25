@@ -5,7 +5,7 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { DEBOUNCE_MS, NOT_FOUND_TEXT, OFFLINE_TEXT, SearchBox, lookupFailure } from "./SearchBox";
 import { PointCard, chanceWords, nearbyLine } from "./PointCard";
 import { SandbagCard, StepText } from "./SandbagCard";
-import { dropsPin, zoneLabel, zoneStyle } from "./ExploreLayer";
+import { dropsPin, explodeZones, zoneLabel, zoneStyle } from "./ExploreLayer";
 import { countAt } from "./motion";
 import { describePoint } from "./risk";
 import { estimateSandbags } from "./sandbags";
@@ -196,6 +196,21 @@ describe("map helpers", () => {
     expect(zoneStyle("medium").fillOpacity).toBeCloseTo(0.35);
     expect(zoneStyle("medium", true).fillOpacity!).toBeGreaterThan(0.35);
     expect(zoneStyle("medium", true).weight!).toBeGreaterThan(zoneStyle("medium").weight!);
+  });
+
+  it("splits each band's MultiPolygon into one zone per part, so hover highlights one zone", () => {
+    const sq = (x: number) => [[[x, 0], [x + 1, 0], [x + 1, 1], [x, 0]]];
+    const out = explodeZones({
+      type: "FeatureCollection",
+      features: [
+        { type: "Feature", properties: { band: "high" }, geometry: { type: "MultiPolygon", coordinates: [sq(0), sq(2), sq(4)] } },
+        { type: "Feature", properties: { band: "low" }, geometry: { type: "Polygon", coordinates: sq(6) } },
+        { type: "Feature", properties: { band: "low" }, geometry: { type: "Point", coordinates: [0, 0] } },
+      ],
+    });
+    expect(out.features).toHaveLength(4);
+    expect(out.features.map((f) => f.properties?.band)).toEqual(["high", "high", "high", "low"]);
+    expect(out.features.every((f) => f.geometry.type === "Polygon")).toBe(true);
   });
 
   it("counts up with an ease-out and lands on the target", () => {
