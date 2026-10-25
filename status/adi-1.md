@@ -1,14 +1,14 @@
 # adi-1
 
 - **role**: App
-- **state**: working
+- **state**: idle
 - **issue**: 
-- **task**: Reproducing the existing rainfall-forecast experiment with archived inputs
-- **next**: Compare held-out skill, calibration, Brier, and warning tradeoffs before recommending adoption
-- **needs**: alfredo: coordinating before any Model code edits; this run uses the existing #100 experiment only
-- **notes**: 
+- **task**: 
+- **next**: 
+- **needs**: 
+- **notes**: OpenMP fixed (Homebrew libomp 23.1.4); focused model tests 102 passed. Reproduced #100 rain forecasts from archived data across ECMWF/GFS/ICON; none met all adoption gates. No tracked model changes; follow-up requires Model owner coordination.
 - **branch**: main
-- **head**: 0f902fd Merge pull request #169 from outrolife/app/catchment-fit
+- **head**: 4b2d039 Merge pull request #170 from outrolife/app/map-polish
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T07:20:30Z
+- **updated**: 2026-10-25T07:47:29Z
