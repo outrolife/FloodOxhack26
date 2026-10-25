@@ -270,8 +270,11 @@ function MapSizer({ bounds, pad = DEFAULT_PAD }: { bounds: Bounds; pad?: FitPadd
         map.setMaxBounds(undefined);
         // Lock to the fitted zoom, not the previous zoom during an animated transition.
         map.fitBounds(bounds, { paddingTopLeft: p.topLeft, paddingBottomRight: p.bottomRight, animate: false });
-        map.setMinZoom(map.getZoom());
-        map.setMaxBounds(L.latLngBounds(bounds).pad(0.08));
+        // Loose limits (user feedback: zooming snapped back to the centre). A box only 8% bigger than
+        // the view forced every zoom near the fitted level back to the middle; now the map can zoom
+        // one level further out and wander well past the area before it stops.
+        map.setMinZoom(Math.max(0, map.getZoom() - 1));
+        map.setMaxBounds(L.latLngBounds(bounds).pad(0.75));
         fitted = true;
       } catch {
         // Not laid out yet; the next resize tries again.
