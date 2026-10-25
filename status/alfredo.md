@@ -11,4 +11,4 @@
 - **head**: 5e2c85f Map polish: catchment basemap, decluttered catchment view, pin
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T07:12:36Z
+- **updated**: 2026-10-25T07:13:10Z
