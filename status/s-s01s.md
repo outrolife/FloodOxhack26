@@ -11,4 +11,4 @@
 - **head**: 1728e55 app: Add bounded Oxford and catchment map views (#168)
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T06:21:38Z
+- **updated**: 2026-10-25T06:21:49Z
