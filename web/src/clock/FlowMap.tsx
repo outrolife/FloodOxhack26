@@ -209,7 +209,8 @@ export function FlowMap({
           pathOptions={{
             color: colour,
             weight: (mode === "walk" ? 3.5 : 2.5) * look.widthX,
-            opacity: mode === "dim" ? 0.3 : mode === "walk" ? 1 : 0.9,
+            // Translucent so the map shows through (#152 feedback).
+            opacity: mode === "dim" ? 0.2 : mode === "walk" ? 0.7 : 0.45,
             dashArray: l.lowConfidence ? "3 6" : undefined,
           }}
         >
@@ -225,7 +226,7 @@ export function FlowMap({
             pathOptions={{
               color: "#ffffff",
               weight: mode === "walk" ? 7 : 6,
-              opacity: l.lowConfidence ? 0.55 : 0.95,
+              opacity: l.lowConfidence ? 0.4 : 0.7,
               lineCap: "round",
               dashArray: PULSE_DASH,
               className: "rc-pulse",
@@ -267,6 +268,7 @@ export function FlowMap({
         lagH={lagH}
         reaches={reaches}
         emphasised={walking ? walk.gauges : undefined}
+        avoid={dots.map((d) => [d.lat, d.lon] as [number, number])}
       />
 
       <SpotDots dots={dots} selected={selected} onSelect={onSelect} />

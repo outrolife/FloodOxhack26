@@ -3,8 +3,11 @@
 // main roads, railways and buildings; © OpenStreetMap contributors, ODbL),
 // drawn as Leaflet vector layers. OSM raster tiles are an optional extra when
 // online. Children are overlays (spot clocks, spread heatmap, pins).
+// Under it, a catchment-wide layer (data/geo/catchment-base.geojson: OSM main
+// roads, railways, lakes, built-up areas and town names across the upper
+// Thames and Cherwell) fills the map out to the furthest upstream gauges.
 import { Component, type ReactNode, useEffect, useState } from "react";
-import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
+import { GeoJSON, MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { FeatureCollection } from "geojson";
 import type { PathOptions } from "leaflet";
@@ -15,6 +18,7 @@ import { OXFORD_BOUNDS, safeBounds, type Bounds } from "./bounds";
 export { OXFORD_BOUNDS, safeBounds };
 
 export const BASEMAP_FILE = "geo/oxford-base.geojson";
+export const CATCHMENT_BASE_FILE = "geo/catchment-base.geojson";
 
 /** Feature kinds in oxford-base.geojson (properties.kind). */
 export type BaseKind = "water" | "river" | "stream" | "road" | "minor_road" | "rail" | "building" | "park";
@@ -33,6 +37,113 @@ export const BASE_STYLE: Record<BaseKind, PathOptions> = {
 
 /** Draw order, bottom to top. */
 const ORDER: BaseKind[] = ["park", "water", "building", "minor_road", "road", "rail", "stream", "river"];
+
+/** The catchment layer's kinds (properties.kind), drawn under Oxford's, in this order. */
+type CatchKind = "urban" | "water" | "rail" | "road" | "major_road";
+const CATCH_ORDER: CatchKind[] = ["urban", "water", "rail", "road", "major_road"];
+export const CATCH_STYLE: Record<CatchKind, PathOptions> = {
+  urban: { stroke: false, fillColor: "#e4dfd4", fillOpacity: 1 },
+  water: { stroke: false, fillColor: "#a9cbe8", fillOpacity: 1 },
+  rail: { color: "#a9a59c", weight: 1.2, opacity: 1, dashArray: "4 3" },
+  road: { color: "#ffffff", weight: 1.8, opacity: 1 },
+  major_road: { color: "#ffffff", weight: 3, opacity: 1 },
+};
+type Town = { name: string; lat: number; lon: number };
+type CatchBase = { status: "loading" | "none" } | { status: "ready"; byKind: Partial<Record<CatchKind, FeatureCollection>>; towns: Town[] };
+
+let catchCache: Promise<CatchBase> | null = null;
+function loadCatchBase(): Promise<CatchBase> {
+  catchCache ??= loadData<FeatureCollection>(CATCHMENT_BASE_FILE)
+    .then(({ value }) => {
+      const byKind: Partial<Record<CatchKind, FeatureCollection>> = {};
+      const towns: Town[] = [];
+      for (const f of value.features ?? []) {
+        const k = f.properties?.kind;
+        if (k === "town" && f.geometry?.type === "Point") {
+          const [lon, lat] = f.geometry.coordinates;
+          towns.push({ name: String(f.properties?.name ?? ""), lat, lon });
+        } else if (k in CATCH_STYLE) {
+          (byKind[k as CatchKind] ??= { type: "FeatureCollection", features: [] }).features.push(f);
+        }
+      }
+      return { status: "ready", byKind, towns } as CatchBase;
+    })
+    .catch(() => ({ status: "none" }) as CatchBase);
+  return catchCache;
+}
+
+function useCatchBase(): CatchBase {
+  const [base, setBase] = useState<CatchBase>({ status: "loading" });
+  useEffect(() => {
+    let alive = true;
+    loadCatchBase().then((b) => alive && setBase(b));
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return base;
+}
+
+const townIcons = new Map<string, L.DivIcon>();
+function townIcon(name: string): L.DivIcon {
+  let icon = townIcons.get(name);
+  if (!icon) {
+    icon = L.divIcon({ className: "ui-town", html: `<span>${name.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)}</span>`, iconSize: [0, 0] });
+    townIcons.set(name, icon);
+  }
+  return icon;
+}
+
+/**
+ * Pinch to zoom the map, not the page. A trackpad pinch reaches the browser as
+ * a wheel event with ctrlKey set (Chrome, Edge, Firefox) or as gesture events
+ * (Safari); left alone, both zoom the whole page. Here they zoom the map around
+ * the pointer. A plain two-finger scroll still scrolls the page, and touch
+ * screens pinch through Leaflet's own touch zoom.
+ */
+function PinchZoom() {
+  const map = useMap();
+  useEffect(() => {
+    const el = map.getContainer();
+    let target: number | null = null;
+    let idle = 0;
+    const clamp = (z: number) => Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), z));
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      // Pixel deltas from a trackpad are small and many; line deltas (ctrl + mouse wheel) are coarse.
+      const step = e.deltaMode === 1 ? e.deltaY * 0.25 : e.deltaY * 0.012;
+      target = clamp((target ?? map.getZoom()) - step);
+      map.setZoomAround(map.mouseEventToContainerPoint(e), target, { animate: false });
+      window.clearTimeout(idle);
+      idle = window.setTimeout(() => (target = null), 250);
+    };
+    let start = 0;
+    type Gesture = Event & { scale: number; clientX: number; clientY: number };
+    const onGestureStart = (e: Event) => {
+      e.preventDefault();
+      start = map.getZoom();
+    };
+    const onGestureChange = (e: Event) => {
+      e.preventDefault();
+      const g = e as Gesture;
+      map.setZoomAround(map.mouseEventToContainerPoint(g as unknown as MouseEvent), clamp(start + Math.log2(g.scale)), { animate: false });
+    };
+    const block = (e: Event) => e.preventDefault();
+    el.addEventListener("wheel", onWheel, { passive: false });
+    el.addEventListener("gesturestart", onGestureStart);
+    el.addEventListener("gesturechange", onGestureChange);
+    el.addEventListener("gestureend", block);
+    return () => {
+      window.clearTimeout(idle);
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("gesturestart", onGestureStart);
+      el.removeEventListener("gesturechange", onGestureChange);
+      el.removeEventListener("gestureend", block);
+    };
+  }, [map]);
+  return null;
+}
 
 type Base = { status: "loading" } | { status: "ready"; byKind: Partial<Record<BaseKind, FeatureCollection>> } | { status: "none" };
 
@@ -142,12 +253,13 @@ export function BaseMap({
   className?: string;
   /** Start with OSM raster tiles on (only shown when online). */
   tiles?: boolean;
-  /** Allow pan and zoom (default true; scroll-wheel zoom is always off). */
+  /** Allow pan and zoom (default true). Scroll-wheel zoom is off; a trackpad pinch zooms the map (PinchZoom). */
   interactive?: boolean;
   /** Room to keep clear when fitting the bounds (default 24 px all round). */
   fitPadding?: FitPadding;
 }) {
   const base = useBaseMap();
+  const catchBase = useCatchBase();
   const online = typeof navigator === "undefined" ? false : navigator.onLine;
   const [tiles, setTiles] = useState(tilesDefault && online);
   const fit = safeBounds(bounds);
@@ -177,6 +289,18 @@ export function BaseMap({
           />
         )}
         {!tiles &&
+          catchBase.status === "ready" &&
+          CATCH_ORDER.map((k) =>
+            catchBase.byKind[k] ? (
+              <GeoJSON key={`catch-${k}`} data={catchBase.byKind[k]!} style={() => CATCH_STYLE[k]} interactive={false} />
+            ) : null,
+          )}
+        {!tiles &&
+          catchBase.status === "ready" &&
+          catchBase.towns.map((t) => (
+            <Marker key={`town-${t.name}`} position={[t.lat, t.lon]} icon={townIcon(t.name)} interactive={false} keyboard={false} zIndexOffset={-1000} />
+          ))}
+        {!tiles &&
           base.status === "ready" &&
           ORDER.map((k) =>
             base.byKind[k] ? (
@@ -190,6 +314,7 @@ export function BaseMap({
             ) : null,
           )}
         <MapSizer bounds={fit} pad={fitPadding} />
+        {interactive && <PinchZoom />}
         {children}
       </MapContainer>
       </MapErrorBoundary>
