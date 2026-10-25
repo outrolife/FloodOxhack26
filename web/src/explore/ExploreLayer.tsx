@@ -260,7 +260,7 @@ function ZoneTiles({ zones }: { zones: FeatureCollection }) {
       },
     });
     // updateWhenZooming false: during a zoom the drawn tiles are scaled; new ones come after it.
-    const layer: L.GridLayer = new (Tiles as unknown as new (o: L.GridLayerOptions) => L.GridLayer)({ pane: ZONES_PANE, updateWhenZooming: false, keepBuffer: 3, className: "fc-x-zone-tiles" });
+    const layer: L.GridLayer = new (Tiles as unknown as new (o: L.GridLayerOptions) => L.GridLayer)({ pane: ZONES_PANE, updateWhenZooming: false, keepBuffer: 4, className: "fc-x-zone-tiles" });
     layer.addTo(map);
 
     // Hover: the zone under the pointer (one lookup per frame), outlined, with its tooltip.
@@ -279,7 +279,7 @@ function ZoneTiles({ zones }: { zones: FeatureCollection }) {
       hoverFrame = 0;
       const e = pending;
       pending = null;
-      if (!e) return;
+      if (!e || moving) return;
       const t = e.originalEvent?.target ?? null;
       if (!dropsPin(t)) return clear(); // over a gauge, a spot ring, a card or a control
       const [ux, uy] = mercatorUnit(e.latlng.lat, e.latlng.lng);
@@ -294,19 +294,34 @@ function ZoneTiles({ zones }: { zones: FeatureCollection }) {
       tip.setLatLng(e.latlng);
       if (!map.hasLayer(tip)) map.openTooltip(tip);
     };
+    // No hover while the map moves: a drag that crosses zone edges would build a new outline
+    // (thousands of points for the floodplain zones) mid-pan and stall it.
+    let moving = false;
+    const onMoveStart = () => {
+      moving = true;
+      clear();
+    };
+    const onMoveEnd = () => {
+      moving = false;
+    };
     const onMove = (e: L.LeafletMouseEvent) => {
+      if (moving || (map as L.Map & { dragging: { moving(): boolean } }).dragging?.moving?.()) return;
       pending = e;
       if (!hoverFrame) hoverFrame = requestAnimationFrame(hover);
     };
     const onOut = () => clear();
     map.on("mousemove", onMove);
-    map.on("mouseout zoomstart movestart", onOut);
+    map.on("mouseout", onOut);
+    map.on("zoomstart movestart dragstart", onMoveStart);
+    map.on("moveend dragend", onMoveEnd);
     return () => {
       cancelAnimationFrame(frame);
       cancelAnimationFrame(hoverFrame);
       queue.length = 0;
       map.off("mousemove", onMove);
-      map.off("mouseout zoomstart movestart", onOut);
+      map.off("mouseout", onOut);
+      map.off("zoomstart movestart dragstart", onMoveStart);
+      map.off("moveend dragend", onMoveEnd);
       clear();
       layer.remove();
     };
