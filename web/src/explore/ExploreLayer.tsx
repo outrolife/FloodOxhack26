@@ -109,11 +109,21 @@ function DropPin({ pin }: { pin: { id: number; lat: number; lon: number } }) {
   return <Marker position={[pin.lat, pin.lon]} icon={PIN_ICON} interactive={false} keyboard={false} zIndexOffset={2000} />;
 }
 
-/** The point on screen should not end up under the card: right of the side panel, or above the sheet. */
+/** The point on screen should not end up under the card: right of the side panel on wide screens. */
 function clearOffset(map: L.Map): L.Point {
   const size = map.getSize();
-  if (isPhone()) return L.point(0, -Math.round(size.y * 0.22));
+  if (isPhone()) return L.point(0, 0);
   return size.x > PANEL_PX + 240 ? L.point(Math.round(PANEL_PX / 2), 0) : L.point(0, 0);
+}
+
+/**
+ * Phones: the bottom sheet covers the lower half of the screen, so bring the map
+ * to the top of the screen; its centre (where the point is) then stays in view above the sheet.
+ */
+function mapToTop(map: L.Map) {
+  if (!isPhone()) return;
+  const el = map.getContainer();
+  if (typeof el.scrollIntoView === "function") el.scrollIntoView({ block: "start", behavior: prefersReducedMotion() ? "auto" : "smooth" });
 }
 
 function FlyTo({ fly }: { fly: FlyTarget | null }) {
@@ -130,6 +140,7 @@ function FlyTo({ fly }: { fly: FlyTarget | null }) {
       if (mb && !mb.contains(target)) map.setMaxBounds(mb.extend(target).pad(0.05));
       // Centre so the point lands in the part of the map the card leaves clear.
       const centre = map.unproject(map.project(target, zoom).subtract(clearOffset(map)), zoom);
+      mapToTop(map);
       if (prefersReducedMotion()) map.setView(centre, zoom, { animate: false });
       else map.flyTo(centre, zoom, { duration: 1.0, easeLinearity: 0.25 });
     } catch {
@@ -157,7 +168,8 @@ function ClickToDrop({ onMapClick }: { onMapClick: (lat: number, lon: number) =>
       const size = map.getSize();
       const animate = !prefersReducedMotion();
       if (isPhone()) {
-        if (p.y > size.y * 0.42) map.panBy([0, p.y - size.y * 0.3], { animate });
+        mapToTop(map);
+        map.panTo(e.latlng, { animate });
       } else if (size.x > PANEL_PX + 240 && p.x < PANEL_PX + 24) {
         map.panBy([p.x - (PANEL_PX + 60), 0], { animate });
       }

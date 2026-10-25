@@ -44,14 +44,14 @@
   transition: box-shadow var(--fc-dur, 250ms) var(--fc-ease, ease), border-color var(--fc-dur, 250ms) var(--fc-ease, ease);
 }
 .fc-x-search-field:hover { box-shadow: var(--fc-shadow-2, 0 4px 12px rgba(0, 0, 0, 0.1)); }
-.fc-x-search-field:focus-within { border-color: var(--fc-ink-2, #45464a); box-shadow: var(--fc-shadow-2, 0 4px 12px rgba(0, 0, 0, 0.1)); }
+.fc-x-search-field:focus-within { border-color: var(--fc-focus, #16171a); box-shadow: 0 0 0 1px var(--fc-focus, #16171a), var(--fc-shadow-2, 0 4px 12px rgba(0, 0, 0, 0.1)); }
 .fc-x-search-icon { width: 18px; height: 18px; flex: none; color: var(--fc-ink-3, #68696d); }
 .fc-x-search-input {
   flex: 1; min-width: 0; height: 100%; border: 0; outline: none; background: transparent;
   font: inherit; font-size: var(--fc-text-md, 1rem); color: var(--fc-ink, #16171a);
 }
 .fc-x-search-input::placeholder { color: var(--fc-ink-3, #68696d); }
-.fc-x-search .fc-x-search-input:focus-visible { outline: none; }
+.fc-x-search .fc-x-search-input:focus-visible { outline: none; box-shadow: none; }
 .fc-x-search-clear {
   flex: none; width: 30px; height: 30px; border: 0; border-radius: 50%; background: transparent; color: var(--fc-ink-2, #45464a);
   font-size: 20px; line-height: 1; cursor: pointer; transition: background var(--fc-dur-fast, 150ms) var(--fc-ease, ease);
@@ -126,7 +126,7 @@
 
 /* ---------- Legend ---------- */
 .fc-x-legend {
-  position: absolute; z-index: 750; right: var(--fc-space-3, 12px); bottom: 28px; width: 236px;
+  position: absolute; z-index: 750; right: var(--fc-space-3, 12px); bottom: 28px; width: 256px;
   background: color-mix(in srgb, var(--fc-surface, #fff) 92%, transparent); backdrop-filter: blur(6px);
   border: 1px solid var(--fc-border, rgba(22, 23, 26, 0.12)); border-radius: var(--fc-radius-md, 10px);
   box-shadow: var(--fc-shadow-2, 0 4px 12px rgba(0, 0, 0, 0.12)); font-family: var(--fc-font, inherit); color: var(--fc-ink, #16171a);
@@ -288,7 +288,7 @@
 @media (max-width: 700px) {
   .fc-x-search { max-width: none; }
   .fc-x-card {
-    position: fixed; z-index: 1300; top: auto; left: 0; right: 0; bottom: 0; width: auto; max-width: none; max-height: 72vh; max-height: 72dvh;
+    position: fixed; z-index: 1300; top: auto; left: 0; right: 0; bottom: 0; width: auto; max-width: none; max-height: 50vh; max-height: 50dvh;
     border-radius: var(--fc-radius-lg, 16px) var(--fc-radius-lg, 16px) 0 0;
     animation: fc-x-in-up var(--fc-dur-slow, 400ms) var(--fc-ease, cubic-bezier(0.2, 0.8, 0.2, 1)) both;
     padding-bottom: env(safe-area-inset-bottom, 0);
