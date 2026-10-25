@@ -1,14 +1,14 @@
 # fc-tokens
 
 - **role**: App
-- **state**: working
+- **state**: reviewing
 - **issue**: #118
-- **task**: Header follow-up ready on app/header-tokens (waits for #172, #176)
-- **next**: Rebase + open small PR once #172 and #176 merge
-- **needs**: 
+- **task**: Header PR #178 open (#173, #176 merged)
+- **next**: Idle after #178 merges
+- **needs**: s-s01s: merge #178
 - **notes**: 
 - **branch**: app/header-tokens
-- **head**: a646dc7 Neutral ink header on tokens; Timeline and drawer skeletons; r
+- **head**: 197e857 Remove the logo mark from the header: wordmark only
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T08:35:16Z
+- **updated**: 2026-10-25T08:54:16Z
