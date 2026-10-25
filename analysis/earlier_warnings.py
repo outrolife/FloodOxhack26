@@ -589,7 +589,11 @@ def models_per_event(arm: str, hourly: pd.DataFrame, event_ids: Sequence[str]) -
 
 
 def evaluate(
-    arms: Sequence[str], with_events: bool, rain_window: bool, rain_start: pd.Timestamp = RAIN_EVAL_START
+    arms: Sequence[str],
+    with_events: bool,
+    rain_window: bool,
+    rain_start: pd.Timestamp = RAIN_EVAL_START,
+    event_ids: Sequence[str] | None = None,
 ) -> dict[str, Any]:
     from analysis.rain_experiment import score_variant
     from model import backtest
@@ -626,7 +630,7 @@ def evaluate(
         out["testEvents"].append(event_block(arm, {e: models for e in test_ev}, hourly, spots))
         if with_events and arm not in RAIN_ARMS:
             try:
-                pem = models_per_event(arm, hourly, list(backtest.load_events()))
+                pem = models_per_event(arm, hourly, list(event_ids or backtest.load_events()))
                 out["events"].append(event_block(arm, pem, hourly, spots))
             except FileNotFoundError as e:
                 log.warning("%s", e)
@@ -687,6 +691,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     e.add_argument("--events", action="store_true", help="all-event replays (needs LOFO models)")
     e.add_argument("--rain-window", action="store_true")
     e.add_argument("--rain-start", default=str(RAIN_EVAL_START.date()))
+    e.add_argument("--event-ids", nargs="+", default=None, help="all-event block: only these events")
     e.add_argument("--out", default=str(OUT_PATH))
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -727,7 +732,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                 m.save(d)
                 log.info("saved %s in %.0f s", d, time.time() - t0)
         return 0
-    res = evaluate(args.arms, args.events, args.rain_window, pd.Timestamp(args.rain_start, tz="UTC"))
+    res = evaluate(
+        args.arms, args.events, args.rain_window, pd.Timestamp(args.rain_start, tz="UTC"), args.event_ids
+    )
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(res, indent=1, default=str), encoding="utf-8")
     print(report(res))
