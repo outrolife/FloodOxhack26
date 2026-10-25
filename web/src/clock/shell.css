@@ -114,6 +114,8 @@ span.rc-dot-btn { cursor: help; }
   font-size: var(--fc-text-xs); font-weight: var(--fc-weight-bold); color: var(--fc-ink);
   text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 2px #fff, 0 0 1px #fff;
 }
+/* The ring's arc eases to its new chance as the playhead moves. */
+.rc-dot-arc { transition: stroke-dasharray var(--fc-dur-slow) var(--fc-ease), stroke var(--fc-dur) var(--fc-ease); }
 .rc-dot-right .rc-dot-name { left: calc(100% + 4px); }
 .rc-dot-left .rc-dot-name { right: calc(100% + 4px); }
 .rc-dot.selected .rc-dot-name { font-weight: 800; }

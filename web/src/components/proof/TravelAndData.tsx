@@ -24,7 +24,7 @@ import { TERM_TIPS, gaugeName } from "../../lib/plain";
 /** Why an arrival error is blank on a flooded row (model/proof.py, ARRIVAL_OFFSET_H = 24). */
 export const ARRIVAL_BLANK = "FloodClock had not reached 50% 24 h before the river crossed the flood line";
 
-const AXIS = { stroke: "#c3c2b7", tick: { fill: "#52514e", fontSize: 12 } };
+const AXIS = { stroke: "var(--axis)", tick: { fill: "var(--fc-ink-2)", fontSize: 12 } };
 
 /**
  * Human label for a travel-time event id: the named flood from events.json,
@@ -95,7 +95,7 @@ export function TravelFinding({
           </thead>
           <tbody>
             {pairs.map((p, k) => (
-              <tr key={`${p.up}-${p.down}`} onClick={() => setI(k)} style={{ cursor: "pointer", background: k === i ? "#eef3fa" : undefined }}>
+              <tr key={`${p.up}-${p.down}`} onClick={() => setI(k)} style={{ cursor: "pointer", background: k === i ? "var(--fc-surface-2)" : undefined }}>
                 <td>{name(p.up)}</td>
                 <td>{name(p.down)}</td>
                 <td className="num">
@@ -121,9 +121,9 @@ export function TravelFinding({
           <div style={{ height: 200 }}>
             <ResponsiveContainer>
               <ScatterChart margin={{ top: 8, right: 16, left: 0, bottom: 16 }}>
-                <CartesianGrid stroke="#e1e0d9" />
+                <CartesianGrid stroke="var(--grid)" />
                 <XAxis type="number" dataKey="rise" name="Rise" {...AXIS} tickFormatter={(v: number) => `${v.toFixed(1)} m`}
-                  label={{ value: "Upstream rise (m, own datum)", position: "insideBottom", offset: -8, fill: "#52514e", fontSize: 12 }} />
+                  label={{ value: "Upstream rise (m, own datum)", position: "insideBottom", offset: -8, fill: "var(--fc-ink-2)", fontSize: 12 }} />
                 <YAxis type="number" dataKey="tHalf" name="T½" {...AXIS} width={44} tickFormatter={(v: number) => `${v} h`} />
                 <Tooltip
                   content={({ active, payload }) => {
@@ -169,9 +169,9 @@ export function TravelFinding({
           <div style={{ height: 200 }}>
             <ResponsiveContainer>
               <LineChart data={pair.xcorr} margin={{ top: 8, right: 16, left: 0, bottom: 16 }}>
-                <CartesianGrid stroke="#e1e0d9" vertical={false} />
+                <CartesianGrid stroke="var(--grid)" vertical={false} />
                 <XAxis dataKey="lagH" type="number" {...AXIS} tickFormatter={(v: number) => `${v} h`}
-                  label={{ value: "Lag", position: "insideBottom", offset: -8, fill: "#52514e", fontSize: 12 }} />
+                  label={{ value: "Lag", position: "insideBottom", offset: -8, fill: "var(--fc-ink-2)", fontSize: 12 }} />
                 <YAxis domain={[-1, 1]} {...AXIS} width={36} />
                 <Tooltip formatter={(v) => [Number(v).toFixed(2), "r"]} labelFormatter={(l) => `Lag ${l} h`} />
                 <Line dataKey="r" stroke="#2a78d6" strokeWidth={2} dot={false} isAnimationActive={false} />
@@ -396,7 +396,7 @@ export function QualityTables({ quality, stations }: { quality: Quality; station
                   <td className="num">{g.spikesRemoved}</td>
                   <td className="num">
                     {g.thresholdApi?.toFixed(2) ?? "–"} / {g.thresholdConfig?.toFixed(2) ?? "–"}
-                    {mismatch && <strong style={{ color: "#d03b3b" }}> mismatch</strong>}
+                    {mismatch && <strong style={{ color: "var(--fc-risk-high)" }}> mismatch</strong>}
                   </td>
                   <td className="small">{g.notes.join("; ")}</td>
                 </tr>

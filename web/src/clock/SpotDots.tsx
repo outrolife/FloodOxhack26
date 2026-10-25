@@ -52,14 +52,15 @@ export function Dot({ dot, selected }: { dot: Pick<SpotDot, "prob" | "state">; s
   return (
     <svg width={DOT_PX} height={DOT_PX} viewBox={`0 0 ${DOT_PX} ${DOT_PX}`} aria-hidden="true" focusable="false">
       {quiet ? (
-        <circle cx={c} cy={c} r={c - 4} fill="rgba(255,255,255,0.45)" stroke="#898781" strokeWidth={selected ? 3 : 2} strokeDasharray="3 2.5" />
+        <circle cx={c} cy={c} r={c - 4} fill="rgba(255,255,255,0.45)" stroke="var(--unknown)" strokeWidth={selected ? 3 : 2} strokeDasharray="3 2.5" />
       ) : (
         <>
           {/* Translucent disc and track (#152 feedback): the map shows through; outline, arc and text stay solid. */}
-          <circle cx={c} cy={c} r={c - outline / 2} fill="#fff" fillOpacity={selected ? 0.8 : 0.55} stroke="#0b0b0b" strokeOpacity={0.85} strokeWidth={outline} />
-          <circle cx={c} cy={c} r={R} fill="none" stroke="#e6e4df" strokeOpacity={0.6} strokeWidth={4} />
+          <circle cx={c} cy={c} r={c - outline / 2} fill="#fff" fillOpacity={selected ? 0.8 : 0.55} stroke="var(--fc-ink)" strokeOpacity={0.85} strokeWidth={outline} />
+          <circle cx={c} cy={c} r={R} fill="none" stroke="var(--fc-risk-none)" strokeOpacity={0.6} strokeWidth={4} />
           {dash > 0 && (
             <circle
+              className="rc-dot-arc"
               cx={c}
               cy={c}
               r={R}
@@ -71,7 +72,7 @@ export function Dot({ dot, selected }: { dot: Pick<SpotDot, "prob" | "state">; s
             />
           )}
           {text && (
-            <text x={c} y={c + 3.2} textAnchor="middle" fontSize={text.length > 3 ? 8 : 9.5} fontWeight={750} fill="#0b0b0b" stroke="#fff" strokeWidth={2} strokeOpacity={0.7} paintOrder="stroke">
+            <text x={c} y={c + 3.2} textAnchor="middle" fontSize={text.length > 3 ? 8 : 9.5} fontWeight={750} fill="var(--fc-ink)" stroke="#fff" strokeWidth={2} strokeOpacity={0.7} paintOrder="stroke">
               {text}
             </text>
           )}
