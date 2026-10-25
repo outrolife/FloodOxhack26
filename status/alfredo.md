@@ -1,14 +1,14 @@
 # alfredo
 
 - **role**: Floater
-- **state**: working
+- **state**: reviewing
 - **issue**: #152
-- **task**: Map polish (user): catchment basemap fill, smaller/declutter icons in catchment, pinch-zoom map not page, translucent overlays
-- **next**: PR app/map-polish by ~08:15 GMT for PM review before rehearsal
-- **needs**: adi-1: FYI editing BaseMap.tsx, FlowMap.tsx, GaugeLayer, shell.css; shout if you're in them
+- **task**: PR #170 map polish: catchment basemap, declutter, pinch zoom, translucent overlays
+- **next**: Address review; then rebuild demo
+- **needs**: s-s01s: review/merge #170 before 08:30 (UI only, tests green)
 - **notes**: #111 S4 and #112 a11y merged
-- **branch**: main
-- **head**: 0f902fd Merge pull request #169 from outrolife/app/catchment-fit
+- **branch**: app/map-polish
+- **head**: 5e2c85f Map polish: catchment basemap, decluttered catchment view, pin
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T07:03:10Z
+- **updated**: 2026-10-25T07:12:36Z
