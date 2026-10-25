@@ -61,6 +61,7 @@ import {
   tripClock,
   type BasemapProbe,
   type FlowPath,
+  type MapView,
 } from "./flowgl";
 import { BASEMAP_SOURCE, RIVER_LAYOUT, basemapLayers, baseStyle, fallbackLayers, riverPaint } from "./glstyle";
 import { GAUGE_LOOK, gaugeCard, gaugeIconSvg, lookFor, type GaugeLook } from "./gauges";
@@ -132,9 +133,10 @@ function rgba(hex: string, alpha = 1): RGBA {
 }
 
 /** Room (px) kept clear of the panels over the map when fitting (matches shell.css). */
-function fitPadding() {
+function fitPadding(mapView: MapView) {
   const wide = typeof window === "undefined" || window.innerWidth > 700;
-  return wide ? { top: 56, left: 24, right: 390, bottom: 24 } : { top: 56, left: 16, right: 16, bottom: 150 };
+  if (wide) return { top: 56, left: 24, right: mapView === "catchment" ? 24 : 390, bottom: 24 };
+  return { top: 56, left: 16, right: 16, bottom: 150 };
 }
 
 // ---------------------------------------------------------------- the map
@@ -378,7 +380,7 @@ function FlowMapGLInner({
     const map = mapRef.current?.getMap();
     if (!map || !loaded) return;
     try {
-      const padding = fitPadding();
+      const padding = fitPadding(mapView);
       const camera = map.cameraForBounds(bounds, { padding });
       if (camera?.zoom != null) map.setMinZoom(Math.max(0, camera.zoom - 0.25));
       map.setMaxBounds(padBounds(bounds, 0.08));
@@ -455,7 +457,7 @@ function FlowMapGLInner({
       <MapGL
         ref={mapRef}
         mapStyle={style}
-        initialViewState={{ bounds: initialBounds, fitBoundsOptions: { padding: fitPadding() } }}
+        initialViewState={{ bounds: initialBounds, fitBoundsOptions: { padding: fitPadding(mapView) } }}
         style={{ position: "absolute", inset: 0 }}
         maxZoom={16}
         cooperativeGestures
