@@ -1,14 +1,14 @@
 # s-s01s-audit2
 
 - **role**: Story
-- **state**: working
+- **state**: reviewing
 - **issue**: #50
-- **task**: Final acceptance audit on main a4a9223
-- **next**: Clean clone, run judge steps, numbers check
+- **task**: Final audit posted on #50: 17 ok, 1 warn, 0 fail; doc fixes in PR #166
+- **next**: PM: merge PR #166, decide on #152, close #19/#50
 - **needs**: 
 - **notes**: 
-- **branch**: worktree-agent-a04dcdc14ed299d64
-- **head**: ad506c6 Ignore internal observer tooling
-- **unpushed**: no upstream
+- **branch**: story/final-audit-fixes
+- **head**: eb45d4d Fix final-audit doc mismatches: travel pair count, switch labe
+- **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T04:51:17Z
+- **updated**: 2026-10-25T05:06:22Z
