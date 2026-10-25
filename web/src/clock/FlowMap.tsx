@@ -18,6 +18,7 @@ import { SpotDots } from "./SpotDots";
 import { GaugeLayer } from "./GaugeLayer";
 import { gaugeIconSvg, lookFor, type GaugeLook } from "./gauges";
 import { useData } from "../data";
+import { ExploreLayer, type ExploreLayerProps } from "../explore";
 
 /**
  * Keep the spots and gauges clear of the panels drawn over the map: the badge
@@ -99,7 +100,10 @@ export function FlowMap({
   t = null,
   lagH = 0,
   mapView = "oxford",
+  explore,
 }: {
+  /** Explore (#118): click to drop a pin, risk zones, fly to a search result. */
+  explore?: ExploreLayerProps;
   /** The moment shown (epoch ms), for the gauge cards. */
   t?: number | null;
   mapView?: MapView;
@@ -274,6 +278,7 @@ export function FlowMap({
       />
 
       <SpotDots dots={dots} selected={selected} onSelect={onSelect} />
+      {explore && <ExploreLayer {...explore} />}
     </BaseMap>
   );
 }
