@@ -3,12 +3,12 @@
 - **role**: Floater
 - **state**: working
 - **issue**: #118
-- **task**: User: remove logo (fc-tokens, header PR) + map smoothness (fc-perf on integration/ui-stack)
-- **next**: Perf PR ~09:45; header PR ~09:00
-- **needs**: s-s01s: merge #172 -> #176 -> header PR -> #177 -> #175, then perf PR
-- **notes**: #111 S4 and #112 a11y merged
+- **task**: MERGED to main (user ok): #172 #176 #177 #175 = FloodClock UI, tokens, risk zones, explore/sandbags
+- **next**: Merge header PR (logo removed) + perf PR when ready
+- **needs**: 
+- **notes**: Everyone: rebase on origin/main b45a15e; integration/ui-stack is now obsolete
 - **branch**: integration/ui-stack
 - **head**: aab314f Merge remote-tracking branch 'origin/app/explore-ui' into HEAD
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T08:42:25Z
+- **updated**: 2026-10-25T08:48:26Z
