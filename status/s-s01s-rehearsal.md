@@ -1,14 +1,14 @@
 # s-s01s-rehearsal
 
 - **role**: Model
-- **state**: reviewing
+- **state**: blocked
 - **issue**: #125
-- **task**: PR #162 final retrain open (443 tests, preflight 0 failed)
-- **next**: live.json retry after 03:40Z as follow-up commit
-- **needs**: 
+- **task**: PR #162 final retrain: web CI red (3 vitest data pins)
+- **next**: push fix, CI green, hand back
+- **needs**: PM: OK to push App-area test-pin fix 1760c01 to #162
 - **notes**: 
 - **branch**: model/retrain-final
-- **head**: d05fdd3 Retrain with the river walk (A) for newbotley and minns
-- **unpushed**: 0
-- **dirty**: 1
-- **updated**: 2026-10-25T03:35:22Z
+- **head**: 1760c01 Update web test pins for the retrained e2014 replay and warn-a
+- **unpushed**: 1
+- **dirty**: 0
+- **updated**: 2026-10-25T03:48:18Z
