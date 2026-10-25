@@ -26,13 +26,13 @@ html.presenter .rc-hero { height: 64vh; }
 
 .rc-badge {
   position: absolute; z-index: 700; top: 10px; left: 56px; max-width: calc(100% - 180px); /* right of the zoom buttons */
-  background: rgba(252, 252, 251, 0.95); border-radius: 8px; padding: 0.35rem 0.7rem; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  background: rgba(252, 252, 251, 0.72); backdrop-filter: blur(3px); border-radius: 8px; padding: 0.35rem 0.7rem; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
   font-size: 1rem; font-variant-numeric: tabular-nums;
 }
 .rc-badge-note { color: var(--ink-2); font-size: 0.85rem; }
 .rc-map-views {
   position: absolute; z-index: 750; top: 54px; left: 56px; display: flex; gap: 0.2rem;
-  padding: 0.2rem; border-radius: 8px; background: rgba(252, 252, 251, 0.96); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  padding: 0.2rem; border-radius: 8px; background: rgba(252, 252, 251, 0.72); backdrop-filter: blur(3px); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 }
 .rc-map-views button {
   border: 1px solid transparent; border-radius: 6px; padding: 0.3rem 0.6rem; background: transparent;
@@ -43,8 +43,10 @@ html.presenter .rc-hero { height: 64vh; }
 .rc-flowkey {
   position: absolute; z-index: 700; left: 10px; bottom: 22px; max-width: min(420px, calc(100% - 20px));
   display: flex; flex-wrap: wrap; gap: 0.15rem 0.8rem; font-size: 0.78rem; color: var(--ink-2);
-  background: rgba(252, 252, 251, 0.94); border-radius: 8px; padding: 0.35rem 0.6rem; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  background: rgba(252, 252, 251, 0.62); backdrop-filter: blur(3px); border-radius: 8px; padding: 0.35rem 0.6rem; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  transition: background 0.2s;
 }
+.rc-flowkey:hover { background: rgba(252, 252, 251, 0.94); }
 .rc-flowkey-sw { display: inline-block; width: 20px; height: 0; vertical-align: middle; border-top: 3px solid; }
 
 /* Water that flows: white dashes moving along each line (OSM draws waterways downstream). */
@@ -112,8 +114,10 @@ span.rc-dot-btn { cursor: help; }
 /* The Scoreboard on the map, top right (under the basemap toggle). */
 .rc-hero-score {
   position: absolute; z-index: 700; top: 46px; right: 10px; width: min(360px, calc(100% - 20px));
-  background: rgba(252, 252, 251, 0.95); border-radius: 10px; padding: 0.5rem 0.75rem; box-shadow: 0 1px 6px rgba(0, 0, 0, 0.18);
+  background: rgba(252, 252, 251, 0.74); backdrop-filter: blur(4px); border-radius: 10px; padding: 0.5rem 0.75rem; box-shadow: 0 1px 6px rgba(0, 0, 0, 0.14);
+  transition: background 0.2s;
 }
+.rc-hero-score:hover { background: rgba(252, 252, 251, 0.95); }
 .rc-hero-score-spot { font-size: 0.8rem; font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.1rem; }
 .rc-hero-score .ck-score-main { font-size: clamp(1.1rem, 1.7vw, 1.45rem); }
 .rc-hero-score .ck-score-sub { font-size: clamp(0.95rem, 1.2vw, 1.1rem); }
@@ -172,3 +176,17 @@ span.rc-dot-btn { cursor: help; }
 .rc-drawer-body { flex: 1; overflow-y: auto; padding: 1rem; }
 .rc-drawer-hidden { margin: 0 0 0.8rem; font-size: 0.85rem; color: var(--ink-2); }
 .rc-drawer > .disclaimer { border-top: 1px solid #f0d58a; font-size: 0.8rem; padding: 0.3rem 1rem; }
+
+/* Declutter (GaugeLayer.declutter): icons and names that would pile up at this zoom are left out. */
+.leaflet-marker-icon.rc-gauge-icon.rc-gauge-hidden { display: none; }
+.leaflet-marker-icon.rc-gauge-icon.rc-gauge-nameless .rc-gauge-name { display: none !important; }
+
+/* Catchment zoom (.rc-far): smaller spot rings, names and gauge icons, so the cluster round Oxford stays readable. */
+.rc-far .rc-dot-btn svg { transform: scale(0.72); transform-origin: 50% 50%; }
+.rc-far .rc-dot-right .rc-dot-name { left: calc(100% - 2px); }
+.rc-far .rc-dot-left .rc-dot-name { right: calc(100% - 2px); }
+.rc-far .rc-dot-name { font-size: 0.68rem; }
+.rc-far .rc-dot-badge { font-size: 0.62rem; }
+.rc-far .leaflet-marker-icon.rc-gauge-icon svg { transform: scale(0.8); }
+.rc-far .leaflet-marker-icon.rc-gauge-icon.emph svg { transform: scale(0.95); }
+.rc-far .rc-gauge-name { font-size: 0.64rem; left: 14px; }
