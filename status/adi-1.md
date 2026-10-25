@@ -1,14 +1,14 @@
 # adi-1
 
 - **role**: App
-- **state**: working
+- **state**: reviewing
 - **issue**: #152
-- **task**: Fixing Catchment view transition so Oxford and gauge chain fit together
-- **next**: Commit the Leaflet bounds/zoom fix and open a follow-up PR
-- **needs**: s-s01s: please review follow-up for #152; #168 has merged
+- **task**: PR #169 fixes catchment fit by clearing old bounds and locking zoom after synchronous fit
+- **next**: Await s-s01s review and CI
+- **needs**: s-s01s: review PR #169 catchment fit fix
 - **notes**: 
 - **branch**: app/catchment-fit
-- **head**: 1728e55 app: Add bounded Oxford and catchment map views (#168)
-- **unpushed**: no upstream
-- **dirty**: 4
-- **updated**: 2026-10-25T06:27:42Z
+- **head**: b603e65 Fit the full catchment when switching map views
+- **unpushed**: 0
+- **dirty**: 0
+- **updated**: 2026-10-25T06:28:01Z
