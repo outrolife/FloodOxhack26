@@ -2,13 +2,13 @@
 
 - **role**: App
 - **state**: working
-- **issue**: #100
-- **task**: Checking OpenMP setup and reviewing rainfall forecast evidence
-- **next**: Coordinate with model owners before running or changing the experiment
-- **needs**: s-s01s: rainfall issue #100 is assigned to you; permission/coordination to work in analysis/model needed
+- **issue**: 
+- **task**: Reproducing the existing rainfall-forecast experiment with archived inputs
+- **next**: Compare held-out skill, calibration, Brier, and warning tradeoffs before recommending adoption
+- **needs**: alfredo: coordinating before any Model code edits; this run uses the existing #100 experiment only
 - **notes**: 
-- **branch**: app/catchment-fit
-- **head**: b603e65 Fit the full catchment when switching map views
+- **branch**: main
+- **head**: 0f902fd Merge pull request #169 from outrolife/app/catchment-fit
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T07:17:55Z
+- **updated**: 2026-10-25T07:20:30Z
