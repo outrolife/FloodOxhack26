@@ -18,11 +18,12 @@ import { SECONDS_PER_HOUR, type ChainLink } from "./flow";
 // ---------------------------------------------------------------- which map
 
 export type MapFlavour = "gl" | "leaflet";
+export type MapView = "oxford" | "catchment";
 
-/** The map drawn when the URL doesn't say. Flip to "gl" once map v3 is signed off (#152). */
+/** Keep the proven Leaflet map as default until the MapLibre worker is verified in production. */
 export const DEFAULT_MAP: MapFlavour = "leaflet";
 
-/** `?map=gl` or `?map=leaflet` (anything else: the default). */
+/** `?map=gl` or `?map=leaflet` (anything else: Leaflet). */
 export function mapFlavour(search: string): MapFlavour {
   const v = new URLSearchParams(search).get("map");
   return v === "gl" || v === "leaflet" ? v : DEFAULT_MAP;

@@ -22,6 +22,12 @@ const WAIT_MS = 15_000;
 const TEST_MS = 40_000;
 
 const deck = vi.hoisted(() => ({ props: [] as { layers?: { props: Record<string, unknown> }[] }[] }));
+const mapViewCalls = vi.hoisted(() => ({
+  cameraForBounds: [] as unknown[][],
+  fitBounds: [] as unknown[][],
+  maxBounds: [] as unknown[][],
+  minZoom: [] as number[],
+}));
 const mapCallbacks = vi.hoisted(() => ({
   onMoveStart: null as (() => void) | null,
   onMoveEnd: null as (() => void) | null,
@@ -52,8 +58,13 @@ vi.mock("react-map-gl/maplibre", async () => {
     on: () => {},
     hasImage: () => true,
     addImage: () => {},
-    setMaxBounds: () => {},
-    fitBounds: () => {},
+    cameraForBounds: (...args: unknown[]) => {
+      mapViewCalls.cameraForBounds.push(args);
+      return { zoom: 8 };
+    },
+    setMinZoom: (zoom: number) => mapViewCalls.minZoom.push(zoom),
+    setMaxBounds: (...args: unknown[]) => mapViewCalls.maxBounds.push(args),
+    fitBounds: (...args: unknown[]) => mapViewCalls.fitBounds.push(args),
     touchZoomRotate: { disableRotation: () => {} },
   };
   type P = {
@@ -112,6 +123,10 @@ const urlOf = (input: RequestInfo | URL) => (typeof input === "string" ? input :
 
 beforeEach(() => {
   deck.props = [];
+  mapViewCalls.cameraForBounds = [];
+  mapViewCalls.fitBounds = [];
+  mapViewCalls.maxBounds = [];
+  mapViewCalls.minZoom = [];
   mapCallbacks.onMoveStart = null;
   mapCallbacks.onMoveEnd = null;
   // jsdom has no WebGL: say it does, so the GL map (stand-ins) is drawn rather than the Leaflet fallback.
@@ -145,6 +160,21 @@ describe("App smoke test, map v3 (?map=gl)", () => {
     expect(document.querySelector(".rc-hero .leaflet-container")).toBeNull();
     await waitFor(() => expect(document.querySelectorAll(".rc-hero .rc-gauge-icon")).toHaveLength(stations.length), { timeout: WAIT_MS });
     await waitFor(() => expect(document.querySelectorAll(".rc-hero .rc-dot")).toHaveLength(expected.shown.size), { timeout: WAIT_MS });
+    await waitFor(() => expect(mapViewCalls.fitBounds.length).toBeGreaterThan(0), { timeout: WAIT_MS });
+    const oxfordBounds = mapViewCalls.fitBounds[0][0];
+    expect(mapViewCalls.minZoom).toContain(7.75);
+    expect(mapViewCalls.maxBounds[0][0]).not.toEqual(oxfordBounds);
+    await act(async () => screen.getByRole("button", { name: "Catchment" }).click());
+    await waitFor(() => expect(mapViewCalls.fitBounds.length).toBeGreaterThan(1), { timeout: WAIT_MS });
+    const catchmentBounds = mapViewCalls.fitBounds.at(-1)?.[0] as [[number, number], [number, number]];
+    expect(catchmentBounds).not.toEqual(oxfordBounds);
+    const points = [...spots, ...read<{ lat: number; lon: number }[]>("stations.json")];
+    expect(catchmentBounds).toEqual([
+      [Math.min(...points.map((p) => p.lon)) - 0.032, Math.min(...points.map((p) => p.lat)) - 0.02],
+      [Math.max(...points.map((p) => p.lon)) + 0.032, Math.max(...points.map((p) => p.lat)) + 0.02],
+    ]);
+    expect(screen.getByRole("button", { name: "Catchment" }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByRole("button", { name: "Oxford" }).getAttribute("aria-pressed")).toBe("false");
     // Wolvercote (timing only, no forecast) is never on the map; the hidden spots are named in Show the working.
     expect(screen.queryByRole("img", { name: /^Wolvercote/ })).toBeNull();
     expect(getHiddenSpots().map((h) => h.key)).toEqual(expected.hidden.map((h) => h.key));

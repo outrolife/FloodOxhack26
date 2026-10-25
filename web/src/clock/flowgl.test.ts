@@ -44,7 +44,7 @@ const line = (coords: Position[], properties: Record<string, unknown> = {}): Fea
 const fc = (features: Feature[]): FeatureCollection => ({ type: "FeatureCollection", features });
 
 describe("which map", () => {
-  it("reads ?map=gl / ?map=leaflet and otherwise uses the default (Leaflet until v3 is signed off)", () => {
+  it("reads ?map=gl / ?map=leaflet and otherwise keeps Leaflet as the default", () => {
     expect(mapFlavour("?map=gl")).toBe("gl");
     expect(mapFlavour("?x=1&map=leaflet")).toBe("leaflet");
     expect(mapFlavour("")).toBe(DEFAULT_MAP);

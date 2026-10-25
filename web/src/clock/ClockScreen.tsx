@@ -6,6 +6,7 @@
 import { Suspense, lazy, useCallback, useMemo, useState } from "react";
 import type { EventsFile, Forecast, Spot, StationsFile, TravelTimesFile } from "../contracts";
 import { mapFlavour } from "./flowgl";
+import type { MapView } from "./flowgl";
 import { useData } from "../data";
 import { formatDateTime, formatDateTimeYear } from "../time";
 import { usePickKeys } from "../ui/presenter";
@@ -89,7 +90,8 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
   const stations = useData<StationsFile>("stations.json");
   const travel = useData<TravelTimesFile>("travel_times.json");
   const [spot, setSpot] = useState(DEFAULT_SPOT);
-  // ?map=gl draws map v3; ?map=leaflet (or nothing, for now) the Leaflet map.
+  const [mapView, setMapView] = useState<MapView>("oxford");
+  // Keep MapLibre opt-in until its worker is verified in production.
   const [gl] = useState(() => typeof window !== "undefined" && mapFlavour(window.location.search) === "gl");
   const data = useClockEvent(event, spot);
 
@@ -151,6 +153,8 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
     marks,
     t,
     lagH: replay ? REPLAY_LAG_H : 0,
+    mapView,
+    onMapViewChange: setMapView,
   };
 
   const label = event === "now" ? "Now" : (names[event] ?? event);
@@ -180,6 +184,16 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
         ) : (
           <FlowMap {...mapProps} />
         )}
+        <div className="rc-map-views" role="group" aria-label="Map view">
+          {([
+            ["oxford", "Oxford"],
+            ["catchment", "Catchment"],
+          ] as const).map(([view, label]) => (
+            <button key={view} type="button" aria-pressed={mapView === view} onClick={() => setMapView(view)}>
+              {label}
+            </button>
+          ))}
+        </div>
         <div className="rc-badge" aria-live="polite">
           <strong>{label}</strong>
           {t != null && <span> · {event === "now" ? formatDateTime(t) : formatDateTimeYear(t)}</span>}

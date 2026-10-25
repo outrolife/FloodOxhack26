@@ -12,10 +12,12 @@ import { BaseMap, useBaseMap, type FitPadding } from "../ui/BaseMap";
 import { clocksFor } from "../ui/clockData";
 import { gaugeName } from "../lib/plain";
 import { FLOW_LOOK, PULSE_DASH, PULSE_PATH_LENGTH, bucketFor, chainLinks, flowBounds, levelFraction, linesByGauge, linkWords, riverWalk, type Bucket, type ChainLink } from "./flow";
+import { type MapView } from "./flowgl";
 import { spotDots, withData, type DotBadge } from "./markers";
 import { SpotDots } from "./SpotDots";
 import { GaugeLayer } from "./GaugeLayer";
 import { gaugeIconSvg, lookFor, type GaugeLook } from "./gauges";
+import { useData } from "../data";
 
 /**
  * Keep the spots and gauges clear of the panels drawn over the map: the badge
@@ -93,9 +95,12 @@ export function FlowMap({
   marks,
   t = null,
   lagH = 0,
+  mapView = "oxford",
 }: {
   /** The moment shown (epoch ms), for the gauge cards. */
   t?: number | null;
+  mapView?: MapView;
+  onMapViewChange?: (view: MapView) => void;
   /** Readings are known this many hours after they happen (replays: 1 h). */
   lagH?: number;
   spots: Spot[];
@@ -114,15 +119,16 @@ export function FlowMap({
   marks?: Record<string, { badge: DotBadge | null; pulse: boolean }>;
 }) {
   const base = useBaseMap();
+  const catchmentData = useData<FeatureCollection>(mapView === "catchment" ? "geo/catchment-rivers.geojson" : null);
   const byKey = useMemo(() => new Map(stations.map((s) => [s.key, s])), [stations]);
   const links = useMemo(() => chainLinks(stations, pairs), [stations, pairs]);
 
   // The whole catchment: the spots and every gauge in stations.json (upstream, live_only, targets),
   // so water from further out is on the map. Oxford until they load (flowBounds' fallback).
   const bounds = useMemo(
-    () => flowBounds([...spots, ...stations]),
+    () => (mapView === "oxford" ? flowBounds(spots, 0.025) : flowBounds([...spots, ...stations], 0.02)),
     // Keyed on the lists, not the arrays, so a re-render does not re-fit the map.
-    [spots.map((s) => s.key).join(), stations.map((s) => s.key).join()],
+    [mapView, spots.map((s) => s.key).join(), stations.map((s) => s.key).join()],
   );
 
   // Oxford gauges (near a spot, where the basemap draws rivers) that exist in this data set or are
@@ -131,16 +137,21 @@ export function FlowMap({
   const oxford = stations.filter(
     (s) => s.role !== "upstream" && nearOxford(s) && ((observed?.[s.key]?.length ?? 0) > 0 || stale.includes(s.key)),
   );
-  const oxfordKey = oxford.map((s) => s.key).join();
+  const dataGauges = stations.filter((s) => (observed?.[s.key]?.length ?? 0) > 0 || stale.includes(s.key));
+  const visibleGauges = mapView === "catchment" ? dataGauges : oxford;
+  const visibleGaugeKey = visibleGauges.map((s) => s.key).join();
   const groups = useMemo(() => {
     if (base.status !== "ready") return {};
     const lines: FeatureCollection = {
       type: "FeatureCollection",
-      features: [...(base.byKind.river?.features ?? []), ...(base.byKind.stream?.features ?? [])],
+      features:
+        mapView === "catchment" && catchmentData.status === "ready"
+          ? catchmentData.data.features
+          : [...(base.byKind.river?.features ?? []), ...(base.byKind.stream?.features ?? [])],
     };
-    return linesByGauge(lines, oxford);
-    // Keyed on the gauge list: regroup only when the set of gauges changes.
-  }, [base, oxfordKey]);
+    return linesByGauge(lines, visibleGauges);
+    // Keyed on the gauge list and view: regroup only when the source changes.
+  }, [base, catchmentData, mapView, visibleGaugeKey]);
 
   const bucketOf = (key: string): { bucket: Bucket; known: boolean } => {
     const s = byKey.get(key);
@@ -235,11 +246,15 @@ export function FlowMap({
   };
 
   return (
-    <BaseMap bounds={bounds} className={`rc-flowmap${walking ? " rc-walking" : ""}`} fitPadding={fitPadding()}>
+    <BaseMap
+      bounds={bounds}
+      className={`rc-flowmap${walking ? " rc-walking" : ""}${mapView === "catchment" ? " rc-catchment" : ""}`}
+      fitPadding={fitPadding()}
+    >
       <FlowMotion />
       {Object.entries(groups).map(([g, fc]) => {
         const { bucket, known } = bucketOf(g);
-        return <Water key={`${g}|${oxfordKey}`} fc={fc} bucket={bucket} known={known} dim={walking && !walk.gauges.has(g)} />;
+        return <Water key={`${g}|${visibleGaugeKey}`} fc={fc} bucket={bucket} known={known} dim={walking && !walk.gauges.has(g)} />;
       })}
 
       {shownLinks.map(({ link, mode }) => linkLayers(link, mode))}

@@ -5,13 +5,17 @@ import { linkWords } from "./flow";
 import { CLOCK_BOX, spreadApart } from "../ui/placement";
 
 describe("spot markers", () => {
-  it("shows the percentage inside the ring only from 1%", () => {
+  it("shows rounded percentages, including 0%, inside the ring", () => {
     expect(ringText(null)).toBeNull();
-    expect(ringText(0.004)).toBeNull();
+    expect(ringText(0)).toBe("0%");
+    expect(ringText(0.004)).toBe("0%");
+    expect(ringText(0.005)).toBe("1%");
     expect(ringText(0.01)).toBe("1%");
     expect(ringText(0.324)).toBe("32%");
     expect(ringText(1)).toBe("100%");
-    expect(chanceLabel("Botley Road", 0.004)).toBe("Botley Road: under 1% chance of flooding in the next 3 days");
+    expect(chanceLabel("Botley Road", 0.004)).toBe(
+      "Botley Road: 0% chance of flooding in the next 3 days, rounded to the nearest whole percent (model estimate 0.40%)",
+    );
   });
   it("is small: every marker the same ~32 px", () => {
     expect(DOT_PX).toBeGreaterThanOrEqual(28);

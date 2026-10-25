@@ -53,6 +53,7 @@ describe("App smoke test (jsdom)", () => {
     });
     vi.stubGlobal("fetch", fetchStub);
 
+    window.history.replaceState(null, "", "/?map=leaflet#/now");
     render(<App />);
     // Let effects run and timers fire while every fetch is still pending.
     await act(async () => {
@@ -99,6 +100,11 @@ describe("App smoke test (jsdom)", () => {
         await waitFor(() => expect(document.querySelectorAll(".rc-hero .rc-gauge-icon.emph").length).toBeGreaterThan(1), { timeout: WAIT_MS });
       }
     }
+    await act(async () => screen.getByRole("button", { name: "Catchment" }).click());
+    await waitFor(() => expect(document.querySelector(".rc-flowmap")?.classList.contains("rc-catchment")).toBe(true), { timeout: WAIT_MS });
+    expect(screen.getByRole("button", { name: "Catchment" }).getAttribute("aria-pressed")).toBe("true");
+    await act(async () => screen.getByRole("button", { name: "Oxford" }).click());
+    await waitFor(() => expect(document.querySelector(".rc-flowmap")?.classList.contains("rc-catchment")).toBe(false), { timeout: WAIT_MS });
     expect(errors).toEqual([]);
   }, TEST_MS);
 
@@ -111,6 +117,7 @@ describe("App smoke test (jsdom)", () => {
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => respond(typeof input === "string" ? input : input instanceof URL ? input.href : input.url)),
     );
+    window.history.replaceState(null, "", "/?map=leaflet#/e2014");
     window.location.hash = "/e2014";
     render(<App />);
     await waitFor(() => expect(screen.getByRole("button", { name: "2014" }).getAttribute("aria-pressed")).toBe("true"), { timeout: WAIT_MS });

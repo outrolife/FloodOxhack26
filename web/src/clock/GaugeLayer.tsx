@@ -16,12 +16,12 @@ const escapeHtml = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt
 
 const iconCache = new Map<string, L.DivIcon>();
 type Emphasis = "normal" | "emph" | "dim";
-function iconFor(look: GaugeLook, name: string, emphasis: Emphasis): L.DivIcon {
-  const k = `${look}|${emphasis}|${name}`;
+function iconFor(look: GaugeLook, name: string, emphasis: Emphasis, role: Station["role"]): L.DivIcon {
+  const k = `${look}|${emphasis}|${name}|${role}`;
   let icon = iconCache.get(k);
   if (!icon) {
     icon = L.divIcon({
-      className: `rc-gauge-icon rc-gauge-${look}${emphasis === "normal" ? "" : ` ${emphasis}`}`,
+      className: `rc-gauge-icon rc-gauge-${look}${emphasis === "normal" ? "" : ` ${emphasis}`}${role === "upstream" ? " rc-gauge-upstream" : ""}`,
       html: `${gaugeIconSvg(look, emphasis === "emph")}<span class="rc-gauge-name">${escapeHtml(name)}</span>`,
       iconSize: [14, 18],
       iconAnchor: [7, 9],
@@ -92,7 +92,7 @@ function GaugeMarker({
   return (
     <Marker
       position={[station.lat, station.lon]}
-      icon={iconFor(look, name, emphasis)}
+      icon={iconFor(look, name, emphasis, station.role)}
       title={words}
       alt={words}
       zIndexOffset={-500}
