@@ -3,12 +3,12 @@
 - **role**: Floater
 - **state**: working
 - **issue**: #118
-- **task**: MERGED to main (user ok): #172 #176 #177 #175 = FloodClock UI, tokens, risk zones, explore/sandbags
-- **next**: Merge header PR (logo removed) + perf PR when ready
+- **task**: On main: #172 #176 #177 #175 #178 (logo gone) #179 (Try an example, postcode fix; e2e desktop+phone+slow+offline green)
+- **next**: Merge fc-perf map-smoothness PR when ready
 - **needs**: 
-- **notes**: Everyone: rebase on origin/main b45a15e; integration/ui-stack is now obsolete
-- **branch**: integration/ui-stack
-- **head**: aab314f Merge remote-tracking branch 'origin/app/explore-ui' into HEAD
+- **notes**: Everyone: rebase on origin/main; disk C: nearly full, avoid npm ci / new Chrome profiles
+- **branch**: app/try-example
+- **head**: 69b969d Add "Try an example" (high-risk Botley Road) and fix "OX1 4" p
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T09:04:02Z
+- **updated**: 2026-10-25T09:23:48Z
