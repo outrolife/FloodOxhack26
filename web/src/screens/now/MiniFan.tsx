@@ -47,9 +47,9 @@ export function MiniFan({ sf, issuedAt, threshold, amber }: { sf: SpotForecast; 
             <Line dataKey="median" stroke="#184f95" strokeWidth={2} strokeDasharray="5 3" dot={false} isAnimationActive={false} />
             <ReferenceLine
               y={threshold}
-              stroke="#d03b3b"
+              stroke="var(--fc-risk-high)"
               strokeDasharray="6 3"
-              label={{ value: `Flood level ${threshold.toFixed(2)} m`, position: "insideTopLeft", fill: "#d03b3b", fontSize: 12 }}
+              label={{ value: `Flood level ${threshold.toFixed(2)} m`, position: "insideTopLeft", fill: "var(--fc-risk-high)", fontSize: 12 }}
             />
           </ComposedChart>
         </ResponsiveContainer>

@@ -174,7 +174,7 @@ export function FanChart({
           <Line dataKey="obsFaint" name="What happened next" stroke="#898781" strokeOpacity={0.45} strokeWidth={2} dot={false} isAnimationActive={false} connectNulls />
           <Line dataKey="obs" name="River so far" stroke="#0b0b0b" strokeWidth={2} dot={false} isAnimationActive={false} connectNulls />
           {threshold != null && (
-            <ReferenceLine y={threshold} stroke="#d03b3b" strokeDasharray="6 3" label={{ value: `Flood level ${threshold.toFixed(2)} m`, position: "insideTopLeft", fill: "#d03b3b", fontSize: 12 }} />
+            <ReferenceLine y={threshold} stroke="var(--fc-risk-high)" strokeDasharray="6 3" label={{ value: `Flood level ${threshold.toFixed(2)} m`, position: "insideTopLeft", fill: "var(--fc-risk-high)", fontSize: 12 }} />
           )}
           <ReferenceLine y={amber} stroke="#eda100" strokeDasharray="3 3" label={{ value: `Usual high ${amber.toFixed(2)} m`, position: "insideBottomLeft", fill: "#8a5d00", fontSize: 12 }} />
           {markers.map((m, i) => (
