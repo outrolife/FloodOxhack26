@@ -3,12 +3,12 @@
 - **role**: Model
 - **state**: working
 - **issue**: #134
-- **task**: Earlier warnings: still running; LOFO sm_lag7d 14/16, coinc 7/16 (machine load ~50, slower)
-- **next**: sm_lag7d 30-flood lead vs EA ~23:45; coinc if done by 00:50; final table 01:30 GMT
+- **task**: Earlier warnings: final table posted on #134 (recommend: adopt nothing)
+- **next**: Append 6-event LOFO sm_lag7d vs baseline if it finishes by 01:30
 - **needs**: 
 - **notes**: 
 - **branch**: model/earlier-warnings
-- **head**: cd93f67 Report false-alarm episode times in experiment scoring (#134)
+- **head**: 968bce8 Add --event-ids to the earlier-warnings evaluation (#134)
 - **unpushed**: 0
 - **dirty**: 1
-- **updated**: 2026-10-24T23:22:21Z
+- **updated**: 2026-10-25T01:05:40Z
