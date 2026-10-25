@@ -5,7 +5,8 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { DEBOUNCE_MS, EXAMPLE_PLACE, NOT_FOUND_TEXT, OFFLINE_TEXT, SearchBox, lookupFailure } from "./SearchBox";
 import { PointCard, chanceWords, nearbyLine } from "./PointCard";
 import { SandbagCard, StepText } from "./SandbagCard";
-import { dropsPin, explodeZones, zoneLabel, zoneStyle } from "./ExploreLayer";
+import L from "leaflet";
+import { dropsPin, explodeZones, mercatorUnit, zoneLabel, zoneStyle } from "./ExploreLayer";
 import { countAt } from "./motion";
 import { describePoint } from "./risk";
 import { estimateSandbags } from "./sandbags";
@@ -198,6 +199,24 @@ describe("map helpers", () => {
     expect(dropsPin(zone)).toBe(true);
     expect(dropsPin(link)).toBe(false);
     expect(dropsPin(inner)).toBe(false);
+    // The zones canvas (its own pane): Leaflet marks it interactive while a zone is under the pointer.
+    const pane = document.createElement("div");
+    pane.className = "leaflet-pane leaflet-fc-zones-pane";
+    const canvas = document.createElement("canvas");
+    canvas.className = "leaflet-zoom-animated leaflet-interactive";
+    pane.appendChild(canvas);
+    expect(dropsPin(canvas)).toBe(true);
+  });
+
+  it("projects zone vertices to the same pixels as Leaflet", () => {
+    for (const [lat, lng] of [[51.752, -1.258], [51.70631, -1.39789], [51.9, -1.0], [-33.9, 151.2], [89, 179.9]]) {
+      for (const z of [10, 12.25, 13, 14.75, 16]) {
+        const [u, v] = mercatorUnit(lat, lng);
+        const s = L.CRS.EPSG3857.scale(z);
+        const want = L.CRS.EPSG3857.latLngToPoint(L.latLng(lat, lng), z).round();
+        expect([Math.round(s * u), Math.round(s * v)]).toEqual([want.x, want.y]);
+      }
+    }
   });
 
   it("labels and styles the zones, stronger on hover", () => {

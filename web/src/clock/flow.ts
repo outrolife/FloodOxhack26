@@ -136,6 +136,28 @@ export function linesByGauge(
   return out;
 }
 
+/**
+ * One MultiLineString per line kind (river, stream): the same lines, drawn as
+ * a couple of SVG paths instead of hundreds. Fewer animated paths means far
+ * less style and paint work per frame (map perf); the look is unchanged.
+ */
+export function mergeByKind(fc: FeatureCollection): FeatureCollection<MultiLineString> {
+  const byKind = new Map<string, MultiLineString["coordinates"]>();
+  for (const f of fc.features as Line[]) {
+    const g = f.geometry;
+    const lines = g?.type === "LineString" ? [g.coordinates] : g?.type === "MultiLineString" ? g.coordinates : [];
+    if (lines.length === 0) continue;
+    const kind = String(f.properties?.kind ?? "");
+    let acc = byKind.get(kind);
+    if (!acc) byKind.set(kind, (acc = []));
+    for (const l of lines) acc.push(l);
+  }
+  return {
+    type: "FeatureCollection",
+    features: [...byKind].map(([kind, coordinates]) => ({ type: "Feature", properties: { kind }, geometry: { type: "MultiLineString", coordinates } })),
+  };
+}
+
 // ---------------------------------------------------------------- upstream chain
 
 export type ChainLink = {
