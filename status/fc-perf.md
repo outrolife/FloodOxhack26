@@ -1,14 +1,14 @@
 # fc-perf
 
 - **role**: App
-- **state**: working
+- **state**: reviewing
 - **issue**: #118
-- **task**: Map perf: measure + fix zoom/pan lag
-- **next**: Baseline CDP benchmark
+- **task**: Map perf PR open
+- **next**: Await merge
 - **needs**: 
 - **notes**: 
 - **branch**: app/map-perf
-- **head**: aab314f Merge remote-tracking branch 'origin/app/explore-ui' into HEAD
+- **head**: 96701eb Keep the risk zones on SVG where there is no 2D canvas (jsdom 
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T08:42:45Z
+- **updated**: 2026-10-25T09:25:43Z
