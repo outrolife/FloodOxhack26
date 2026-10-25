@@ -11,7 +11,7 @@ import type { Point } from "../components/shared/series";
 import { BaseMap, useBaseMap, type FitPadding } from "../ui/BaseMap";
 import { clocksFor } from "../ui/clockData";
 import { gaugeName } from "../lib/plain";
-import { FLOW_LOOK, PULSE_DASH, PULSE_PATH_LENGTH, bucketFor, chainLinks, flowBounds, levelFraction, linesByGauge, linkWords, riverWalk, type Bucket, type ChainLink } from "./flow";
+import { FLOW_LOOK, PULSE_DASH, PULSE_PATH_LENGTH, bucketFor, chainLinks, flowBounds, levelFraction, linesByGauge, linkWords, mergeByKind, riverWalk, type Bucket, type ChainLink } from "./flow";
 import { type MapView } from "./flowgl";
 import { spotDots, withData, type DotBadge } from "./markers";
 import { SpotDots } from "./SpotDots";
@@ -156,7 +156,10 @@ export function FlowMap({
           ? catchmentData.data.features
           : [...(base.byKind.river?.features ?? []), ...(base.byKind.stream?.features ?? [])],
     };
-    return linesByGauge(lines, visibleGauges);
+    // Merged per kind: a few SVG paths per gauge, not one per OSM way (animated dashes are costly per path).
+    const out: Record<string, FeatureCollection> = {};
+    for (const [g, fc] of Object.entries(linesByGauge(lines, visibleGauges))) out[g] = mergeByKind(fc);
+    return out;
     // Keyed on the gauge list and view: regroup only when the source changes.
   }, [base, catchmentData, mapView, visibleGaugeKey]);
 
