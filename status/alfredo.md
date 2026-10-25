@@ -10,5 +10,5 @@
 - **branch**: app/map-polish
 - **head**: 5e2c85f Map polish: catchment basemap, decluttered catchment view, pin
 - **unpushed**: 0
-- **dirty**: 0
-- **updated**: 2026-10-25T07:13:10Z
+- **dirty**: 1
+- **updated**: 2026-10-25T07:21:03Z
