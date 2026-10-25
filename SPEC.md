@@ -29,7 +29,7 @@ Tagline: *"Water upstream is Oxford's future. We read it as a clock."*
 
 ```
 river-clock/
-  CLAUDE.md  SPEC.md  README.md  Makefile  pyproject.toml
+  SPEC.md  README.md  Makefile  pyproject.toml
   config/
     stations.yaml   spots.yaml   events.yaml
   data/                       # gitignored: raw/ interim/ processed/ models/ geo/

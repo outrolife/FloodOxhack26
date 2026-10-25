@@ -37,7 +37,7 @@ The same idea has up to five names today. Choosing one name each fixes about a t
 |---|---|---|---|---|
 | G1 | Tagline "Water upstream is Oxford's future. We read it as a clock." (`App.tsx:42`) | Memorable, but doesn't say what the app does | Keep it, and add a second line: "Flood forecasts for five Oxford streets, up to 3 days ahead, from river gauges upstream." | – |
 | G2 | Tab labels "River · Time Machine · Decide · Proof · About" (`App.tsx:12-16`) | "Proof" and "Decide" don't say what the tab holds | Keep the names, and add a hover hint or small subtitle to each: "River: right now" · "Time Machine: replay a real flood" · "Decide: should I act?" · "Proof: does it work?" · "About: how it works" | – |
-| G3 | Disclaimer (`Disclaimer.tsx:5-10`) | Fine as it is. Required on every screen (CLAUDE.md rule 7) | Keep | – |
+| G3 | Disclaimer (`Disclaimer.tsx:5-10`) | Fine as it is. Required on every screen (SPEC §16 rule 7) | Keep | – |
 
 ### 1.2 River tab
 
