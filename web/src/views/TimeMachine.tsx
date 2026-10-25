@@ -223,9 +223,9 @@ function ReplayPlayer({
   const at = (t: string) => ` · ${formatShort(t)}`;
   const markers: Marker[] = [];
   if (alertMatch.official && alertMatch.rc && revealed(alertMatch.rc))
-    markers.push({ t: alertMatch.rc, label: `River Clock: 1 in 10${at(alertMatch.rc)}`, colour: "#2a78d6" });
+    markers.push({ t: alertMatch.rc, label: `FloodClock: 1 in 10${at(alertMatch.rc)}`, colour: "#2a78d6" });
   if (warnMatch.rc && revealed(warnMatch.rc))
-    markers.push({ t: warnMatch.rc, label: `River Clock: 1 in 2${at(warnMatch.rc)}`, colour: "#184f95" });
+    markers.push({ t: warnMatch.rc, label: `FloodClock: 1 in 2${at(warnMatch.rc)}`, colour: "#184f95" });
   if (officialAlert && revealed(officialAlert.issuedAt))
     markers.push({ t: officialAlert.issuedAt, label: `Official ${officialLabel(officialAlert)}${at(officialAlert.issuedAt)}`, colour: "#a8336a" });
   if (officialWarning && revealed(officialWarning.issuedAt))
@@ -265,7 +265,7 @@ function ReplayPlayer({
                 setPlaying(false);
                 setIdx(runUp);
               }}
-              title={`Jump to ${formatDateTimeYear(forecasts[runUp].issuedAt)}, 3 days before River Clock first gave ${spot.name} a 50% chance (or before the flood), then press Play`}
+              title={`Jump to ${formatDateTimeYear(forecasts[runUp].issuedAt)}, 3 days before FloodClock first gave ${spot.name} a 50% chance (or before the flood), then press Play`}
             >
               Start just before the flood
             </button>

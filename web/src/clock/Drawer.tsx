@@ -35,9 +35,9 @@ export function Drawer({ tab, onTab, onClose }: { tab: WorkingId; onTab: (id: Wo
   const hidden = useHiddenSpots();
   return (
     <div className="rc-drawer-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <aside className="rc-drawer" role="dialog" aria-modal="true" aria-label="Show the working">
+      <aside className="rc-drawer" role="dialog" aria-modal="true" aria-label="Info">
         <header className="rc-drawer-head">
-          <h2>Show the working</h2>
+          <h2>Info</h2>
           <nav className="rc-drawer-tabs" aria-label="Working tabs">
             {WORKING_TABS.map((t) => (
               <button key={t.id} type="button" className="btn" aria-pressed={t.id === tab} onClick={() => onTab(t.id)}>
@@ -45,7 +45,7 @@ export function Drawer({ tab, onTab, onClose }: { tab: WorkingId; onTab: (id: Wo
               </button>
             ))}
           </nav>
-          <button ref={close} type="button" className="rc-drawer-close" onClick={onClose} aria-label="Close Show the working">
+          <button ref={close} type="button" className="rc-drawer-close" onClick={onClose} aria-label="Close Info">
             ×
           </button>
         </header>

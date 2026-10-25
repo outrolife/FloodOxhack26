@@ -18,14 +18,39 @@ body { background: var(--page); }
 
 .ui-app { min-height: 100vh; display: flex; flex-direction: column; }
 
-/* Header: brand, screens, presenter toggle. */
+/* Header: logo mark + wordmark with the tagline under it, and the Info link.
+   Every colour here is at least 4.5:1 on the darkest and lightest end of the
+   gradient (white ≈ 8.6:1, tagline ≈ 6.7:1, the light-blue "Clock" ≈ 5.6:1). */
 .ui-header {
-  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
-  min-height: var(--ui-header-h); padding: 0.3rem 1.2rem; background: #0d366b; color: #fff;
+  position: relative; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  min-height: var(--ui-header-h); padding: 0.3rem 1.2rem; color: #fff;
+  background: #0d366b linear-gradient(100deg, #0a2a55 0%, #0d366b 45%, #134a8c 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 2px 8px rgba(8, 30, 60, 0.28);
 }
-.ui-brand { color: #fff; font-weight: 750; font-size: 1.2rem; text-decoration: none; letter-spacing: 0.01em; }
-.ui-tagline { color: rgba(255, 255, 255, 0.85); font-size: 0.95rem; }
-.ui-header-link { margin-left: auto; color: #fff; font-size: 0.9rem; text-underline-offset: 3px; }
+/* A thin "water line" along the bottom edge. */
+.ui-header::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; pointer-events: none;
+  background: linear-gradient(90deg, rgba(143, 208, 255, 0) 0%, rgba(143, 208, 255, 0.7) 30%, rgba(143, 208, 255, 0.25) 100%);
+}
+.ui-brand {
+  display: inline-flex; align-items: center; gap: 0.6rem; color: #fff; text-decoration: none;
+  border-radius: 8px; padding: 0.15rem 0.35rem 0.15rem 0.1rem; margin-left: -0.1rem;
+}
+.ui-logo { flex: none; display: block; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)); }
+.ui-brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+.ui-wordmark { font-weight: 800; font-size: 1.3rem; letter-spacing: -0.01em; }
+.ui-wordmark-accent { color: #9fd4ff; }
+.ui-tagline { color: rgba(255, 255, 255, 0.88); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.02em; }
+.ui-header-link {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 0.4rem;
+  color: #fff; font-size: 0.9rem; font-weight: 600; text-decoration: none;
+  padding: 0.35rem 0.85rem; border: 1px solid rgba(255, 255, 255, 0.45); border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.ui-header-link:hover { background: rgba(255, 255, 255, 0.16); border-color: #fff; }
+.ui-header-link-icon { flex: none; }
+.ui-brand:hover .ui-wordmark { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 2px; }
+.ui-header a:focus-visible, .ui-header button:focus-visible { outline: 3px solid #ffd166; outline-offset: 2px; }
 .ui-nav-item, .ui-presenter-toggle {
   display: inline-flex; align-items: center; gap: 0.35rem;
   background: transparent; color: #fff; border: 1px solid transparent; border-radius: 6px;

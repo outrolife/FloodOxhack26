@@ -71,7 +71,7 @@ describe("Now screen", () => {
   it("without live data: says so, and never claims a forecast", () => {
     const html = render({ forecast: null, origin: "none" });
     expect(html).toContain("Live data unavailable.");
-    expect(html).toContain("no River Clock forecast is available");
+    expect(html).toContain("no FloodClock forecast is available");
     expect(html).not.toContain("ui-stat ");
   });
 

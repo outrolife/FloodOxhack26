@@ -135,7 +135,7 @@ const join = (xs: string[]): string =>
 /** The one sentence at the top of the Now screen, generated from the clocks. */
 export function headline(clocks: SpotClockInfo[]): string {
   const forecastable = clocks.filter((c) => c.kind === "forecast" || c.kind === "flooding");
-  if (forecastable.length === 0) return "Right now: no River Clock forecast is available. Check gov.uk/check-flooding.";
+  if (forecastable.length === 0) return "Right now: no FloodClock forecast is available. Check gov.uk/check-flooding.";
 
   const flooding = forecastable.filter((c) => c.kind === "flooding");
   if (flooding.length > 0) {
@@ -196,7 +196,7 @@ export function adviceLines(clock: SpotClockInfo, sf: SpotForecast | undefined, 
         id: "all",
         label: "Everyone",
         act: null,
-        text: `Everyone: no River Clock forecast here (${clock.status}). Check gov.uk/check-flooding for official warnings.`,
+        text: `Everyone: no FloodClock forecast here (${clock.status}). Check gov.uk/check-flooding for official warnings.`,
       },
     ];
   }

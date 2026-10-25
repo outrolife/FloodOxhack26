@@ -60,10 +60,10 @@ export function BeatsTile({ data, proof }: { data: BeatsData | null; proof: Proo
       <div
         className="trust-bars"
         role="img"
-        aria-label={`Average forecast error ${leadWords(data.h)} ahead: River Clock ${data.model.toFixed(4)} m, the river stays the same ${data.baseline.toFixed(4)} m.`}
+        aria-label={`Average forecast error ${leadWords(data.h)} ahead: FloodClock ${data.model.toFixed(4)} m, the river stays the same ${data.baseline.toFixed(4)} m.`}
       >
         <div className="trust-bar-row">
-          <span className="trust-bar-label">River Clock's error</span>
+          <span className="trust-bar-label">FloodClock's error</span>
           <span className="trust-bar-track">
             <span className="trust-bar is-model" style={{ width: `${Math.min(100, data.ratio * 100)}%` }} />
           </span>
@@ -286,9 +286,9 @@ export function EarlyTile({ data, proof }: { data: EarlyData; proof: Proof }) {
           <p className="trust-caption">
             {cmp.oursText} · {cmp.officialText}. {cmp.verdict}
           </p>
-          <ul className="trust-vs" aria-label="Floods caught and false alarms, River Clock and the official warning, same floods and rules">
+          <ul className="trust-vs" aria-label="Floods caught and false alarms, FloodClock and the official warning, same floods and rules">
             {[
-              { who: "River Clock", s: cmp.ours, cls: "is-model" },
+              { who: "FloodClock", s: cmp.ours, cls: "is-model" },
               { who: "Official warning", s: cmp.official, cls: "is-official" },
             ].map(({ who, s, cls }) => (
               <li key={who}>
@@ -343,13 +343,13 @@ export function OfficialOutcome({ data }: { data: EarlyData }) {
   if (!rows.length) return null;
   return (
     <div className="card">
-      <h2>River Clock and the official warnings, scored the same way</h2>
+      <h2>FloodClock and the official warnings, scored the same way</h2>
       <table className="trust-table">
         <thead>
           <tr>
             <th>Spot</th>
-            <th>River Clock caught</th>
-            <th>River Clock false alarms</th>
+            <th>FloodClock caught</th>
+            <th>FloodClock false alarms</th>
             <th>EA caught</th>
             <th>EA false alarms</th>
           </tr>
@@ -372,7 +372,7 @@ export function OfficialOutcome({ data }: { data: EarlyData }) {
       </table>
       <p className="small muted">
         Both are scored on the same floods, hours and rules (how an official warning counts as in force is in the note
-        at the bottom). River Clock alarms at {triggerPhrase(data.pStar)}; a lower trigger catches more and cries
+        at the bottom). FloodClock alarms at {triggerPhrase(data.pStar)}; a lower trigger catches more and cries
         wolf more often.
       </p>
     </div>

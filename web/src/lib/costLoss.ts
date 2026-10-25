@@ -173,7 +173,7 @@ export type StrategyCost = {
 };
 
 export const STRATEGY_LABELS: Record<StrategyKey, string> = {
-  riverClock: "River Clock",
+  riverClock: "FloodClock",
   official: "Official warnings",
   neverAct: "Never act",
   alwaysAct: "Always act",

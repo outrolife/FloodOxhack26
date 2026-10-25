@@ -31,7 +31,7 @@ export function badgeText(o: Outcome): string {
     case "called":
       return `Called ${o.atLeast ? "at least " : ""}${o.leadH} h before the flood`;
     case "missed":
-      return "Flooded before River Clock reached 50%";
+      return "Flooded before FloodClock reached 50%";
     case "calm":
       return `Stayed calm: highest chance ${pctText(o.peakP)}`;
     case "falseAlarm":
@@ -78,14 +78,14 @@ export function headlineText(f: ReplayFacts, spotName: string, threshold: number
   const within = below != null && below >= 0 ? `came within ${below} cm of flood level` : "stayed below flood level";
   switch (o.kind) {
     case "called":
-      return `${when}: River Clock said ${name} would likely flood ${o.atLeast ? "at least " : ""}${o.leadH} hours before it did.`;
+      return `${when}: FloodClock said ${name} would likely flood ${o.atLeast ? "at least " : ""}${o.leadH} hours before it did.`;
     case "missed":
-      return `${when}: ${name} flooded before River Clock's chance reached 50%.`;
+      return `${when}: ${name} flooded before FloodClock's chance reached 50%.`;
     case "calm":
-      return `${when}: the river at ${name} ${within}, and River Clock never went above ${pctText(o.peakP)}.`;
+      return `${when}: the river at ${name} ${within}, and FloodClock never went above ${pctText(o.peakP)}.`;
     case "falseAlarm":
-      return `${when}: River Clock gave ${name} up to ${pctText(o.peakP)}, but the river ${within}.`;
+      return `${when}: FloodClock gave ${name} up to ${pctText(o.peakP)}, but the river ${within}.`;
     case "noForecast":
-      return `${eventName}: River Clock has no forecast for ${name}.`;
+      return `${eventName}: FloodClock has no forecast for ${name}.`;
   }
 }

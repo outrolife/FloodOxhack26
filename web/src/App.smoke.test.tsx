@@ -60,7 +60,7 @@ describe("App smoke test (jsdom)", () => {
       await new Promise((r) => setTimeout(r, 50));
     });
     expect(fetchStub).toHaveBeenCalled();
-    expect(screen.getByRole("banner").textContent).toContain("River Clock");
+    expect(screen.getByRole("banner").textContent).toContain("FloodClock");
     expect(screen.getByRole("navigation", { name: "What to show" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Now" }).getAttribute("aria-pressed")).toBe("true");
     expect(document.querySelector(".ui-basemap .leaflet-container")).not.toBeNull();

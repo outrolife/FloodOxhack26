@@ -145,7 +145,7 @@ describe.skipIf(!have)("warn-at levels on the committed data", () => {
     }
   });
 
-  it("the footer counts River Clock at each spot's level", () => {
+  it("the footer counts FloodClock at each spot's level", () => {
     const s = proofSummary(proof);
     let falseAlarms = 0;
     for (const [spot, rows] of Object.entries(proof.tradeoff)) {

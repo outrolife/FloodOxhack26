@@ -175,7 +175,7 @@ export default function About() {
       <section className="card">
         <h2>Disclaimer</h2>
         <p>
-          River Clock is a decision-support prototype built at OxHack 2026. It is{" "}
+          FloodClock is a decision-support prototype built at OxHack 2026. It is{" "}
           <strong>not an official flood warning</strong> and must not replace one. For official
           warnings and what to do, check{" "}
           <a href="https://www.gov.uk/check-flooding" target="_blank" rel="noreferrer">

@@ -11,6 +11,33 @@ import { WORKING_EVENT } from "./clock/ProofFooter";
 import { EVENT_CHOICES } from "./clock/choices";
 import "./ui/ui.css";
 
+/** The brand mark: a water drop with a clock face inside. Inline SVG, so it works offline. */
+function LogoMark() {
+  return (
+    <svg className="ui-logo" viewBox="0 0 32 32" width="34" height="34" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="ui-logo-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#8fd0ff" />
+          <stop offset="1" stopColor="#2a78d6" />
+        </linearGradient>
+      </defs>
+      <path d="M16 2.5C16 2.5 6 13.6 6 20a10 10 0 0 0 20 0C26 13.6 16 2.5 16 2.5Z" fill="url(#ui-logo-fill)" stroke="#fff" strokeWidth="1.4" />
+      <circle cx="16" cy="20" r="6.2" fill="#0d366b" stroke="#fff" strokeWidth="1.2" />
+      <path d="M16 16.3V20l2.7 1.7" fill="none" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function InfoIcon() {
+  return (
+    <svg className="ui-header-link-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
+      <circle cx="8" cy="8" r="6.8" fill="none" stroke="currentColor" strokeWidth="1.4" />
+      <circle cx="8" cy="4.9" r="0.95" fill="currentColor" />
+      <path d="M8 7.2v4.4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export default function App() {
   const view = useHashView();
   const known = (id: string | null): id is string => id != null && EVENT_CHOICES.some((c) => c.id === id);
@@ -20,7 +47,8 @@ export default function App() {
   }, [view.event]);
 
   const drawerOpen = view.working != null;
-  const { presenter, togglePresenter } = usePresenter(drawerOpen);
+  // The presenter keys (1-9, Space, arrows, P) stay; only the header button went.
+  usePresenter(drawerOpen);
 
   const pick = useCallback((id: string) => {
     setEvent(id);
@@ -45,17 +73,20 @@ export default function App() {
     <div className="ui-app">
       <header className="ui-header">
         <a className="ui-brand" href={`#/${NOW}`} onClick={() => setEvent(NOW)}>
-          River Clock
+          <LogoMark />
+          <span className="ui-brand-text">
+            <span className="ui-wordmark">
+              Flood<span className="ui-wordmark-accent">Clock</span>
+            </span>
+            <span className="ui-tagline">When will the river reach Oxford's flood spots?</span>
+          </span>
         </a>
-        <span className="ui-tagline">When will the river reach Oxford's flood spots?</span>
         <a className="ui-header-link" href="#/working">
-          Show the working
+          <InfoIcon />
+          Info
         </a>
-        <button className="ui-presenter-toggle" aria-pressed={presenter} onClick={togglePresenter} title="Presenter mode (P)">
-          <kbd className="ui-key">P</kbd> Presenter
-        </button>
       </header>
-      <main className="ui-main" aria-label="River Clock">
+      <main className="ui-main" aria-label="FloodClock">
         <ClockScreen event={event} onEvent={pick} />
       </main>
       {drawerOpen && <Drawer tab={tabFor(view.working)} onTab={openTab} onClose={closeDrawer} />}

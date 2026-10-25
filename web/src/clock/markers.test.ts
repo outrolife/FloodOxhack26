@@ -65,7 +65,7 @@ describe("replay badges and the warning pulse", () => {
     leadVsOfficialH: 7.06,
   };
   const T = Date.parse;
-  it("shows River Clock vs the EA only once both have happened, with its honest sign", () => {
+  it("shows FloodClock vs the EA only once both have happened, with its honest sign", () => {
     expect(eaBadge(f, T("2014-01-04T06:00:00Z"))).toBeNull();
     expect(eaBadge(f, T("2014-01-04T12:00:00Z"))).toEqual({ text: "Warned 7 h before EA", tone: "good" });
     expect(eaBadge({ ...f, leadVsOfficialH: -8.2 }, Infinity)).toEqual({ text: "8 h after EA", tone: "bad" });
@@ -74,7 +74,7 @@ describe("replay badges and the warning pulse", () => {
     expect(eaBadge({ ...f, official: null }, Infinity)).toBeNull();
     expect(eaBadge(null, Infinity)).toBeNull();
   });
-  it("pulses for 12 simulated hours after River Clock's warning", () => {
+  it("pulses for 12 simulated hours after FloodClock's warning", () => {
     expect(justWarned(f, T("2014-01-04T04:00:00Z"))).toBe(false);
     expect(justWarned(f, T("2014-01-04T05:00:00Z"))).toBe(true);
     expect(justWarned(f, T("2014-01-04T05:00:00Z") + PULSE_H * 3_600_000)).toBe(false);
