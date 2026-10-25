@@ -59,7 +59,7 @@ export default function Now() {
     return <Screen headline={<Headline>Spot data unavailable.</Headline>} hero={<p className="ui-placeholder">{spots.status === "error" ? spots.error : stations.status === "error" ? stations.error : ""}</p>} />;
   }
   if (spots.status !== "ready" || stations.status !== "ready" || live.status === "loading") {
-    return <Screen headline={<Headline>Reading the river…</Headline>} hero={<div className="ui-placeholder">Loading live data</div>} />;
+    return <Screen headline={<Headline>Reading the river…</Headline>} hero={<div className="ui-placeholder is-loading" aria-busy="true">Loading live data</div>} />;
   }
   const forecast = live.status === "ready" ? live.forecast : null;
 

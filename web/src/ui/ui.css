@@ -57,6 +57,12 @@ main.ui-main { flex: 1; max-width: none; margin: 0; padding: var(--fc-space-3) v
 }
 .ui-screen-aside { display: flex; flex-direction: column; gap: var(--ui-gap); min-width: 0; }
 .ui-placeholder { display: grid; place-items: center; height: 100%; min-height: 60vh; color: var(--fc-ink-3); font-size: var(--fc-text-lg); background: var(--fc-surface-2); }
+/* Loading (aria-busy): the shared skeleton shimmer behind the words. */
+.ui-placeholder.is-loading {
+  background: linear-gradient(90deg, var(--fc-surface-2) 0%, #f8f8f6 45%, var(--fc-surface-2) 90%) 0 0 / 300% 100%;
+  animation: fc-shimmer 1.4s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) { .ui-placeholder.is-loading { animation: none; } }
 
 /* Headline */
 .ui-headline-main { font-size: var(--ui-headline); line-height: 1.2; font-weight: var(--fc-weight-bold); letter-spacing: -0.015em; margin: 0; color: var(--fc-ink); }

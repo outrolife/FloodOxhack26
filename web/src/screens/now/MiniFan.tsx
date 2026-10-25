@@ -38,10 +38,10 @@ export function MiniFan({ sf, issuedAt, threshold, amber }: { sf: SpotForecast; 
               domain={[0, 72]}
               ticks={[0, 24, 48, 72]}
               tickFormatter={(h: number) => tick(issuedAt, h)}
-              stroke="#c3c2b7"
-              tick={{ fill: "#52514e", fontSize: 12 }}
+              stroke="var(--axis)"
+              tick={{ fill: "var(--fc-ink-2)", fontSize: 12 }}
             />
-            <YAxis domain={[lo, hi]} width={36} stroke="#c3c2b7" tick={{ fill: "#52514e", fontSize: 12 }} tickFormatter={(v: number) => v.toFixed(1)} />
+            <YAxis domain={[lo, hi]} width={36} stroke="var(--axis)" tick={{ fill: "var(--fc-ink-2)", fontSize: 12 }} tickFormatter={(v: number) => v.toFixed(1)} />
             <Area dataKey="wide" stroke="none" fill="#cde2fb" fillOpacity={1} isAnimationActive={false} />
             <Area dataKey="likely" stroke="none" fill="#86b6ef" fillOpacity={1} isAnimationActive={false} />
             <Line dataKey="median" stroke="#184f95" strokeWidth={2} strokeDasharray="5 3" dot={false} isAnimationActive={false} />

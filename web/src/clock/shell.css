@@ -211,7 +211,17 @@ span.rc-dot-btn { cursor: help; }
   background: var(--fc-surface); border-bottom: 1px solid var(--fc-border);
 }
 .rc-drawer-head h2 { margin: 0; font-size: var(--fc-text-lg); }
-.rc-drawer-tabs { display: flex; gap: var(--fc-space-1); flex-wrap: wrap; flex: 1; }
+/* Phones: title and close on one row, the tabs a swipeable row under them. */
+.rc-drawer-tabs {
+  order: 3; flex: 1 1 100%; display: flex; gap: var(--fc-space-1); flex-wrap: nowrap; overflow-x: auto;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 2px;
+}
+.rc-drawer-tabs > * { flex: none; white-space: nowrap; }
+.rc-drawer-close { order: 2; margin-left: auto; flex: none; }
+@media (min-width: 701px) {
+  .rc-drawer-tabs { order: 0; flex: 1 1 auto; flex-wrap: wrap; overflow-x: visible; }
+  .rc-drawer-close { order: 0; margin-left: 0; }
+}
 .rc-drawer-close {
   font: inherit; font-size: var(--fc-text-xl); line-height: 1; width: 2.5rem; height: 2.5rem; border: 1px solid var(--fc-border); color: var(--fc-ink);
   border-radius: var(--fc-radius-pill); background: var(--fc-surface); cursor: pointer;

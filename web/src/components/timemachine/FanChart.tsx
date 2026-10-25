@@ -139,7 +139,7 @@ export function FanChart({
       <div style={{ width: "100%", height: 360 }}>
       <ResponsiveContainer>
         <ComposedChart data={data} margin={{ top: 16, right: 16, bottom: 8, left: 0 }}>
-          <CartesianGrid stroke="#e1e0d9" vertical={false} />
+          <CartesianGrid stroke="var(--grid)" vertical={false} />
           <XAxis
             dataKey="t"
             type="number"
@@ -148,17 +148,17 @@ export function FanChart({
             ticks={dayTicks(domain)}
             allowDataOverflow
             tickFormatter={(t: number) => formatDayMonth(t)}
-            stroke="#c3c2b7"
-            tick={{ fill: "#52514e", fontSize: 12 }}
+            stroke="var(--axis)"
+            tick={{ fill: "var(--fc-ink-2)", fontSize: 12 }}
             minTickGap={40}
           />
           <YAxis
             domain={[yMin, yMax]}
-            stroke="#c3c2b7"
-            tick={{ fill: "#52514e", fontSize: 12 }}
+            stroke="var(--axis)"
+            tick={{ fill: "var(--fc-ink-2)", fontSize: 12 }}
             tickFormatter={(v: number) => v.toFixed(1)}
             width={44}
-            label={{ value: "River level (m, this gauge's scale)", angle: -90, position: "insideLeft", fill: "#52514e", fontSize: 12 }}
+            label={{ value: "River level (m, this gauge's scale)", angle: -90, position: "insideLeft", fill: "var(--fc-ink-2)", fontSize: 12 }}
           />
           <Tooltip
             labelFormatter={(t) => formatDateTimeYear(Number(t))}
@@ -176,7 +176,7 @@ export function FanChart({
           {threshold != null && (
             <ReferenceLine y={threshold} stroke="var(--fc-risk-high)" strokeDasharray="6 3" label={{ value: `Flood level ${threshold.toFixed(2)} m`, position: "insideTopLeft", fill: "var(--fc-risk-high)", fontSize: 12 }} />
           )}
-          <ReferenceLine y={amber} stroke="#eda100" strokeDasharray="3 3" label={{ value: `Usual high ${amber.toFixed(2)} m`, position: "insideBottomLeft", fill: "#8a5d00", fontSize: 12 }} />
+          <ReferenceLine y={amber} stroke="var(--fc-risk-medium)" strokeDasharray="3 3" label={{ value: `Usual high ${amber.toFixed(2)} m`, position: "insideBottomLeft", fill: "var(--fc-ink-2)", fontSize: 12 }} />
           {markers.map((m, i) => (
             <ReferenceLine
               key={m.label}
@@ -186,7 +186,7 @@ export function FanChart({
               label={markerLabel(m.label, m.colour, i)}
             />
           ))}
-          <ReferenceLine x={now} stroke="#52514e" strokeWidth={2} />
+          <ReferenceLine x={now} stroke="var(--fc-ink-2)" strokeWidth={2} />
         </ComposedChart>
       </ResponsiveContainer>
       </div>

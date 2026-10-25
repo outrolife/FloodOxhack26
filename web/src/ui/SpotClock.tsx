@@ -132,12 +132,12 @@ export function SpotClock({
               y1={c - Math.cos(a) * 47}
               x2={c + Math.sin(a) * (long ? 40 : 43)}
               y2={c - Math.cos(a) * (long ? 40 : 43)}
-              stroke="#c3c2b7"
+              stroke="var(--axis)"
               strokeWidth={long ? 2 : 1}
             />
           );
         })}
-        <circle cx={c} cy={c} r={R} fill="none" stroke="#f0efec" strokeWidth={8} />
+        <circle cx={c} cy={c} r={R} fill="none" stroke="var(--fc-surface-2)" strokeWidth={8} />
         {dash > 0 && (
           <circle
             cx={c}
