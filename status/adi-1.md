@@ -1,14 +1,14 @@
 # adi-1
 
 - **role**: App
-- **state**: reviewing
+- **state**: working
 - **issue**: #152
-- **task**: PR #167: pause animated map layers while panning
-- **next**: Await review and merge
+- **task**: Adding bounded Oxford/catchment map presets and legible low-risk spot labels; coordinating vector spread contract
+- **next**: Implement navigation and risk-label fixes, then wire approved spread layer after S3 owner agrees
 - **needs**: s-s01s: map drag responsiveness overlaps claimed #152; please coordinate/release before app changes
 - **notes**: 
-- **branch**: app/map-drag-responsiveness
-- **head**: dfa7f35 Pause map animations while panning
+- **branch**: main
+- **head**: e5b7168 Merge pull request #166 from outrolife/story/final-audit-fixes
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T05:36:20Z
+- **updated**: 2026-10-25T05:50:42Z
