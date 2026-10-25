@@ -364,6 +364,7 @@ function FlowMapGLInner({
 
   // ------------------------------------------------ view
   const [tick, setTick] = useState(0);
+  const [moving, setMoving] = useState(false);
   const [zoom, setZoom] = useState(10);
   const bounds: LngLatBounds = useMemo(
     () => geoBounds(riversFc ?? null) ?? toLngLat(flowBounds([...spots, ...stations])),
@@ -459,7 +460,11 @@ function FlowMapGLInner({
         maxPitch={0}
         attributionControl={false}
         onLoad={onLoad}
-        onMoveEnd={() => setTick((x) => x + 1)}
+        onMoveStart={() => setMoving(true)}
+        onMoveEnd={() => {
+          setMoving(false);
+          setTick((x) => x + 1);
+        }}
         onZoomEnd={(e) => setZoom(e.target.getZoom())}
         onError={(e) => console.warn("River Clock map:", e.error?.message ?? e)}
       >
@@ -483,7 +488,7 @@ function FlowMapGLInner({
           <Layer id="rc-river" type="line" beforeId={beforeId} layout={RIVER_LAYOUT} paint={paint.river} />
         </Source>
 
-        <DeckFlow flows={flows} trips={trips} copies={copies} sig={`${flowSig}#${courseSig}`} onHover={onHover} />
+        <DeckFlow flows={flows} trips={trips} copies={copies} sig={`${flowSig}#${courseSig}`} onHover={onHover} paused={moving} />
 
         {stations
           .filter((s) => Number.isFinite(s.lat) && Number.isFinite(s.lon))
@@ -547,17 +552,20 @@ function DeckFlow({
   copies,
   sig,
   onHover,
+  paused,
 }: {
   flows: CourseDatum[];
   trips: TripDatum[];
   copies: number;
   sig: string;
   onHover: (info: PickingInfo<CourseDatum>) => void;
+  paused: boolean;
 }) {
   const overlay = useControl<MapboxOverlay>(() => new MapboxOverlay({ interleaved: false, pickingRadius: 6 }));
   const latest = useRef({ flows, trips, copies, sig, onHover });
   latest.current = { flows, trips, copies, sig, onHover };
   useEffect(() => {
+    if (paused) return;
     const still = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
     let raf = 0;
     const frame = (ms: number) => {
@@ -602,7 +610,7 @@ function DeckFlow({
     const next = (f: (ms: number) => void) => (hasRaf ? requestAnimationFrame(f) : window.setTimeout(() => f(Date.now()), 100));
     raf = next(frame);
     return () => (hasRaf ? cancelAnimationFrame(raf) : window.clearTimeout(raf));
-  }, [overlay]);
+  }, [overlay, paused]);
   return null;
 }
 
@@ -646,4 +654,3 @@ function GaugeMarkerGL({
     </Marker>
   );
 }
-
