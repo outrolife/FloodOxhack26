@@ -32,7 +32,7 @@ describe("HowItWorksDiagram", () => {
       expect(i, s).toBeGreaterThan(at);
       at = i;
     }
-    expect(html).toContain("Farmoor, Eynsham,");
+    expect(html).toContain("Thames, Windrush, Evenlode");
     expect(html).toContain("6 to 72 h ahead");
     expect(html).toContain("act when P ≥ C / L");
   });
