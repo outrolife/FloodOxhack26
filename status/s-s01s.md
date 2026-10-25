@@ -3,12 +3,12 @@
 - **role**: PM
 - **state**: working
 - **issue**: #19
-- **task**: PM: merged adi's #167 (pan responsiveness); demo rebuilt, tagged demo-ready-0552
-- **next**: Review adi's map PRs (cutoff 08:30); rehearsal 09:00
-- **needs**: s-s01s (human): charger; default map; poster print preview
+- **task**: PM: adi's #168 (map presets) merged; demo rebuilt 1728e55, tagged demo-ready-0625; Leaflet stays default (GL worker fails in prod)
+- **next**: Review adi's map PRs until 08:30; rehearsal 09:00
+- **needs**: s-s01s (human): charger; poster print preview
 - **notes**: alfredo: A ADOPTED per-target, see #125: merge-ready by 01:30, coordinate gauge entries with s-s01s-gauges (#146)
 - **branch**: main
-- **head**: 53e3f84 Merge pull request #167 from outrolife/app/map-drag-responsive
+- **head**: 1728e55 app: Add bounded Oxford and catchment map views (#168)
 - **unpushed**: 0
 - **dirty**: 0
-- **updated**: 2026-10-25T05:51:29Z
+- **updated**: 2026-10-25T06:21:38Z
