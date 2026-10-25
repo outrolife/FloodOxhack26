@@ -279,7 +279,8 @@ export function createGeocoder(fetchImpl: typeof fetch = (...a) => fetch(...a), 
 
   async function reverseOffline(lat: number, lon: number, why?: GeocodeError): Promise<Place> {
     const near = nearestLocal(await local(), lat, lon);
-    if (near) return { label: `Near ${near.name} (offline)`, lat, lon, kind: "place" };
+    // "(offline)" only when we really are offline; a slow or rate-limited service while online reads "Near X".
+    if (near) return { label: `Near ${near.name}${isOnline() ? "" : " (offline)"}`, lat, lon, kind: "place" };
     throw why ?? new GeocodeError(MSG.nothing, "not_found");
   }
 

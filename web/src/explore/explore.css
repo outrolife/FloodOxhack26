@@ -318,3 +318,12 @@
 .fc-x-h4 { margin: 4px 14px 6px; font-size: var(--fc-text-xs, 0.75rem); font-weight: var(--fc-weight-bold, 700); letter-spacing: 0.05em; text-transform: uppercase; color: var(--fc-ink-3, #68696d); }
 .fc-x-how > ul { margin: 0; padding: 0 14px 10px 30px; font-size: var(--fc-text-sm, 0.875rem); line-height: 1.5; color: var(--fc-ink-2, #45464a); }
 .fc-x-how[open] > ul { animation: fc-x-fade var(--fc-dur, 250ms) var(--fc-ease, ease) both; }
+
+/* The desktop card sits where Leaflet's zoom buttons are: move them to its right while it is open. */
+@media (min-width: 701px) {
+  .rc-hero .leaflet-top.leaflet-left { transition: transform var(--fc-dur, 250ms) var(--fc-ease, ease); }
+  .rc-hero:has(.fc-x-card:not(.is-closing)) .leaflet-top.leaflet-left { transform: translateX(384px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rc-hero .leaflet-top.leaflet-left { transition: none; }
+}

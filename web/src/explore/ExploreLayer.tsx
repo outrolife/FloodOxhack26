@@ -2,7 +2,7 @@
 // MapContainer. A click anywhere drops an animated pin (except on the map's own
 // click targets: spot rings, gauges, links, popups), the risk zones are shaded
 // by band with a hover highlight and tooltip, and a search result is flown to.
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Component, memo, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import L from "leaflet";
 import type { Feature, FeatureCollection, Polygon } from "geojson";
 import { GeoJSON, Marker, useMap, useMapEvents } from "react-leaflet";
@@ -83,7 +83,42 @@ function explodedOnce(fc: FeatureCollection): FeatureCollection<Polygon> {
   return out;
 }
 
-function ZonesLayer({ zones }: { zones: FeatureCollection }) {
+/**
+ * The zones' style and per-feature setup live at module scope: react-leaflet
+ * re-applies a new `style` function to every path (thousands) on each render,
+ * which would also wipe a hover highlight mid-hover.
+ */
+const zoneFeatureStyle = (f?: Feature) => zoneStyle(f?.properties?.band);
+function onEachZone(f: Feature, layer: L.Layer) {
+  const band = f.properties?.band;
+  layer.bindTooltip(zoneLabel(band), { sticky: true, direction: "top", offset: [0, -10], className: "fc-x-zone-tip", opacity: 1 });
+  layer.on({
+    mouseover: (e) => {
+      const p = e.target as L.Path;
+      p.setStyle(zoneStyle(band, true));
+      p.bringToFront();
+    },
+    mouseout: (e) => {
+      (e.target as L.Path).setStyle(zoneStyle(band));
+    },
+  });
+}
+
+/** A malformed zones file must never take the map down: draw no zones instead. */
+class ZonesBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch(e: unknown) {
+    console.warn("Risk zones could not be drawn:", e);
+  }
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
+
+const ZonesLayer = memo(function ZonesLayer({ zones }: { zones: FeatureCollection }) {
   const map = useMap();
   const [paneReady, setPaneReady] = useState(() => !!map.getPane(ZONES_PANE));
   useEffect(() => {
@@ -93,7 +128,6 @@ function ZonesLayer({ zones }: { zones: FeatureCollection }) {
     }
     setPaneReady(true);
   }, [map]);
-  const ref = useRef<L.GeoJSON | null>(null);
   const parts = useMemo(() => explodedOnce(zones), [zones]);
   // A new key per data set: react-leaflet's GeoJSON reads its data only once.
   const key = useMemo(() => `zones-${parts.features.length}-${Math.random().toString(36).slice(2, 7)}`, [parts]);
@@ -101,27 +135,13 @@ function ZonesLayer({ zones }: { zones: FeatureCollection }) {
   return (
     <GeoJSON
       key={key}
-      ref={ref}
       data={parts}
       pane={ZONES_PANE}
-      style={(f?: Feature) => zoneStyle(f?.properties?.band)}
-      onEachFeature={(f, layer) => {
-        const band = f.properties?.band;
-        layer.bindTooltip(zoneLabel(band), { sticky: true, direction: "top", offset: [0, -10], className: "fc-x-zone-tip", opacity: 1 });
-        layer.on({
-          mouseover: (e) => {
-            const p = e.target as L.Path;
-            p.setStyle(zoneStyle(band, true));
-            p.bringToFront();
-          },
-          mouseout: (e) => {
-            (e.target as L.Path).setStyle(zoneStyle(band));
-          },
-        });
-      }}
+      style={zoneFeatureStyle}
+      onEachFeature={onEachZone}
     />
   );
-}
+});
 
 const PIN_HTML = `
 <div class="fc-x-pin">
@@ -182,15 +202,24 @@ function FlyTo({ fly }: { fly: FlyTarget | null }) {
   return null;
 }
 
+/** A popup closing this close (ms) to a click's preclick was closed by that click. */
+const DISMISS_MS = 50;
+
 function ClickToDrop({ onMapClick }: { onMapClick: (lat: number, lon: number) => void }) {
-  const lastPopupClose = useRef(0);
+  // A click that only dismissed a gauge card is not a pin. Leaflet closes the popup on the click's
+  // preclick (before or after ours), so the close and the preclick land within a few ms of each other.
+  // A card closed by hovering away happens on its own, well before any click, and doesn't count.
+  const closedAt = useRef(-1e9);
+  const preclickAt = useRef(-2e9);
   const map = useMapEvents({
     popupclose: () => {
-      lastPopupClose.current = Date.now();
+      closedAt.current = performance.now();
+    },
+    preclick: () => {
+      preclickAt.current = performance.now();
     },
     click: (e) => {
-      // A click that only dismissed a gauge card (Leaflet closes popups on preclick) is not a pin.
-      if (Date.now() - lastPopupClose.current < 250) return;
+      if (Math.abs(closedAt.current - preclickAt.current) < DISMISS_MS) return;
       if (!dropsPin(e.originalEvent?.target ?? null)) return;
       onMapClick(e.latlng.lat, e.latlng.lng);
       // Keep the pin clear of the card that is about to open.
@@ -220,7 +249,11 @@ export type ExploreLayerProps = {
 export function ExploreLayer({ zones, showZones, pin, fly, onMapClick }: ExploreLayerProps) {
   return (
     <>
-      {zones && showZones && <ZonesLayer zones={zones} />}
+      {zones && showZones && (
+        <ZonesBoundary>
+          <ZonesLayer zones={zones} />
+        </ZonesBoundary>
+      )}
       <ClickToDrop onMapClick={onMapClick} />
       <FlyTo fly={fly} />
       {pin && <DropPin key={pin.id} pin={pin} />}

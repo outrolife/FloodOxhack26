@@ -176,7 +176,8 @@ describe("reverse", () => {
       "api.postcodes.io": () => "throw",
     });
     const p = await createGeocoder(f, opts).reverse(51.752, -1.283);
-    expect(p).toEqual({ label: "Near Botley Road (offline)", lat: 51.752, lon: -1.283, kind: "place" });
+    // Online but both services failed: no "(offline)" in the label.
+    expect(p).toEqual({ label: "Near Botley Road", lat: 51.752, lon: -1.283, kind: "place" });
   });
 
   it("goes straight to the local fallback when offline", async () => {

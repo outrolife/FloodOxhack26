@@ -63,7 +63,29 @@ export function PointCard({
   const start = useRef<number | null>(null);
   const headRef = useRef<HTMLHeadingElement>(null);
   const exit = useRef(0);
+  const cardRef = useRef<HTMLElement>(null);
   const phone = useIsPhone();
+
+  // Focus: where it was when the card opened (the search box, or the map), to give it back on close.
+  const returnTo = useRef<HTMLElement | null>(null);
+  if (returnTo.current == null && typeof document !== "undefined") {
+    const a = document.activeElement;
+    returnTo.current = a instanceof HTMLElement && a !== document.body ? a : (document.querySelector(".leaflet-container") as HTMLElement | null);
+  }
+  useEffect(
+    () => () => {
+      // Only when focus is in the card (or lost), so closing never steals it from somewhere else.
+      const a = document.activeElement;
+      const inCard = !a || a === document.body || (cardRef.current?.contains(a) ?? false);
+      const to = returnTo.current;
+      if (inCard && to?.isConnected) to.focus({ preventScroll: true });
+    },
+    [],
+  );
+  // A new point: its heading takes focus, so screen readers announce the card.
+  useEffect(() => {
+    headRef.current?.focus({ preventScroll: true });
+  }, [selection.id]);
 
   // A new point re-opens the card (cancels a close in progress).
   useEffect(() => {
@@ -110,6 +132,7 @@ export function PointCard({
 
   const card = (
     <aside
+      ref={cardRef}
       className={`fc-x-card${closing ? " is-closing" : ""}${drag ? " is-dragging" : ""}`}
       style={drag ? { transform: `translateY(${drag}px)` } : undefined}
       aria-labelledby="fc-x-card-title"
