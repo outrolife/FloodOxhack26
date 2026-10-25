@@ -8,6 +8,7 @@ import fixtureSpots from "../../../../tests/fixtures/spots.json";
 import { TrustView } from "./TrustView";
 import { WhatsNext } from "./WhatsNext";
 import { beatsTile, binsAt, earlyTile, officialComparison, pickInformativeBin, oddsCaption, POOLED } from "./trust";
+import { warnAtFor } from "../replay/facts";
 
 const readPublic = <T,>(f: string): T =>
   JSON.parse(readFileSync(new URL(`../../../public/data/${f}`, import.meta.url), "utf8")) as T;
@@ -28,7 +29,7 @@ for (const [label, proof, spots] of [
       const bin = pickInformativeBin(binsAt(proof, POOLED)!)!;
       expect(html).toContain("Honest odds");
       expect(html).toContain(oddsCaption(bin));
-      const e = earlyTile(proof, spots);
+      const e = earlyTile(proof, spots, (spot) => warnAtFor(proof, spot));
       expect(html).toContain("Early, without crying wolf");
       expect(html).toContain(`${e.caught} of ${e.floods} floods caught`);
     });
@@ -37,7 +38,7 @@ for (const [label, proof, spots] of [
       expect(html).toMatch(/pooled across our (four )?gauges/i);
       expect(html).toContain("All spots (pooled)");
       expect(html).toContain("Against the official EA warning");
-      const c = officialComparison(earlyTile(proof, spots))!;
+      const c = officialComparison(earlyTile(proof, spots, (spot) => warnAtFor(proof, spot)))!;
       expect(html).toContain(`${c.oursText} · ${c.officialText}. ${c.verdict}`);
       expect(html).not.toContain("lower bound");
     });
