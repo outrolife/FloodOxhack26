@@ -5,7 +5,7 @@ import type { ScoreRowState } from "./scoreboard";
 import { latestRevealed } from "./scoreboard";
 
 const MARK: Record<ScoreRowState["tone"], string> = { good: "✓", bad: "✕", neutral: "•" };
-const MARK_WORD: Record<ScoreRowState["tone"], string> = { good: "in River Clock's favour", bad: "against River Clock", neutral: "" };
+const MARK_WORD: Record<ScoreRowState["tone"], string> = { good: "in FloodClock's favour", bad: "against FloodClock", neutral: "" };
 
 export function Scoreboard({ rows, title }: { rows: ScoreRowState[]; title: string }) {
   const latest = latestRevealed(rows);

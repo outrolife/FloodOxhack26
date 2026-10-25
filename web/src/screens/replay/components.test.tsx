@@ -27,7 +27,7 @@ describe.skipIf(!have)("Replay screen on the committed data", () => {
   const f2014 = replayFacts(e2014, botley, row2014);
   const end = e2014.forecasts.at(-1)!.issuedAt;
 
-  it("e2014 Botley: opens before River Clock's call, which comes before the crossing", () => {
+  it("e2014 Botley: opens before FloodClock's call, which comes before the crossing", () => {
     const i = startIndex(e2014, botley, f2014);
     expect(Date.parse(e2014.forecasts[i].issuedAt)).toBeLessThan(Date.parse(f2014.rc50!));
     expect(Date.parse(f2014.rc50!)).toBeLessThan(Date.parse(f2014.crossing!));
@@ -42,7 +42,7 @@ describe.skipIf(!have)("Replay screen on the committed data", () => {
     expect((empty.match(/pending/g) ?? []).length).toBe(5);
     const full = renderToStaticMarkup(<Scoreboard rows={scoreboardAt(rows, Date.parse(end), end)} title="t" />);
     expect(full).not.toContain("pending");
-    expect(full).toContain("River Clock: more likely than not");
+    expect(full).toContain("FloodClock: more likely than not");
     expect(full).toContain("EA Flood Warning");
     expect(full).toContain("River crossed flood level");
     expect(full).toMatch(/Predicted \d\.\d\d m–\d\.\d\d m · actual \d\.\d\d m/);

@@ -34,7 +34,7 @@ export function SkillByLead({ proof }: { proof: Proof }) {
     <div className="card">
       <h2>Skill vs persistence, by lead time</h2>
       <p className="sub">
-        Skill = 1 − model pinball loss / persistence pinball loss. Above 0 means River Clock beats
+        Skill = 1 − model pinball loss / persistence pinball loss. Above 0 means FloodClock beats
         "the level stays roughly where it is".
       </p>
       {losing.length > 0 && (
@@ -149,7 +149,7 @@ export function Reliability({ proof, spots }: { proof: Proof; spots: Spot[] }) {
   return (
     <div className="card">
       <h2>Reliability</h2>
-      <p className="sub">When River Clock says 30%, does it flood about 30% of the time? Points on the diagonal are well calibrated.</p>
+      <p className="sub">When FloodClock says 30%, does it flood about 30% of the time? Points on the diagonal are well calibrated.</p>
       <div className="controls">
         <label>
           Spot

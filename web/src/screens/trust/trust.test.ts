@@ -243,9 +243,9 @@ describe("tile 3: fair side-by-side with the official warning", () => {
   };
   it("totals both on the same spots and says the trade-off", () => {
     const c = officialComparison(earlyTile({ tradeoff, officialOutcome }, spots))!;
-    expect(c.oursText).toBe("River Clock caught 15 of 15 floods (5 false alarms)");
+    expect(c.oursText).toBe("FloodClock caught 15 of 15 floods (5 false alarms)");
     expect(c.officialText).toBe("the official warning caught 13 of 15 (1 false alarm)");
-    expect(c.verdict).toBe("River Clock catches more floods; the official warning raises fewer false alarms.");
+    expect(c.verdict).toBe("FloodClock catches more floods; the official warning raises fewer false alarms.");
   });
   it("leaves out spots with no official score, and is null when none have one", () => {
     const c = officialComparison(earlyTile({ tradeoff, officialOutcome: { botley: officialOutcome!.botley } }, spots))!;

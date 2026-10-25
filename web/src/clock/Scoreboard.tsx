@@ -43,7 +43,7 @@ export function Scoreboard({ event, spot, t }: ScoreboardProps) {
 }
 
 const MARK: Record<ScoreLine["tone"], string> = { good: "✓", bad: "✕", neutral: "" };
-const MARK_WORD: Record<ScoreLine["tone"], string> = { good: "In River Clock's favour: ", bad: "Against River Clock: ", neutral: "" };
+const MARK_WORD: Record<ScoreLine["tone"], string> = { good: "In FloodClock's favour: ", bad: "Against FloodClock: ", neutral: "" };
 
 export function ScoreboardView({ lines, caption }: { lines: ScoreLine[]; caption?: string | null }) {
   return (

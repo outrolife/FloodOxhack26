@@ -16,7 +16,7 @@ export function OutcomesTable({ o, costs, official }: { o: Outcomes; costs: Cost
           <thead>
             <tr>
               <th title={FLOOD_EPISODE_RULE}>Over past floods ({FLOOD_EPISODES})</th>
-              <th className="num">River Clock</th>
+              <th className="num">FloodClock</th>
               <th className="num">Official warnings</th>
               <th>Cost each</th>
             </tr>
@@ -47,8 +47,8 @@ export function OutcomesTable({ o, costs, official }: { o: Outcomes; costs: Cost
               <td />
             </tr>
             <tr>
-              <td title="proof.json tradeoff[].meanLeadVsOfficialH: official issue time − River Clock's first trigger">
-                How much earlier than the official warning River Clock first raised the alarm
+              <td title="proof.json tradeoff[].meanLeadVsOfficialH: official issue time − FloodClock's first trigger">
+                How much earlier than the official warning FloodClock first raised the alarm
               </td>
               <td className="num">{formatSignedHours(o.meanLeadVsOfficialH)}</td>
               <td className="num">0 h</td>
@@ -57,14 +57,14 @@ export function OutcomesTable({ o, costs, official }: { o: Outcomes; costs: Cost
           </tbody>
         </table>
       </div>
-      <p className="small muted" title="Sources: proof.json officialOutcome (official columns) and tradeoff (River Clock columns)">
+      <p className="small muted" title="Sources: proof.json officialOutcome (official columns) and tradeoff (FloodClock columns)">
         {official
-          ? "Official warnings: every Environment Agency Flood Warning for this spot's area, scored with the same rules as River Clock. "
+          ? "Official warnings: every Environment Agency Flood Warning for this spot's area, scored with the same rules as FloodClock. "
           : "We have no scored record of official warnings for this spot, so they aren't scored here. "}
-        "How much earlier" compares River Clock's first alarm for a flood with the EA's first warning for the same
-        flood, so it can be more than 72 h when River Clock's alarm started early.
+        "How much earlier" compares FloodClock's first alarm for a flood with the EA's first warning for the same
+        flood, so it can be more than 72 h when FloodClock's alarm started early.
         {o.between &&
-          ` Your trigger is between two that we tested (${formatPct(o.between[0])} and ${formatPct(o.between[1])}), so River Clock's numbers are estimated between those two.`}
+          ` Your trigger is between two that we tested (${formatPct(o.between[0])} and ${formatPct(o.between[1])}), so FloodClock's numbers are estimated between those two.`}
       </p>
     </>
   );

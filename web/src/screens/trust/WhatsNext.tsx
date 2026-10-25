@@ -6,7 +6,7 @@ export function WhatsNext() {
     <div className="card trust-next">
       <h2>What's next: adding rain forecasts (tested, not switched on yet)</h2>
       <p>
-        River Clock only reads river gauges, so it can't see rain that hasn't fallen yet. We tested adding real archived
+        FloodClock only reads river gauges, so it can't see rain that hasn't fallen yet. We tested adding real archived
         ECMWF rain forecasts (available from 2024 onwards). Accuracy 72 hours ahead rose from <strong>+11%</strong> to{" "}
         <strong>+28%</strong> better than the simple guess, and for the November 2024 flood at Botley it would have warned{" "}
         <strong>29 hours earlier</strong>, matching the EA.

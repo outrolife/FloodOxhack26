@@ -138,7 +138,7 @@ describe("headline", () => {
   });
 
   it("no forecast at all points to gov.uk", () => {
-    expect(headline(clockStates(spots, null, NOW))).toMatch(/no River Clock forecast.*gov\.uk\/check-flooding/);
+    expect(headline(clockStates(spots, null, NOW))).toMatch(/no FloodClock forecast.*gov\.uk\/check-flooding/);
   });
 });
 

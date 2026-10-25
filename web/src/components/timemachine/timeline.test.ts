@@ -47,20 +47,20 @@ describe("matchTier / tierSentence (#82)", () => {
     expect(alert.official).toBeNull();
     expect(alert.rc).toBe("2014-01-04T00:00:00Z"); // first >= 10% inside [c - 72 h, c)
     expect(tierSentence(alert, all, crossing)).toBe(
-      "River Clock reached 10% 49 hours before the river reached flood level; no new EA Flood Alert was issued in those 72 hours.",
+      "FloodClock reached 10% 49 hours before the river reached flood level; no new EA Flood Alert was issued in those 72 hours.",
     );
     const warn = matchTier(r, "botley", 2.76, "warning");
-    expect(tierSentence(warn, all, crossing)).toBe("River Clock reached 50% 7 hours earlier than the EA Flood Warning.");
+    expect(tierSentence(warn, all, crossing)).toBe("FloodClock reached 50% 7 hours earlier than the EA Flood Warning.");
   });
 
-  it("compares the alert with River Clock's first 10%, not its 50%", () => {
+  it("compares the alert with FloodClock's first 10%, not its 50%", () => {
     const r = synth(probs, [off("alert", "2014-01-05T00:00:00Z")], [crossing]);
     expect(tierSentence(matchTier(r, "botley", 2.76, "alert"), all, crossing)).toBe(
-      "River Clock reached 10% 24 hours earlier than the EA Flood Alert.",
+      "FloodClock reached 10% 24 hours earlier than the EA Flood Alert.",
     );
   });
 
-  it("says 'already at 10% or more' when River Clock was on before the 72 h window opened", () => {
+  it("says 'already at 10% or more' when FloodClock was on before the 72 h window opened", () => {
     const r = synth(
       [
         ["2014-01-02T00:00:00Z", 0.2],
@@ -73,7 +73,7 @@ describe("matchTier / tierSentence (#82)", () => {
     const m = matchTier(r, "botley", 2.76, "alert");
     expect(m.alreadyOn).toBe(true);
     expect(tierSentence(m, all, crossing)).toBe(
-      "River Clock was already at 10% or more 72 hours before the river reached flood level, at least 24 hours before the EA Flood Alert.",
+      "FloodClock was already at 10% or more 72 hours before the river reached flood level, at least 24 hours before the EA Flood Alert.",
     );
   });
 
@@ -82,7 +82,7 @@ describe("matchTier / tierSentence (#82)", () => {
     const m = matchTier(r, "botley", 2.76, "warning");
     expect(m.official).toBeNull();
     expect(tierSentence(m, all, crossing)).toBe(
-      "River Clock reached 50% 37 hours before the river reached flood level; the EA Flood Warning came 4 hours after the river reached flood level.",
+      "FloodClock reached 50% 37 hours before the river reached flood level; the EA Flood Warning came 4 hours after the river reached flood level.",
     );
   });
 
@@ -91,11 +91,11 @@ describe("matchTier / tierSentence (#82)", () => {
     expect(tierSentence(matchTier(r, "botley", 2.76, "warning"), all, crossing)).toMatch(/24 hours earlier .*known only to the day/);
   });
 
-  it("with no crossing, pairs River Clock's first trigger with an official within 72 h", () => {
+  it("with no crossing, pairs FloodClock's first trigger with an official within 72 h", () => {
     const end = "2014-01-06T00:00:00Z";
     const r = synth(probs, [off("alert", "2013-12-26T00:00:00Z")], []);
     expect(tierSentence(matchTier(r, "botley", 2.76, "alert"), all, end)).toBe(
-      "River Clock reached 10% 24 hours earlier than the EA Flood Alert, and the river stayed below flood level.",
+      "FloodClock reached 10% 24 hours earlier than the EA Flood Alert, and the river stayed below flood level.",
     );
   });
 
@@ -104,11 +104,11 @@ describe("matchTier / tierSentence (#82)", () => {
     const m = matchTier(r, "botley", 2.76, "warning");
     expect(tierSentence(m, upTo("2014-01-04T15:00:00Z"), crossing)).toBeNull();
     const soFar = tierSentence(m, upTo("2014-01-05T00:00:00Z"), crossing)!;
-    expect(soFar).toBe("So far: River Clock reached 50% 7 hours earlier than the EA Flood Warning. Keep playing to see what the river did.");
+    expect(soFar).toBe("So far: FloodClock reached 50% 7 hours earlier than the EA Flood Warning. Keep playing to see what the river did.");
     expect(soFar).not.toMatch(/cross|flooded|stayed below/);
   });
 
-  it("starts 'just before the flood' 72 hours before River Clock's 50% (#103)", () => {
+  it("starts 'just before the flood' 72 hours before FloodClock's 50% (#103)", () => {
     const fc = Array.from({ length: 200 }, (_, i) => ({ issuedAt: new Date(Date.parse("2013-12-20T00:00:00Z") + i * 3_600_000 * 2).toISOString() }));
     const idx = runUpIndex(fc, { rc: "2014-01-04T12:00:00Z", crossing }, { rc: null });
     expect(fc[idx!].issuedAt).toBe("2014-01-01T12:00:00.000Z");
@@ -126,12 +126,12 @@ const e2014 = loadReplay("e2014");
 const e2026 = loadReplay("e2026");
 
 describe.skipIf(!e2014)("e2014 replay, Botley (#82)", () => {
-  it("matches the Flood Warning to the 6 Jan flood, about 9 hours after River Clock's 50% (proof +9.06 h)", () => {
+  it("matches the Flood Warning to the 6 Jan flood, about 9 hours after FloodClock's 50% (proof +9.06 h)", () => {
     const m = matchTier(e2014!, "botley", 2.76, "warning");
     expect(m.crossing).toBe("2014-01-06T01:00:00Z");
     expect(m.official?.issuedAt).toBe("2014-01-04T19:03:30Z");
     expect(tierSentence(m, all, e2014!.forecasts.at(-1)!.issuedAt)).toBe(
-      "River Clock reached 50% 9 hours earlier than the EA Flood Warning.",
+      "FloodClock reached 50% 9 hours earlier than the EA Flood Warning.",
     );
   });
   it("opens 'just before the flood' 3 days before the 50% call, 1 Jan 2014 10:00 GMT (#103, #162)", () => {
@@ -154,11 +154,11 @@ describe.skipIf(!e2026)("e2026 replay, near miss (#82)", () => {
     expect(m.official).toBeNull();
     expect(tierSentence(m, all, e2026!.forecasts.at(-1)!.issuedAt)).toBeNull();
   });
-  it("does not pair the mid-January alert with River Clock's 10% three weeks later", () => {
+  it("does not pair the mid-January alert with FloodClock's 10% three weeks later", () => {
     const end = e2026!.forecasts.at(-1)!.issuedAt;
     const m = matchTier(e2026!, "botley", 2.76, "alert");
     expect(m.official).toBeNull();
-    expect(tierSentence(m, all, end)).toMatch(/^River Clock reached 10% on .*2026.* and the river stayed below flood level; no EA Flood Alert was issued within 72 hours of that\.$/);
+    expect(tierSentence(m, all, end)).toMatch(/^FloodClock reached 10% on .*2026.* and the river stayed below flood level; no EA Flood Alert was issued within 72 hours of that\.$/);
     expect(tierSentence(m, upTo(m.rc!), end)).toBeNull(); // "stayed below" only once the event is over
   });
 });
