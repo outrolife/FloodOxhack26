@@ -30,16 +30,26 @@ export function lookupFailure(e: unknown): { text: string; retry: boolean } {
 
 const isAbort = (e: unknown) => e instanceof DOMException && e.name === "AbortError";
 
+/**
+ * "Try an example" (#118): Botley Road by the Bulstake Stream, in the EA's
+ * high-risk zone and next to the Botley flood spot, so one click shows the
+ * full result. Fixed coordinates: no address lookup, so it works offline.
+ */
+export const EXAMPLE_PLACE: Place = { label: "Botley Road, Oxford OX2 (example)", lat: 51.7535, lon: -1.2795, kind: "address" };
+
 const KIND_WORD: Record<Place["kind"], string> = { postcode: "Postcode", address: "Address", place: "Place", point: "Point" };
 
 export function SearchBox({
   onPick,
   geocoder = defaultGeocoder,
   placeholder = "Search a postcode or address",
+  example,
 }: {
   onPick: (place: Place) => void;
   geocoder?: Geocoder;
   placeholder?: string;
+  /** Shows a "Try an example" button that picks this place. */
+  example?: Place;
 }) {
   const id = useId();
   const listId = `${id}-list`;
@@ -129,6 +139,7 @@ export function SearchBox({
 
   return (
     <div className="fc-x-search" role="search">
+      <div className="fc-x-search-row">
       <div className={`fc-x-search-field${status === "loading" ? " is-loading" : ""}`}>
         <svg className="fc-x-search-icon" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
           <circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" strokeWidth="2" />
@@ -175,6 +186,12 @@ export function SearchBox({
             ×
           </button>
         )}
+      </div>
+      {example && (
+        <button type="button" className="fc-x-btn fc-x-example" onClick={() => pick(example)} title={`Show the result for ${example.label}`}>
+          Try an example
+        </button>
+      )}
       </div>
 
       <ul id={listId} role="listbox" aria-label="Suggestions" className={`fc-x-search-list${showList ? " is-open" : ""}`} hidden={!showList}>

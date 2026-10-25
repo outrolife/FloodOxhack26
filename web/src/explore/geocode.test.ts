@@ -59,6 +59,19 @@ describe("suggest", () => {
     expect(f).not.toHaveBeenCalled();
   });
 
+  it("keeps the space in a partial postcode: 'OX1 4' never suggests OX14", async () => {
+    const f = mockFetch({
+      "/autocomplete": () => json({ status: 200, result: ["OX1 4AB", "OX14 1AA"] }),
+      "api.postcodes.io/postcodes": (_u, init) => {
+        const codes = (JSON.parse(String(init?.body)) as { postcodes: string[] }).postcodes;
+        return json({ status: 200, result: codes.map((c) => ({ query: c, result: { postcode: c, latitude: 51.75, longitude: -1.25, admin_district: "Oxford" } })) });
+      },
+    });
+    const places = await createGeocoder(f, opts).suggest("OX1 4");
+    expect(String(f.mock.calls[0][0])).toContain("/postcodes/OX1%204A/autocomplete");
+    expect(places.map((p) => p.postcode ?? p.label)).toEqual([expect.stringContaining("OX1 4AB")]);
+  });
+
   it("uses postcodes.io autocomplete then a bulk lookup for postcodes", async () => {
     const f = mockFetch({
       "/autocomplete": () => json({ status: 200, result: ["OX2 0HA", "OX2 0HB"] }),

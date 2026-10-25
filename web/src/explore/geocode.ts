@@ -225,11 +225,17 @@ export function createGeocoder(fetchImpl: typeof fetch = (...a) => fetch(...a), 
   }
 
   async function suggestPostcodes(q: string, signal?: AbortSignal): Promise<Place[]> {
+    // postcodes.io ignores the space, so "OX1 4" would also match OX14 1AA. With a
+    // space the outward code is complete: ask for "OX1 4A" when only the sector digit
+    // is typed, and keep only codes that start with what was typed.
+    const spaced = /^[A-Z]{1,2}\d[A-Z\d]? (\d[A-Z]{0,2})$/i.exec(q);
+    const ask = spaced && spaced[1].length === 1 ? `${q}A` : q;
     const ac = await getJson<{ result: string[] | null }>(
-      `${POSTCODES}/postcodes/${encodeURIComponent(q)}/autocomplete?limit=6`,
+      `${POSTCODES}/postcodes/${encodeURIComponent(ask)}/autocomplete?limit=6`,
       signal,
     );
     let codes = ac?.result ?? [];
+    if (spaced) codes = codes.filter((c) => c.toUpperCase().startsWith(q.toUpperCase()));
     if (!codes.length && FULL_POSTCODE_RE.test(q)) codes = [q.toUpperCase()]; // e.g. a postcode autocomplete misses
     if (!codes.length) return [];
     const bulk = await getJson<{ result: { query: string; result: PostcodeResult | null }[] }>(

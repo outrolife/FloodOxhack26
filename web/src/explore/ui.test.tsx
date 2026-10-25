@@ -2,7 +2,7 @@
 // #118 Explore UI: the search combobox, the point card and the sandbag estimate.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { DEBOUNCE_MS, NOT_FOUND_TEXT, OFFLINE_TEXT, SearchBox, lookupFailure } from "./SearchBox";
+import { DEBOUNCE_MS, EXAMPLE_PLACE, NOT_FOUND_TEXT, OFFLINE_TEXT, SearchBox, lookupFailure } from "./SearchBox";
 import { PointCard, chanceWords, nearbyLine } from "./PointCard";
 import { SandbagCard, StepText } from "./SandbagCard";
 import { dropsPin, explodeZones, zoneLabel, zoneStyle } from "./ExploreLayer";
@@ -40,6 +40,16 @@ const flush = async () => {
 };
 
 describe("SearchBox", () => {
+  it("Try an example picks the example address without a lookup", () => {
+    const onPick = vi.fn();
+    const geocoder: Geocoder = { suggest: vi.fn(), reverse: vi.fn() };
+    render(<SearchBox onPick={onPick} geocoder={geocoder} example={EXAMPLE_PLACE} />);
+    fireEvent.click(screen.getByRole("button", { name: "Try an example" }));
+    expect(onPick).toHaveBeenCalledWith(EXAMPLE_PLACE);
+    expect((screen.getByRole("combobox") as HTMLInputElement).value).toBe(EXAMPLE_PLACE.label);
+    expect(geocoder.suggest).not.toHaveBeenCalled();
+  });
+
   it("waits 300 ms, asks once for the latest text and aborts the stale request", async () => {
     vi.useFakeTimers();
     const signals: AbortSignal[] = [];
