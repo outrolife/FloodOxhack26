@@ -183,6 +183,8 @@ class ZonesBoundary extends Component<{ children: ReactNode }, { failed: boolean
   }
 }
 
+const canDrawCanvas = () => L.Browser.canvas && !(typeof navigator !== "undefined" && /jsdom/i.test(navigator.userAgent));
+
 const ZonesLayer = memo(function ZonesLayer({ zones }: { zones: FeatureCollection }) {
   const map = useMap();
   const [paneReady, setPaneReady] = useState(() => !!map.getPane(ZONES_PANE));
@@ -196,8 +198,9 @@ const ZonesLayer = memo(function ZonesLayer({ zones }: { zones: FeatureCollectio
   // Thousands of polygons: one canvas, not thousands of SVG paths (map perf). Every pan and zoom
   // re-clips each path; on a canvas that is a redraw, not thousands of DOM updates and repaints.
   // Hover, tooltips and clicks still work per zone (tolerance: a few px of slack at the edges).
-  const renderer = useMemo(() => L.canvas({ pane: ZONES_PANE, tolerance: 3 }), []);
-  useEffect(() => () => void map.removeLayer(renderer), [map, renderer]);
+  // The test DOM (jsdom) has no 2D canvas: there the zones stay SVG.
+  const renderer = useMemo(() => (canDrawCanvas() ? L.canvas({ pane: ZONES_PANE, tolerance: 3 }) : undefined), []);
+  useEffect(() => () => void (renderer && map.removeLayer(renderer)), [map, renderer]);
   // The renderer rides in the style: it is applied before each path is added to the map.
   const style = useMemo(() => (f?: Feature): L.PathOptions => ({ ...zoneFeatureStyle(f), renderer }), [renderer]);
   const parts = useMemo(() => explodedOnce(zones), [zones]);
