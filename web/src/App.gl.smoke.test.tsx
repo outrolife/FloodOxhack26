@@ -167,8 +167,8 @@ describe("App smoke test, map v3 (?map=gl)", () => {
     await act(async () => screen.getByRole("button", { name: "Catchment" }).click());
     await waitFor(() => expect(mapViewCalls.fitBounds.length).toBeGreaterThan(1), { timeout: WAIT_MS });
     expect(mapViewCalls.fitBounds.at(-1)?.[0]).not.toEqual(oxfordBounds);
-    expect(screen.getByRole("button", { name: "Catchment" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "Oxford" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "Catchment" }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByRole("button", { name: "Oxford" }).getAttribute("aria-pressed")).toBe("false");
     // Wolvercote (timing only, no forecast) is never on the map; the hidden spots are named in Show the working.
     expect(screen.queryByRole("img", { name: /^Wolvercote/ })).toBeNull();
     expect(getHiddenSpots().map((h) => h.key)).toEqual(expected.hidden.map((h) => h.key));

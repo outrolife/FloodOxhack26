@@ -91,7 +91,7 @@ export default function ClockScreen({ event, onEvent }: { event: string; onEvent
   const travel = useData<TravelTimesFile>("travel_times.json");
   const [spot, setSpot] = useState(DEFAULT_SPOT);
   const [mapView, setMapView] = useState<MapView>("oxford");
-  // ?map=leaflet draws the local Leaflet fallback; otherwise show the catchment-capable MapLibre map.
+  // Keep MapLibre opt-in until its worker is verified in production.
   const [gl] = useState(() => typeof window !== "undefined" && mapFlavour(window.location.search) === "gl");
   const data = useClockEvent(event, spot);
 

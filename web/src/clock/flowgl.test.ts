@@ -44,12 +44,12 @@ const line = (coords: Position[], properties: Record<string, unknown> = {}): Fea
 const fc = (features: Feature[]): FeatureCollection => ({ type: "FeatureCollection", features });
 
 describe("which map", () => {
-  it("reads ?map=gl / ?map=leaflet and otherwise uses the MapLibre catchment map", () => {
+  it("reads ?map=gl / ?map=leaflet and otherwise keeps Leaflet as the default", () => {
     expect(mapFlavour("?map=gl")).toBe("gl");
     expect(mapFlavour("?x=1&map=leaflet")).toBe("leaflet");
     expect(mapFlavour("")).toBe(DEFAULT_MAP);
     expect(mapFlavour("?map=other")).toBe(DEFAULT_MAP);
-    expect(DEFAULT_MAP).toBe("gl");
+    expect(DEFAULT_MAP).toBe("leaflet");
   });
 });
 

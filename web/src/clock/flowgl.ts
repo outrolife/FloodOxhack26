@@ -20,10 +20,10 @@ import { SECONDS_PER_HOUR, type ChainLink } from "./flow";
 export type MapFlavour = "gl" | "leaflet";
 export type MapView = "oxford" | "catchment";
 
-/** MapLibre is the only view with the full offline catchment basemap and river network. */
-export const DEFAULT_MAP: MapFlavour = "gl";
+/** Keep the proven Leaflet map as default until the MapLibre worker is verified in production. */
+export const DEFAULT_MAP: MapFlavour = "leaflet";
 
-/** `?map=gl` or `?map=leaflet` (anything else: MapLibre). */
+/** `?map=gl` or `?map=leaflet` (anything else: Leaflet). */
 export function mapFlavour(search: string): MapFlavour {
   const v = new URLSearchParams(search).get("map");
   return v === "gl" || v === "leaflet" ? v : DEFAULT_MAP;

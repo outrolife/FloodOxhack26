@@ -328,7 +328,7 @@ make demo        # builds the app if needed and serves it at http://127.0.0.1:80
 make preflight   # in a second terminal: checks data, build, port and time zone (same DEMO_PORT)
 ```
 
-`make demo` also tries to download the offline catchment basemap (`make tiles`); this needs `gh auth login`, and without it the MapLibre view still runs with its GeoJSON fallback after a warning. The map offers Oxford and full-catchment presets and falls back to Leaflet if WebGL is unavailable. `make fetch-data` downloads the cleaned river history from the GitHub release instead of the long `make data` download (needed only to rerun `make travel`, `make train` or `make backtest`), also with `gh`. The full checklist and fallbacks are in [`docs/demo-backup.md`](docs/demo-backup.md).
+`make demo` also tries to download the optional offline basemap for MapLibre (`?map=gl`, `make tiles`); this needs `gh auth login`, and without it the default Leaflet map still runs while MapLibre uses its GeoJSON fallback. Both maps offer Oxford and full-catchment presets; MapLibre remains opt-in until its worker is verified in production. `make fetch-data` downloads the cleaned river history from the GitHub release instead of the long `make data` download (needed only to rerun `make travel`, `make train` or `make backtest`), also with `gh`. The full checklist and fallbacks are in [`docs/demo-backup.md`](docs/demo-backup.md).
 
 **The app runs offline.** It reads committed JSON from `web/public/data/`. If a file is missing, it falls back to the matching sample in `tests/fixtures/` and shows a "sample data" notice. The basemap is bundled (`web/public/data/geo/`), so the map works with no network; OpenStreetMap tiles are only an optional layer on top.
 

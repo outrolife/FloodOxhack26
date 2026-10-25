@@ -100,6 +100,11 @@ describe("App smoke test (jsdom)", () => {
         await waitFor(() => expect(document.querySelectorAll(".rc-hero .rc-gauge-icon.emph").length).toBeGreaterThan(1), { timeout: WAIT_MS });
       }
     }
+    await act(async () => screen.getByRole("button", { name: "Catchment" }).click());
+    await waitFor(() => expect(document.querySelector(".rc-flowmap")?.classList.contains("rc-catchment")).toBe(true), { timeout: WAIT_MS });
+    expect(screen.getByRole("button", { name: "Catchment" }).getAttribute("aria-pressed")).toBe("true");
+    await act(async () => screen.getByRole("button", { name: "Oxford" }).click());
+    await waitFor(() => expect(document.querySelector(".rc-flowmap")?.classList.contains("rc-catchment")).toBe(false), { timeout: WAIT_MS });
     expect(errors).toEqual([]);
   }, TEST_MS);
 
