@@ -88,7 +88,9 @@ function MapSizer({ bounds, pad = DEFAULT_PAD }: { bounds: Bounds; pad?: FitPadd
         // Padding wider than the map would leave no room: fall back to the default.
         const p = pad.topLeft[0] + pad.bottomRight[0] < el.clientWidth - 80 && pad.topLeft[1] + pad.bottomRight[1] < el.clientHeight - 80 ? pad : DEFAULT_PAD;
         map.setMinZoom(0);
-        map.fitBounds(bounds, { paddingTopLeft: p.topLeft, paddingBottomRight: p.bottomRight });
+        map.setMaxBounds(undefined);
+        // Lock to the fitted zoom, not the previous zoom during an animated transition.
+        map.fitBounds(bounds, { paddingTopLeft: p.topLeft, paddingBottomRight: p.bottomRight, animate: false });
         map.setMinZoom(map.getZoom());
         map.setMaxBounds(L.latLngBounds(bounds).pad(0.08));
         fitted = true;

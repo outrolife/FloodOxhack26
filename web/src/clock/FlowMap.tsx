@@ -24,9 +24,10 @@ import { useData } from "../data";
  * (top left), the Scoreboard (top right on wide screens, along the bottom on
  * narrow ones) and the key (bottom left). Matches shell.css.
  */
-function fitPadding(): FitPadding {
+function fitPadding(mapView: MapView): FitPadding {
   const wide = typeof window === "undefined" || window.innerWidth > 700;
-  return wide ? { topLeft: [24, 56], bottomRight: [390, 24] } : { topLeft: [16, 56], bottomRight: [16, 150] };
+  if (wide) return { topLeft: [24, 56], bottomRight: [mapView === "catchment" ? 24 : 390, 24] };
+  return { topLeft: [16, 56], bottomRight: [16, 150] };
 }
 
 /** "Islip (Cherwell)" → "Islip". */
@@ -249,7 +250,7 @@ export function FlowMap({
     <BaseMap
       bounds={bounds}
       className={`rc-flowmap${walking ? " rc-walking" : ""}${mapView === "catchment" ? " rc-catchment" : ""}`}
-      fitPadding={fitPadding()}
+      fitPadding={fitPadding(mapView)}
     >
       <FlowMotion />
       {Object.entries(groups).map(([g, fc]) => {

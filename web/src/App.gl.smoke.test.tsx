@@ -162,11 +162,13 @@ describe("App smoke test, map v3 (?map=gl)", () => {
     await waitFor(() => expect(document.querySelectorAll(".rc-hero .rc-dot")).toHaveLength(expected.shown.size), { timeout: WAIT_MS });
     await waitFor(() => expect(mapViewCalls.fitBounds.length).toBeGreaterThan(0), { timeout: WAIT_MS });
     const oxfordBounds = mapViewCalls.fitBounds[0][0];
+    expect(mapViewCalls.fitBounds[0][1]).toMatchObject({ padding: { right: 390 } });
     expect(mapViewCalls.minZoom).toContain(7.75);
     expect(mapViewCalls.maxBounds[0][0]).not.toEqual(oxfordBounds);
     await act(async () => screen.getByRole("button", { name: "Catchment" }).click());
     await waitFor(() => expect(mapViewCalls.fitBounds.length).toBeGreaterThan(1), { timeout: WAIT_MS });
     const catchmentBounds = mapViewCalls.fitBounds.at(-1)?.[0] as [[number, number], [number, number]];
+    expect(mapViewCalls.fitBounds.at(-1)?.[1]).toMatchObject({ padding: { right: 24 } });
     expect(catchmentBounds).not.toEqual(oxfordBounds);
     const points = [...spots, ...read<{ lat: number; lon: number }[]>("stations.json")];
     expect(catchmentBounds).toEqual([
