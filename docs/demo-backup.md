@@ -48,10 +48,10 @@ git push origin --tags
 
 <!-- src for every number: docs/demo.md (each has its src comment there). -->
 
-- **2014 (0:00–0:20):** "This is Botley Road in January 2014, replayed hour by hour with only what was known at the time. Noon on 4 January: River Clock says more likely than not. The EA's warning came seven hours later; the river crossed 37 hours after our call."
+- **2014 (0:00–0:20):** "This is Botley Road in January 2014, replayed hour by hour with only what was known at the time. Ten in the morning on 4 January: River Clock says more likely than not. The EA's warning came nine hours later; the river crossed 39 hours after our call."
 - **The map (0:20–0:32):** "Oxford floods slowly, from upstream: a rise at Enslow reaches Kings Mill about 19 hours later. Each spot is a clock that fills as the chance of flooding rises, with a countdown. It's a prototype, not an official warning."
-- **Nov 2024 (0:32–0:42):** "Here the EA warned about 30 hours before us. We show that too: ahead at Osney and the Cherwell, behind at Botley and Abingdon Road."
-- **Proof footer (0:42–0:55):** "At a one-in-two alarm, 30 of 30 floods with 5 false alarms; the EA's warnings, scored the same way, 24 of 30 with 1."
+- **Nov 2024 (0:32–0:42):** "Here the EA warned about 29 hours before us. We show that too: over all floods we were earlier at 12 of the 19 where both warned."
+- **Proof footer (0:42–0:55):** "At each spot's alarm level, 29 of 30 floods with 6 false alarms; the EA's warnings, scored the same way, 24 of 30 with 1."
 - **Close (0:55–1:00):** "One finding, one model, one baseline, honest proof. Thanks."
 
 Only say numbers that are on the screenshots. If a number isn't there, leave it out.
